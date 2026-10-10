@@ -96,7 +96,7 @@ export async function deleteDiscountCodes(
 // Orphaned codes (discount relation is null) still get deleted locally above
 // but we can't tell which external provider to clean up, so we skip them.
 // Custom providers disable via webhook, so they are not queued.
-export async function enqueueDeleteDiscountCode(
+async function enqueueDeleteDiscountCode(
   discountCodes: EnqueueDeleteDiscountCodeParams[],
 ) {
   const codesWithProvider = discountCodes.filter(

@@ -6,7 +6,7 @@ import { CircleCheck, CircleHalfDottedClock } from "@dub/ui/icons";
 import { formatDateTimeSmart } from "@dub/utils";
 import { PropsWithChildren } from "react";
 
-export type PostbackEventListProps = PropsWithChildren<{
+type PostbackEventListProps = PropsWithChildren<{
   events: PostbackEventProps[];
   onEventClick: (event: PostbackEventProps) => void;
 }>;

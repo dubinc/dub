@@ -284,7 +284,7 @@ export function BarList({
   }
 }
 
-export function LineItem({
+function LineItem({
   icon,
   title,
   value,

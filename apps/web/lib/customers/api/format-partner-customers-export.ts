@@ -7,7 +7,7 @@ import {
 } from "@/lib/zod/schemas/partner-profile";
 import { toCentsNumber } from "@dub/utils";
 
-export type PartnerCustomerForExport = {
+type PartnerCustomerForExport = {
   id: string;
   name: string | null;
   email: string | null;

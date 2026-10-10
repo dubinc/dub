@@ -31,7 +31,7 @@ export const MAX_ADDITIONAL_PARTNER_LINKS = 100;
 
 export const GROUPS_MAX_PAGE_SIZE = 100;
 
-export const additionalPartnerLinkSchema = z.object({
+const additionalPartnerLinkSchema = z.object({
   domain: z
     .string()
     .refine((v) => isValidDomainFormatWithLocalhost(v), {

@@ -247,7 +247,7 @@ async function updateGroupHoldingPeriod({
   }
 }
 
-export function ProgramPayoutSettingsSheet({
+function ProgramPayoutSettingsSheet({
   isOpen,
   ...rest
 }: ProgramPayoutSettingsSheetProps & {

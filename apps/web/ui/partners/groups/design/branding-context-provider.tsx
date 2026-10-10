@@ -16,7 +16,7 @@ type BrandingContextProviderProps = {
   mutateGroup: KeyedMutator<GroupWithProgramProps>;
 };
 
-export const BrandingContext = createContext<
+const BrandingContext = createContext<
   | ({
       isGeneratingLander: boolean;
       setIsGeneratingLander: Dispatch<SetStateAction<boolean>>;

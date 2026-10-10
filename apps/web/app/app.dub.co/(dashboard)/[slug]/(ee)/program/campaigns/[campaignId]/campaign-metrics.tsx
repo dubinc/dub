@@ -115,7 +115,7 @@ function CampaignMetricsLoadingSkeleton() {
   );
 }
 
-export const calculateCampaignPercentages = (summary: CampaignSummary) => {
+const calculateCampaignPercentages = (summary: CampaignSummary) => {
   const { sent, delivered, opened, bounced } = summary;
 
   if (sent === 0) {

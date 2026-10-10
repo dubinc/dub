@@ -38,7 +38,7 @@ export const identifyWebhookReceiver = (url: string): WebhookReceiver => {
  * Hidden events that are already subscribed stay in the webhook's saved
  * triggers; this only affects which checkboxes are rendered.
  */
-export function getVisibleWebhookTriggers(
+function getVisibleWebhookTriggers(
   triggers: readonly WebhookTrigger[],
   subscribedTriggers: readonly WebhookTrigger[] | null | undefined,
 ): WebhookTrigger[] {

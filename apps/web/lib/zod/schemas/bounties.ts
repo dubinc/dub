@@ -231,7 +231,7 @@ export const updateBountySchema = createBountySchema
     startMode: z.enum(BountyStartMode).optional(),
   });
 
-export const BountySubmissionFileSchema = z.object({
+const BountySubmissionFileSchema = z.object({
   url: z.httpUrl().describe("The URL of the uploaded file."),
   fileName: z.string().describe("The original file name."),
   size: z.number().describe("The file size in bytes."),

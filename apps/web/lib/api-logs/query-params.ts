@@ -1,9 +1,9 @@
 import { maskSensitiveValue } from "./mask-sensitive-fields";
 
-export const MAX_QUERY_STRING_LENGTH = 4096;
-export const MAX_QUERY_PARAM_ENTRIES = 100;
-export const MAX_QUERY_PARAM_KEY_LENGTH = 100;
-export const MAX_QUERY_PARAM_VALUE_LENGTH = 1000;
+const MAX_QUERY_STRING_LENGTH = 4096;
+const MAX_QUERY_PARAM_ENTRIES = 100;
+const MAX_QUERY_PARAM_KEY_LENGTH = 100;
+const MAX_QUERY_PARAM_VALUE_LENGTH = 1000;
 
 const SENSITIVE_QUERY_PARAM_KEYS = new Set([
   "token",

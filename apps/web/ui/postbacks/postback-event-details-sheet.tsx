@@ -111,7 +111,7 @@ function PostbackEventDetailsSheetContent({
   );
 }
 
-export function PostbackEventDetailsSheet({
+function PostbackEventDetailsSheet({
   isOpen,
   setIsOpen,
   event,

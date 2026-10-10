@@ -1,13 +1,13 @@
 import { PlatformType, Prisma } from "@prisma/client";
 
 /** Query params shared by `/api/network/partners` and `/count` for listing. */
-export type PartnerNetworkListingParams = {
+type PartnerNetworkListingParams = {
   partnerIds?: string[];
   country?: string;
   platform?: PlatformType;
 };
 
-export type PartnerNetworkListingParts = {
+type PartnerNetworkListingParts = {
   listingPartnerBase: Omit<Prisma.PartnerWhereInput, "platforms">;
   listingPlatformSome?: Prisma.PartnerPlatformWhereInput;
 };

@@ -27,8 +27,6 @@ import {
   SegmentedControl,
 } from "./qr-code-design-fields";
 
-export type { QRCodeDesign };
-
 type LinkQRModalProps = {
   props: QRLinkProps;
   onSave?: (data: QRCodeDesign) => void;

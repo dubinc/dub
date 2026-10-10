@@ -9,11 +9,11 @@ import {
 } from "@/lib/types";
 import { useMemo } from "react";
 
-export type PartnerRewardItem = RewardProps & {
+type PartnerRewardItem = RewardProps & {
   isOverride: boolean;
 };
 
-export type PartnerDiscountItem = DiscountProps & {
+type PartnerDiscountItem = DiscountProps & {
   isOverride: boolean;
 };
 

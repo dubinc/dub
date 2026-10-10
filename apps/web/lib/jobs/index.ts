@@ -14,7 +14,7 @@ import {
 } from "./send-jobs";
 
 // Per-job defaults, merged under per-dispatch options
-export type JobDefaults = Pick<
+type JobDefaults = Pick<
   JobDispatchOptions,
   "retries" | "queue" | "flowControl" | "label"
 >;

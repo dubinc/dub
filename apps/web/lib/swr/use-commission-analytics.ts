@@ -8,7 +8,7 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
-export type CommissionAnalyticsFilterKey = Extract<
+type CommissionAnalyticsFilterKey = Extract<
   keyof CommissionAnalyticsQuery,
   "partnerId" | "groupId" | "partnerTagId" | "type"
 >;

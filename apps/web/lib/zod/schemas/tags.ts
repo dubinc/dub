@@ -42,7 +42,7 @@ export const getTagsCountQuerySchema = getTagsQuerySchema.omit({
 // TODO: Remove "pink" after confirming we don't have any pink tags in the database
 const tagColors = [...RESOURCE_COLORS, "pink"] as const;
 
-export const tagColorSchema = z
+const tagColorSchema = z
   .enum(tagColors, {
     error: `Invalid color. Must be one of: ${tagColors.join(", ")}`,
   })

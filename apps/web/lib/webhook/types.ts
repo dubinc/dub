@@ -33,7 +33,7 @@ export type PartnerApplicationWebhookPayload = z.infer<
   typeof partnerApplicationWebhookSchema
 >;
 
-export type ProgramApplicationWebhookPayload = z.infer<
+type ProgramApplicationWebhookPayload = z.infer<
   typeof programApplicationWebhookSchema
 >;
 

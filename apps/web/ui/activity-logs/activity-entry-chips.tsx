@@ -98,7 +98,7 @@ export function UserChip({ user }: UserChipProps) {
   );
 }
 
-export function ProgramChip({ program }: ProgramChipProps) {
+function ProgramChip({ program }: ProgramChipProps) {
   return (
     <ActivityChip>
       <img
@@ -111,7 +111,7 @@ export function ProgramChip({ program }: ProgramChipProps) {
   );
 }
 
-export function SystemChip() {
+function SystemChip() {
   return (
     <ActivityChip>
       <Bolt className="size-3 text-neutral-500" />

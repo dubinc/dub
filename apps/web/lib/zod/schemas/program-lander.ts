@@ -2,7 +2,7 @@ import * as z from "zod/v4";
 
 const programLanderBlockTitleSchema = z.string().optional();
 
-export const programLanderBlockCommonSchema = z.object({
+const programLanderBlockCommonSchema = z.object({
   id: z.string(),
 });
 
@@ -26,7 +26,7 @@ export const programLanderTextBlockSchema =
     }),
   });
 
-export const programLanderFileSchema = z.object({
+const programLanderFileSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
@@ -85,7 +85,7 @@ export const programLanderSchema = z.object({
 });
 
 // Simpler schemas for AI generation
-export const programLanderSimpleBlockSchema = z.discriminatedUnion("type", [
+const programLanderSimpleBlockSchema = z.discriminatedUnion("type", [
   programLanderImageBlockSchema,
   programLanderTextBlockSchema,
   programLanderAccordionBlockSchema,

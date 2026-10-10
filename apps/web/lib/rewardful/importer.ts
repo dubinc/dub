@@ -10,8 +10,8 @@ export const REWARDFUL_MAX_BATCHES = 10;
 export const REWARDFUL_REFERRALS_MAX_BATCHES = 1;
 
 // cache rewardful credentials for 24 hours
-export const CACHE_EXPIRY = 60 * 60 * 24;
-export const CACHE_KEY_PREFIX = "rewardful:import";
+const CACHE_EXPIRY = 60 * 60 * 24;
+const CACHE_KEY_PREFIX = "rewardful:import";
 
 class RewardfulImporter {
   async setCredentials(workspaceId: string, payload: RewardfulCredentials) {

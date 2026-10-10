@@ -2,7 +2,7 @@ import { stripeAppClient } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
 import type Stripe from "stripe";
 
-export function productIdFromLineItemPrice(
+function productIdFromLineItemPrice(
   price: Stripe.Price | string | null | undefined,
 ): string | null {
   if (!price || typeof price === "string") {

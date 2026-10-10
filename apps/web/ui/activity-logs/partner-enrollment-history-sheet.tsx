@@ -38,7 +38,7 @@ function PartnerEnrollmentHistorySheetContent({
   );
 }
 
-export function PartnerEnrollmentHistorySheet({
+function PartnerEnrollmentHistorySheet({
   isOpen,
   ...rest
 }: PartnerEnrollmentHistorySheetProps) {

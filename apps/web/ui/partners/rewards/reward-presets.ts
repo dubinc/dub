@@ -1,7 +1,7 @@
 import { AIRewardDraft } from "@/lib/ai/ai-reward-schema";
 import { EventType } from "@prisma/client";
 
-export type RewardPreset = {
+type RewardPreset = {
   id: string;
   label: string;
   draft: AIRewardDraft;

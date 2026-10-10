@@ -30,15 +30,13 @@ const createMessageAttachmentInputSchema = (maxBytes: number) =>
     type: z.string().min(1),
   });
 
-export const programMessageAttachmentInputSchema =
-  createMessageAttachmentInputSchema(
-    UPLOAD_POLICIES.programMessageAttachments.maxBytes,
-  );
+const programMessageAttachmentInputSchema = createMessageAttachmentInputSchema(
+  UPLOAD_POLICIES.programMessageAttachments.maxBytes,
+);
 
-export const partnerMessageAttachmentInputSchema =
-  createMessageAttachmentInputSchema(
-    UPLOAD_POLICIES.partnerMessageAttachments.maxBytes,
-  );
+const partnerMessageAttachmentInputSchema = createMessageAttachmentInputSchema(
+  UPLOAD_POLICIES.partnerMessageAttachments.maxBytes,
+);
 
 export type MessageAttachmentInput = z.infer<
   typeof programMessageAttachmentInputSchema

@@ -11,7 +11,7 @@ export const intercomCredentialsSchema = z.object({
   appId: z.string().describe("Intercom workspace ID."),
 });
 
-export const intercomContactSchema = z.object({
+const intercomContactSchema = z.object({
   id: z.string(),
   external_id: z.string().nullable(),
 });
@@ -38,7 +38,7 @@ const intercomHealthCheckResponseSchema = z.discriminatedUnion("state", [
   }),
 ]);
 
-export const intercomAttachmentSchema = z.object({
+const intercomAttachmentSchema = z.object({
   type: z.string(),
   name: z.string(),
   url: z.url(),

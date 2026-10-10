@@ -16,7 +16,7 @@ export function segment(t: number, from: number, to: number) {
   return Math.min(Math.max((t - from) / (to - from), 0), 1);
 }
 
-export function prefersReducedMotion() {
+function prefersReducedMotion() {
   return (
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches

@@ -1,15 +1,15 @@
 import { Prisma } from "@prisma/client";
 import { DubApiError } from "../errors";
 
-export type CommissionMetadataFilterOp = "equals" | "notEquals";
+type CommissionMetadataFilterOp = "equals" | "notEquals";
 
-export type CommissionMetadataFilter = {
+type CommissionMetadataFilter = {
   key: string;
   op: CommissionMetadataFilterOp;
   value: string;
 };
 
-export type ParsedCommissionMetadataQuery = {
+type ParsedCommissionMetadataQuery = {
   logic: "AND" | "OR";
   filters: CommissionMetadataFilter[];
 };

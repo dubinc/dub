@@ -3,7 +3,7 @@ import { EventType } from "@prisma/client";
 
 const REWARD_VERSION_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 
-export function getRewardVersionKey({
+function getRewardVersionKey({
   groupId,
   event,
 }: {

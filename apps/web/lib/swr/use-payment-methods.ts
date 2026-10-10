@@ -3,8 +3,6 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
-export type { WorkspacePaymentMethod };
-
 type PaymentMethodsResponse = {
   paymentMethods: WorkspacePaymentMethod[];
   defaultPaymentMethodId: string | null;

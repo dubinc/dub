@@ -2,7 +2,7 @@ import { stripe } from "@/lib/stripe";
 import Stripe from "stripe";
 import * as z from "zod/v4";
 
-export const bankAccountSchema = z
+const bankAccountSchema = z
   .object({
     account_holder_name: z.string().nullable(),
     bank_name: z.string().nullable(),

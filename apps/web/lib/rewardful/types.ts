@@ -26,7 +26,7 @@ export interface RewardfulCampaign {
   updated_at: string;
 }
 
-export interface RewardfulLink {
+interface RewardfulLink {
   id: string;
   url: string;
   token: string;
@@ -72,7 +72,7 @@ export interface RewardfulReferral {
   stripe_customer_id: string;
 }
 
-export interface RewardfulCommissionSale {
+interface RewardfulCommissionSale {
   id: string;
   currency: string;
   charged_at: string;

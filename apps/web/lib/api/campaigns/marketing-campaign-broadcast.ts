@@ -5,7 +5,7 @@ type MarketingBroadcastCampaign = Pick<
   "type" | "status" | "scheduledAt"
 >;
 
-export function isDueMarketingCampaign({
+function isDueMarketingCampaign({
   campaign,
   now = new Date(),
 }: {

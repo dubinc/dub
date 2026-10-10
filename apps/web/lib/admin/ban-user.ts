@@ -64,9 +64,7 @@ export async function banUser({ email, blockEmailDomain }: BanUserProps) {
   return user;
 }
 
-export async function deleteBannedUser(
-  user: Awaited<ReturnType<typeof banUser>>,
-) {
+async function deleteBannedUser(user: Awaited<ReturnType<typeof banUser>>) {
   const workspacesToDelete = user.projects.map(({ project }) => project);
 
   await Promise.allSettled(

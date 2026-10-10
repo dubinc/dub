@@ -6,7 +6,7 @@ import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
 import * as z from "zod/v4";
 
-export const listEvents: ZodOpenApiOperationObject = {
+const listEvents: ZodOpenApiOperationObject = {
   operationId: "listEvents",
   "x-speakeasy-name-override": "list",
   summary: "List all events",

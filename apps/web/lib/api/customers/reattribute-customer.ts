@@ -672,7 +672,7 @@ export async function transferUnpaidCommissions({
   return { transferred: didUpdate ? transferred : 0 };
 }
 
-export type ClawbackPlan =
+type ClawbackPlan =
   | { skipped: true; reason: "no-old-partner" | "no-paid-earnings" }
   | {
       skipped: false;
@@ -916,16 +916,16 @@ export async function applyClawbackAndReplacementCommissions({
   };
 }
 
-export function sortEventsByTimestamp<
-  T extends Pick<CustomerTBEvent, "timestamp">,
->(events: T[]) {
+function sortEventsByTimestamp<T extends Pick<CustomerTBEvent, "timestamp">>(
+  events: T[],
+) {
   return [...events].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 }
 
 // Finds lead and sale events that don't have a commission yet.
 // Existing commissions are matched by event ID, then invoice ID, then
 // (for sales without an invoice) one per sale, oldest first.
-export function selectUncommissionedEvents<
+function selectUncommissionedEvents<
   T extends Pick<CustomerTBEvent, "timestamp" | "event_id" | "invoice_id"> & {
     event: string;
   },

@@ -313,7 +313,7 @@ function ProgramApplicationSheetForm({
   );
 }
 
-export function ProgramApplicationSheet({
+function ProgramApplicationSheet({
   isOpen,
   nested,
   ...rest

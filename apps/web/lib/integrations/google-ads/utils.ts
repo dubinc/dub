@@ -9,7 +9,7 @@ type GoogleAdsEventMapping = {
   eventNames: string[];
 };
 
-export const findDuplicateMappingEventNames = (
+const findDuplicateMappingEventNames = (
   mappings: Pick<GoogleAdsEventMapping, "eventNames">[],
 ) => {
   const seen = new Set<string>();

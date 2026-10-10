@@ -2,7 +2,7 @@ import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { cn } from "@dub/utils";
 import { forwardRef, InputHTMLAttributes } from "react";
 
-export type AmountType = "flat" | "percentage";
+type AmountType = "flat" | "percentage";
 
 interface AmountInputProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {

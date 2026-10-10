@@ -346,7 +346,7 @@ export interface DomainProps {
   registeredDomain?: RegisteredDomainProps;
 }
 
-export interface RegisteredDomainProps {
+interface RegisteredDomainProps {
   id: string;
   autoRenewalDisabledAt: Date | null;
   createdAt: Date;
@@ -410,7 +410,7 @@ export type OAuthAppWithClientSecret = OAuthAppProps & { clientSecret: string };
 
 export type NewOAuthApp = z.infer<typeof createOAuthAppSchema>;
 
-export type IntegrationProps = z.infer<typeof integrationSchema>;
+type IntegrationProps = z.infer<typeof integrationSchema>;
 
 export type NewOrExistingIntegration = Omit<
   IntegrationProps,
@@ -487,22 +487,22 @@ export type PartnerProfileEarningsResponse = z.infer<
   typeof PartnerProfileEarningsSchema
 >;
 
-export type PartnerProfileTopProgramEarnings = z.infer<
+type PartnerProfileTopProgramEarnings = z.infer<
   typeof PartnerProfileTopProgramEarningsSchema
 >;
 
-export type PartnerProfileTopLinkEarnings = z.infer<
+type PartnerProfileTopLinkEarnings = z.infer<
   typeof PartnerProfileTopLinkEarningsSchema
 >;
 
-export type PartnerProfileEarningsAnalyticsQuery = z.infer<
+type PartnerProfileEarningsAnalyticsQuery = z.infer<
   typeof partnerProfileEarningsAnalyticsQuerySchema
 >;
 
 export type PartnerProfileEarningsAnalyticsGroupBy =
   PartnerProfileEarningsAnalyticsQuery["groupBy"];
 
-export type PartnerProfileTypeEarnings = z.infer<
+type PartnerProfileTypeEarnings = z.infer<
   typeof PartnerProfileTypeEarningsSchema
 >;
 
@@ -833,7 +833,7 @@ export type ActivityLogResourceType = z.infer<
 
 export type ActivityLogAction = z.infer<typeof activityLogActionSchema>;
 
-export type FieldDiff = z.infer<typeof fieldDiffSchema>;
+type FieldDiff = z.infer<typeof fieldDiffSchema>;
 
 export type ChangeSet = Record<string, FieldDiff>;
 

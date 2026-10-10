@@ -396,7 +396,7 @@ function AddDestinationUrlModalContent({
   );
 }
 
-export function AddDestinationUrlModal({
+function AddDestinationUrlModal({
   isOpen,
   setIsOpen,
   link,

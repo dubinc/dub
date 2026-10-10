@@ -12,7 +12,7 @@ import type { WebhookTrigger } from "./types";
 import { WebhookEventPayload } from "./types";
 import { identifyWebhookReceiver } from "./utils";
 
-export type WebhookEnqueueResult = {
+type WebhookEnqueueResult = {
   webhookId: string;
   ok: boolean;
   messageId?: string;

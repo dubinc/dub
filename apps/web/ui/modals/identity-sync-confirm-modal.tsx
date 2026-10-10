@@ -12,7 +12,7 @@ export type IdentitySyncSnapshot = {
   id?: string | null;
 };
 
-export function getIdentityDisplayFields(changedFields: IdentitySyncField[]) {
+function getIdentityDisplayFields(changedFields: IdentitySyncField[]) {
   const has = (field: IdentitySyncField) => changedFields.includes(field);
 
   return {
@@ -79,7 +79,7 @@ function IdentitySyncPreviewRow({
   );
 }
 
-export function IdentitySyncConfirmContent({
+function IdentitySyncConfirmContent({
   intro,
   changedFields,
   current,

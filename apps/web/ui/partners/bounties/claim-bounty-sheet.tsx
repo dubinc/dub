@@ -682,7 +682,7 @@ function ClaimBountySheetContent({
   );
 }
 
-export function ClaimBountySheet({
+function ClaimBountySheet({
   bounty,
   isOpen,
   setIsOpen,
