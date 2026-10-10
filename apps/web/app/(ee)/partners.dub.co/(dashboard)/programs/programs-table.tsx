@@ -296,15 +296,15 @@ function ProgramActivity({
   const data = usePartnerProgramActivity(programEnrollment.programId);
 
   return (
-    <Tooltip content="View analytics">
+    <Tooltip content="View last 12 months earnings">
       <Link
-        href={`/programs/${programEnrollment.program.slug}/analytics`}
+        href={`/programs/${programEnrollment.program.slug}/earnings?interval=1y`}
         onClick={(e) => e.stopPropagation()}
         className="-ml-1.5 block w-fit rounded-md px-1.5 py-0.5 transition-colors hover:bg-neutral-100"
       >
         <div className="h-6 w-36">
           {data && (
-            <MiniAreaChart data={data} padding={{ top: 2, bottom: 2 }} fadeIn />
+            <MiniAreaChart data={data} padding={{ top: 4, bottom: 2 }} fadeIn />
           )}
         </div>
       </Link>
