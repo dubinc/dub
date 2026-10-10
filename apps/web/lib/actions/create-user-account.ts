@@ -88,15 +88,25 @@ export const createUserAccountAction = actionClient
     });
 
     if (!user) {
+      const userId = createId({ prefix: "user_" });
+      const passwordHash = await hashPassword(password);
+
       await prisma.user.create({
         data: {
-          id: createId({ prefix: "user_" }),
+          id: userId,
           email,
-          passwordHash: await hashPassword(password),
+          passwordHash,
           emailVerified: new Date(),
           emailVerifiedBa: true,
           notificationPreferences: {
             create: {},
+          },
+          accounts: {
+            create: {
+              accountId: userId,
+              providerId: "credential",
+              password: passwordHash,
+            },
           },
         },
       });
