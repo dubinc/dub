@@ -31,6 +31,7 @@ export const publishDiscountCodesCreationJob = defineJob({
                 id: true,
                 stripeConnectId: true,
                 shopifyStoreId: true,
+                environment: true,
               },
             },
           },

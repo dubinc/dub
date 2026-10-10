@@ -26,6 +26,7 @@ export const POST = withCron(async ({ rawBody }) => {
       id: true,
       stripeConnectId: true,
       shopifyStoreId: true,
+      environment: true,
     },
   });
 

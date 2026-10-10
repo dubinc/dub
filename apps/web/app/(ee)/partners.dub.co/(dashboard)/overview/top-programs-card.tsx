@@ -1,6 +1,7 @@
 "use client";
 
 import { testIds } from "@/lib/e2e/test-ids";
+import { ProgramLogo } from "@/ui/partners/program-logo";
 import { GridIcon } from "@dub/ui/icons";
 import { cn, currencyFormatter } from "@dub/utils";
 import Link from "next/link";
@@ -8,7 +9,6 @@ import {
   OVERVIEW_CARD_ROW_CLASSNAME,
   OverviewCard,
   OverviewCardList,
-  ProgramLogo,
 } from "./overview-card";
 import { useTopProgramEarnings } from "./use-top-program-earnings";
 

@@ -3,11 +3,15 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
 import { verifyDomainWithRetry } from "@/lib/api/domains/verify-domain";
 import { withWorkspace } from "@/lib/auth";
-import { discoverDomainConnectIfEligible } from "@/lib/domain-connect/discover";
+import { DEFAULT_DC_SERVICE_SUBDOMAIN } from "@/lib/domain-connect/constants";
+import {
+  discoverDomainConnectIfEligible,
+  fetchDomainConnectTemplateVersion,
+} from "@/lib/domain-connect/discover";
 import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import { prisma } from "@/lib/prisma";
 import { DomainVerificationStatusProps } from "@/lib/types";
-import { getApexDomain } from "@dub/utils";
+import { getApexDomain, getSubdomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const maxDuration = 30;
@@ -98,8 +102,22 @@ export const GET = withWorkspace(
         });
       }
 
-      const domainConnect: DomainConnectDiscovery | null =
+      let domainConnect: DomainConnectDiscovery | null =
         await discoverDomainConnectIfEligible(apex, status);
+
+      // links-subdomain v1 cannot write the ownership TXT at _vercel.<apex>.
+      // Vercel still serves that version, so skip auto-configure until it is v2.
+      if (
+        domainConnect?.providerKind === "vercel" &&
+        domainConnect.urlAPI &&
+        getSubdomain(domain.toLowerCase(), apex)
+      ) {
+        const version = await fetchDomainConnectTemplateVersion(
+          domainConnect.urlAPI,
+          DEFAULT_DC_SERVICE_SUBDOMAIN,
+        );
+        if (version !== undefined && version < 2) domainConnect = null;
+      }
 
       return NextResponse.json({
         status,

@@ -30,6 +30,16 @@ const jobLoaders = {
       (m) => m.createTremendousCampaignJob,
     ),
 
+  "create-staging-workspace-job": () =>
+    import("./handlers/create-staging-workspace-job").then(
+      (m) => m.createStagingWorkspaceJob,
+    ),
+
+  "sync-staging-workspace-job": () =>
+    import("./handlers/sync-staging-workspace-job").then(
+      (m) => m.syncStagingWorkspaceJob,
+    ),
+
   "sync-group-utm-job": () =>
     import("./handlers/sync-group-utm-job").then((m) => m.syncGroupUtmJob),
 

@@ -3,13 +3,15 @@
 import { testIds } from "@/lib/e2e/test-ids";
 import { useProgramMessagesCount } from "@/lib/messages/hooks/use-program-messages-count";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
-import { type Icon } from "@dub/ui";
+import { useMediaQuery, type Icon } from "@dub/ui";
 import { Msgs, UserCheck } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { OverviewCard } from "./overview-card";
 
 export function TasksCard() {
+  const { isMobile } = useMediaQuery();
+
   const { count: unreadMessagesCount } = useProgramMessagesCount({
     query: { unread: true },
   });
@@ -18,21 +20,36 @@ export function TasksCard() {
     status: "invited",
   });
 
+  const tasks = [
+    {
+      icon: Msgs,
+      label: "Respond to programs",
+      href: "/messages",
+      count: unreadMessagesCount ?? 0,
+    },
+    {
+      icon: UserCheck,
+      label: "Review new invitations",
+      href: "/programs?tab=invitations",
+      count: invitationsCount ?? 0,
+    },
+  ];
+
+  // only on mobile: hide the card when no action is needed
+  // so that Recent payouts fills the column
+  const incompleteTasks = tasks.filter(
+    (task): task is typeof task & { count: number } => !!task.count,
+  );
+  if (incompleteTasks.length === 0 && isMobile) {
+    return null;
+  }
+
   return (
     <OverviewCard title="Tasks" testId={testIds.partnerOverview.tasks}>
       <div className="flex flex-col px-2 pb-2">
-        <TaskRow
-          icon={Msgs}
-          label="Respond to programs"
-          href="/messages"
-          count={unreadMessagesCount}
-        />
-        <TaskRow
-          icon={UserCheck}
-          label="Review new invitations"
-          href="/programs/invitations"
-          count={invitationsCount}
-        />
+        {tasks.map((task) => (
+          <TaskRow key={task.href} {...task} />
+        ))}
       </div>
     </OverviewCard>
   );
@@ -47,7 +64,7 @@ function TaskRow({
   icon: Icon;
   label: string;
   href: string;
-  count?: number;
+  count: number;
 }) {
   return (
     <Link
@@ -60,20 +77,14 @@ function TaskRow({
       <span className="text-content-emphasis min-w-0 grow truncate text-sm font-semibold">
         {label}
       </span>
-      {count === undefined ? (
-        <div className="size-8 shrink-0 animate-pulse rounded-lg bg-neutral-200" />
-      ) : (
-        <div
-          className={cn(
-            "flex h-8 min-w-8 shrink-0 items-center justify-center rounded-lg px-1.5 text-sm font-semibold",
-            count > 0
-              ? "bg-blue-50 text-blue-600"
-              : "bg-neutral-100 text-neutral-400",
-          )}
-        >
-          {count}
-        </div>
-      )}
+      <div
+        className={cn(
+          "flex h-8 min-w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 px-1.5 text-sm font-semibold text-blue-600",
+          count === 0 && "bg-neutral-100 text-neutral-500",
+        )}
+      >
+        {nFormatter(count, { full: true })}
+      </div>
     </Link>
   );
 }

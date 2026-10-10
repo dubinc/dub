@@ -2,6 +2,7 @@
 
 import { testIds } from "@/lib/e2e/test-ids";
 import { usePartnerProfileEarningsAnalytics } from "@/lib/swr/use-partner-profile-earnings";
+import { ProgramLogo } from "@/ui/partners/program-logo";
 import { Hyperlink } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl } from "@dub/utils";
 import Link from "next/link";
@@ -9,7 +10,6 @@ import {
   OVERVIEW_CARD_ROW_CLASSNAME,
   OverviewCard,
   OverviewCardList,
-  ProgramLogo,
 } from "./overview-card";
 import { useOverviewDateRange } from "./use-overview-date-range";
 
