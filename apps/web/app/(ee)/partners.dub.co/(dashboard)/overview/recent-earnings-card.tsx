@@ -4,6 +4,7 @@ import { testIds } from "@/lib/e2e/test-ids";
 import { usePartnerProfileEarnings } from "@/lib/swr/use-partner-profile-earnings";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
+import { ProgramLogo } from "@/ui/partners/program-logo";
 import { StatusBadge } from "@dub/ui";
 import { InvoiceDollar } from "@dub/ui/icons";
 import { cn, currencyFormatter, formatDate } from "@dub/utils";
@@ -12,7 +13,6 @@ import {
   OVERVIEW_CARD_ROW_CLASSNAME,
   OverviewCard,
   OverviewCardList,
-  ProgramLogo,
 } from "./overview-card";
 import { useOverviewDateRange } from "./use-overview-date-range";
 

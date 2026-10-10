@@ -103,8 +103,9 @@ export const bulkRejectProgramApplicationsAction = authActionClient
     );
 
     // Every pending application is rejected. Approved partners are applying to
-    // join another group, and banned/deactivated/archived partners were already
-    // removed, so their enrollment is left untouched
+    // join another group: their enrollment stays approved and records the
+    // standard reapplication timeframe. Banned, deactivated, and archived
+    // enrollments are left untouched.
     const reviews = programApplications.map((application) => {
       const enrollment = enrollmentsByPartnerId.get(application.partnerId!);
 
@@ -123,6 +124,9 @@ export const bulkRejectProgramApplicationsAction = authActionClient
         application,
         partnerId: application.partnerId!,
         enrollmentToReject: isNewApplication ? enrollment : undefined,
+        approvedEnrollmentId: isApplyingToAdditionalGroup
+          ? enrollment?.id
+          : undefined,
         isNewApplication,
         isApplyingToAdditionalGroup,
         shouldEmailPartner,
@@ -131,6 +135,10 @@ export const bulkRejectProgramApplicationsAction = authActionClient
 
     const enrollmentIdsToReject = reviews.flatMap(({ enrollmentToReject }) =>
       enrollmentToReject ? [enrollmentToReject.id] : [],
+    );
+
+    const approvedEnrollmentIds = reviews.flatMap(({ approvedEnrollmentId }) =>
+      approvedEnrollmentId ? [approvedEnrollmentId] : [],
     );
 
     const newApplicationPartnerIds = reviews
@@ -161,6 +169,30 @@ export const bulkRejectProgramApplicationsAction = authActionClient
           message:
             "Some of the selected applications were already reviewed. Refresh and try again.",
         });
+      }
+
+      // Keep approved enrollments approved and store the standard timeframe
+      if (approvedEnrollmentIds.length > 0) {
+        const { count: updatedApprovedEnrollmentsCount } =
+          await tx.programEnrollment.updateMany({
+            where: {
+              id: {
+                in: approvedEnrollmentIds,
+              },
+              status: ProgramEnrollmentStatus.approved,
+            },
+            data: {
+              reapplicationTimeframe: "standard",
+            },
+          });
+
+        if (updatedApprovedEnrollmentsCount !== approvedEnrollmentIds.length) {
+          throw new DubApiError({
+            code: "conflict",
+            message:
+              "Some of the selected partners changed status. Refresh and try again.",
+          });
+        }
       }
 
       if (enrollmentIdsToReject.length === 0) {

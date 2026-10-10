@@ -144,6 +144,7 @@ export * from "./input-password";
 export * from "./input-password-pointer";
 export * from "./input-search";
 export * from "./invoice-dollar";
+export * from "./isolated-cube";
 export * from "./key";
 export * from "./layers-3";
 export * from "./layout-sidebar";

@@ -121,8 +121,7 @@ const PROGRAMS_CONTENT = ({
         name: "Programs",
         icon: GridIcon,
         href: "/programs",
-        isActive: (pathname, href) =>
-          pathname.startsWith(href) && pathname !== "/programs/invitations",
+        badge: invitationsCount || undefined,
       },
       {
         name: "Marketplace",
@@ -130,12 +129,6 @@ const PROGRAMS_CONTENT = ({
         href: "/marketplace",
         isActive: (pathname) => pathname.startsWith("/marketplace"),
         badge: "New",
-      },
-      {
-        name: "Invitations",
-        icon: UserCheck,
-        href: "/programs/invitations",
-        badge: invitationsCount || undefined,
       },
     ],
   },
@@ -151,11 +144,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
 
   marketplace: ({ isMobile, invitationsCount }) => ({
     title: <PartnerProgramDropdown />,
-    content: isMobile ? (
-      PROGRAMS_CONTENT({ invitationsCount })
-    ) : (
-      <MarketplaceSidebarFilters />
-    ),
+    content: isMobile
+      ? PROGRAMS_CONTENT({ invitationsCount })
+      : <MarketplaceSidebarFilters />,
     direction: "right",
   }),
 
@@ -379,10 +370,6 @@ export function PartnersSidebarNav({
               : "programs";
   }, [pathname, isEnrolledProgramPage, isMarketplaceFilterSidebarPage]);
 
-  const { count: invitationsCount } = useProgramEnrollmentsCount({
-    status: "invited",
-  });
-
   const isUnapproved = useMemo(
     () =>
       !!programEnrollment &&
@@ -397,6 +384,10 @@ export function PartnersSidebarNav({
       isEnrolledProgramPage && programEnrollment && !isUnapproved
         ? true
         : false,
+  });
+
+  const { count: invitationsCount } = useProgramEnrollmentsCount({
+    status: "invited",
   });
 
   const { count: unreadMessagesCount } = useProgramMessagesCount({

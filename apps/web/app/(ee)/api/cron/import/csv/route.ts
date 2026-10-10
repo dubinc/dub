@@ -14,12 +14,12 @@ import {
   APP_DOMAIN_WITH_NGROK,
   DEFAULT_LINK_PROPS,
   DUB_DOMAINS_ARRAY,
+  getUrlObjFromString,
   linkConstructorSimple,
   log,
   normalizeString,
   parseDateTime,
 } from "@dub/utils";
-import { getUrlObjFromString } from "@dub/utils/src";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 import { sendCsvImportEmails } from "./utils";

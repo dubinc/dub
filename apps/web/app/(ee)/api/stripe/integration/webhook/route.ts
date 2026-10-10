@@ -114,6 +114,7 @@ export const POST = withAxiom(async (req: Request) => {
       stripeConnectId: true,
       defaultProgramId: true,
       webhookEnabled: true,
+      environment: true,
     },
   });
 
@@ -123,6 +124,8 @@ export const POST = withAxiom(async (req: Request) => {
       response: `Workspace not found for Stripe account ${event.account}, skipping...`,
     });
   }
+
+  console.log("Workspace found", workspace);
 
   let result: WebhookHandlerResponse = {
     response: "OK",
