@@ -37,8 +37,8 @@ export default function PartnerOverviewPage() {
         </div>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <TopProgramsCard />
-          <TopLinksCard />
           <RecentEarningsCard />
+          <TopLinksCard />
         </div>
       </PageWidthWrapper>
     </PageContent>

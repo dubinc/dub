@@ -1,3 +1,4 @@
+import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { BlurImage, Button, Combobox } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -29,9 +30,10 @@ export function WorkspaceSelector({
       return [];
     }
 
-    return workspaces.filter(
-      (workspace) =>
-        !environments || environments.includes(workspace.environment),
+    return workspaces.filter((workspace) =>
+      environments
+        ? environments.includes(workspace.environment)
+        : !isStagingEnvironment(workspace.environment),
     );
   }, [workspaces, environments]);
 

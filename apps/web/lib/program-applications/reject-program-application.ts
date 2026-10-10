@@ -109,8 +109,8 @@ export async function rejectProgramApplication({
     });
   }
 
-  // Approved partners are applying to join another group, so only the
-  // application is rejected and their enrollment is left untouched
+  // Approved partners are applying to join another group, so the enrollment
+  // stays approved. The timeframe is stored on it and checked on the next apply.
   const isApplyingToAdditionalGroup =
     existingEnrollment?.status === ProgramEnrollmentStatus.approved;
 
@@ -155,6 +155,28 @@ export async function rejectProgramApplication({
           reason: flagForFraudReason,
         },
       });
+    }
+
+    // Keep the enrollment approved and store the timeframe
+    if (isApplyingToAdditionalGroup && existingEnrollment) {
+      const { count } = await tx.programEnrollment.updateMany({
+        where: {
+          id: existingEnrollment.id,
+          status: ProgramEnrollmentStatus.approved,
+        },
+        data: {
+          reapplicationTimeframe,
+        },
+      });
+
+      if (count === 0) {
+        throw new DubApiError({
+          code: "conflict",
+          message: "This partner changed status. Refresh and try again.",
+        });
+      }
+
+      return;
     }
 
     if (!isNewApplication) {

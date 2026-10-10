@@ -1,5 +1,4 @@
 import { createId } from "@/lib/api/create-id";
-import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { createLink } from "@/lib/api/links";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
@@ -9,7 +8,7 @@ import { generateRandomString } from "../api/utils/generate-random-string";
 import { createWorkspaceId } from "../api/workspaces/create-workspace-id";
 import { STAGING_DUB_DOMAIN_SUFFIX } from "./constants";
 import { isProductionEnvironment } from "./environment";
-import { withStagingSlugRetry } from "./staging-slug";
+import { getPreferredStagingSlug } from "./staging-slug";
 
 export async function createStagingWorkspace(workspaceId: string) {
   const workspace = await prisma.project.findUnique({
@@ -75,55 +74,53 @@ export async function createStagingWorkspace(workspaceId: string) {
     workspace.stagingWorkspaceId ?? createWorkspaceId();
 
   if (!workspace.stagingWorkspaceId) {
-    await withStagingSlugRetry(workspace.slug, (stagingSlug) =>
-      prisma.$transaction(async (tx) => {
-        await tx.project.create({
-          data: {
-            id: stagingWorkspaceId,
-            name: `${workspace.name} (Staging)`,
-            slug: stagingSlug,
-            logo: workspace.logo,
-            environment: WorkspaceEnvironment.staging,
-            plan: workspace.plan,
-            defaultProduct: "program",
-            billingCycleStart: new Date().getDate(),
-            invoicePrefix: generateRandomString(8),
-            // Staging workspace will uses the trial limits
-            usageLimit: TRIAL_LIMITS.clicks,
-            linksLimit: TRIAL_LIMITS.links,
-            domainsLimit: TRIAL_LIMITS.domains,
-            aiLimit: TRIAL_LIMITS.ai,
-            tagsLimit: TRIAL_LIMITS.tags,
-            foldersLimit: TRIAL_LIMITS.folders,
-            usersLimit: TRIAL_LIMITS.users,
-            partnersLimit: TRIAL_LIMITS.partners,
-            payoutsLimit: TRIAL_LIMITS.payouts,
-            partnerTagsLimit: TRIAL_LIMITS.partnerTags,
-            groupsLimit: TRIAL_LIMITS.groups,
-            networkInvitesLimit: TRIAL_LIMITS.networkInvites,
-            defaultDomains: {
-              create: {},
-            },
+    await prisma.$transaction(async (tx) => {
+      await tx.project.create({
+        data: {
+          id: stagingWorkspaceId,
+          name: `${workspace.name} (Staging)`,
+          slug: getPreferredStagingSlug(workspace.slug),
+          logo: workspace.logo,
+          environment: WorkspaceEnvironment.staging,
+          plan: workspace.plan,
+          defaultProduct: "program",
+          billingCycleStart: new Date().getDate(),
+          invoicePrefix: generateRandomString(8),
+          // Staging workspace will uses the trial limits
+          usageLimit: TRIAL_LIMITS.clicks,
+          linksLimit: TRIAL_LIMITS.links,
+          domainsLimit: TRIAL_LIMITS.domains,
+          aiLimit: TRIAL_LIMITS.ai,
+          tagsLimit: TRIAL_LIMITS.tags,
+          foldersLimit: TRIAL_LIMITS.folders,
+          usersLimit: TRIAL_LIMITS.users,
+          partnersLimit: TRIAL_LIMITS.partners,
+          payoutsLimit: TRIAL_LIMITS.payouts,
+          partnerTagsLimit: TRIAL_LIMITS.partnerTags,
+          groupsLimit: TRIAL_LIMITS.groups,
+          networkInvitesLimit: TRIAL_LIMITS.networkInvites,
+          defaultDomains: {
+            create: {},
           },
-        });
+        },
+      });
 
-        const { count } = await tx.project.updateMany({
-          where: {
-            id: workspace.id,
-            stagingWorkspaceId: null,
-          },
-          data: {
-            stagingWorkspaceId,
-          },
-        });
+      const { count } = await tx.project.updateMany({
+        where: {
+          id: workspace.id,
+          stagingWorkspaceId: null,
+        },
+        data: {
+          stagingWorkspaceId,
+        },
+      });
 
-        if (count === 0) {
-          throw new Error(
-            `Staging workspace already exist for the workspace ${workspace.id}`,
-          );
-        }
-      }),
-    );
+      if (count === 0) {
+        throw new Error(
+          `Staging workspace already exist for the workspace ${workspace.id}`,
+        );
+      }
+    });
   }
 
   // Copy non-machine users to the staging workspace
@@ -164,20 +161,9 @@ export async function createStagingWorkspace(workspaceId: string) {
     );
   }
 
+  // The `*.staging.dub.link` wildcard on the Vercel project serves this host,
+  // so the domain only needs a database row.
   const domain = `${workspace.slug}${STAGING_DUB_DOMAIN_SUFFIX}`;
-
-  if (process.env.VERCEL === "1") {
-    const vercelResponse = await addDomainToVercel(domain);
-
-    if (
-      vercelResponse.error &&
-      vercelResponse.error.code !== "domain_already_in_use"
-    ) {
-      throw new Error(
-        `Failed to add staging domain ${domain} to Vercel: ${JSON.stringify(vercelResponse.error)}`,
-      );
-    }
-  }
 
   const existingDomain = await prisma.domain.findUnique({
     where: {

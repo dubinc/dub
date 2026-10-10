@@ -5,7 +5,6 @@ import { getGroupSubmittedLeadForm } from "@/lib/submitted-leads/get-group-submi
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { MarketplaceSidebarFilters } from "@/ui/program-marketplace/marketplace-sidebar-filters";
 import { ProgramMarketplaceCard } from "@/ui/program-marketplace/program-marketplace-card";
 import { isMarketplaceFilterSidebarPath } from "@/ui/program-marketplace/utils/urls";
@@ -54,7 +53,6 @@ type SidebarNavData = {
   isMobile?: boolean;
   programSlug?: string;
   isUnapproved: boolean;
-  invitationsCount?: number;
   unreadMessagesCount?: number;
   programBountiesCount?: number;
   showDetailedAnalytics?: boolean;
@@ -105,11 +103,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   },
 ];
 
-const PROGRAMS_CONTENT = ({
-  invitationsCount,
-}: {
-  invitationsCount?: number;
-}): { items: NavItemType[] }[] => [
+const PROGRAMS_CONTENT = (): { items: NavItemType[] }[] => [
   {
     items: [
       {
@@ -121,8 +115,6 @@ const PROGRAMS_CONTENT = ({
         name: "Programs",
         icon: GridIcon,
         href: "/programs",
-        isActive: (pathname, href) =>
-          pathname.startsWith(href) && pathname !== "/programs/invitations",
       },
       {
         name: "Marketplace",
@@ -131,31 +123,21 @@ const PROGRAMS_CONTENT = ({
         isActive: (pathname) => pathname.startsWith("/marketplace"),
         badge: "New",
       },
-      {
-        name: "Invitations",
-        icon: UserCheck,
-        href: "/programs/invitations",
-        badge: invitationsCount || undefined,
-      },
     ],
   },
 ];
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
-  programs: ({ invitationsCount }) => ({
+  programs: () => ({
     title: <PartnerProgramDropdown />,
-    content: PROGRAMS_CONTENT({ invitationsCount }),
+    content: PROGRAMS_CONTENT(),
     direction: "left",
   }),
 
-  marketplace: ({ isMobile, invitationsCount }) => ({
+  marketplace: ({ isMobile }) => ({
     title: <PartnerProgramDropdown />,
-    content: isMobile ? (
-      PROGRAMS_CONTENT({ invitationsCount })
-    ) : (
-      <MarketplaceSidebarFilters />
-    ),
+    content: isMobile ? PROGRAMS_CONTENT() : <MarketplaceSidebarFilters />,
     direction: "right",
   }),
 
@@ -379,10 +361,6 @@ export function PartnersSidebarNav({
               : "programs";
   }, [pathname, isEnrolledProgramPage, isMarketplaceFilterSidebarPage]);
 
-  const { count: invitationsCount } = useProgramEnrollmentsCount({
-    status: "invited",
-  });
-
   const isUnapproved = useMemo(
     () =>
       !!programEnrollment &&
@@ -447,7 +425,6 @@ export function PartnersSidebarNav({
         isMobile,
         programSlug: programSlug || "",
         isUnapproved,
-        invitationsCount,
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
         showDetailedAnalytics,
