@@ -8,8 +8,6 @@ export type RewardOverrideIds = Pick<
 export type RewardOverrideIdsInput = Partial<RewardOverrideIds>;
 export type EnrollmentRewardIds = RewardOverrideIds;
 export type EnrollmentRewardIdsInput = RewardOverrideIdsInput;
-export type LinkRewardIds = RewardOverrideIds;
-export type LinkRewardIdsInput = RewardOverrideIdsInput;
 
 export const REWARD_OVERRIDE_ID_KEYS = [
   "clickRewardId",

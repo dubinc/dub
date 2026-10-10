@@ -1,6 +1,5 @@
 import { DubPartnersLogo } from "@/ui/dub-partners-logo";
 import { Program } from "@prisma/client";
-import Link from "next/link";
 import { ProgramLogos } from "./program-logos";
 
 export function SidePanel({

@@ -29,30 +29,6 @@ export const plainEmptyContainer = (text: string) =>
     ],
   });
 
-export const plainTextSection = ({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) =>
-  uiComponent.row({
-    mainContent: [
-      uiComponent.text({
-        text: label,
-        size: "M",
-        color: "MUTED",
-      }),
-    ],
-    asideContent: [
-      uiComponent.text({
-        text: value,
-        size: "M",
-        color: "NORMAL",
-      }),
-    ],
-  });
-
 export const plainCopySection = ({
   label,
   value,

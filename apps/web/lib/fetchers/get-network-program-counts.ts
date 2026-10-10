@@ -170,7 +170,3 @@ export const getNetworkProgramCounts = cache(
     };
   },
 );
-
-export type NetworkProgramCounts = Awaited<
-  ReturnType<typeof getNetworkProgramCounts>
->;

@@ -3,7 +3,6 @@ import {
   tapfiliateCommissionSchema,
   tapfiliateConversionSchema,
   tapfiliateCustomerSchema,
-  tapfiliateGroupSchema,
   tapfiliateImportPayloadSchema,
   tapfiliatePartnerSchema,
   tapfiliateProgramSchema,
@@ -18,8 +17,6 @@ export type TapfiliateImportPayload = z.infer<
 >;
 
 export type TapfiliateProgram = z.infer<typeof tapfiliateProgramSchema>;
-
-export type TapfiliateGroup = z.infer<typeof tapfiliateGroupSchema>;
 
 export type TapfiliatePartner = z.infer<typeof tapfiliatePartnerSchema>;
 

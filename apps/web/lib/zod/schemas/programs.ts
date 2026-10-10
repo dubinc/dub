@@ -1,7 +1,3 @@
-import {
-  DATE_RANGE_INTERVAL_PRESETS,
-  DUB_PARTNERS_ANALYTICS_INTERVAL,
-} from "@/lib/analytics/constants";
 import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { COUNTRY_CODES } from "@dub/utils";
 import {
@@ -21,7 +17,7 @@ import { programInviteEmailDataSchema } from "./program-invite-email";
 import { RewardSchema } from "./rewards";
 import { submittedLeadFormSchema } from "./submitted-lead-form";
 import { UserSchema } from "./users";
-import { centsSchemaWithDefault, parseDateSchema } from "./utils";
+import { centsSchemaWithDefault } from "./utils";
 
 export const eligibilityConditionSchema = z
   .object({
@@ -214,35 +210,6 @@ export const ProgramEnrollmentSchema = z.object({
     "Linked program application, including review outcome when applicable.",
   ),
   riskMonitoringDisabledAt: z.date().nullable(),
-});
-
-export const ProgramInviteSchema = z.object({
-  id: z.string(),
-  email: z.string(),
-  shortLink: z.string(),
-  createdAt: z.date(),
-});
-
-export const getProgramMetricsQuerySchema = z.object({
-  interval: z
-    .enum(DATE_RANGE_INTERVAL_PRESETS)
-    .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
-  start: parseDateSchema.optional(),
-  end: parseDateSchema.optional(),
-});
-
-export const PartnerProgramInviteSchema = z.object({
-  id: z.string(),
-  email: z.string(),
-  program: ProgramSchema,
-  reward: RewardSchema.nullable(),
-});
-
-export const ProgramMetricsSchema = z.object({
-  partnersCount: z.number(),
-  commissionsCount: z.number(),
-  commissions: z.number(),
-  payouts: z.number(),
 });
 
 export const createProgramApplicationSchema = z.object({

@@ -20,9 +20,6 @@ export const MARKETPLACE_ENROLLMENT_STATUSES = {
   deactivated: "Deactivated",
 } as const;
 
-export type MarketplaceEnrollmentStatus =
-  keyof typeof MARKETPLACE_ENROLLMENT_STATUSES;
-
 export const MARKETPLACE_SORT_OPTIONS = [
   {
     icon: Star,

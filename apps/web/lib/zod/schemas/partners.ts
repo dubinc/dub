@@ -519,10 +519,6 @@ export const PartnerSchema = z
   .extend(OldPartnerPlatformsFields.shape)
   .extend(PartnerProfileDetailsSchema.partial().shape);
 
-export const PartnerWithProfileSchema = PartnerSchema.extend(
-  PartnerProfileDetailsSchema.shape,
-);
-
 export const PartnerRewindSchema = z.object({
   id: z.string(),
   partnerId: z.string(),
@@ -681,12 +677,6 @@ export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
   totalCommissions: centsSchemaWithDefault,
 });
-
-export const getPartnerCustomersQuerySchema = z
-  .object({
-    search: z.string().optional(),
-  })
-  .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const createPartnerSchema = z.object({
   name: z
