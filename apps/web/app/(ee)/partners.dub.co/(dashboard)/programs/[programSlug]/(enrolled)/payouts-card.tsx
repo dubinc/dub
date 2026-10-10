@@ -5,11 +5,12 @@ import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutStatusBadgePartner } from "@/ui/partners/payout-status-badge-partner";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { ProgramLogo } from "@/ui/partners/program-logo";
 import { CircleWarning, MoneyBills2, TimestampTooltip } from "@dub/ui";
 import { cn, currencyFormatter, formatDateSmart, formatPeriod } from "@dub/utils";
 import Link from "next/link";
 import { useState } from "react";
-import { ProgramLogo, ViewAllButton } from "../../../overview/overview-card";
+import { ViewAllButton } from "../../../overview/overview-card";
 import { PayoutDetailsSheet } from "../../../payouts/partner-payout-details-sheet";
 
 export function PayoutsCard({

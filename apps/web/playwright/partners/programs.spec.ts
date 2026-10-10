@@ -1,11 +1,9 @@
 import { createId } from "@/lib/api/create-id";
-import { testIds } from "@/lib/e2e/test-ids";
 import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
 import { expect, test } from "@playwright/test";
 import { deletePartner } from "../api/partners/helpers";
 import { TEST_WORKSPACE } from "../api/setup-test-workspace";
-import { env } from "../env";
 import { createPartnerUser, logIn } from "./helpers";
 
 // The shared partner storage state is a new signup that has not finished
@@ -17,21 +15,11 @@ test.use({
   },
 });
 
-test.describe("Partner All programs Overview", () => {
-  test("renders every Overview card", async ({ page }) => {
-    await logIn(page, env.E2E_PARTNER_EMAIL, env.E2E_PARTNER_PASSWORD);
-    await page.goto("/overview");
-
-    // Tasks shows only when an action is needed, see the next test
-    const { tasks: _, ...cards } = testIds.partnerOverview;
-
-    for (const testId of Object.values(cards)) {
-      await expect(page.getByTestId(testId)).toBeVisible();
-    }
-  });
-
-  test("shows Tasks only when an action is needed", async ({ page }) => {
-    const email = `overview-tasks-${nanoid(8).toLowerCase()}@dub-internal-test.com`;
+test.describe("Partner Programs page", () => {
+  test("shows each status in its tab, in the grid and the table", async ({
+    page,
+  }) => {
+    const email = `programs-tabs-${nanoid(8).toLowerCase()}@dub-internal-test.com`;
     const password = "Password123";
     let partnerId: string | undefined;
     let userId: string | undefined;
@@ -39,7 +27,7 @@ test.describe("Partner All programs Overview", () => {
     try {
       const program = await prisma.program.findUniqueOrThrow({
         where: { slug: TEST_WORKSPACE.workspace.slug },
-        select: { id: true, defaultGroupId: true },
+        select: { id: true, name: true, defaultGroupId: true },
       });
 
       ({ partnerId, userId } = await createPartnerUser({ email, password }));
@@ -55,46 +43,53 @@ test.describe("Partner All programs Overview", () => {
       });
 
       await logIn(page, email, password);
-      await page.goto("/overview");
 
-      const tasks = page.getByTestId(testIds.partnerOverview.tasks);
-      await expect(tasks).toBeVisible();
-      await expect(tasks.getByText("Review new invitations")).toBeVisible();
-      await expect(tasks.getByText("Respond to programs")).toHaveCount(0);
+      // the old Invitations page redirects to the Invitations tab
+      await page.goto("/programs/invitations");
+      await expect(page).toHaveURL("/programs?tab=invitations");
+      await expect(
+        page.getByRole("button", { name: "Accept invite" }),
+      ).toBeVisible();
+
+      // the Active tab is empty, and the Inactive tab is hidden
+      await page.getByRole("button", { name: "Active" }).click();
+      await expect(
+        page.getByText("No programs", { exact: true }),
+      ).toBeVisible();
+      await expect(page.getByRole("button", { name: "Inactive" })).toHaveCount(
+        0,
+      );
 
       await prisma.programEnrollment.update({
         where: { id: enrollment.id },
         data: { status: "approved" },
       });
 
-      // the card is also hidden while the counts load, so wait for them
-      const countsLoaded = Promise.all([
-        page.waitForResponse((res) =>
-          res
-            .url()
-            .includes("/api/partner-profile/programs/count?status=invited"),
-        ),
-        page.waitForResponse((res) =>
-          res.url().includes("/api/partner-profile/messages/count?unread=true"),
-        ),
-      ]);
-      await page.reload();
-      await countsLoaded;
-
+      // the table view shows the program in the Active tab, with a footer
+      await page.evaluate(() =>
+        localStorage.setItem("partner-programs-view", JSON.stringify("table")),
+      );
+      await page.goto("/programs?tab=active");
       await expect(
-        page.getByTestId(testIds.partnerOverview.recentPayouts),
+        page.getByRole("cell", { name: program.name }),
       ).toBeVisible();
-      await expect(tasks).toHaveCount(0);
+      await expect(
+        page.getByText("Viewing 1-1 of 1 active program"),
+      ).toBeVisible();
+
+      // a search with no match shows the empty state
+      await page.goto("/programs?tab=active&search=no-such-program");
+      await expect(page.getByText("No programs found")).toBeVisible();
     } finally {
       if (userId) await prisma.user.delete({ where: { id: userId } });
       await deletePartner(partnerId);
     }
   });
 
-  test("lands on /programs without an approved program, and on /overview with one", async ({
+  test("opens the first tab with programs when the URL has no tab", async ({
     page,
   }) => {
-    const email = `overview-landing-${nanoid(8).toLowerCase()}@dub-internal-test.com`;
+    const email = `programs-landing-${nanoid(8).toLowerCase()}@dub-internal-test.com`;
     const password = "Password123";
     let partnerId: string | undefined;
     let userId: string | undefined;
@@ -107,21 +102,26 @@ test.describe("Partner All programs Overview", () => {
 
       ({ partnerId, userId } = await createPartnerUser({ email, password }));
 
-      await logIn(page, email, password);
-      await expect(page).toHaveURL("/programs");
-
       await prisma.programEnrollment.create({
         data: {
           id: createId({ prefix: "pge_" }),
           partnerId,
           programId: program.id,
           groupId: program.defaultGroupId,
-          status: "approved",
+          status: "invited",
         },
       });
 
-      await page.goto("/");
-      await expect(page).toHaveURL("/overview");
+      // a partner without an approved program lands on /programs
+      await logIn(page, email, password);
+      await expect(page).toHaveURL("/programs");
+
+      await expect(
+        page.getByRole("button", { name: "Invitations" }),
+      ).toHaveAttribute("data-selected", "true");
+      await expect(
+        page.getByRole("button", { name: "Accept invite" }),
+      ).toBeVisible();
     } finally {
       if (userId) await prisma.user.delete({ where: { id: userId } });
       await deletePartner(partnerId);

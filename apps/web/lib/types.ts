@@ -7,6 +7,7 @@ import {
   PartnerProfileCustomerSchema,
   PartnerProfileEarningsSchema,
   PartnerProfileLinkSchema,
+  PartnerProfileProgramEnrollmentSchema,
   PartnerProfileTopLinkEarningsSchema,
   PartnerProfileTopProgramEarningsSchema,
   PartnerProfileTypeEarningsSchema,
@@ -637,6 +638,10 @@ export type ProgramApplicationFormFieldWithValues = z.infer<
   typeof programApplicationFormFieldWithValuesSchema
 >;
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
+
+export type PartnerProfileProgramEnrollmentProps = z.infer<
+  typeof PartnerProfileProgramEnrollmentSchema
+>;
 export type EligibilityConditionDB = z.infer<typeof eligibilityConditionSchema>;
 export type ApplicationRequirementsDB = z.infer<
   typeof applicationRequirementsSchema
