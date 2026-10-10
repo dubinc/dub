@@ -78,6 +78,10 @@ model Link {
   // Comments on the particular shortlink
   comments String? @db.Text
 
+  // Partner-owned display label and notes
+  partnerLinkTitle    String?
+  partnerLinkComments String? @db.Text
+
   dashboard Dashboard?
 
   programId                 String?

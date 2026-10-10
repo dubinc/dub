@@ -1,4 +1,5 @@
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { useRouterStuff } from "@dub/ui";
 import { Globe, Hyperlink } from "@dub/ui/icons";
@@ -8,6 +9,7 @@ import { useCallback, useMemo, useState } from "react";
 export function usePartnerCustomerFilters() {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const { displayProperties } = usePartnerLinksDisplay();
 
   const { data: countriesCount } = usePartnerCustomersCount<
     | {
@@ -28,6 +30,7 @@ export function usePartnerCustomerFilters() {
         domain: string;
         key: string;
         shortLink: string;
+        partnerLinkTitle?: string | null;
         _count: number;
       }[]
     | undefined
@@ -55,15 +58,20 @@ export function usePartnerCustomerFilters() {
         icon: Hyperlink,
         label: "Link",
         options:
-          linksCount?.map(({ linkId, domain, key, shortLink, _count }) => ({
-            value: linkId,
-            label: linkConstructor({ domain, key, pretty: true }),
-            data: { shortLink },
-            right: nFormatter(_count, { full: true }),
-          })) ?? null,
+          linksCount?.map(
+            ({ linkId, domain, key, shortLink, partnerLinkTitle, _count }) => ({
+              value: linkId,
+              label:
+                displayProperties.includes("title") && partnerLinkTitle
+                  ? partnerLinkTitle
+                  : linkConstructor({ domain, key, pretty: true }),
+              data: { shortLink },
+              right: nFormatter(_count, { full: true }),
+            }),
+          ) ?? null,
       },
     ],
-    [countriesCount, linksCount],
+    [countriesCount, linksCount, displayProperties],
   );
 
   const activeFilters = useMemo(() => {

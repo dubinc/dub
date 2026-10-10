@@ -403,7 +403,10 @@ export interface SAMLProviderProps {
   };
 }
 
-export type NewLinkProps = z.infer<typeof createLinkBodySchema>;
+export type NewLinkProps = z.infer<typeof createLinkBodySchema> & {
+  partnerLinkTitle?: string | null;
+  partnerLinkComments?: string | null;
+};
 
 type ProcessedLinkOverrides = "domain" | "key" | "url" | "projectId";
 

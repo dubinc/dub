@@ -103,6 +103,7 @@ export const GET = withPartnerProfile(
           key: true,
           shortLink: true,
           url: true,
+          partnerLinkTitle: true,
         },
       });
 
@@ -116,6 +117,7 @@ export const GET = withPartnerProfile(
             key: link.key,
             shortLink: link.shortLink,
             url: link.url,
+            partnerLinkTitle: link?.partnerLinkTitle,
           };
         })
         .filter(Boolean);

@@ -26,6 +26,7 @@ export const GET = withReferralsEmbedToken(
       ...parsedQuery,
       workspaceId: program.workspaceId,
       linkId: parseFilterValue(links.map((link) => link.id)),
+      includePartnerLinkTitle: true,
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
 

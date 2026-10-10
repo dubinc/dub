@@ -94,6 +94,7 @@ export const GET = withPartnerProfile(
           : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
             ? { partnerId: partner.id }
             : { linkId: parseFilterValue(links.map((link) => link.id)) }),
+        includePartnerLinkTitle: true,
         dataAvailableFrom: program.startedAt ?? program.createdAt,
       });
 

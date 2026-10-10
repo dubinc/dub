@@ -163,6 +163,7 @@ export async function getPartnerEarningsCount({
         domain: true,
         key: true,
         url: true,
+        partnerLinkTitle: true,
       },
     });
 
@@ -175,6 +176,7 @@ export async function getPartnerEarningsCount({
         domain: link?.domain,
         key: link?.key,
         url: link?.url,
+        partnerLinkTitle: link?.partnerLinkTitle,
         _count,
       };
     });

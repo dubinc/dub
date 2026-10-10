@@ -15,8 +15,8 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
 import {
+  parsePartnerProfileEventLink,
   partnerProfileEventsQuerySchema,
-  PartnerProfileLinkSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
@@ -150,7 +150,9 @@ export async function POST(req: Request) {
         return {
           ...eventRest,
           click: clickRest,
-          link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
+          link: event?.link
+            ? parsePartnerProfileEventLink(event.link, links)
+            : null,
           ...(customer && {
             customer: z
               .object({
