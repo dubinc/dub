@@ -42,6 +42,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
         partnerId: true,
         reason: true,
         status: true,
+        source: true,
         reviewedAt: true,
         reviewNote: true,
         createdAt: true,

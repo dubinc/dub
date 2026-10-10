@@ -46,7 +46,7 @@ export async function reportNetworkLevelBan({
     console.log(
       `No eligible program enrollments found for partner ${partnerId}, skipping reportNetworkLevelBan...`,
     );
-    return;
+    return 0;
   }
 
   // Filter out programs where the partnerCrossProgramBan rule is disabled
@@ -61,7 +61,7 @@ export async function reportNetworkLevelBan({
     console.log(
       `No eligible program enrollments found for partner ${partnerId}, skipping reportNetworkLevelBan...`,
     );
-    return;
+    return 0;
   }
 
   const { affectedGroups } = await createFraudEvents(
@@ -88,4 +88,6 @@ export async function reportNetworkLevelBan({
   results
     .filter((r): r is PromiseRejectedResult => r.status === "rejected")
     .forEach((r) => console.error("Failed to hold commissions:", r.reason));
+
+  return affectedProgramEnrollments.length;
 }

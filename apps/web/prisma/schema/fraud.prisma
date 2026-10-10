@@ -89,12 +89,18 @@ enum FraudAlertStatus {
   dismissed
 }
 
+enum FraudAlertSource {
+  program
+  admin
+}
+
 model FraudAlert {
   id           String           @id @default(cuid())
   partnerId    String
   programId    String
   reason       String           @db.Text
   status       FraudAlertStatus @default(pending)
+  source       FraudAlertSource @default(program)
   reviewedById String?
   reviewedAt   DateTime?
   reviewNote   String?          @db.Text
