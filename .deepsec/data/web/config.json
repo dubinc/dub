@@ -1,0 +1,14 @@
+{
+  "ignorePaths": [
+    "playwright-report/**",
+    "test-results/**",
+    "playwright/**",
+    "tests/**",
+    "**/.env",
+    "**/.env.*",
+    "**/.env.example",
+    ".next/**",
+    "scripts/**",
+    "public/**"
+  ]
+}
