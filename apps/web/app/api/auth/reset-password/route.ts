@@ -88,7 +88,10 @@ export async function POST(req: NextRequest) {
         data: {
           passwordHash: await hashPassword(password),
           lockedAt: null, // Unlock the account after a successful password reset
-          ...(!user.emailVerified && { emailVerified: new Date() }), // Mark the email as verified
+          ...(!user.emailVerified && {
+            emailVerified: new Date(),
+            emailVerifiedBa: true,
+          }),
         },
       }),
     ]);
