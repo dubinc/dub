@@ -50,7 +50,8 @@ export default function Plan() {
           </>
         )
       }
-      className="max-w-screen-lg"
+      // Matches the marketing pricing page width
+      className="max-w-[1080px]"
     >
       <PlanSelector key={product} product={product} />
       <div className="mx-auto mt-8 flex w-fit flex-col items-center justify-center gap-6 text-sm md:flex-row">

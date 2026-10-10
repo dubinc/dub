@@ -5,7 +5,7 @@ import {
   getPlanPeriodSuffix,
   PlanPeriod,
 } from "./plan-period-utils";
-import { PLANS } from "./pricing-plans";
+import { GROWTH_PLAN, PLANS, SCALE_PLAN, STARTER_PLAN } from "./pricing-plans";
 
 type Plan = (typeof PLANS)[number];
 
@@ -85,6 +85,83 @@ const getPartnersStandards = (
       cta: "Learn more ↗",
       href: "https://dub.co/help/article/partner-payouts",
     },
+  },
+];
+
+const getPartnersStarterFeatures = (
+  plan: Plan,
+  planPeriod: PlanPeriod,
+): HeroFeature[] => [
+  ...getPartnersStandards(plan, planPeriod),
+  {
+    id: "basicrewards",
+    text: "Basic reward structures",
+    tooltip: {
+      title:
+        "Create custom click, lead, or sale-based rewards, tailored to each partner's needs.",
+      cta: "Learn more ↗",
+      href: "https://dub.co/help/article/partner-rewards",
+    },
+  },
+  {
+    id: "conversions",
+    text: "Dual-sided incentives",
+    tooltip: {
+      title:
+        "Offer dual-sided incentives to your partners and the users they refer.",
+      cta: "Learn more ↗",
+      href: "https://dub.co/help/article/dual-sided-incentives",
+    },
+  },
+  {
+    id: "bounties",
+    text: "Program bounties",
+    tooltip: {
+      title:
+        "Drive partner engagement with performance and submission bounties.",
+      cta: "Learn more ↗",
+      href: "https://dub.co/help/article/program-bounties",
+    },
+  },
+  {
+    id: "analytics",
+    text: "Powerful, real-time analytics",
+    tooltip: {
+      title:
+        "Get real-time insights into your partner program's [performance](https://dub.co/help/article/program-analytics), [commissions](https://dub.co/help/article/commission-analytics), and [applications stats](https://dub.co/help/article/application-analytics).",
+    },
+  },
+  {
+    id: "ailandingpage",
+    text: "AI landing page generator",
+    tooltip: {
+      title:
+        "Generate compelling landing pages using Dub AI to attract high-quality partners to join your program.",
+      cta: "Learn more ↗",
+      href: "https://dub.co/help/article/program-landing-page",
+    },
+  },
+  {
+    id: "api",
+    text: "REST API + MCP Server",
+    tooltip: {
+      title:
+        "Manage your program with your AI agent through our [REST API](https://dub.co/docs/api-reference/introduction) and [MCP Server](https://dub.co/docs/mcp-server).",
+    },
+  },
+  {
+    id: "webhooks",
+    text: "Real-time event webhooks",
+    tooltip: {
+      title:
+        "Get real-time notifications when a partner [applies to your program](https://dub.co/docs/webhooks/events/partner-application-submitted) / [generates a sale](https://dub.co/docs/webhooks/events/sale-created) / [earns a commission](https://dub.co/docs/webhooks/events/commission-created).",
+      cta: "Learn more ↗",
+      href: "https://dub.co/docs/webhooks/introduction",
+    },
+  },
+  {
+    id: "customerinsights",
+    text: "Basic email support",
   },
 ];
 
@@ -236,93 +313,20 @@ export const getPricingPlanMainFeatures = (
     ],
   },
   partners: {
-    Business: [
+    Starter: [
       {
-        features: [
-          ...getPartnersStandards(
-            PLANS.find((p) => p.name === "Business")!,
-            planPeriod,
-          ),
-          {
-            id: "basicrewards",
-            text: "Basic reward structures",
-            tooltip: {
-              title:
-                "Create custom click, lead, or sale-based rewards, tailored to each partner's needs.",
-              cta: "Learn more ↗",
-              href: "https://dub.co/help/article/partner-rewards",
-            },
-          },
-          {
-            id: "conversions",
-            text: "Dual-sided incentives",
-            tooltip: {
-              title:
-                "Offer dual-sided incentives to your partners and the users they refer.",
-              cta: "Learn more ↗",
-              href: "https://dub.co/help/article/dual-sided-incentives",
-            },
-          },
-          {
-            id: "bounties",
-            text: "Program bounties",
-            tooltip: {
-              title:
-                "Drive partner engagement with performance and submission bounties.",
-              cta: "Learn more ↗",
-              href: "https://dub.co/help/article/program-bounties",
-            },
-          },
-          {
-            id: "analytics",
-            text: "Powerful, real-time analytics",
-            tooltip: {
-              title:
-                "Get real-time insights into your partner program's [performance](https://dub.co/help/article/program-analytics), [commissions](https://dub.co/help/article/commission-analytics), and [applications stats](https://dub.co/help/article/application-analytics).",
-            },
-          },
-          {
-            id: "ailandingpage",
-            text: "AI landing page generator",
-            tooltip: {
-              title:
-                "Generate compelling landing pages using Dub AI to attract high-quality partners to join your program.",
-              cta: "Learn more ↗",
-              href: "https://dub.co/help/article/program-landing-page",
-            },
-          },
-          {
-            id: "api",
-            text: "REST API + MCP Server",
-            tooltip: {
-              title:
-                "Manage your program with your AI agent through our [REST API](https://dub.co/docs/api-reference/introduction) and [MCP Server](https://dub.co/docs/mcp-server).",
-            },
-          },
-          {
-            id: "webhooks",
-            text: "Real-time event webhooks",
-            tooltip: {
-              title:
-                "Get real-time notifications when a partner [applies to your program](https://dub.co/docs/webhooks/events/partner-application-submitted) / [generates a sale](https://dub.co/docs/webhooks/events/sale-created) / [earns a commission](https://dub.co/docs/webhooks/events/commission-created).",
-              cta: "Learn more ↗",
-              href: "https://dub.co/docs/webhooks/introduction",
-            },
-          },
-          {
-            id: "customerinsights",
-            text: "Basic email support",
-          },
-        ],
+        features: getPartnersStarterFeatures(STARTER_PLAN, planPeriod),
       },
     ],
-    Advanced: [
+    Growth: [
+      {
+        features: getPartnersStarterFeatures(GROWTH_PLAN, planPeriod),
+      },
+    ],
+    Scale: [
       {
         features: [
-          ...getPartnersStandards(
-            PLANS.find((p) => p.name === "Advanced")!,
-            planPeriod,
-          ),
+          ...getPartnersStandards(SCALE_PLAN, planPeriod),
           {
             id: "flexiblerewards",
             text: "Advanced reward structures",

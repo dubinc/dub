@@ -225,11 +225,11 @@ test.describe("Dub Partners onboarding", () => {
       baseURL,
     });
 
-    const advancedPaidCta = page.getByTestId(
-      testIds.onboarding.planCta("advanced"),
+    const scalePaidCta = page.getByTestId(
+      testIds.onboarding.planCta("scale"),
     );
-    await expect(advancedPaidCta).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
-    await expect(advancedPaidCta).toBeEnabled({ timeout: STEP_NAV_TIMEOUT });
+    await expect(scalePaidCta).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
+    await expect(scalePaidCta).toBeEnabled({ timeout: STEP_NAV_TIMEOUT });
 
     const billingUpgradePost = page.waitForResponse(
       (r) =>
@@ -238,7 +238,7 @@ test.describe("Dub Partners onboarding", () => {
       { timeout: STEP_NAV_TIMEOUT },
     );
 
-    await advancedPaidCta.click();
+    await scalePaidCta.click();
 
     const upgradeRes = await billingUpgradePost;
     expect(upgradeRes.ok()).toBeTruthy();

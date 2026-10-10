@@ -525,6 +525,52 @@ export const SELF_SERVE_PAID_PLANS = PLANS.filter((p) =>
   ["Pro", "Business", "Advanced"].includes(p.name),
 );
 
+// Dub Partners plans – shown on partners pricing only. Kept out of PLANS so
+// billing, plan ordering and feature gating are unaffected until they're live.
+// TODO: replace placeholder price IDs and mirrored prices/limits with real values
+export const STARTER_PLAN: PlanDetails = {
+  name: "Starter",
+  price: {
+    monthly: BUSINESS_PLAN.price.monthly,
+    yearly: BUSINESS_PLAN.price.yearly,
+    ids: [
+      "price_starter_monthly_placeholder",
+      "price_starter_yearly_placeholder",
+    ],
+  },
+  limits: BUSINESS_PLAN.limits,
+};
+
+export const GROWTH_PLAN: PlanDetails = {
+  name: "Growth",
+  price: {
+    monthly: BUSINESS_PLAN.price.monthly,
+    yearly: BUSINESS_PLAN.price.yearly,
+    ids: [
+      "price_growth_monthly_placeholder",
+      "price_growth_yearly_placeholder",
+    ],
+  },
+  limits: BUSINESS_PLAN.limits,
+};
+
+export const SCALE_PLAN: PlanDetails = {
+  name: "Scale",
+  price: {
+    monthly: ADVANCED_PLAN.price.monthly,
+    yearly: ADVANCED_PLAN.price.yearly,
+    ids: ["price_scale_monthly_placeholder", "price_scale_yearly_placeholder"],
+  },
+  limits: ADVANCED_PLAN.limits,
+};
+
+export const PARTNERS_PLANS = [
+  STARTER_PLAN,
+  GROWTH_PLAN,
+  SCALE_PLAN,
+  ENTERPRISE_PLAN,
+];
+
 export const FREE_WORKSPACES_LIMIT = 2;
 
 const enrichPlanWithTierData = (

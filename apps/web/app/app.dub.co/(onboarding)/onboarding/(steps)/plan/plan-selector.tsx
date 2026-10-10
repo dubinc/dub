@@ -7,7 +7,6 @@ import {
   Badge,
   Button,
   Check,
-  DubProductIcon,
   PLAN_FEATURE_ICONS,
   ToggleGroup,
   Tooltip,
@@ -18,24 +17,35 @@ import {
   cn,
   ENTERPRISE_PLAN,
   getPricingPlanMainFeatures,
+  GROWTH_PLAN,
+  PlanDetails,
   PRICING_PLAN_TAGLINES,
   PRO_PLAN,
+  SCALE_PLAN,
+  STARTER_PLAN,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CSSProperties, isValidElement, ReactNode, useState } from "react";
 import { OnboardingProduct } from "../../use-onboarding-product";
 
+// TODO: remove once Starter, Growth and Scale have their own Stripe prices
+const PARTNERS_CHECKOUT_PLANS: Record<string, string> = {
+  Starter: "business",
+  Growth: "business",
+  Scale: "advanced",
+};
+
 export function PlanSelector({ product }: { product: OnboardingProduct }) {
   const plans =
     product === "partners"
-      ? [BUSINESS_PLAN, ADVANCED_PLAN, ENTERPRISE_PLAN]
+      ? [STARTER_PLAN, GROWTH_PLAN, SCALE_PLAN, ENTERPRISE_PLAN]
       : [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
 
-  const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
+  const [period, setPeriod] = useState<"monthly" | "yearly">("yearly");
 
   const [mobilePlanIndex, setMobilePlanIndex] = useState(() => {
-    const defaultPlanName = product === "partners" ? "Advanced" : "Business";
+    const defaultPlanName = product === "partners" ? "Growth" : "Business";
     return Math.max(
       0,
       plans.findIndex(
@@ -48,7 +58,6 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
     <div className="flex flex-col items-center gap-4">
       <ToggleGroup
         options={[
-          { label: "Monthly", value: "monthly" },
           {
             label: "Yearly",
             badge: (
@@ -58,17 +67,19 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
             ),
             value: "yearly",
           },
+          { label: "Monthly", value: "monthly" },
         ]}
         selected={period}
         selectAction={(option) => setPeriod(option as "monthly" | "yearly")}
-        className="w-fit rounded-lg border-neutral-300 bg-neutral-100 p-0.5"
-        optionClassName="text-xs normal-case text-neutral-800 data-[selected=true]:text-neutral-800 px-3 h-8 leading-none"
-        indicatorClassName="bg-white border-neutral-200 rounded-md"
+        className="w-fit rounded-lg border-neutral-200 bg-neutral-100 p-0"
+        optionClassName="rounded-lg px-4 h-9 normal-case text-xs leading-none text-neutral-800 data-[selected=false]:hover:bg-neutral-200/30 data-[selected=true]:text-neutral-800 sm:px-3"
+        indicatorClassName="rounded-lg border-none bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_3px_0_rgba(0,0,0,0.08)]"
       />
-      <div className="w-full overflow-hidden [container-type:inline-size] max-lg:rounded-lg">
+      <div className="w-full overflow-hidden [container-type:inline-size]">
         <div
           className={cn(
-            "grid max-w-[calc(var(--cols)*342px)] grid-cols-[repeat(var(--cols),1fr)] lg:mx-auto",
+            // Card, button and features rows line up across plans via subgrid
+            "grid grid-cols-[repeat(var(--cols),minmax(0,1fr))] grid-rows-[auto_auto_1fr] lg:overflow-hidden lg:rounded-xl lg:border lg:border-neutral-200 lg:[&>*:not(:last-child)]:border-r lg:[&>*:not(:last-child)]:border-neutral-200",
 
             // Mobile
             "max-lg:w-[calc(var(--cols)*100cqw+(var(--cols)-1)*32px)] max-lg:max-w-none max-lg:translate-x-[calc(-1*var(--index)*(100cqw+32px))] max-lg:gap-x-8 max-lg:transition-transform",
@@ -80,213 +91,178 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
             } as CSSProperties
           }
         >
-          {plans.map((plan) => {
+          {plans.map((plan, index) => {
             const features =
               getPricingPlanMainFeatures(period)[product][plan.name] || [];
+
+            const popularPlan =
+              (product === "links" && plan.name === "Business") ||
+              (product === "partners" && plan.name === "Growth");
 
             return (
               <div
                 key={`${product}-${plan.name}`}
                 className={cn(
-                  "flex flex-col border-y border-l border-neutral-200 bg-white first:rounded-l-lg last:rounded-r-lg last:border-r",
-                  "max-lg:overflow-hidden max-lg:rounded-lg max-lg:border-0 max-lg:ring-1 max-lg:ring-inset max-lg:ring-neutral-200",
-                  product === "links" &&
-                    plan.name === "Business" &&
-                    "bg-gradient-to-b from-orange-50 to-40%",
-                  product === "partners" &&
-                    plan.name === "Advanced" &&
-                    "bg-gradient-to-b from-violet-50 to-40%",
+                  "relative row-span-3 grid grid-rows-subgrid gap-y-2 bg-white p-2",
+
+                  // Mobile swiping
+                  "max-lg:transition-opacity",
+                  index !== mobilePlanIndex &&
+                    "max-lg:pointer-events-none max-lg:opacity-0",
                 )}
               >
-                <div className="flex grow flex-col gap-6 p-5 pb-3">
-                  <div>
+                <div className="flex flex-col justify-between gap-10 rounded-xl border border-[#EDEDED] bg-neutral-50 px-4 pb-[17px] pt-4">
+                  <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
-                      <h2 className="text-xl font-semibold text-neutral-800">
+                      <h2 className="text-xl font-medium leading-7 tracking-[-0.02em] text-neutral-800">
                         {plan.name}
                       </h2>
-                      {product === "links" && plan.name === "Business" && (
-                        <div className="w-fit whitespace-nowrap rounded-full bg-orange-900 px-2 py-1.5 text-center text-[0.5rem] font-medium uppercase leading-none text-white">
-                          Popular
-                        </div>
-                      )}
-                      {product === "partners" && plan.name === "Advanced" && (
-                        <div className="w-fit whitespace-nowrap rounded-full bg-violet-900 px-2 py-1.5 text-center text-[0.5rem] font-medium uppercase leading-none text-white">
-                          Best Value
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-1">
-                      {plan.name === "Enterprise" ? (
-                        <span className="block text-base text-neutral-700">
-                          Custom
-                        </span>
-                      ) : (
-                        <>
-                          <NumberFlow
-                            value={plan.price[period]!}
-                            className="text-base tabular-nums text-neutral-700"
-                            format={{
-                              style: "currency",
-                              currency: "USD",
-                              minimumFractionDigits: 0,
-                            }}
-                            continuous
-                          />
-                          <span className="text-sm text-neutral-400">
-                            {" "}
-                            per month
-                            {period === "yearly" && ", billed yearly"}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <p className="min-h-10 text-sm text-neutral-600">
-                    {PRICING_PLAN_TAGLINES[product][plan.name]}
-                  </p>
-
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      className="h-full w-fit rounded-lg bg-neutral-100 px-2.5 transition-colors duration-75 hover:bg-neutral-200/80 enabled:active:bg-neutral-200 disabled:opacity-30 lg:hidden"
-                      disabled={mobilePlanIndex === 0}
-                      onClick={() => setMobilePlanIndex(mobilePlanIndex - 1)}
-                    >
-                      <ChevronLeft className="size-5 text-neutral-800" />
-                    </button>
-                    {plan.name === "Enterprise" ? (
-                      <a
-                        href="https://dub.co/contact/sales"
-                        target="_blank"
-                        className="w-full"
-                      >
-                        <Button
-                          text="Contact us"
-                          variant="secondary"
-                          className="h-10 rounded-lg shadow-sm"
-                        />
-                      </a>
-                    ) : (
-                      <UpgradePlanButton
-                        plan={plan.name.toLowerCase()}
-                        period={period}
-                        className="h-10 rounded-lg shadow-sm"
-                        data-testid={testIds.onboarding.planCta(plan.name)}
-                      />
-                    )}
-                    <button
-                      type="button"
-                      className="h-full w-fit rounded-lg bg-neutral-100 px-2.5 transition-colors duration-75 hover:bg-neutral-200/80 active:bg-neutral-200 disabled:opacity-30 lg:hidden"
-                      disabled={mobilePlanIndex >= plans.length - 1}
-                      onClick={() => setMobilePlanIndex(mobilePlanIndex + 1)}
-                    >
-                      <ChevronRight className="size-5 text-neutral-800" />
-                    </button>
-                  </div>
-                  <div className="flex flex-col gap-3 text-sm">
-                    {features.map(({ title, subtitle, features }, idx) => (
-                      <div key={idx} className="relative flex flex-col">
-                        {title && (
-                          <h4 className="mb-3 font-medium text-neutral-700">
-                            {title}
-                          </h4>
-                        )}
-                        {subtitle && (
-                          <p className="mb-2.5 text-neutral-500">{subtitle}</p>
-                        )}
-                        <ul className="flex flex-col gap-2.5 pb-3">
-                          {features.map(
-                            ({ id, text, tooltip, disabled }, idx) => {
-                              const Icon =
-                                id && PLAN_FEATURE_ICONS[id]
-                                  ? PLAN_FEATURE_ICONS[id]
-                                  : Check;
-
-                              return (
-                                <li
-                                  key={idx}
-                                  className={cn(
-                                    "flex items-center gap-2 text-neutral-600",
-                                    disabled && "opacity-40",
-                                  )}
-                                >
-                                  {disabled ? (
-                                    <X className="size-3 shrink-0" />
-                                  ) : Icon ? (
-                                    <Icon className="size-4 shrink-0" />
-                                  ) : (
-                                    <Check className="size-3 shrink-0" />
-                                  )}
-                                  {tooltip ? (
-                                    <Tooltip
-                                      content={
-                                        typeof tooltip === "string" ||
-                                        isReactNode(tooltip)
-                                          ? tooltip
-                                          : `${tooltip.title}${tooltip.cta && tooltip.href ? ` [${tooltip.cta}](${tooltip.href})` : ""}`
-                                      }
-                                    >
-                                      <p className="cursor-help underline decoration-dotted underline-offset-2">
-                                        {text}
-                                      </p>
-                                    </Tooltip>
-                                  ) : (
-                                    <p>{text}</p>
-                                  )}
-                                </li>
-                              );
-                            },
+                      {popularPlan && (
+                        <div
+                          className={cn(
+                            "w-fit whitespace-nowrap rounded-full px-1.5 pb-1 pt-[5px] text-center text-[0.5rem] font-semibold uppercase leading-[1.1]",
+                            product === "links"
+                              ? "bg-orange-200 text-orange-900"
+                              : "bg-violet-200 text-violet-900",
                           )}
-                        </ul>
-                      </div>
-                    ))}
+                        >
+                          Most popular
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs font-medium tracking-[-0.02em] text-neutral-500">
+                      {PRICING_PLAN_TAGLINES[product][plan.name]}
+                    </p>
                   </div>
+
+                  {plan.name === "Enterprise" ? (
+                    <span className="text-lg font-medium leading-7 tracking-[-0.02em] text-neutral-800">
+                      Custom
+                    </span>
+                  ) : (
+                    <div className="flex items-baseline gap-1 font-medium">
+                      <NumberFlow
+                        value={plan.price[period]!}
+                        className="text-lg tabular-nums leading-7 tracking-[-0.02em] text-neutral-800"
+                        format={{
+                          style: "currency",
+                          currency: "USD",
+                          minimumFractionDigits: 0,
+                        }}
+                        continuous
+                      />
+                      <span className="text-sm tracking-[-0.02em] text-neutral-900/50">
+                        /month{period === "yearly" && ", billed yearly"}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                {Boolean(
-                  (product === "links" && plan.limits.payouts) ||
-                    product === "partners",
-                ) && (
-                  <div className="flex grow flex-col justify-end">
-                    <div className="relative z-0 bg-neutral-100">
-                      <div className="border-border-subtle pointer-events-none relative z-10 -mx-px h-2.5 rounded-b-[0.625rem] border-x border-b bg-white" />
-                      <a
-                        href={`https://dub.co/${product === "links" ? "partners" : "links"}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group peer relative z-10 flex items-center justify-center px-5 py-2.5 transition-transform duration-100 active:scale-[0.97]"
-                      >
-                        <div className="relative flex items-center gap-2 transition-[transform,opacity] group-hover:-translate-y-1 group-hover:opacity-0">
-                          <DubProductIcon
-                            product={product === "links" ? "partners" : "links"}
-                            className="size-[1.125rem]"
-                          />
-                          <span className="text-content-default block text-sm">
-                            Includes{" "}
-                            <strong className="font-semibold">
-                              Dub {product === "links" ? "Partners" : "Links"}
-                            </strong>
-                          </span>
-                        </div>
-
-                        <div className="absolute inset-0 flex translate-y-1 items-center justify-center opacity-0 transition-[transform,opacity] group-hover:translate-y-0 group-hover:opacity-100">
-                          <span className="text-content-default block whitespace-nowrap text-sm font-medium">
-                            Learn more ↗
-                          </span>
-                        </div>
-                      </a>
-                      <div
-                        className={cn(
-                          "pointer-events-none absolute inset-0 opacity-0 duration-100 peer-hover:opacity-5",
-                          product === "links"
-                            ? "bg-violet-700"
-                            : "bg-orange-700",
-                        )}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    className="h-full w-fit rounded-lg bg-neutral-200/50 px-2.5 transition-colors duration-75 hover:bg-neutral-300/50 enabled:active:bg-neutral-300/50 disabled:opacity-30 lg:hidden"
+                    disabled={index === 0}
+                    onClick={() => setMobilePlanIndex(index - 1)}
+                  >
+                    <ChevronLeft className="size-5 text-neutral-800" />
+                  </button>
+                  {plan.name === "Enterprise" ? (
+                    <a
+                      href="https://dub.co/contact/sales"
+                      target="_blank"
+                      className="w-full"
+                    >
+                      <Button
+                        text="Contact us"
+                        variant="secondary"
+                        className="h-9 w-full rounded-[10px]"
                       />
+                    </a>
+                  ) : (
+                    <UpgradePlanButton
+                      plan={
+                        PARTNERS_CHECKOUT_PLANS[plan.name] ??
+                        plan.name.toLowerCase()
+                      }
+                      displayName={plan.name}
+                      period={period}
+                      className="h-9 w-full rounded-[10px]"
+                      data-testid={testIds.onboarding.planCta(plan.name)}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    className="h-full w-fit rounded-lg bg-neutral-200/50 px-2.5 transition-colors duration-75 hover:bg-neutral-300/50 enabled:active:bg-neutral-300/50 disabled:opacity-30 lg:hidden"
+                    disabled={index >= plans.length - 1}
+                    onClick={() => setMobilePlanIndex(index + 1)}
+                  >
+                    <ChevronRight className="size-5 text-neutral-800" />
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-3 px-4 py-3 text-sm">
+                  <h4 className="font-semibold text-neutral-800">
+                    {featureSectionTitle(plans, index)}
+                  </h4>
+                  {features.map(({ title, subtitle, features }, idx) => (
+                    <div key={idx} className="relative flex flex-col">
+                      {title && (
+                        <h4 className="mb-3 font-medium text-neutral-700">
+                          {title}
+                        </h4>
+                      )}
+                      {subtitle && (
+                        <p className="mb-2.5 text-neutral-500">{subtitle}</p>
+                      )}
+                      <ul className="flex flex-col gap-3">
+                        {features.map(
+                          ({ id, text, tooltip, disabled }, idx) => {
+                            const Icon =
+                              id && PLAN_FEATURE_ICONS[id]
+                                ? PLAN_FEATURE_ICONS[id]
+                                : Check;
+
+                            return (
+                              <li
+                                key={idx}
+                                className={cn(
+                                  "flex items-start gap-3 text-neutral-600",
+                                  disabled && "opacity-40",
+                                )}
+                              >
+                                {/* mt-0.5 centers the 16px icon on the first 20px line */}
+                                {disabled ? (
+                                  <X className="mt-0.5 size-4 shrink-0" />
+                                ) : Icon ? (
+                                  <Icon className="mt-0.5 size-4 shrink-0" />
+                                ) : (
+                                  <Check className="mt-0.5 size-4 shrink-0" />
+                                )}
+                                {tooltip ? (
+                                  <Tooltip
+                                    content={
+                                      typeof tooltip === "string" ||
+                                      isReactNode(tooltip)
+                                        ? tooltip
+                                        : `${tooltip.title}${tooltip.cta && tooltip.href ? ` [${tooltip.cta}](${tooltip.href})` : ""}`
+                                    }
+                                  >
+                                    <p className="cursor-help underline decoration-dotted underline-offset-2">
+                                      {text}
+                                    </p>
+                                  </Tooltip>
+                                ) : (
+                                  <p>{text}</p>
+                                )}
+                              </li>
+                            );
+                          },
+                        )}
+                      </ul>
                     </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
             );
           })}
@@ -294,6 +270,16 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
       </div>
     </div>
   );
+}
+
+// Growth repeats Starter's features for now, so it gets its own list title
+function featureSectionTitle(plans: PlanDetails[], index: number) {
+  const { name } = plans[index];
+  if (index === 0 || ["Pro", "Business", "Growth"].includes(name)) {
+    return "Key Features:";
+  }
+
+  return `Everything in ${plans[index - 1].name}, plus:`;
 }
 
 const isReactNode = (element: any): element is ReactNode =>
