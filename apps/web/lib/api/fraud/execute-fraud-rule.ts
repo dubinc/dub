@@ -3,6 +3,7 @@ import { FraudRuleType } from "@prisma/client";
 import { defineFraudRule } from "./define-fraud-rule";
 import { checkCustomerEmailMatch } from "./rules/check-customer-email-match";
 import { checkCustomerEmailSuspicious } from "./rules/check-customer-email-suspicious";
+import { checkCustomerSharedClickId } from "./rules/check-customer-shared-click-id";
 import { checkPaidTrafficDetected } from "./rules/check-paid-traffic-detected";
 import { checkReferralSourceBanned } from "./rules/check-referral-source-banned";
 
@@ -20,6 +21,7 @@ const FRAUD_RULES_REGISTRY: Record<
 > = {
   customerEmailMatch: checkCustomerEmailMatch,
   customerEmailSuspiciousDomain: checkCustomerEmailSuspicious,
+  customerSharedClickId: checkCustomerSharedClickId,
   referralSourceBanned: checkReferralSourceBanned,
   paidTrafficDetected: checkPaidTrafficDetected,
   partnerCrossProgramBan: defineFraudRuleStub("partnerCrossProgramBan"),

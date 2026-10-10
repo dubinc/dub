@@ -603,6 +603,7 @@ const _trackSale = async ({
           clickEvent: {
             url: saleData.url,
             referer: saleData.referer,
+            clickId: saleData.click_id,
           },
           isFirstConversion: firstConversionFlag,
         });

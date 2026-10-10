@@ -43,6 +43,7 @@ model Customer {
   @@index([programId, partnerId])
   @@index(partnerId)
   @@index(linkId)
+  @@index(clickId)
   @@index(country)
   @@fulltext([email, name]) // For full-text search
 }

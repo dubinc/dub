@@ -19,6 +19,14 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     scope: "conversionEvent",
     configurable: true,
   },
+  {
+    type: "customerSharedClickId",
+    name: "Shared click ID",
+    description:
+      "The same click ID was used to attribute more than one customer.",
+    scope: "conversionEvent",
+    configurable: true,
+  },
 
   // Referral source rules
   {
@@ -121,6 +129,7 @@ export const PARTNER_LEVEL_FRAUD_RULES = [
 export const CUSTOMER_LEVEL_FRAUD_RULES = [
   FraudRuleType.customerEmailMatch,
   FraudRuleType.customerEmailSuspiciousDomain,
+  FraudRuleType.customerSharedClickId,
   FraudRuleType.paidTrafficDetected,
   FraudRuleType.referralSourceBanned,
 ];
