@@ -1,4 +1,4 @@
-import { scrapeCreatorsFetch } from "./client";
+import { ScrapeCreatorsApiError, scrapeCreatorsClient } from "./client";
 
 interface LinkedInPostResult {
   description: string | null;
@@ -11,21 +11,17 @@ interface LinkedInPostResult {
 export async function getLinkedInPost(
   url: string,
 ): Promise<LinkedInPostResult> {
-  const { data, error } = await scrapeCreatorsFetch(
-    "/:version/:platform/:contentType",
-    {
-      params: {
-        version: "v1",
-        platform: "linkedin",
-        contentType: "post",
-      },
-      query: {
-        url,
-      },
-    },
-  );
+  const data = await scrapeCreatorsClient
+    .getLinkedInPost({ url })
+    .catch((error: unknown) => {
+      if (error instanceof ScrapeCreatorsApiError) {
+        return null;
+      }
 
-  if (error) {
+      throw error;
+    });
+
+  if (!data) {
     throw new Error(
       "We were unable to retrieve the LinkedIn post. Please check the URL and try again.",
     );

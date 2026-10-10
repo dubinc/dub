@@ -1,5 +1,4 @@
 import { DubApiError } from "@/lib/api/errors";
-import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import {
   bountyEligibilityIncludes,
   canPartnerSubmitBounty,
@@ -8,6 +7,7 @@ import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { prisma } from "@/lib/prisma";
+import { getSocialContent } from "@/lib/scrape-creators/get-social-content";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { NextResponse } from "next/server";

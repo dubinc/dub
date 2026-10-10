@@ -1,8 +1,8 @@
 "use server";
 
-import { getLinkedInPost } from "@/lib/api/scrape-creators/get-linkedin-post";
-import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
 import { prisma } from "@/lib/prisma";
+import { getLinkedInPost } from "@/lib/scrape-creators/get-linkedin-post";
+import { getSocialProfile } from "@/lib/scrape-creators/get-social-profile";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { redis } from "@/lib/upstash/redis";

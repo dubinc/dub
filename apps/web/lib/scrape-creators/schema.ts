@@ -1,5 +1,13 @@
 import * as z from "zod/v4";
 
+export const getProfileInputSchema = z.object({
+  handle: z.string(),
+});
+
+export const getContentInputSchema = z.object({
+  url: z.string(),
+});
+
 export const scrapedCountSchema = z
   .number()
   .nullish()
