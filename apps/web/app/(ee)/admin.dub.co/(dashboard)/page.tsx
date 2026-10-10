@@ -1,10 +1,17 @@
+import { isAdminAccessRestricted } from "@/lib/auth/admin-access-guard";
+import { getSession } from "@/lib/auth";
+import { BanLink } from "./components/ban-link";
 import { DeletePartnerAccount } from "./components/delete-partner-account";
 import { DeleteProgram } from "./components/delete-program";
+import { DisableRestoreWorkspace } from "./components/disable-restore-workspace";
 import { ImpersonateUser } from "./components/impersonate-user";
 import { ResetLoginAttempts } from "./components/reset-login-attempts";
 import { SlackSupportInvite } from "./components/slack-support-invite";
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const session = await getSession();
+  const showModerationTools = !isAdminAccessRestricted(session?.user?.id);
+
   return (
     <div className="mx-auto flex w-full max-w-screen-sm flex-col divide-y divide-neutral-200 overflow-auto bg-white">
       <div className="flex flex-col space-y-4 px-5 py-10">
@@ -16,6 +23,13 @@ export default function AdminPage() {
         </p>
         <ImpersonateUser />
       </div>
+      {showModerationTools && (
+        <div className="flex flex-col space-y-4 px-5 py-10">
+          <h2 className="text-xl font-semibold">Ban Link</h2>
+          <p className="text-sm text-neutral-500">Ban a dub.sh link</p>
+          <BanLink />
+        </div>
+      )}
       <div className="flex flex-col space-y-4 px-5 py-10">
         <h2 className="text-xl font-semibold">Delete Stripe Express Account</h2>
         <p className="text-sm text-neutral-500">
@@ -54,6 +68,17 @@ export default function AdminPage() {
         </p>
         <SlackSupportInvite />
       </div>
+      {showModerationTools && (
+        <div className="flex flex-col space-y-4 px-5 py-10">
+          <h2 className="text-xl font-semibold">Disable / Restore Workspace</h2>
+          <p className="text-sm text-neutral-500">
+            Disable or restore all links for a workspace. Disabling also
+            downgrades owners to billing, members to viewer, and emails
+            workspace owners. Restoring reverts those role changes.
+          </p>
+          <DisableRestoreWorkspace />
+        </div>
+      )}
     </div>
   );
 }
