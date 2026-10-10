@@ -5,6 +5,7 @@ import { getGroupSubmittedLeadForm } from "@/lib/submitted-leads/get-group-submi
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { MarketplaceSidebarFilters } from "@/ui/program-marketplace/marketplace-sidebar-filters";
 import { ProgramMarketplaceCard } from "@/ui/program-marketplace/program-marketplace-card";
 import { isMarketplaceFilterSidebarPath } from "@/ui/program-marketplace/utils/urls";
@@ -53,6 +54,7 @@ type SidebarNavData = {
   isMobile?: boolean;
   programSlug?: string;
   isUnapproved: boolean;
+  invitationsCount?: number;
   unreadMessagesCount?: number;
   programBountiesCount?: number;
   showDetailedAnalytics?: boolean;
@@ -103,7 +105,11 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   },
 ];
 
-const PROGRAMS_CONTENT = (): { items: NavItemType[] }[] => [
+const PROGRAMS_CONTENT = ({
+  invitationsCount,
+}: {
+  invitationsCount?: number;
+}): { items: NavItemType[] }[] => [
   {
     items: [
       {
@@ -115,6 +121,7 @@ const PROGRAMS_CONTENT = (): { items: NavItemType[] }[] => [
         name: "Programs",
         icon: GridIcon,
         href: "/programs",
+        badge: invitationsCount || undefined,
       },
       {
         name: "Marketplace",
@@ -129,15 +136,17 @@ const PROGRAMS_CONTENT = (): { items: NavItemType[] }[] => [
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
-  programs: () => ({
+  programs: ({ invitationsCount }) => ({
     title: <PartnerProgramDropdown />,
-    content: PROGRAMS_CONTENT(),
+    content: PROGRAMS_CONTENT({ invitationsCount }),
     direction: "left",
   }),
 
-  marketplace: ({ isMobile }) => ({
+  marketplace: ({ isMobile, invitationsCount }) => ({
     title: <PartnerProgramDropdown />,
-    content: isMobile ? PROGRAMS_CONTENT() : <MarketplaceSidebarFilters />,
+    content: isMobile
+      ? PROGRAMS_CONTENT({ invitationsCount })
+      : <MarketplaceSidebarFilters />,
     direction: "right",
   }),
 
@@ -377,6 +386,10 @@ export function PartnersSidebarNav({
         : false,
   });
 
+  const { count: invitationsCount } = useProgramEnrollmentsCount({
+    status: "invited",
+  });
+
   const { count: unreadMessagesCount } = useProgramMessagesCount({
     enabled: true,
     query: {
@@ -425,6 +438,7 @@ export function PartnersSidebarNav({
         isMobile,
         programSlug: programSlug || "",
         isUnapproved,
+        invitationsCount,
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
         showDetailedAnalytics,

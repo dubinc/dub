@@ -137,7 +137,7 @@ function getColumns(tab: ProgramTab): ProgramColumn[] {
         },
         {
           id: "activity",
-          header: "Activity (last 12 months)",
+          header: "Earnings (last 12 months)",
           size: 180,
           cell: ({ row }) => (
             <ProgramActivity programEnrollment={row.original} />
