@@ -74,7 +74,7 @@ export function PartnerProgramDropdown() {
             <div className="p-2">
               <div className="mt-0.5 flex flex-col gap-0.5">
                 <Link
-                  href="/programs"
+                  href="/"
                   className={cn(
                     "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-base transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 sm:text-sm",
                     "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
@@ -82,9 +82,15 @@ export function PartnerProgramDropdown() {
                   onClick={() => setOpenPopover(false)}
                 >
                   <GridIcon className="size-5 text-neutral-500 sm:size-4" />
-                  <span className="text-content-default block truncate">
-                    Your programs
+                  <span className="text-content-default block min-w-0 grow truncate">
+                    All programs
                   </span>
+                  {!selectedProgram && (
+                    <Check2
+                      className="size-4 shrink-0 text-neutral-600"
+                      aria-hidden="true"
+                    />
+                  )}
                 </Link>
                 <Link
                   href="/marketplace"
@@ -126,7 +132,7 @@ export function PartnerProgramDropdown() {
               />
             )}
             <div className="text-content-emphasis min-w-0 truncate text-lg font-semibold leading-7">
-              {selectedProgram?.name || "Your programs"}
+              {selectedProgram?.name || "All programs"}
             </div>
           </div>
           <ChevronsUpDown

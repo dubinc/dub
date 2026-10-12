@@ -52,6 +52,14 @@ export const testIds = {
     aboutYou: "partner-onboarding-about-you",
     profileType: "partner-onboarding-profile-type",
   },
+  partnerOverview: {
+    earnings: "partner-overview-earnings",
+    recentPayouts: "partner-overview-recent-payouts",
+    tasks: "partner-overview-tasks",
+    topPrograms: "partner-overview-top-programs",
+    topLinks: "partner-overview-top-links",
+    recentEarnings: "partner-overview-recent-earnings",
+  },
   billing: {
     plansHeading: "billing-plans-heading",
     viewDashboard: "billing-view-dashboard",

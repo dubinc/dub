@@ -3,7 +3,10 @@ import {
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
 import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
-import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/constants/partner-profile";
+import {
+  PARTNER_CUSTOMERS_MAX_PAGE_SIZE,
+  PARTNER_PROGRAMS_MAX_PAGE_SIZE,
+} from "@/lib/constants/partner-profile";
 import {
   CommissionType,
   PartnerNetworkStatus,
@@ -11,6 +14,7 @@ import {
   PartnerProfileType,
   PartnerRole,
   ProgramEnrollmentStatus,
+  ReapplicationTimeframe,
   SubmittedLeadStatus,
 } from "@prisma/client";
 import * as z from "zod/v4";
@@ -25,8 +29,9 @@ import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
-import { getPaginationQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
+import { ProgramEnrollmentSchema, ProgramSchema } from "./programs";
 import { RewardSchema } from "./rewards";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
 import { centsSchema } from "./utils";
@@ -89,6 +94,92 @@ export const getPartnerEarningsTimeseriesSchema =
     timezone: z.string().optional(),
   });
 
+const programIdOrSlugSchema = z
+  .string()
+  .optional()
+  .describe(
+    "The ID or slug of the program to filter earnings by. If not provided, earnings across all programs are returned.",
+  );
+
+const PartnerProfileEarningsProgramSchema = ProgramSchema.pick({
+  id: true,
+  name: true,
+  slug: true,
+  logo: true,
+});
+
+export const PartnerProfileEarningsSchema = PartnerEarningsSchema.extend({
+  program: PartnerProfileEarningsProgramSchema,
+});
+
+export const partnerProfileEarningsQuerySchema =
+  getPartnerEarningsQuerySchema.extend({
+    programIdOrSlug: programIdOrSlugSchema,
+  });
+
+export const partnerProfileEarningsCountQuerySchema =
+  getPartnerEarningsCountQuerySchema.extend({
+    programIdOrSlug: programIdOrSlugSchema,
+  });
+
+export const partnerProfileEarningsTimeseriesQuerySchema =
+  getPartnerEarningsTimeseriesSchema.extend({
+    programIdOrSlug: programIdOrSlugSchema,
+    groupBy: z
+      .enum(["type", "linkId", "programId"])
+      .optional()
+      .describe(
+        "The field to group the earnings by. If omitted, each period is the total earnings. Otherwise each period includes a `data` object with the earnings of each group.",
+      ),
+  });
+
+export const partnerProfileEarningsAnalyticsQuerySchema =
+  partnerProfileEarningsCountQuerySchema
+    .pick({
+      programIdOrSlug: true,
+      type: true,
+      status: true,
+      interval: true,
+      start: true,
+      end: true,
+      timezone: true,
+    })
+    .extend({
+      groupBy: z
+        .enum(["programId", "linkId", "type"])
+        .describe(
+          "The field to sum earnings by. Returns the highest-earning programs, links, or commission types.",
+        ),
+      limit: z.coerce
+        .number()
+        .int()
+        .min(1)
+        .max(100)
+        .default(10)
+        .describe("The number of groups to return, sorted by earnings."),
+    });
+
+export const PartnerProfileTopProgramEarningsSchema =
+  PartnerProfileEarningsProgramSchema.extend({
+    earnings: z.number(),
+  });
+
+export const PartnerProfileTopLinkEarningsSchema = LinkSchema.pick({
+  id: true,
+  domain: true,
+  key: true,
+  shortLink: true,
+  url: true,
+}).extend({
+  program: PartnerProfileEarningsProgramSchema,
+  earnings: z.number(),
+});
+
+export const PartnerProfileTypeEarningsSchema = z.object({
+  type: z.enum(CommissionType),
+  earnings: z.number(),
+});
+
 export const PartnerProfileLinkSchema = LinkSchema.pick({
   id: true,
   domain: true,
@@ -143,13 +234,40 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
   folderId: true,
 });
 
+// GET /api/partner-profile/programs adds the reapplication timeframe, so that
+// a rejected program can say when the partner can apply again
+export const PartnerProfileProgramEnrollmentSchema =
+  ProgramEnrollmentSchema.extend({
+    reapplicationTimeframe: z.enum(ReapplicationTimeframe).nullish(),
+  });
+
 export const partnerProfileProgramsQuerySchema = z.object({
-  includeRewardsDiscounts: z.coerce.boolean().optional(),
-  status: z.enum(ProgramEnrollmentStatus).optional(),
+  includeRewardsDiscounts: booleanQuerySchema.optional(),
+  // one status or a comma-separated list, for example "pending,rejected"
+  status: z
+    .string()
+    .transform((v) =>
+      v
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    )
+    .pipe(z.array(z.enum(ProgramEnrollmentStatus)).min(1))
+    .optional(),
+  search: z.string().trim().optional(),
+  sortBy: z.enum(["totalCommissions", "name"]).default("totalCommissions"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  // the list is paginated only when `page` is set, because most callers
+  // need every enrollment of the partner
+  ...getPaginationQuerySchema({ pageSize: PARTNER_PROGRAMS_MAX_PAGE_SIZE }),
 });
 
 export const partnerProfileProgramsCountQuerySchema =
-  partnerProfileProgramsQuerySchema.pick({ status: true });
+  partnerProfileProgramsQuerySchema
+    .pick({ status: true, search: true })
+    .extend({
+      groupBy: z.enum(["status"]).optional(),
+    });
 
 export const partnerNotificationTypes = z.enum([
   "commissionCreated",

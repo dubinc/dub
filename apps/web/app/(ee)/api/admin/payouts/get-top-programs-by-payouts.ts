@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID } from "@dub/utils";
 import { InvoiceStatus } from "@prisma/client";
 
 export async function getTopProgramsByPayouts({
@@ -17,18 +16,8 @@ export async function getTopProgramsByPayouts({
       amount: true,
     },
     where: {
-      programId: {
-        not: null,
-        notIn: [ACME_PROGRAM_ID, DEMO_PROGRAM_ID],
-      },
       program: {
-        is: {
-          NOT: {
-            slug: {
-              endsWith: "-staging",
-            },
-          },
-        },
+        environment: "production",
       },
       status: status || {
         not: "failed",

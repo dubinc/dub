@@ -3,6 +3,37 @@ import { prisma } from "@/lib/prisma";
 import { Prisma, ProgramEnrollment } from "@prisma/client";
 import { DubApiError } from "../errors";
 
+export function programPartnerTagsInclude(programId: string) {
+  return {
+    // Deleted tags have a null programId until background cleanup removes their associations.
+    where: {
+      partnerTag: {
+        programId,
+      },
+    },
+    include: {
+      partnerTag: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  } satisfies Prisma.ProgramEnrollmentInclude["programPartnerTags"];
+}
+
+type EnrollmentProgramPartnerTags = Prisma.ProgramEnrollmentGetPayload<{
+  include: {
+    programPartnerTags: ReturnType<typeof programPartnerTagsInclude>;
+  };
+}>["programPartnerTags"];
+
+export function partnerTagsFromEnrollment(
+  programPartnerTags: EnrollmentProgramPartnerTags,
+) {
+  return programPartnerTags.map(({ partnerTag }) => partnerTag);
+}
+
 // Attempts to create a program enrollment.
 // If another request creates it concurrently, returns the existing enrollment.
 export async function createOrGetProgramEnrollment({
@@ -91,6 +122,7 @@ export async function createOrGetProgramEnrollment({
               platforms: true,
             },
           },
+          programPartnerTags: programPartnerTagsInclude(programId),
         },
       });
 

@@ -9,7 +9,11 @@ export async function generateDiscountCodeForPartner({
 }: {
   workspace: Pick<
     Project,
-    "id" | "webhookEnabled" | "stripeConnectId" | "shopifyStoreId"
+    | "id"
+    | "environment"
+    | "webhookEnabled"
+    | "stripeConnectId"
+    | "shopifyStoreId"
   >;
   partner: Pick<EnrolledPartnerProps, "id" | "name" | "groupId">;
 }) {

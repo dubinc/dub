@@ -60,6 +60,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
             webhookEnabled: true,
             stripeConnectId: true,
             shopifyStoreId: true,
+            environment: true,
           },
         });
 

@@ -52,7 +52,7 @@ export const POST = withCron(async ({ rawBody }) => {
       );
     }
 
-    const auditLogResponse = await recordAuditLog(
+    await recordAuditLog(
       payouts.map(({ program, partner, invoice, ...payout }) => {
         return {
           workspaceId: program.workspaceId,
@@ -72,12 +72,12 @@ export const POST = withCron(async ({ rawBody }) => {
         };
       }),
     );
-    console.log(JSON.stringify({ auditLogResponse }, null, 2));
 
     const invoice = payouts[0].invoice;
     const internalPayouts = payouts.filter(
       (payout) => payout.mode === "internal",
     );
+
     if (
       invoice &&
       invoice.paymentMethod !== "card" &&
@@ -95,6 +95,7 @@ export const POST = withCron(async ({ rawBody }) => {
               id: payout.program.id,
               name: payout.program.name,
               logo: payout.program.logo,
+              environment: payout.program.environment,
             },
             payout: {
               id: payout.id,

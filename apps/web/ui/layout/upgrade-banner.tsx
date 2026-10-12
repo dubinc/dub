@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { useDashboardBannerVisible } from "@/lib/hooks/use-dashboard-banner-visible";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRetryPaymentModal } from "@/ui/modals/retry-payment-modal";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
@@ -55,8 +56,8 @@ export function UpgradeBanner() {
     useRetryPaymentModal();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const { isVisible, needsUpgrade, subscriptionCanceled } =
-    useUpgradeBannerVisibility();
+  const { needsUpgrade, subscriptionCanceled } = useUpgradeBannerVisibility();
+  const { isUpgradeBannerVisible } = useDashboardBannerVisible();
 
   const permissionsError = clientAccessCheck({
     action: "billing.write",
@@ -73,7 +74,7 @@ export function UpgradeBanner() {
 
   const { isMobile } = useMediaQuery();
 
-  if (!isVisible) return null;
+  if (!isUpgradeBannerVisible) return null;
 
   return (
     <>

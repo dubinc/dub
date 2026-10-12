@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramApplicationReminder from "@dub/email/templates/program-application-reminder";
+import { WorkspaceEnvironment } from "@prisma/client";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
 
@@ -21,6 +22,9 @@ export const programApplicationReminderJob = defineJob({
         // Only send reminders for applications that were created less than 3 days ago
         createdAt: {
           gt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        },
+        program: {
+          environment: WorkspaceEnvironment.production,
         },
       },
       select: {

@@ -18,8 +18,11 @@ import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { createTremendousCampaignJob } from "@/lib/jobs/handlers/create-tremendous-campaign-job";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { prisma } from "@/lib/prisma";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
+import { mockPaymentProvider } from "@/lib/sandbox/mock-payment-provider";
 import { stripe } from "@/lib/stripe";
 import { checkPaymentMethodMandate } from "@/lib/stripe/check-payment-method-mandate";
+import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -64,6 +67,10 @@ export const confirmPayoutsAction = authActionClient
       total,
     } = parsedInput;
 
+    const isProductionWorkspace = isProductionEnvironment(
+      workspace.environment,
+    );
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const program = await getProgramOrThrow({
@@ -76,7 +83,7 @@ export const confirmPayoutsAction = authActionClient
       requiredPermissions: ["payouts.write"],
     });
 
-    if (!workspace.stripeId) {
+    if (isProductionWorkspace && !workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");
     }
 
@@ -135,7 +142,7 @@ export const confirmPayoutsAction = authActionClient
 
         getWebhooks({
           workspaceId: workspace.id,
-          triggers: ["payout.confirmed"],
+          triggers: [EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER],
           disabled: false,
           installationId: null,
         }),
@@ -148,14 +155,19 @@ export const confirmPayoutsAction = authActionClient
 
       if (hasExternalPayouts && payoutWebhooks.length === 0) {
         throw new Error(
-          `EXTERNAL_WEBHOOK_REQUIRED: This invoice includes at least one external payout, which requires an active webhook subscribed to the "payout.confirmed" event. Please set one up before proceeding.`,
+          `EXTERNAL_WEBHOOK_REQUIRED: This invoice includes at least one external payout, which requires an active webhook subscribed to the "${EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER}" event. Please set one up before proceeding.`,
         );
       }
     }
 
-    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+    const paymentMethod = isProductionWorkspace
+      ? await stripe.paymentMethods.retrieve(paymentMethodId)
+      : await mockPaymentProvider.retrievePaymentMethod(paymentMethodId);
 
-    if (paymentMethod.customer !== workspace.stripeId) {
+    if (
+      isProductionWorkspace &&
+      paymentMethod.customer !== workspace.stripeId
+    ) {
       throw new Error("Invalid payout method.");
     }
 
@@ -172,7 +184,10 @@ export const confirmPayoutsAction = authActionClient
     }
 
     // if it's a direct debit payment method, we need to check to make sure mandate is valid
-    if (DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)) {
+    if (
+      isProductionWorkspace &&
+      DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
+    ) {
       const mandate = await checkPaymentMethodMandate({
         paymentMethodId,
       });
@@ -217,7 +232,7 @@ export const confirmPayoutsAction = authActionClient
       });
     });
 
-    if (!program.tremendousCampaignId) {
+    if (isProductionWorkspace && !program.tremendousCampaignId) {
       waitUntil(
         createTremendousCampaignJob.dispatch(
           {

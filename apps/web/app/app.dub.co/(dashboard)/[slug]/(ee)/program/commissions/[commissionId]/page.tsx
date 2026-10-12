@@ -9,12 +9,10 @@ import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
+import { CommissionDescriptionLabel } from "@/ui/partners/commission-description-label";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
-import { CommissionDescriptionLabel } from "@/ui/partners/commission-description-label";
-import {
-  CommissionTypeBadge,
-} from "@/ui/partners/commission-type-badge";
+import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { useEditCommissionModal } from "@/ui/partners/edit-commission-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";

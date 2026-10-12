@@ -60,6 +60,7 @@ export const createDiscountCodeForLinkJob = defineJob({
             webhookEnabled: true,
             stripeConnectId: true,
             shopifyStoreId: true,
+            environment: true,
           },
         },
       },

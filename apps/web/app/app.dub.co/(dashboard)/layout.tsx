@@ -1,3 +1,4 @@
+import { WorkspaceEnvironmentBanner } from "@/lib/sandbox/components/workspace-environment";
 import { MainNav } from "@/ui/layout/main-nav";
 import { AppSidebarNav } from "@/ui/layout/sidebar/app-sidebar-nav";
 import { HelpButton } from "@/ui/layout/sidebar/help-button";
@@ -16,6 +17,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
   return (
     <ModalProvider>
       <div className="min-h-screen w-full bg-white">
+        <WorkspaceEnvironmentBanner />
         <UpgradeBanner />
         <MainNav
           sidebar={AppSidebarNav}

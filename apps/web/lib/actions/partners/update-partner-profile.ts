@@ -12,6 +12,7 @@ import {
   requestSyncedEmailChange,
   syncNameAndImageToUser,
 } from "@/lib/partners/sync-partner-identity";
+import { updatePartnerCountry } from "@/lib/partners/update-partner-country";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
@@ -23,6 +24,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import {
   APP_DOMAIN_WITH_NGROK,
+  COUNTRIES,
   deepEqual,
   nanoid,
   PARTNERS_DOMAIN,
@@ -44,6 +46,7 @@ const updatePartnerProfileSchema = z
     description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
     profileType: z.enum(PartnerProfileType).optional(),
     companyName: z.string().nullish(),
+    country: z.string().optional(),
     syncIdentity: z.boolean().optional(),
   })
   .extend(PartnerProfileDetailsSchema.partial().shape)
@@ -88,8 +91,39 @@ export const updatePartnerProfileAction = authPartnerActionClient
       preferredEarningStructures,
       salesChannels,
       username,
+      country,
       syncIdentity,
     } = parsedInput;
+
+    const countryChanged = Boolean(country) && country !== partner.country;
+
+    if (countryChanged) {
+      if (partner.country !== "US") {
+        throw new Error(
+          "Your profile country cannot be changed. Contact support to update it.",
+        );
+      }
+
+      if (!country || !Object.hasOwn(COUNTRIES, country)) {
+        throw new Error("Select a valid country.");
+      }
+
+      const processingPayout = await prisma.payout.findFirst({
+        where: {
+          partnerId: partner.id,
+          status: "processing",
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (processingPayout) {
+        throw new Error(
+          "Your country cannot be changed while a payout is being processed.",
+        );
+      }
+    }
 
     await updatedComplianceFieldsChecks({
       partner,
@@ -284,6 +318,13 @@ export const updatePartnerProfileAction = authPartnerActionClient
           })(),
         ]),
       );
+
+      if (countryChanged && country) {
+        await updatePartnerCountry({
+          partnerId: partner.id,
+          country,
+        });
+      }
 
       return {
         needsEmailVerification,

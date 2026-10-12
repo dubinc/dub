@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDefaultPartnerId } from "./utils/get-default-partner";
+import { getPartnerLandingPath } from "./utils/get-partner-landing-path";
 import { getUserViaToken } from "./utils/get-user-via-token";
 import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
 import { parse } from "./utils/parse";
@@ -10,6 +11,7 @@ import {
 } from "./utils/partners-redirect";
 
 const AUTHENTICATED_PATHS = [
+  "/overview",
   "/programs",
   "/marketplace",
   "/onboarding",
@@ -28,8 +30,9 @@ export async function PartnersMiddleware(req: NextRequest) {
   const user = await getUserViaToken(req);
   const isPartnerInvite = req.nextUrl.pathname.endsWith("/invite");
 
+  // match whole path segments, so program slugs like "overviewai" stay public
   const isAuthenticatedPath = AUTHENTICATED_PATHS.some(
-    (p) => path === "/" || path.startsWith(p),
+    (p) => path === "/" || path === p || path.startsWith(`${p}/`),
   );
 
   const isLoginPath = ["/login", "/register"].some(
@@ -102,7 +105,11 @@ export async function PartnersMiddleware(req: NextRequest) {
     }
 
     if (path === "/" || path.startsWith("/pn_")) {
-      return NextResponse.redirect(new URL("/programs", req.url));
+      const landingPath = defaultPartnerId
+        ? await getPartnerLandingPath(defaultPartnerId)
+        : "/programs";
+
+      return NextResponse.redirect(new URL(landingPath, req.url));
     } else if (isLoginPath) {
       // if is custom program login or register path, redirect to /programs/:programSlug
       const programSlugRegex = /^\/([^\/]+)\/(login|register)$/;

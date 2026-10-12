@@ -11,6 +11,7 @@ import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   ProgramPayoutMode,
+  WorkspaceEnvironment,
 } from "@prisma/client";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
@@ -66,6 +67,7 @@ export const ProgramSchema = z.object({
   messagingEnabledAt: z.date().nullish(),
   partnerNetworkEnabledAt: z.date().nullish(),
   payoutMode: z.enum(ProgramPayoutMode).default("internal"),
+  environment: z.enum(WorkspaceEnvironment),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   categories: z.array(z.enum(Category)).nullish(),
@@ -74,7 +76,6 @@ export const ProgramSchema = z.object({
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
-  referralFormData: z.record(z.string(), z.any()).nullish(),
   applicationRequirements: applicationRequirementsSchema.nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -214,7 +215,6 @@ export const ProgramEnrollmentSchema = z.object({
     .nullish(),
   customerDataSharingEnabledAt: z.date().nullable(),
   groupMoveDisabledAt: z.date().nullable(),
-  referralFormData: submittedLeadFormSchema.nullish(),
   application: ProgramEnrollmentApplicationSchema.nullish().describe(
     "Linked program application, including review outcome when applicable.",
   ),
