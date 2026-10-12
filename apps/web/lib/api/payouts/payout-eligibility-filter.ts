@@ -1,13 +1,17 @@
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import {
   TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
   TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS,
 } from "@/lib/tremendous/constants";
-import { Prisma, Program } from "@prisma/client";
+import { Prisma, Program, ProgramPayoutMode } from "@prisma/client";
 
 export function getPayoutEligibilityFilter({
   program,
 }: {
-  program: Pick<Program, "id" | "minPayoutAmount" | "payoutMode">;
+  program: Pick<
+    Program,
+    "id" | "minPayoutAmount" | "payoutMode" | "environment"
+  >;
 }): Prisma.PayoutWhereInput {
   const commonWhere: Prisma.PayoutWhereInput = {
     programId: program.id,
@@ -27,6 +31,20 @@ export function getPayoutEligibilityFilter({
       ],
     },
   };
+
+  // Non-production internal and hybrid payouts are simulated, so a missing
+  // payout connection should not block them. External mode still requires a tenant ID.
+  if (
+    !isProductionEnvironment(program.environment) &&
+    (
+      [
+        ProgramPayoutMode.internal,
+        ProgramPayoutMode.hybrid,
+      ] as ProgramPayoutMode[]
+    ).includes(program.payoutMode)
+  ) {
+    return commonWhere;
+  }
 
   switch (program.payoutMode) {
     // Internal mode: all payouts are internal, require payoutsEnabledAt !== null
