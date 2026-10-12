@@ -16,59 +16,64 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 // GET /api/commissions - get all commissions for a program
-export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const programId = getDefaultProgramIdOrThrow(workspace);
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-  let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema
-    .extend({
-      fraudEventGroupId: z.string().optional(),
-      type: z.string().optional(), // May be comma-separated string, for multi-value handling
-    })
-    .parse(searchParams);
+    let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema
+      .extend({
+        fraudEventGroupId: z.string().optional(),
+        type: z.string().optional(), // May be comma-separated string, for multi-value handling
+      })
+      .parse(searchParams);
 
-  if (tenantId && !partnerId) {
-    const partner = await prisma.programEnrollment.findUnique({
-      where: {
-        tenantId_programId: {
-          tenantId,
-          programId,
+    if (tenantId && !partnerId) {
+      const partner = await prisma.programEnrollment.findUnique({
+        where: {
+          tenantId_programId: {
+            tenantId,
+            programId,
+          },
         },
-      },
-      select: {
-        partnerId: true,
-      },
-    });
-
-    if (!partner) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Partner with specified tenantId ${tenantId} not found.`,
+        select: {
+          partnerId: true,
+        },
       });
+
+      if (!partner) {
+        throw new DubApiError({
+          code: "not_found",
+          message: `Partner with specified tenantId ${tenantId} not found.`,
+        });
+      }
+
+      partnerId = partner.partnerId;
     }
 
-    partnerId = partner.partnerId;
-  }
+    const commissions = await getCommissions({
+      ...filters,
+      partnerId,
+      programId,
+    });
 
-  const commissions = await getCommissions({
-    ...filters,
-    partnerId,
-    programId,
-  });
-
-  return NextResponse.json(
-    z.array(CommissionEnrichedSchema).parse(
-      commissions.map((c) => ({
-        ...c,
-        paidAt: c.payout?.paidAt ?? null,
-        customer: transformCustomerForCommission(c.customer),
-        partner: {
-          ...c.partner,
-          groupId: c.programEnrollment.groupId,
-        },
-      })),
-    ),
-  );
-});
+    return NextResponse.json(
+      z.array(CommissionEnrichedSchema).parse(
+        commissions.map((c) => ({
+          ...c,
+          paidAt: c.payout?.paidAt ?? null,
+          customer: transformCustomerForCommission(c.customer),
+          partner: {
+            ...c.partner,
+            groupId: c.programEnrollment.groupId,
+          },
+        })),
+      ),
+    );
+  },
+  {
+    requiredPermissions: ["commissions.read"],
+  },
+);
 
 // POST /api/commissions - create manual commission
 export const POST = withWorkspace(
@@ -104,7 +109,7 @@ export const POST = withWorkspace(
     });
   },
   {
+    requiredPermissions: ["commissions.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );

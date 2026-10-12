@@ -10,6 +10,11 @@ const RESOURCE_KEYS = [
   "groups",
   "partners",
   "program_applications",
+  "customers",
+  "discount_codes",
+  "commissions",
+  "bounties",
+  "payouts",
 ] as const;
 
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];
@@ -58,5 +63,30 @@ export const RESOURCES: {
     name: "Program applications",
     key: "program_applications",
     description: "List, approve, and reject program applications",
+  },
+  {
+    name: "Customers",
+    key: "customers",
+    description: "Create, read, update, and delete customers",
+  },
+  {
+    name: "Discount codes",
+    key: "discount_codes",
+    description: "Create, read, and delete discount codes",
+  },
+  {
+    name: "Commissions",
+    key: "commissions",
+    description: "Create, read, and update commissions",
+  },
+  {
+    name: "Bounties",
+    key: "bounties",
+    description: "List, approve, and reject bounty submissions",
+  },
+  {
+    name: "Payouts",
+    key: "payouts",
+    description: "Read and confirm payouts",
   },
 ];

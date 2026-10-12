@@ -36,6 +36,16 @@ export const OAUTH_SCOPES = [
   "partners.write",
   "program_applications.read",
   "program_applications.write",
+  "customers.read",
+  "customers.write",
+  "discount_codes.read",
+  "discount_codes.write",
+  "commissions.read",
+  "commissions.write",
+  "bounties.read",
+  "bounties.write",
+  "payouts.read",
+  "payouts.write",
   "user.read", // default scope, no need to request it
 ];
 
@@ -59,4 +69,14 @@ export const OAUTH_SCOPE_DESCRIPTIONS = {
   "partners.write": "Read and Write access to partners",
   "program_applications.read": "Read access to program applications",
   "program_applications.write": "Read and Write access to program applications",
+  "customers.read": "Read access to customers",
+  "customers.write": "Read and Write access to customers",
+  "discount_codes.read": "Read access to discount codes",
+  "discount_codes.write": "Read and Write access to discount codes",
+  "commissions.read": "Read access to commissions",
+  "commissions.write": "Read and Write access to commissions",
+  "bounties.read": "Read access to bounties",
+  "bounties.write": "Read and Write access to bounties",
+  "payouts.read": "Read access to payouts",
+  "payouts.write": "Read and Write access to payouts",
 };

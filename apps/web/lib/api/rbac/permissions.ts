@@ -26,11 +26,18 @@ const PERMISSION_ACTIONS = [
   "partners.write",
   "program_applications.read",
   "program_applications.write",
+  "customers.read",
+  "customers.write",
+  "discount_codes.read",
+  "discount_codes.write",
+  "commissions.read",
   "commissions.write",
+  "bounties.read",
   "bounties.write",
   "campaigns.write",
   "messages.read",
   "messages.write",
+  "payouts.read",
   "payouts.write",
   "billing.write",
 ] as const;
@@ -138,6 +145,11 @@ export const ROLE_PERMISSIONS: {
     roles: ["owner", "member"],
   },
   {
+    action: "payouts.read",
+    description: "access payouts",
+    roles: ["owner", "member", "viewer", "billing"],
+  },
+  {
     action: "payouts.write",
     description: "confirm payouts",
     roles: ["owner", "billing"],
@@ -178,9 +190,39 @@ export const ROLE_PERMISSIONS: {
     roles: ["owner", "member"],
   },
   {
+    action: "customers.read",
+    description: "access customers",
+    roles: ["owner", "member", "viewer", "billing"],
+  },
+  {
+    action: "customers.write",
+    description: "manage customers",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "discount_codes.read",
+    description: "access discount codes",
+    roles: ["owner", "member", "viewer", "billing"],
+  },
+  {
+    action: "discount_codes.write",
+    description: "manage discount codes",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "commissions.read",
+    description: "access commissions",
+    roles: ["owner", "member", "viewer", "billing"],
+  },
+  {
     action: "commissions.write",
     description: "manage commissions",
     roles: ["owner", "member"],
+  },
+  {
+    action: "bounties.read",
+    description: "access bounties",
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "bounties.write",

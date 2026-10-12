@@ -8,6 +8,16 @@ const LEGACY_PERMISSIONS = [
   "partners.write",
   "program_applications.read",
   "program_applications.write",
+  "customers.read",
+  "customers.write",
+  "discount_codes.read",
+  "discount_codes.write",
+  "commissions.read",
+  "commissions.write",
+  "bounties.read",
+  "bounties.write",
+  "payouts.read",
+  "payouts.write",
 ] as const;
 
 describe("grantLegacyScopePermissions", () => {
@@ -81,6 +91,16 @@ describe("grantLegacyScopePermissions", () => {
       "partners.write",
       "program_applications.read",
       "program_applications.write",
+      "customers.read",
+      "customers.write",
+      "discount_codes.read",
+      "discount_codes.write",
+      "commissions.read",
+      "commissions.write",
+      "bounties.read",
+      "bounties.write",
+      "payouts.read",
+      "payouts.write",
     ]);
   });
 });
