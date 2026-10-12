@@ -1,82 +1,141 @@
 "use client";
 
-import { Button, LoadingSpinner } from "@dub/ui";
-import { cn } from "@dub/utils";
-import { useRef, useState } from "react";
+import { Button, LinkLogo, LoadingSpinner } from "@dub/ui";
+import { ArrowUpRight2 } from "@dub/ui/icons";
+import {
+  cn,
+  getApexDomain,
+  getPrettyUrl,
+  isSafeLinkHref,
+  SHORT_DOMAIN,
+} from "@dub/utils";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { ImpersonateResult } from "./impersonate-user";
+import { UserInfoProps } from "./user-info";
+
+type LinkLookup = UserInfoProps & {
+  link: {
+    url: string;
+  };
+};
 
 export function BanLink() {
   const [key, setKey] = useState("");
   const [pending, setPending] = useState(false);
   const [banApexDomain, setBanApexDomain] = useState(false);
   const [term, setTerm] = useState("");
-  const [loadingTerm, setLoadingTerm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+  const [linkInfo, setLinkInfo] = useState<LinkLookup | null>(null);
   const keyRef = useRef<HTMLInputElement>(null);
-  const suggestedKey = useRef("");
   const requestId = useRef(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const banApexDomainRef = useRef(banApexDomain);
+  const termTouched = useRef(false);
 
-  const loadSuggestedTerm = async (key: string) => {
+  banApexDomainRef.current = banApexDomain;
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  const lookupLink = async (key: string, existingId?: number) => {
     const normalized = key.trim();
     if (!normalized) return null;
 
-    const id = ++requestId.current;
-    suggestedKey.current = normalized;
-    setLoadingTerm(true);
-    setTerm("");
+    const id = existingId ?? ++requestId.current;
+    setLoading(true);
 
     try {
-      const res = await fetch(
-        `/api/admin/links/ban?domain=dub.sh&key=${encodeURIComponent(normalized)}`,
-      ).then((r) => r.json());
+      const res = await fetch("/api/admin/impersonate", {
+        method: "POST",
+        body: JSON.stringify({
+          query: dubShortLinkQuery(normalized),
+        }),
+      });
 
       if (id !== requestId.current) return null;
 
-      if (res.error) {
-        toast.error(res.error);
-        suggestedKey.current = "";
+      if (!res.ok) {
+        const error = await res.text();
+        setLinkInfo(null);
+        if (res.status === 404) {
+          setLookupError(error);
+        } else {
+          toast.error(error);
+          setLookupError(null);
+        }
         return null;
       }
 
-      let nextTerm = res.term as string;
-      setTerm((current) => {
-        nextTerm = current.trim() || nextTerm;
-        return nextTerm;
-      });
-      return nextTerm;
+      const data = (await res.json()) as LinkLookup;
+      if (!data.link?.url) {
+        setLinkInfo(null);
+        setLookupError("Link not found");
+        return null;
+      }
+
+      setLookupError(null);
+      setLinkInfo(data);
+      if (banApexDomainRef.current && !termTouched.current) {
+        setTerm(apexTerm(data.link.url));
+      }
+      return data;
     } catch {
       if (id === requestId.current) {
         toast.error("Failed to look up link");
-        suggestedKey.current = "";
+        setLinkInfo(null);
+        setLookupError(null);
       }
       return null;
     } finally {
-      if (id === requestId.current) setLoadingTerm(false);
+      if (id === requestId.current) setLoading(false);
     }
   };
 
-  const handleKeyChange = (key: string) => {
-    setKey(key);
-    if (!banApexDomain) return;
+  const handleKeyChange = (value: string) => {
+    setKey(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
+    const id = ++requestId.current;
+    termTouched.current = false;
+    setTerm("");
+    setLookupError(null);
+    setLinkInfo(null);
+
+    const normalized = value.trim();
+    if (!normalized) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     debounceRef.current = setTimeout(() => {
-      if (key.trim() === suggestedKey.current) return;
-      void loadSuggestedTerm(key);
-    }, 300);
+      void lookupLink(normalized, id);
+    }, 400);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (pending) return;
+
     const form = e.currentTarget;
-    const key = new FormData(form).get("key");
-    if (!key || typeof key !== "string") return;
+    const rawKey = new FormData(form).get("key");
+    if (!rawKey || typeof rawKey !== "string" || !rawKey.trim()) return;
+    const key = rawKey.trim();
 
     let termToBan = term.trim();
 
-    if (banApexDomain && (key.trim() !== suggestedKey.current || !termToBan)) {
-      termToBan = (await loadSuggestedTerm(key))?.trim() ?? "";
-      if (!termToBan) return;
+    if (banApexDomain && !termToBan) {
+      const data = linkInfo ?? (await lookupLink(key));
+      termToBan = apexTerm(data?.link.url ?? "");
+      if (!termToBan) {
+        toast.error("Could not determine the apex domain");
+        return;
+      }
     }
 
     if (
@@ -91,7 +150,7 @@ export function BanLink() {
     setPending(true);
     try {
       const params = new URLSearchParams({
-        domain: "dub.sh",
+        domain: SHORT_DOMAIN,
         key,
       });
       if (banApexDomain) params.set("term", termToBan);
@@ -118,9 +177,14 @@ export function BanLink() {
       <form onSubmit={handleSubmit}>
         <Form
           pending={pending}
+          loading={loading}
           keyRef={keyRef}
           onKeyChange={handleKeyChange}
         />
+        {lookupError && (
+          <p className="mt-2 text-sm text-red-600">{lookupError}</p>
+        )}
+        {linkInfo && <LinkPreview data={linkInfo} />}
         <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-neutral-600">
           <input
             type="checkbox"
@@ -130,11 +194,8 @@ export function BanLink() {
               const checked = e.target.checked;
               setBanApexDomain(checked);
               if (!checked) return;
-
-              const key = keyRef.current?.value ?? "";
-              if (key.trim() && key.trim() !== suggestedKey.current) {
-                void loadSuggestedTerm(key);
-              }
+              termTouched.current = false;
+              if (linkInfo?.link.url) setTerm(apexTerm(linkInfo.link.url));
             }}
             className="rounded border-neutral-300 text-neutral-900 focus:ring-neutral-500"
           />
@@ -147,52 +208,101 @@ export function BanLink() {
               id="term"
               type="text"
               value={term}
-              disabled={pending || loadingTerm}
+              disabled={pending || loading}
               autoComplete="off"
               spellCheck={false}
-              onChange={(e) => setTerm(e.target.value)}
+              onChange={(e) => {
+                termTouched.current = true;
+                setTerm(e.target.value);
+              }}
               placeholder=".example.com"
               className={cn(
                 "block w-full rounded-md border-neutral-300 font-mono text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                (pending || loadingTerm) && "bg-neutral-100",
+                (pending || loading) && "bg-neutral-100",
               )}
             />
-            {loadingTerm && (
+            {loading && (
               <LoadingSpinner className="absolute inset-y-0 right-2 my-auto h-full w-5 text-neutral-400" />
             )}
           </div>
         )}
         <div className="mt-4">
           <Button
-            text="Confirm Ban"
+            text="Ban link"
             variant="danger"
             loading={pending}
             disabled={
               !key.trim() ||
               (banApexDomain && !term.trim()) ||
-              loadingTerm ||
+              loading ||
               pending
             }
           />
         </div>
       </form>
+      {linkInfo && (
+        <ImpersonateResult key={linkInfo.impersonateUrl.app} data={linkInfo} />
+      )}
+    </div>
+  );
+}
+
+function LinkPreview({ data }: { data: LinkLookup }) {
+  const { link } = data;
+  const apexDomain = getApexDomain(link.url);
+  const destinationHref = isSafeLinkHref(link.url) ? link.url : undefined;
+
+  return (
+    <div className="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <div className="flex items-center gap-3 px-3.5 py-3">
+        <div className="relative flex-none rounded-full border border-neutral-200 bg-gradient-to-t from-neutral-100 p-1.5">
+          <LinkLogo
+            apexDomain={apexDomain}
+            className="size-5 shrink-0 sm:size-6"
+          />
+        </div>
+        <div className="min-w-0">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">
+            Destination URL
+          </p>
+          {destinationHref ? (
+            <a
+              href={destinationHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex min-w-0 items-center gap-1 text-sm font-medium text-neutral-900"
+            >
+              <span className="truncate">{getPrettyUrl(link.url)}</span>
+              <ArrowUpRight2 className="size-3.5 shrink-0 text-neutral-400 transition-colors group-hover:text-neutral-700" />
+            </a>
+          ) : (
+            <p className="truncate text-sm font-medium text-neutral-900">
+              {getPrettyUrl(link.url) || link.url}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
 const Form = ({
   pending,
+  loading,
   keyRef,
   onKeyChange,
 }: {
   pending: boolean;
+  loading: boolean;
   keyRef: React.RefObject<HTMLInputElement | null>;
   onKeyChange: (key: string) => void;
 }) => {
+  const busy = pending || loading;
+
   return (
     <div className="relative flex w-full rounded-md shadow-sm">
       <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-5 text-neutral-500 sm:text-sm">
-        dub.sh
+        {SHORT_DOMAIN}
       </span>
       <input
         ref={keyRef}
@@ -211,19 +321,47 @@ const Form = ({
         onChange={(e) => onKeyChange(e.currentTarget.value)}
         onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
           e.preventDefault();
-          // if pasting in https://dub.sh/xxx or dub.sh/xxx, extract xxx
-          const text = e.clipboardData.getData("text/plain");
-          const key =
-            text.startsWith("https://dub.sh/") || text.startsWith("dub.sh/")
-              ? text.replace("https://dub.sh/", "").replace("dub.sh/", "")
-              : text;
+          const key = extractDubKey(e.clipboardData.getData("text/plain"));
           e.currentTarget.value = key;
           onKeyChange(key);
         }}
       />
-      {pending && (
+      {busy && (
         <LoadingSpinner className="absolute inset-y-0 right-2 my-auto h-full w-5 text-neutral-400" />
       )}
     </div>
   );
 };
+
+function dubShortLinkQuery(key: string) {
+  const path = key
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `https://${SHORT_DOMAIN}/${path}`;
+}
+
+function extractDubKey(text: string) {
+  const trimmed = text.trim();
+  try {
+    const url = trimmed.includes("://")
+      ? new URL(trimmed)
+      : trimmed.includes("/")
+        ? new URL(`https://${trimmed}`)
+        : undefined;
+    if (url) {
+      const host = url.hostname.replace(/^www\./, "").toLowerCase();
+      if (host === SHORT_DOMAIN) {
+        return decodeURIComponent(url.pathname.replace(/^\/+|\/+$/g, ""));
+      }
+    }
+  } catch {
+    // keep the pasted text
+  }
+  return trimmed;
+}
+
+function apexTerm(url: string) {
+  const apex = getApexDomain(url);
+  return apex ? `.${apex}` : "";
+}
