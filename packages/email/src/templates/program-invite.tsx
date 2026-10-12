@@ -271,7 +271,7 @@ export default function ProgramInvite({
                   )}
                   <Link
                     className="mt-5 block rounded-lg bg-neutral-900 px-4 py-3 text-center text-xs font-semibold text-white no-underline"
-                    href={`https://partners.dub.co/${program.slug}/register?email=${encodeURIComponent(email)}&next=/programs/${program.slug}/invite`}
+                    href={`https://partners.dub.co/${program.slug}/register?email=${encodeURIComponent(email)}&next=${encodeURIComponent(`/programs/${program.slug}/invite?email=${encodeURIComponent(email)}`)}`}
                   >
                     View invite
                   </Link>
