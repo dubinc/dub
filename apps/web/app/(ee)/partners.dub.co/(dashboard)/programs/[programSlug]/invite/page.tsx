@@ -10,14 +10,14 @@ import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { CircleCheck } from "@dub/ui";
+import { Button, CircleCheck } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { Reward } from "@prisma/client";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AcceptProgramInviteButton } from "./accept-program-invite-button";
 import { DeclineProgramInviteButton } from "./decline-program-invite-button";
 import { ProgramInviteConfetti } from "./program-invite-confetti";
-import { SwitchPartnerAccountButton } from "./switch-partner-account-button";
 
 export default async function ProgramInvitePage(props: {
   params: Promise<{ programSlug: string }>;
@@ -43,6 +43,19 @@ export default async function ProgramInvitePage(props: {
   // Invite links address a specific email. A session for a different account
   // must not be treated as that invite.
   if (invitedEmail && invitedEmail !== user.email?.toLowerCase()) {
+    const cookieStore = await cookies();
+    const csrfToken = (
+      cookieStore.get("__Host-next-auth.csrf-token")?.value ??
+      cookieStore.get("next-auth.csrf-token")?.value ??
+      ""
+    ).split("|")[0];
+    const callbackUrl = `/${programSlug}/register?${new URLSearchParams({
+      email: invitedEmail,
+      next: `/programs/${programSlug}/invite?${new URLSearchParams({
+        email: invitedEmail,
+      })}`,
+    })}`;
+
     return (
       <PageContent>
         <div className="flex w-full flex-col items-center justify-center px-4 py-16">
@@ -54,12 +67,18 @@ export default async function ProgramInvitePage(props: {
               You&apos;re signed in as {user.email}. Sign in with the invited
               email to view this program invitation.
             </p>
-            <div className="mt-6 w-full">
-              <SwitchPartnerAccountButton
-                programSlug={programSlug}
-                invitedEmail={invitedEmail}
+            <form
+              action="/api/auth/signout"
+              method="POST"
+              className="mt-6 w-full"
+            >
+              <input type="hidden" name="csrfToken" value={csrfToken} />
+              <input type="hidden" name="callbackUrl" value={callbackUrl} />
+              <Button
+                text={`Continue as ${invitedEmail}`}
+                className="h-9 w-full max-w-sm rounded-lg"
               />
-            </div>
+            </form>
           </div>
         </div>
       </PageContent>

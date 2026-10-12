@@ -28,9 +28,6 @@ export async function PartnersMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsObj, searchParamsString } = parse(req);
 
   const user = await getUserViaToken(req);
-  // Partner-profile team invites live at /invite and can be accepted before a
-  // profile exists. Program invites (/programs/:slug/invite) need a profile.
-  const isPartnerProfileInvite = path === "/invite";
 
   // match whole path segments, so program slugs like "overviewai" stay public
   const isAuthenticatedPath = AUTHENTICATED_PATHS.some(
@@ -82,7 +79,9 @@ export async function PartnersMiddleware(req: NextRequest) {
 
     if (
       !defaultPartnerId &&
-      !isPartnerProfileInvite &&
+      // /invite is the partner-profile team invite and can be accepted before a
+      // profile exists. Program invites (/programs/:slug/invite) need a profile.
+      path !== "/invite" &&
       !["/onboarding", "/account"].some((p) => path.startsWith(p))
     ) {
       return NextResponse.redirect(
