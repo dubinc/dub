@@ -16,7 +16,10 @@ import { payoutIdSelectionWhere } from "./payout-id-selection-where";
 
 interface GetEligiblePayoutsProps
   extends z.output<typeof eligiblePayoutsQuerySchema> {
-  program: Pick<Program, "id" | "name" | "minPayoutAmount" | "payoutMode">;
+  program: Pick<
+    Program,
+    "id" | "name" | "minPayoutAmount" | "payoutMode" | "environment"
+  >;
 }
 
 export async function getEligiblePayouts({
