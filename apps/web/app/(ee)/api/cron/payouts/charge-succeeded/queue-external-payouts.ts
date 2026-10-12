@@ -87,8 +87,6 @@ export async function queueExternalPayouts(
     },
     select: {
       id: true,
-      url: true,
-      secret: true,
     },
   });
 
