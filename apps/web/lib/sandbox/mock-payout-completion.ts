@@ -54,8 +54,10 @@ export async function mockPayoutCompletion({
     },
   });
 
-  if (payouts.length === 0) {
-    await prisma.invoice.update({
+  const payoutIds = payouts.map((p) => p.id);
+
+  await prisma.$transaction([
+    prisma.invoice.update({
       where: {
         id: invoice.id,
       },
@@ -63,12 +65,30 @@ export async function mockPayoutCompletion({
         status: InvoiceStatus.completed,
         paidAt: new Date(),
       },
-    });
+    }),
+    ...(payoutIds.length > 0
+      ? [
+          prisma.payout.updateMany({
+            where: {
+              id: {
+                in: payoutIds,
+              },
+            },
+            data: {
+              status: PayoutStatus.completed,
+              paidAt: new Date(),
+            },
+          }),
+        ]
+      : []),
+  ]);
 
+  if (payoutIds.length === 0) {
+    console.log(
+      `[mockPayoutCompletion] No internal payouts found for invoice ${invoice.id}, skipping commission updates...`,
+    );
     return;
   }
-
-  const payoutIds = payouts.map((p) => p.id);
 
   const commissions = await prisma.commission.findMany({
     where: {
@@ -84,30 +104,6 @@ export async function mockPayoutCompletion({
       programId: true,
     },
   });
-
-  await prisma.$transaction([
-    prisma.payout.updateMany({
-      where: {
-        id: {
-          in: payoutIds,
-        },
-      },
-      data: {
-        status: PayoutStatus.completed,
-        paidAt: new Date(),
-      },
-    }),
-
-    prisma.invoice.update({
-      where: {
-        id: invoice.id,
-      },
-      data: {
-        status: InvoiceStatus.completed,
-        paidAt: new Date(),
-      },
-    }),
-  ]);
 
   const commissionIds = commissions.map((c) => c.id);
 
