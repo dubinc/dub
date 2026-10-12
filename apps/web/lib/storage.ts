@@ -280,6 +280,7 @@ class StorageClient {
     }
   }
 
+  // Edge sibling is `safeFetch` in `lib/api/safe-fetch.ts` (DoH, no `node:dns`).
   private async assertSafeUrl(url: string): Promise<void> {
     const { hostname, protocol } = new URL(url);
 

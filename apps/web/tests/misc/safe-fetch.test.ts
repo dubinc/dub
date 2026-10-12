@@ -60,6 +60,8 @@ describe("isPrivateIp", () => {
       "ff02::1",
       "64:ff9b::1.2.3.4",
       "2001:db8::1",
+      "0:0:0:0:0:0:0:1", // expanded ::1
+      "2001:0db8::1", // leading zero in the documentation prefix
     ])("flags %s as private", (ip) => {
       expect(isPrivateIp(ip)).toBe(true);
     });

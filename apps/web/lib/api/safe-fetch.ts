@@ -8,6 +8,9 @@
  *      loopback, link-local, cloud-metadata, multicast, and reserved ranges.
  *   3. Manual redirect handling: each hop's `Location` is re-validated, so a
  *      whitelisted host cannot bounce us into an internal IP.
+ *
+ * Node sibling is `Storage.assertSafeUrl` in `storage.ts`. This module uses
+ * DoH because it runs on the Edge runtime, which has no `node:dns`.
  */
 
 import { DubApiError } from "@/lib/api/errors";
@@ -17,12 +20,6 @@ const DEFAULT_TIMEOUT_MS = 5000;
 const DEFAULT_MAX_REDIRECTS = 5;
 
 const IPV4_REGEX = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
-
-const BIG_ZERO = BigInt(0);
-const BIG_16 = BigInt(16);
-const BIG_32 = BigInt(32);
-const BIG_FFFF = BigInt(0xffff);
-const BIG_FFFFFFFF = BigInt(0xffffffff);
 
 const PRIVATE_IPV4_CIDRS = [
   "0.0.0.0/8", // current network
@@ -36,16 +33,6 @@ const PRIVATE_IPV4_CIDRS = [
   "198.18.0.0/15", // benchmarking
   "224.0.0.0/4", // multicast
   "240.0.0.0/4", // reserved
-];
-
-const PRIVATE_IPV6_CIDRS = [
-  "::/128", // unspecified
-  "::1/128", // loopback
-  "fc00::/7", // unique local
-  "fe80::/10", // link-local
-  "ff00::/8", // multicast
-  "64:ff9b::/96", // IPv4/IPv6 translation
-  "2001:db8::/32", // documentation
 ];
 
 function ipv4ToInt(ip: string): number | null {
@@ -75,8 +62,8 @@ function isPrivateIpv4(ip: string): boolean {
   return PRIVATE_IPV4_CIDRS.some((c) => ipv4InCidr(ipInt, c));
 }
 
-/** Expand an IPv6 string (possibly with embedded IPv4) to a 128-bit bigint. */
-function ipv6ToBigInt(ip: string): bigint | null {
+/** Expand an IPv6 string (possibly with embedded IPv4) to 8 hextets. */
+function expandIpv6(ip: string): number[] | null {
   let value = ip.trim();
   if (value.startsWith("[") && value.endsWith("]")) {
     value = value.slice(1, -1);
@@ -116,40 +103,60 @@ function ipv6ToBigInt(ip: string): bigint | null {
   const groups = [...head, ...Array(missing).fill("0"), ...tail];
   if (groups.length !== 8) return null;
 
-  let result = BIG_ZERO;
+  const hextets: number[] = [];
   for (const g of groups) {
     if (!/^[0-9a-fA-F]{1,4}$/.test(g)) return null;
-    result = (result << BIG_16) | BigInt(parseInt(g, 16));
+    hextets.push(parseInt(g, 16));
   }
-  return result;
-}
-
-function ipv6InCidr(ipBig: bigint, cidr: string): boolean {
-  const [rangeIp, prefix] = cidr.split("/");
-  const prefixLen = parseInt(prefix, 10);
-  const rangeBig = ipv6ToBigInt(rangeIp);
-  if (rangeBig === null || prefixLen < 0 || prefixLen > 128) return false;
-  if (prefixLen === 0) return true;
-  const shift = BigInt(128 - prefixLen);
-  return ipBig >> shift === rangeBig >> shift;
+  return hextets;
 }
 
 function isPrivateIpv6(ip: string): boolean {
-  const ipBig = ipv6ToBigInt(ip);
-  if (ipBig === null) return true;
+  const g = expandIpv6(ip);
+  if (g === null) return true;
 
   // IPv4-mapped IPv6 (::ffff:0:0/96): unwrap the last 32 bits and re-check.
-  if (ipBig >> BIG_32 === BIG_FFFF) {
-    const v4Int = Number(ipBig & BIG_FFFFFFFF);
+  if (
+    g[0] === 0 &&
+    g[1] === 0 &&
+    g[2] === 0 &&
+    g[3] === 0 &&
+    g[4] === 0 &&
+    g[5] === 0xffff
+  ) {
+    const v4Int = ((g[6] << 16) | g[7]) >>> 0;
     const v4Str = `${(v4Int >>> 24) & 0xff}.${(v4Int >>> 16) & 0xff}.${
       (v4Int >>> 8) & 0xff
     }.${v4Int & 0xff}`;
     return isPrivateIpv4(v4Str);
   }
 
-  return PRIVATE_IPV6_CIDRS.some((c) => ipv6InCidr(ipBig, c));
+  // ::/128 and ::1/128
+  if (g.every((h) => h === 0)) return true;
+  if (g[7] === 1 && g.slice(0, 7).every((h) => h === 0)) return true;
+
+  // fc00::/7 unique local, fe80::/10 link-local, ff00::/8 multicast
+  if ((g[0] & 0xfe00) === 0xfc00) return true;
+  if ((g[0] & 0xffc0) === 0xfe80) return true;
+  if ((g[0] & 0xff00) === 0xff00) return true;
+
+  // 64:ff9b::/96 IPv4/IPv6 translation, 2001:db8::/32 documentation
+  if (
+    g[0] === 0x64 &&
+    g[1] === 0xff9b &&
+    g[2] === 0 &&
+    g[3] === 0 &&
+    g[4] === 0 &&
+    g[5] === 0
+  ) {
+    return true;
+  }
+  if (g[0] === 0x2001 && g[1] === 0x0db8) return true;
+
+  return false;
 }
 
+/** Exported for unit tests. Callers should use `safeFetch`. */
 export function isPrivateIp(ip: string): boolean {
   if (IPV4_REGEX.test(ip)) return isPrivateIpv4(ip);
   if (ip.includes(":")) return isPrivateIpv6(ip);
