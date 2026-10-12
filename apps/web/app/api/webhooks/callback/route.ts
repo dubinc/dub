@@ -1,7 +1,10 @@
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { recordWebhookEvent } from "@/lib/tinybird/record-webhook-event";
-import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
+import {
+  EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER,
+  WEBHOOK_TRIGGERS,
+} from "@/lib/webhook/constants";
 import {
   handleWebhookFailure,
   resetWebhookFailureCount,
@@ -85,7 +88,7 @@ export const POST = async (req: Request) => {
       : []),
 
     // Handle external payout events
-    ...(event === "external_payout.confirmed"
+    ...(event === EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER
       ? [
           handleExternalPayoutEvent({
             webhook,

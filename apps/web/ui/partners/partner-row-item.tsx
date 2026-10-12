@@ -1,4 +1,5 @@
 import useProgram from "@/lib/swr/use-program";
+import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
 import { CircleArrowRight, DynamicTooltipWrapper, GreekTemple } from "@dub/ui";
 import { cn, formatDateTimeSmart } from "@dub/utils";
 import { PartnerNetworkStatus, PartnerPayoutMethod } from "@prisma/client";
@@ -36,7 +37,7 @@ const PAYOUT_STATUS_CONFIG = {
         This program has external payouts enabled, which means partners will
         receive payouts externally via the{" "}
         <code className="rounded-md bg-neutral-100 px-1 py-0.5 font-mono">
-          external_payout.confirmed
+          {EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER}
         </code>{" "}
         <a
           href="/settings/webhooks"
