@@ -4,42 +4,11 @@ import { updateConfig } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import { domainKeySchema } from "@/lib/zod/schemas/links";
 import {
+  getDomainWithoutWWW,
   LEGAL_USER_ID,
   LEGAL_WORKSPACE_ID,
-  getApexDomain,
-  getDomainWithoutWWW,
 } from "@dub/utils";
 import { NextResponse } from "next/server";
-
-// GET /api/admin/links/ban – suggest the apex-domain term for a link
-export const GET = withAdmin(
-  async ({ searchParams }) => {
-    const { domain, key } = domainKeySchema.parse(searchParams);
-
-    const link = await prisma.link.findUnique({
-      where: { domain_key: { domain, key } },
-      select: { url: true },
-    });
-
-    if (!link) {
-      return NextResponse.json({ error: "Link not found" }, { status: 404 });
-    }
-
-    const apexDomain = getApexDomain(link.url);
-
-    if (!apexDomain) {
-      return NextResponse.json(
-        { error: "Could not determine the apex domain" },
-        { status: 400 },
-      );
-    }
-
-    return NextResponse.json({ term: `.${apexDomain}` });
-  },
-  {
-    requiredRoles: ["owner"],
-  },
-);
 
 // DELETE /api/admin/links/ban – ban a dub.sh link by key
 export const DELETE = withAdmin(
