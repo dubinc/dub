@@ -45,7 +45,6 @@ export const OAUTH_SCOPES = [
   "bounties.read",
   "bounties.write",
   "payouts.read",
-  "payouts.write",
   "user.read", // default scope, no need to request it
 ];
 
@@ -78,5 +77,4 @@ export const OAUTH_SCOPE_DESCRIPTIONS = {
   "bounties.read": "Read access to bounties",
   "bounties.write": "Read and Write access to bounties",
   "payouts.read": "Read access to payouts",
-  "payouts.write": "Read and Write access to payouts",
 };

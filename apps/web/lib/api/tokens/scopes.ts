@@ -26,7 +26,6 @@ export const LEGACY_SCOPE_GRANTS: {
       "bounties.read",
       "bounties.write",
       "payouts.read",
-      "payouts.write",
     ],
   },
 ];
@@ -60,7 +59,6 @@ export const SCOPES = [
   "bounties.read",
   "bounties.write",
   "payouts.read",
-  "payouts.write",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
 ] as const;
@@ -237,13 +235,6 @@ const RESOURCE_SCOPES: {
     resource: "payouts",
   },
   {
-    scope: "payouts.write",
-    roles: ["owner", "billing"],
-    permissions: ["payouts.write", "payouts.read"],
-    type: "write",
-    resource: "payouts",
-  },
-  {
     scope: "workspaces.read",
     roles: ["owner", "member", "viewer", "billing"],
     permissions: ["workspaces.read"],
@@ -328,7 +319,6 @@ const RESOURCE_SCOPES: {
       "bounties.read",
       "bounties.write",
       "payouts.read",
-      "payouts.write",
     ],
   },
 ];

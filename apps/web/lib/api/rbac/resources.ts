@@ -25,32 +25,7 @@ export const RESOURCES: {
   description: string;
 }[] = [
   {
-    name: "Links",
-    key: "links",
-    description: "Create, read, update, and delete links",
-  },
-  {
-    name: "Analytics",
-    key: "analytics",
-    description: "Create and read analytics events",
-  },
-  {
-    name: "Domains",
-    key: "domains",
-    description: "Create, read, update, and delete domains",
-  },
-  {
-    name: "Tags",
-    key: "tags",
-    description: "Create, read, update, and delete tags",
-  },
-  {
-    name: "Folders",
-    key: "folders",
-    description: "Create, read, update, and delete folders",
-  },
-  {
-    name: "Partner groups",
+    name: "Partner Groups",
     key: "groups",
     description: "Create, read, update, and delete partner groups",
   },
@@ -60,7 +35,7 @@ export const RESOURCES: {
     description: "Create, read, update, and delete partners",
   },
   {
-    name: "Program applications",
+    name: "Program Applications",
     key: "program_applications",
     description: "List, approve, and reject program applications",
   },
@@ -70,7 +45,7 @@ export const RESOURCES: {
     description: "Create, read, update, and delete customers",
   },
   {
-    name: "Discount codes",
+    name: "Discount Codes",
     key: "discount_codes",
     description: "Create, read, and delete discount codes",
   },
@@ -87,6 +62,31 @@ export const RESOURCES: {
   {
     name: "Payouts",
     key: "payouts",
-    description: "Read and confirm payouts",
+    description: "Read payouts",
+  },
+  {
+    name: "Links",
+    key: "links",
+    description: "Create, read, update, and delete links",
+  },
+  {
+    name: "Tags",
+    key: "tags",
+    description: "Create, read, update, and delete tags",
+  },
+  {
+    name: "Folders",
+    key: "folders",
+    description: "Create, read, update, and delete folders",
+  },
+  {
+    name: "Domains",
+    key: "domains",
+    description: "Create, read, update, and delete domains",
+  },
+  {
+    name: "Analytics",
+    key: "analytics",
+    description: "Create and read analytics events",
   },
 ];

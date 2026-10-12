@@ -8,11 +8,7 @@ import { describe, expect, test } from "vitest";
 
 const ALL_OAUTH_SCOPES = [...OAUTH_SCOPES];
 
-const SCOPES_EXCLUDED_FOR_MEMBER = [
-  "domains.write",
-  "webhooks.write",
-  "payouts.write",
-];
+const SCOPES_EXCLUDED_FOR_MEMBER = ["domains.write", "webhooks.write"];
 
 const READ_OAUTH_SCOPES = ALL_OAUTH_SCOPES.filter(
   (scope) => scope === "user.read" || scope.endsWith(".read"),
@@ -28,7 +24,7 @@ describe("getGrantedScopesForRole", () => {
     ).toEqual(ALL_OAUTH_SCOPES);
   });
 
-  test("member is granted every scope except domains, webhooks, and payouts write", () => {
+  test("member is granted every scope except domains and webhooks write", () => {
     expect(
       getGrantedScopesForRole({
         scopes: ALL_OAUTH_SCOPES,
@@ -50,20 +46,13 @@ describe("getGrantedScopesForRole", () => {
     ).toEqual(READ_OAUTH_SCOPES);
   });
 
-  test("billing is granted read scopes and payouts.write", () => {
+  test("billing is only granted read OAuth scopes and user.read", () => {
     expect(
       getGrantedScopesForRole({
         scopes: ALL_OAUTH_SCOPES,
         role: "billing",
       }),
-    ).toEqual(
-      ALL_OAUTH_SCOPES.filter(
-        (scope) =>
-          scope === "user.read" ||
-          scope.endsWith(".read") ||
-          scope === "payouts.write",
-      ),
-    );
+    ).toEqual(READ_OAUTH_SCOPES);
   });
 
   test("always grants user.read even when other requested scopes are not allowed", () => {

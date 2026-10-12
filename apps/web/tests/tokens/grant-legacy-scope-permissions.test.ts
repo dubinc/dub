@@ -17,7 +17,6 @@ const LEGACY_PERMISSIONS = [
   "bounties.read",
   "bounties.write",
   "payouts.read",
-  "payouts.write",
 ] as const;
 
 describe("grantLegacyScopePermissions", () => {
@@ -100,7 +99,6 @@ describe("grantLegacyScopePermissions", () => {
       "bounties.read",
       "bounties.write",
       "payouts.read",
-      "payouts.write",
     ]);
   });
 });

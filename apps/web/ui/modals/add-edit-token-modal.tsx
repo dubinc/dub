@@ -1,4 +1,4 @@
-import { ResourceKey, RESOURCES } from "@/lib/api/rbac/resources";
+import { RESOURCES } from "@/lib/api/rbac/resources";
 import {
   getScopesByResourceForRole,
   Scope,
@@ -146,7 +146,7 @@ function AddEditTokenModal({
 
   const scopesByResources = transformScopesForUI(
     getScopesByResourceForRole(role),
-  ).filter(({ name }) => name);
+  );
 
   return (
     <>
@@ -406,10 +406,13 @@ export function useAddEditTokenModal({
 }
 
 const transformScopesForUI = (scopedResources) => {
-  return Object.keys(scopedResources).map((resourceKey: ResourceKey) => {
-    return {
-      ...RESOURCES.find((r) => r.key === resourceKey)!,
-      scopes: scopedResources[resourceKey],
-    };
+  return RESOURCES.flatMap((resource) => {
+    const scopes = scopedResources[resource.key];
+
+    if (!scopes) {
+      return [];
+    }
+
+    return [{ ...resource, scopes }];
   });
 };
