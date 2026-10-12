@@ -404,8 +404,14 @@ function ConfirmPayoutsSheetContent() {
         return false;
       case "external":
         return true;
+      // in hybrid mode, payouts are only processed externally if:
+      // - the partner has not connected a payout method on Dub
+      // - the partner has a valid tenant ID
       case "hybrid":
-        return payout.partner.payoutsEnabledAt === null;
+        return (
+          payout.partner.payoutsEnabledAt === null &&
+          payout.partner.tenantId !== null
+        );
       default:
         return false;
     }
