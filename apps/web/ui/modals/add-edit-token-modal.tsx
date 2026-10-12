@@ -276,7 +276,7 @@ function AddEditTokenModal({
               <div className="flex flex-col divide-y text-sm">
                 {scopesByResources.map((resource) => (
                   <div
-                    className="flex items-center justify-between py-4"
+                    className="flex items-center justify-between py-2.5"
                     key={resource.key}
                   >
                     <div className="flex items-center gap-1.5">
