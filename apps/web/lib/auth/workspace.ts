@@ -172,9 +172,21 @@ export const withWorkspace = (
         if (apiKey) {
           const hashedKey = await hashToken(apiKey);
 
-          const cachedToken = await tokenCache.get({
+          let cachedToken = await tokenCache.get({
             hashedKey,
           });
+
+          // Entries cached before scope dates were stored would be treated as
+          // legacy and granted extra permissions, so reload them from the DB.
+          if (isRestrictedToken && cachedToken) {
+            const cachedScopeEffectiveSince = cachedToken.installationId
+              ? cachedToken.installedIntegration?.createdAt
+              : cachedToken.createdAt;
+
+            if (cachedScopeEffectiveSince == null) {
+              cachedToken = null;
+            }
+          }
 
           if (!cachedToken) {
             const prismaArgs = {
