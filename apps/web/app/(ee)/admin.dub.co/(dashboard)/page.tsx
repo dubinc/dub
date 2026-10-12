@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { isAdminAccessRestricted } from "@/lib/auth/admin-access-guard";
 import { BanLink } from "./components/ban-link";
+import { ConvertToSandboxWorkspace } from "./components/convert-to-sandbox-workspace";
 import { DeletePartnerAccount } from "./components/delete-partner-account";
 import { DeleteProgram } from "./components/delete-program";
 import { DisableRestoreWorkspace } from "./components/disable-restore-workspace";
@@ -62,6 +63,14 @@ export default async function AdminPage() {
           Reset a user's invalidLoginAttempts and lockedAt fields
         </p>
         <ResetLoginAttempts />
+      </div>
+      <div className="flex flex-col space-y-4 px-5 py-10">
+        <h2 className="text-xl font-semibold">Convert to Sandbox Workspace</h2>
+        <p className="text-sm text-neutral-500">
+          Convert a workspace to sandbox mode with the Advanced plan and trial
+          limits.
+        </p>
+        <ConvertToSandboxWorkspace />
       </div>
       <div className="flex flex-col space-y-4 px-5 py-10">
         <h2 className="text-xl font-semibold">Slack Support Invite</h2>
