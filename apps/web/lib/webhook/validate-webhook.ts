@@ -7,6 +7,7 @@ import { Session } from "../auth";
 import { getFolders } from "../folder/get-folders";
 import { WorkspaceProps } from "../types";
 import { createWebhookSchema } from "../zod/schemas/webhooks";
+import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "./constants";
 
 export async function validateWebhook({
   input,
@@ -21,8 +22,11 @@ export async function validateWebhook({
 }) {
   const { url, linkScope, linkIds, folderIds, triggers } = input;
 
-  // payout.confirmed trigger requires external payouts enabled
-  if (triggers && triggers.includes("payout.confirmed")) {
+  // EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER requires external payouts enabled
+  if (
+    triggers &&
+    triggers.includes(EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER)
+  ) {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const program = await prisma.program.findUniqueOrThrow({
@@ -38,7 +42,7 @@ export async function validateWebhook({
     if (program.payoutMode === "internal") {
       throw new DubApiError({
         code: "bad_request",
-        message: `The 'payout.confirmed' trigger is not currently available for your workspace.`,
+        message: `The '${EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER}' trigger is not currently available for your workspace.`,
       });
     }
   }

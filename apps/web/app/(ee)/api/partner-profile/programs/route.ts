@@ -25,6 +25,7 @@ const PROGRAM_SELECT = {
   messagingEnabledAt: true,
   partnerNetworkEnabledAt: true,
   payoutMode: true,
+  environment: true,
   defaultFolderId: true,
   defaultGroupId: true,
   supportEmail: true,

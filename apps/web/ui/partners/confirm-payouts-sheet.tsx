@@ -24,6 +24,7 @@ import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
+import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { X } from "@/ui/shared/icons";
 import {
@@ -599,7 +600,7 @@ function ConfirmPayoutsSheetContent() {
                     <CircleArrowRight className="size-3.5 text-neutral-500" />
                   </div>
                 ),
-              tooltipContent: `Payouts that are processed externally via the \`payout.confirmed\` [webhook event](${`/${slug}/settings/webhooks`}). [Learn more about external payouts](http://dub.co/docs/partners/external-payouts).`,
+              tooltipContent: `Payouts that are processed externally via the \`${EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER}\` [webhook event](${`/${slug}/settings/webhooks`}). [Learn more about external payouts](http://dub.co/docs/partners/external-payouts).`,
             },
           ]
         : []),
