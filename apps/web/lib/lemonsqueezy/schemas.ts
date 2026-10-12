@@ -1,6 +1,6 @@
 import * as z from "zod/v4";
 
-export const lemonSqueezyImportSteps = z.enum([
+const lemonSqueezyImportSteps = z.enum([
   "import-partners",
   "import-customers",
   "import-commissions",

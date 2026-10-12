@@ -6,9 +6,9 @@ import { tapfiliateImportPayloadSchema } from "./schemas";
 import { TapfiliateCredentials } from "./types";
 
 export const TAPFILIATE_MAX_BATCHES = 10;
-export const CACHE_EXPIRY = 60 * 60 * 24;
-export const CACHE_KEY_PREFIX = "tapfiliate:import";
-export const PARTNER_IDS_KEY_PREFIX = "tapfiliate:import:partnerIds";
+const CACHE_EXPIRY = 60 * 60 * 24;
+const CACHE_KEY_PREFIX = "tapfiliate:import";
+const PARTNER_IDS_KEY_PREFIX = "tapfiliate:import:partnerIds";
 
 class TapfiliateImporter {
   async setCredentials(

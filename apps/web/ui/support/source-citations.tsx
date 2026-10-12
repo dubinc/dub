@@ -3,7 +3,7 @@
 import { Book2Small } from "@dub/ui/icons";
 import { useState } from "react";
 
-export type SourceCitation = {
+type SourceCitation = {
   url: string;
   heading: string;
   type: "docs" | "help";

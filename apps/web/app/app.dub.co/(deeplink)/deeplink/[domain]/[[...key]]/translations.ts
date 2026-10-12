@@ -1,4 +1,4 @@
-export const translations = {
+const translations = {
   en: {
     poweredBy: "Powered by",
     description: "Click below to open the page in {appName}.",

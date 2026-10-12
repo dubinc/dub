@@ -109,7 +109,7 @@ const APPLICATION_RISK_CONFIG = {
   },
 };
 
-export function ProgramApplicationRiskSummaryUpsell() {
+function ProgramApplicationRiskSummaryUpsell() {
   const { advancedUpsellModal, setShowAdvancedUpsellModal } =
     useAdvancedUpsellModal();
 

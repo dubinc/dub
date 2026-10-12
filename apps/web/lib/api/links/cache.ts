@@ -24,7 +24,7 @@ const linkLRUCache = new LRUCache<string, RedisLinkProps>({
  * Since LRUCache is not shared between Fluid instances,
  * we fallback to Vercel cache if both LRUCache/Redis are not available
  */
-export const vercelCache = getCache();
+const vercelCache = getCache();
 
 const VERCEL_CACHE_EXPIRATION = 60 * 5; // 5 minutes
 const REDIS_CACHE_EXPIRATION = 60 * 60 * 24;

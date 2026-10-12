@@ -5,7 +5,7 @@ type DiffValue = {
   new: unknown;
 };
 
-export type ResourceDiff = Record<string, DiffValue>;
+type ResourceDiff = Record<string, DiffValue>;
 
 interface GetResourceDiffOptions {
   /** If provided, only compare these specific fields */

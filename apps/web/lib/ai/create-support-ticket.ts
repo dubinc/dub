@@ -7,7 +7,7 @@ import { z } from "zod";
 import { Session } from "../auth/utils";
 import { GlobalChatContext } from "./build-system-prompt";
 
-export type CreateSupportTicketOptions = {
+type CreateSupportTicketOptions = {
   session: Session;
   messages: Array<{
     role: string;

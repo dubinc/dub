@@ -10,7 +10,7 @@ const WORKFLOW_DATA_REQUIREMENTS = ["commissions", "partnerLinkStats"] as const;
 export type WorkflowDataRequirement =
   (typeof WORKFLOW_DATA_REQUIREMENTS)[number];
 
-export type WorkflowAttribute = {
+type WorkflowAttribute = {
   name: string;
   label: string;
   inputType: "number" | "currency" | "dropdown" | "none" | "group";

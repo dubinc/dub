@@ -5,7 +5,7 @@ import { ratelimit } from "./ratelimit";
 import { RatelimitPolicy } from "./ratelimit-policies";
 
 // Formats ms until reset as a human-friendly duration
-export const formatRetryAfter = (resetAt: number) => {
+const formatRetryAfter = (resetAt: number) => {
   const seconds = Math.max(Math.ceil((resetAt - Date.now()) / 1000), 1);
 
   if (seconds < 60) {

@@ -6,13 +6,7 @@ import type {
 } from "@/lib/stripe/microdeposit-types";
 import Stripe from "stripe";
 
-export type {
-  MicrodepositType,
-  PaymentMethodMicrodeposit,
-  WorkspacePaymentMethod,
-};
-
-export type PendingMicrodeposit = PaymentMethodMicrodeposit & {
+type PendingMicrodeposit = PaymentMethodMicrodeposit & {
   intentId: string;
   intentObject: "setup_intent" | "payment_intent";
   paymentMethodId: string;

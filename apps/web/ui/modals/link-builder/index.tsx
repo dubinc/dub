@@ -55,7 +55,7 @@ type LinkBuilderModalProps = {
   setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
 };
 
-export function LinkBuilder(props: LinkBuilderProps & LinkBuilderModalProps) {
+function LinkBuilder(props: LinkBuilderProps & LinkBuilderModalProps) {
   return props.showLinkBuilder ? <LinkBuilderOuter {...props} /> : null;
 }
 
@@ -250,7 +250,7 @@ function LinkBuilderInner({
 
 type CreateLinkButtonProps = Partial<ButtonProps>;
 
-export function CreateLinkButton({
+function CreateLinkButton({
   setShowLinkBuilder,
   ...buttonProps
 }: {

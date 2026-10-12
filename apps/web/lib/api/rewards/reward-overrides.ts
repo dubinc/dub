@@ -9,7 +9,7 @@ export type RewardOverrideIdsInput = Partial<RewardOverrideIds>;
 export type EnrollmentRewardIds = RewardOverrideIds;
 export type EnrollmentRewardIdsInput = RewardOverrideIdsInput;
 
-export const REWARD_OVERRIDE_ID_KEYS = [
+const REWARD_OVERRIDE_ID_KEYS = [
   "clickRewardId",
   "leadRewardId",
   "saleRewardId",

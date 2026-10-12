@@ -13,7 +13,7 @@ const deepViewDataObjectSchema = z.object({
     .optional(),
 });
 
-export const deepViewDataSchema = z.preprocess(
+const deepViewDataSchema = z.preprocess(
   (val) => (val == null ? {} : val),
   deepViewDataObjectSchema,
 );

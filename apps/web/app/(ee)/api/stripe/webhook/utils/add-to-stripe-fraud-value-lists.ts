@@ -1,6 +1,6 @@
 import { stripe } from "@/lib/stripe";
 
-export const STRIPE_FRAUD_VALUE_LISTS = {
+const STRIPE_FRAUD_VALUE_LISTS = {
   CUSTOMER_ID: "rsl_1LeVdvAlJJEpqkPVEcNgjxqq",
   CUSTOMER_EMAIL: "rsl_1LeVdvAlJJEpqkPVhZw9Xvgw",
   CARD_FINGERPRINT: "rsl_1LeVdvAlJJEpqkPVvUZUm9eC",

@@ -6,9 +6,9 @@ import { toltImportPayloadSchema } from "./schemas";
 import { ToltCredentials } from "./types";
 
 export const MAX_BATCHES = 5;
-export const CACHE_EXPIRY = 60 * 60 * 24;
-export const CACHE_KEY_PREFIX = "tolt:import";
-export const PARTNER_IDS_KEY_PREFIX = "tolt:import:partnerIds";
+const CACHE_EXPIRY = 60 * 60 * 24;
+const CACHE_KEY_PREFIX = "tolt:import";
+const PARTNER_IDS_KEY_PREFIX = "tolt:import:partnerIds";
 
 class ToltImporter {
   async setCredentials(workspaceId: string, credentials: ToltCredentials) {

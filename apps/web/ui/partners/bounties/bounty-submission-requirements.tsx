@@ -2,7 +2,7 @@ import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { PartnerBountyProps } from "@/lib/types";
 import { Check2 } from "@dub/ui";
 
-export function getBountySubmissionRequirements(bounty: PartnerBountyProps) {
+function getBountySubmissionRequirements(bounty: PartnerBountyProps) {
   const bountyInfo = resolveBountyDetails(bounty);
   const requirements: string[] = [];
 

@@ -1262,7 +1262,7 @@ function CreateCommissionSheetContent({
   );
 }
 
-export function CreateCommissionSheet({
+function CreateCommissionSheet({
   isOpen,
   nested,
   ...rest

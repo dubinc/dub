@@ -165,13 +165,7 @@ function DownloadButton({
   );
 }
 
-export function CodeBlock({
-  code,
-  language,
-}: {
-  code: string;
-  language: string;
-}) {
+function CodeBlock({ code, language }: { code: string; language: string }) {
   const trimmedCode = code.replace(/\n+$/, "");
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
 

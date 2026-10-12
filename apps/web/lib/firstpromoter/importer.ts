@@ -5,8 +5,8 @@ import { FirstPromoterCredentials, FirstPromoterImportPayload } from "./types";
 
 export const FIRSTPROMOTER_PAGE_LIMIT = 100;
 export const MAX_BATCHES = 10;
-export const CACHE_EXPIRY = 60 * 60 * 24;
-export const CACHE_KEY_PREFIX = "firstpromoter:import";
+const CACHE_EXPIRY = 60 * 60 * 24;
+const CACHE_KEY_PREFIX = "firstpromoter:import";
 
 class FirstPromoterImporter {
   async setCredentials(workspaceId: string, payload: FirstPromoterCredentials) {

@@ -510,12 +510,7 @@ export const referralRewardConfigSchema = z
     }
   });
 
-export const CUSTOM_REWARD_FREQUENCIES = [
-  "day",
-  "week",
-  "month",
-  "year",
-] as const;
+const CUSTOM_REWARD_FREQUENCIES = ["day", "week", "month", "year"] as const;
 
 export const customRewardConfigSchema = z.object({
   frequency: z.enum(CUSTOM_REWARD_FREQUENCIES),

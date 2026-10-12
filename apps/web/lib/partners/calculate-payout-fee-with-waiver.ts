@@ -4,7 +4,7 @@ import {
 } from "@/lib/constants/payouts";
 import { PaymentMethod } from "@prisma/client";
 
-export interface PayoutFeeWithWaiverParams {
+interface PayoutFeeWithWaiverParams {
   payoutAmount: number;
   payoutFee: number;
   payoutFeeWaiverLimit: number;

@@ -8,7 +8,7 @@ export type CommissionDescriptionTooltipContext =
   | { variant: "program"; workspaceSlug: string }
   | { variant: "partner" };
 
-export function getCommissionDescriptionText(description: string): string {
+function getCommissionDescriptionText(description: string): string {
   return CLAWBACK_REASONS_MAP[description]?.description ?? description;
 }
 

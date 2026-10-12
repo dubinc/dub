@@ -14,13 +14,13 @@ export type PartnerLifetimeStats = {
   totalCommissions: number;
 };
 
-export type ExistingBountySubmission = {
+type ExistingBountySubmission = {
   id: string;
   partnerId: string;
   performanceCount: number;
 };
 
-export type DraftBountySubmissionUpdate = {
+type DraftBountySubmissionUpdate = {
   id: string;
   performanceCount: number;
   promoteToSubmitted: boolean;

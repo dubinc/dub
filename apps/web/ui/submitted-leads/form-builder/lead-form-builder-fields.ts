@@ -87,7 +87,7 @@ export function toLeadFormBuilderField(field: FormField): LeadFormBuilderField {
 const trimOptionLabels = (options: LeadFormBuilderOption[]) =>
   options.map(({ value, label }) => ({ value, label: label.trim() }));
 
-export function fromLeadFormBuilderField(
+function fromLeadFormBuilderField(
   field: LeadFormBuilderField & { type: LeadFormFieldType },
   position: number,
 ): FormField {

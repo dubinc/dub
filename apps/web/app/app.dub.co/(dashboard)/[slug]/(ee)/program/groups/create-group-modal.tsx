@@ -160,7 +160,7 @@ function CreateGroupModalContent({ setIsOpen }: CreateGroupModalProps) {
   );
 }
 
-export function CreateGroupModal({
+function CreateGroupModal({
   isOpen,
   setIsOpen,
 }: CreateGroupModalProps & {

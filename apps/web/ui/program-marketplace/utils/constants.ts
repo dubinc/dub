@@ -47,7 +47,7 @@ export const MARKETPLACE_SORT_OPTIONS = [
   },
 ] as const;
 
-export function isDefaultMarketplaceSort(sortBy: string, sortOrder: string) {
+function isDefaultMarketplaceSort(sortBy: string, sortOrder: string) {
   return sortBy === "popularity" && sortOrder === "desc";
 }
 

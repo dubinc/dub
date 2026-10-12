@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 
-export type ClaimBountyContextValue = {
+type ClaimBountyContextValue = {
   socialContentVerifying: boolean;
   setSocialContentVerifying: Dispatch<SetStateAction<boolean>>;
   socialContentRequirementsMet: boolean;

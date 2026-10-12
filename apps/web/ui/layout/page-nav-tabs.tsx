@@ -12,7 +12,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef } from "react";
 
-export type PageNavTabsTab = {
+type PageNavTabsTab = {
   id: string;
   label: string;
   icon: Icon;
@@ -21,14 +21,14 @@ export type PageNavTabsTab = {
   href?: string;
 };
 
-export type PageNavTabsQuicklink = {
+type PageNavTabsQuicklink = {
   id: string;
   label: string;
   icon: Icon;
   href: string;
 };
 
-export type PageNavTabsProps = {
+type PageNavTabsProps = {
   basePath: string;
   tabs: PageNavTabsTab[];
   quickLinks?: PageNavTabsQuicklink[];

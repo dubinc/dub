@@ -3,9 +3,9 @@
 import { ProgramProps } from "@/lib/types";
 import { createContext, ReactNode, useContext } from "react";
 
-export type ActivityLogView = "program" | "partner";
+type ActivityLogView = "program" | "partner";
 
-export interface ActivityLogContextValue {
+interface ActivityLogContextValue {
   program: Pick<ProgramProps, "id" | "name" | "logo"> | null;
   view: ActivityLogView;
 }

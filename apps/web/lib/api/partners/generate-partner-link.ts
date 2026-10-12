@@ -13,7 +13,7 @@ import slugify from "@sindresorhus/slugify";
 import { DubApiError } from "../errors";
 import { processLink } from "../links/process-link";
 
-export function derivePartnerLinkKey({
+function derivePartnerLinkKey({
   key,
   username,
   name,

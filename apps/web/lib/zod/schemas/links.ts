@@ -34,7 +34,7 @@ export const getDomainQuerySchema = z.object({
 
 export const MIN_TEST_PERCENTAGE = 10;
 export const MAX_TEST_COUNT = 4;
-export const LINKS_MAX_PAGE_SIZE = 100;
+const LINKS_MAX_PAGE_SIZE = 100;
 
 export const ABTestVariantsSchema = z
   .array(

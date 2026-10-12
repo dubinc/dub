@@ -32,7 +32,7 @@ const PARTNER_STATUS_ACTIONS = [
   "partner.unarchived",
 ] as const satisfies readonly ActivityLogAction[];
 
-export type ActorType = "USER" | "SYSTEM";
+type ActorType = "USER" | "SYSTEM";
 
 type ActivityLogRenderer = (props: { log: ActivityLog }) => ReactNode;
 

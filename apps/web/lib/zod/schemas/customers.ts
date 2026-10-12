@@ -9,7 +9,7 @@ import {
 import { PartnerSchema } from "./partners";
 import { centsSchema, parseDateSchema } from "./utils";
 
-export const CUSTOMERS_MAX_PAGE_SIZE = 100;
+const CUSTOMERS_MAX_PAGE_SIZE = 100;
 
 export const getCustomersQuerySchema = z
   .object({

@@ -5,7 +5,7 @@ import {
   getMarketplaceCategoryHref,
 } from "./utils/urls";
 
-export type MarketplaceHomeRow = {
+type MarketplaceHomeRow = {
   key: string;
   title: string;
   viewAllHref: string;

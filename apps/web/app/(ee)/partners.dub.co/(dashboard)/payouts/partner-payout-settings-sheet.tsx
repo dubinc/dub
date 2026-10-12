@@ -53,7 +53,7 @@ function useExternalPayoutEnrollments() {
   };
 }
 
-export function PartnerPayoutSettingsSheet() {
+function PartnerPayoutSettingsSheet() {
   const { queryParams, searchParams } = useRouterStuff();
   const [isOpen, setIsOpen] = useState(false);
 

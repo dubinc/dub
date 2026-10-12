@@ -128,7 +128,7 @@ export const ProgramPartnerLinkSchemaInternal = ProgramPartnerLinkSchema.extend(
   },
 );
 
-export const ProgramEnrollmentApplicationSchema = z.object({
+const ProgramEnrollmentApplicationSchema = z.object({
   rejectionReason: z
     .enum(ProgramApplicationRejectionReason)
     .nullable()
@@ -237,7 +237,7 @@ export const PartnerCommentSchema = z.object({
   updatedAt: z.date(),
 });
 
-export const MAX_PROGRAM_PARTNER_COMMENT_LENGTH = 2000;
+const MAX_PROGRAM_PARTNER_COMMENT_LENGTH = 2000;
 
 export const createPartnerCommentSchema = z.object({
   workspaceId: z.string(),

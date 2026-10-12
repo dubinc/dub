@@ -5,7 +5,7 @@ import { customRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { EventType } from "@prisma/client";
 import { getUtcPeriodDate, isCadenceDue } from "./custom-reward-utils";
 
-export type DueCustomReward = {
+type DueCustomReward = {
   id: string;
   programId: string;
   amountInCents: number;

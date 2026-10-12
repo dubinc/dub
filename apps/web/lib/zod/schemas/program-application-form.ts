@@ -2,7 +2,7 @@ import * as z from "zod/v4";
 import { storedR2ImageUrlSchema } from "./images";
 
 // Common schema for all fields
-export const programApplicationFormFieldCommonSchema = z.object({
+const programApplicationFormFieldCommonSchema = z.object({
   id: z.string(),
   label: z.string(),
   required: z.boolean(),
@@ -39,7 +39,7 @@ export const programApplicationFormLongTextFieldWithValueSchema =
   });
 
 // Select field
-export const programApplicationFormSelectOptionSchema = z.object({
+const programApplicationFormSelectOptionSchema = z.object({
   id: z.string(),
   value: z.string(),
 });
@@ -52,7 +52,7 @@ export const programApplicationFormSelectFieldSchema =
     }),
   });
 
-export const programApplicationFormMultipleChoiceOptionSchema = z.object({
+const programApplicationFormMultipleChoiceOptionSchema = z.object({
   id: z.string(),
   value: z.string(),
 });
@@ -63,12 +63,12 @@ export const programApplicationFormSelectFieldWithValueSchema =
   });
 
 // Multiple-choice field
-export const programApplicationFormMultipleChoiceData = z.object({
+const programApplicationFormMultipleChoiceData = z.object({
   multiple: z.literal(true),
   options: z.array(programApplicationFormMultipleChoiceOptionSchema),
 });
 
-export const programApplicationFormSingleChoiceData = z.object({
+const programApplicationFormSingleChoiceData = z.object({
   multiple: z.literal(false),
   options: z.array(programApplicationFormMultipleChoiceOptionSchema),
 });
@@ -100,7 +100,7 @@ export const programApplicationFormSiteSchema = z.object({
   required: z.boolean(),
 });
 
-export const programApplicationFormSiteSchemaWithValue =
+const programApplicationFormSiteSchemaWithValue =
   programApplicationFormSiteSchema.extend({
     value: z.string(),
   });
@@ -142,7 +142,7 @@ export const programApplicationFormFieldSchema = z.discriminatedUnion("type", [
   programApplicationFormImageUploadFieldSchema,
 ]);
 
-export const programApplicationFormFieldWithValuesSchema = z.discriminatedUnion(
+const programApplicationFormFieldWithValuesSchema = z.discriminatedUnion(
   "type",
   [
     programApplicationFormShortTextFieldWithValueSchema,
@@ -154,11 +154,11 @@ export const programApplicationFormFieldWithValuesSchema = z.discriminatedUnion(
   ],
 );
 
-export const programApplicationFormFieldsSchema = z.array(
+const programApplicationFormFieldsSchema = z.array(
   programApplicationFormFieldSchema,
 );
 
-export const programApplicationFormFieldsWithValuesSchema = z.array(
+const programApplicationFormFieldsWithValuesSchema = z.array(
   programApplicationFormFieldWithValuesSchema,
 );
 

@@ -117,7 +117,7 @@ export const updateSubmittedLeadStatusSchema = z.discriminatedUnion("status", [
   }),
 ]);
 
-export const MAX_SUBMITTED_LEAD_COMMENT_LENGTH = 2000;
+const MAX_SUBMITTED_LEAD_COMMENT_LENGTH = 2000;
 
 export const SubmittedLeadCommentSchema = z.object({
   id: z.string(),

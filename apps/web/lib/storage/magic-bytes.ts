@@ -3,7 +3,7 @@
  * Used by Next.js processR2ObjectCreated (Worker only forwards queue messages).
  */
 
-export const USER_UPLOAD_KEY_PREFIXES = [
+const USER_UPLOAD_KEY_PREFIXES = [
   "programs/",
   "integration-screenshots/",
   "program-logos/",
@@ -11,7 +11,7 @@ export const USER_UPLOAD_KEY_PREFIXES = [
   "resumes/",
 ] as const;
 
-export const DANGEROUS_CONTENT_TYPES = [
+const DANGEROUS_CONTENT_TYPES = [
   "text/html",
   "application/xhtml+xml",
   "text/javascript",
@@ -56,7 +56,7 @@ export function isUserUploadKey(key: string): boolean {
   return USER_UPLOAD_KEY_PREFIXES.some((prefix) => key.startsWith(prefix));
 }
 
-export function normalizeContentType(
+function normalizeContentType(
   contentType: string | null | undefined,
 ): string | null {
   if (!contentType) {
@@ -75,7 +75,7 @@ export function normalizeContentType(
   return base;
 }
 
-export function isDangerousContentType(
+function isDangerousContentType(
   contentType: string | null | undefined,
 ): boolean {
   const normalized = normalizeContentType(contentType);
@@ -267,7 +267,7 @@ export function mimeMatchesContentType({
   return false;
 }
 
-export type QuarantineDecision =
+type QuarantineDecision =
   | { action: "skip"; reason: string }
   | { action: "allow"; reason: string }
   | {

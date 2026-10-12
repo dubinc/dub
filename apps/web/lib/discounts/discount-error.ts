@@ -1,6 +1,6 @@
 import { DubApiError } from "../api/errors";
 
-export type DiscountProviderErrorCode =
+type DiscountProviderErrorCode =
   | "INTEGRATION_NOT_AVAILABLE"
   | "AUTH_EXPIRED"
   | "DISCOUNT_ALREADY_EXISTS"
@@ -65,7 +65,7 @@ export class DiscountProviderError extends DubApiError {
   }
 }
 
-export function isDiscountProviderError(
+function isDiscountProviderError(
   error: unknown,
 ): error is DiscountProviderError {
   return error instanceof DiscountProviderError;

@@ -4,7 +4,7 @@ import { redis } from "../upstash";
 import { leadEventSchemaTB } from "../zod/schemas/leads";
 import { tb } from "./client";
 
-export const getLeadEventTB = tb.buildPipe({
+const getLeadEventTB = tb.buildPipe({
   pipe: "get_lead_event",
   parameters: z.object({
     customerId: z.string(),

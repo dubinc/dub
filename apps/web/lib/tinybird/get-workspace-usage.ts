@@ -16,7 +16,7 @@ const usagePipe = tb.buildPipe({
 
 const sum = (arr: number[]) => arr.reduce((acc, curr) => acc + curr, 0);
 
-export type GetWorkspaceUsageParams = {
+type GetWorkspaceUsageParams = {
   workspaceId: string;
   resource: z.infer<typeof usageQuerySchema>["resource"];
   folderId?: string;

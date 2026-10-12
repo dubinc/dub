@@ -6,8 +6,8 @@ import { partnerStackImportPayloadSchema } from "./schemas";
 import { PartnerStackCredentials } from "./types";
 
 export const MAX_BATCHES = 5;
-export const CACHE_EXPIRY = 60 * 60 * 24;
-export const CACHE_KEY_PREFIX = "partnerStack:import";
+const CACHE_EXPIRY = 60 * 60 * 24;
+const CACHE_KEY_PREFIX = "partnerStack:import";
 export const PARTNER_IDS_KEY_PREFIX = "partnerStack:import:partnerIds";
 
 class PartnerStackImporter {

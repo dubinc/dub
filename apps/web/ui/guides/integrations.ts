@@ -14,9 +14,9 @@ import { Webflow } from "@/ui/guides/icons/webflow";
 import { Wordpress } from "@/ui/guides/icons/wordpress";
 import { StripeIcon } from "@dub/ui/icons";
 
-export type IntegrationType = "client-sdk" | "track-lead" | "track-sale";
+type IntegrationType = "client-sdk" | "track-lead" | "track-sale";
 
-export type IntegrationGuide = {
+type IntegrationGuide = {
   type: IntegrationType;
   key: string;
   title: string;

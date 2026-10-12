@@ -62,7 +62,7 @@ interface PartnerLinkModalProps {
   setShowPartnerLinkModal: Dispatch<SetStateAction<boolean>>;
 }
 
-export function PartnerLinkModal({
+function PartnerLinkModal({
   link,
   showPartnerLinkModal,
   setShowPartnerLinkModal,

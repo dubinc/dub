@@ -13,7 +13,7 @@ import type { PartnerSearchProvider } from "./types";
  */
 export const PARTNER_SEARCH_SYNC_BATCH_SIZE = 500;
 
-export interface PartnerSearchSyncResult {
+interface PartnerSearchSyncResult {
   upserted: number;
   deleted: number;
 }
@@ -77,7 +77,7 @@ interface SyncPartnersOptions {
   searchProvider?: PartnerSearchProvider | null;
 }
 
-export interface SyncPartnersResult {
+interface SyncPartnersResult {
   upserted: number;
   lastEnrollmentId: string | null;
 }

@@ -72,7 +72,7 @@ export default function WorkspaceLinksClient() {
   );
 }
 
-export function WorkspaceLinksPageControls() {
+function WorkspaceLinksPageControls() {
   const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
 
   return (

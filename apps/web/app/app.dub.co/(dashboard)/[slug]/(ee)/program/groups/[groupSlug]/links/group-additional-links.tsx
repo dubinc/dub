@@ -65,7 +65,7 @@ export function GroupAdditionalLinks() {
   );
 }
 
-export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
+function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
   const [enableAdditionalLinks, setEnableAdditionalLinks] = useState(
     group.maxPartnerLinks > 0 || (group.additionalLinks?.length || 0) > 0,

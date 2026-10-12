@@ -32,7 +32,7 @@ const LOGOS = [
   { x: 26, y: 70, r: 4, s: 0.8 },
 ];
 
-export const PROGRAM_MARKETPLACE_LOGO_COUNT = LOGOS.length;
+const PROGRAM_MARKETPLACE_LOGO_COUNT = LOGOS.length;
 
 function getProgramMarketplaceLogoStyle(index: number, size?: number) {
   const count = PROGRAM_MARKETPLACE_LOGO_COUNT;

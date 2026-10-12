@@ -38,11 +38,7 @@ export function ProgramHelpAndSupport() {
   );
 }
 
-export function ProgramHelpAndSupportContent({
-  program,
-}: {
-  program?: ProgramProps;
-}) {
+function ProgramHelpAndSupportContent({ program }: { program?: ProgramProps }) {
   const { id: workspaceId, plan } = useWorkspace();
 
   const { advancedUpsellModal, setShowAdvancedUpsellModal } =

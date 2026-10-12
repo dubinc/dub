@@ -358,7 +358,7 @@ function RequiredFieldRow({
   );
 }
 
-export function EditLeadFormSheet({
+function EditLeadFormSheet({
   isOpen,
   ...rest
 }: EditLeadFormSheetProps & { isOpen: boolean }) {

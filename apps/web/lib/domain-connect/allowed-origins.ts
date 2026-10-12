@@ -1,5 +1,5 @@
 /** Allowed origins for Domain Connect SyncUX / signed apply redirects. */
-export const ALLOWED_SYNC_UX_ORIGINS = [
+const ALLOWED_SYNC_UX_ORIGINS = [
   "https://vercel.com",
   "https://dash.cloudflare.com",
 ] as const;

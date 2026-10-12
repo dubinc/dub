@@ -45,10 +45,7 @@ function RewardHistorySheetContent({
   );
 }
 
-export function RewardHistorySheet({
-  isOpen,
-  ...rest
-}: RewardHistorySheetProps) {
+function RewardHistorySheet({ isOpen, ...rest }: RewardHistorySheetProps) {
   return (
     <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
       <RewardHistorySheetContent {...rest} />

@@ -4,7 +4,7 @@ import { ParsedFilter, type SQLOperator } from "@dub/utils";
  * Advanced filter structure for Tinybird's filters JSON parameter.
  * Used for event-level dimensional filters.
  */
-export interface AdvancedFilter {
+interface AdvancedFilter {
   field: string;
   operator: SQLOperator;
   values: string[];

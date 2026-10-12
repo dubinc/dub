@@ -6,7 +6,7 @@ import { CircleCheck, CircleHalfDottedClock } from "@dub/ui/icons";
 import { formatDateTimeSmart } from "@dub/utils";
 import { PropsWithChildren } from "react";
 
-export type WebhookEventListProps = PropsWithChildren<{
+type WebhookEventListProps = PropsWithChildren<{
   events: WebhookEventProps[];
   onEventClick: (event: WebhookEventProps) => void;
   selectedEventId?: string | null;

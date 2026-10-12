@@ -15,7 +15,7 @@ import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
 
-export type ConfigurableRuleType = keyof UpdateFraudRuleSettings;
+type ConfigurableRuleType = keyof UpdateFraudRuleSettings;
 
 interface DisableRiskRulesModalProps {
   showModal: boolean;

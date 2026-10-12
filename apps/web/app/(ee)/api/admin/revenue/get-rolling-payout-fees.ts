@@ -1,6 +1,6 @@
 import { subMonths } from "date-fns";
 
-export const ROLLING_PAYOUT_FEES_WINDOW_MONTHS = 6;
+const ROLLING_PAYOUT_FEES_WINDOW_MONTHS = 6;
 
 export function computeRollingAveragePayoutFees(
   timeseries: { date: Date; fees: number }[],

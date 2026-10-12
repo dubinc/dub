@@ -12,7 +12,7 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 
-export type HoldingPeriodGroup = Pick<
+type HoldingPeriodGroup = Pick<
   GroupProps,
   "id" | "name" | "slug" | "color" | "holdingPeriodDays"
 >;
@@ -145,7 +145,7 @@ export function useProgramHoldingPeriods(
   };
 }
 
-export type ProgramHoldingPeriods = ReturnType<typeof useProgramHoldingPeriods>;
+type ProgramHoldingPeriods = ReturnType<typeof useProgramHoldingPeriods>;
 
 export function ProgramPayoutHoldingPeriods({
   loading,

@@ -17,7 +17,7 @@ const workflowClient = new Client({
   }),
 });
 
-export const workflowNameSchema = z
+const workflowNameSchema = z
   .string()
   .regex(
     /^[a-z][a-z0-9]*(-[a-z0-9]+)*-workflow$/,

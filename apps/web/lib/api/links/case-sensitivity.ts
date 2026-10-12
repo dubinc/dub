@@ -1,7 +1,7 @@
 // This is not actually a secret key, it's just a string that we XOR with the key to make it case sensitive
 const XOR_SECRET_KEY = "58ff90c0dc372ded858cbf8fb2306066";
 
-export const CASE_SENSITIVE_DOMAINS = [
+const CASE_SENSITIVE_DOMAINS = [
   "biltapp.link",
   "buff.ly",
   "dub-internal-test.com",

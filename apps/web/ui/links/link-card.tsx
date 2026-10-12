@@ -28,7 +28,7 @@ import { LinkTests } from "./link-tests";
 import { LinkTitleColumn } from "./link-title-column";
 import { ResponseLink } from "./links-container";
 
-export const LinkCardContext = createContext<{
+const LinkCardContext = createContext<{
   showTests: boolean;
   setShowTests: Dispatch<SetStateAction<boolean>>;
 } | null>(null);

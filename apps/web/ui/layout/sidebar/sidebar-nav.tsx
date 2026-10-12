@@ -27,7 +27,7 @@ import {
 } from "react";
 import { UserDropdown } from "./user-dropdown";
 
-export type NavItemCommon = {
+type NavItemCommon = {
   name: string;
   href: `/${string}`;
   exact?: boolean;
@@ -37,14 +37,14 @@ export type NavItemCommon = {
   locked?: boolean;
 };
 
-export type NavSubItemType = NavItemCommon;
+type NavSubItemType = NavItemCommon;
 
 export type NavItemType = NavItemCommon & {
   icon: Icon;
   items?: NavSubItemType[];
 };
 
-export type NavGroupType = {
+type NavGroupType = {
   name: string;
   icon: Icon;
   href: string;
@@ -268,7 +268,7 @@ function SidebarAreasPanel<T extends Record<any, any>>({
   );
 }
 
-export function NavGroupTooltip({
+function NavGroupTooltip({
   name,
   description,
   learnMoreHref,
@@ -486,7 +486,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
   );
 }
 
-export function Area({
+function Area({
   visible,
   direction,
   children,

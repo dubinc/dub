@@ -12,7 +12,7 @@ const fieldTypeSchema = z.enum([
   "url",
 ]);
 
-export const fieldCommonSchema = z.object({
+const fieldCommonSchema = z.object({
   key: z.string().min(1),
   label: z.string().min(1, "Enter a label for each field."),
   required: z.boolean(),
@@ -20,7 +20,7 @@ export const fieldCommonSchema = z.object({
   position: z.number().int().nonnegative(),
 });
 
-export const selectOptionSchema = z.object({
+const selectOptionSchema = z.object({
   label: z.string().min(1, "Enter a label for each option."),
   value: z.string().min(1),
 });
@@ -99,7 +99,7 @@ export const numberFieldSchema = fieldCommonSchema.extend({
 });
 
 // Phone Number
-export const phoneFieldSchema = fieldCommonSchema.extend({
+const phoneFieldSchema = fieldCommonSchema.extend({
   type: z.literal("phone"),
 });
 
@@ -120,33 +120,31 @@ export const formFieldSchema = z.discriminatedUnion("type", [
   urlFieldSchema,
 ]);
 
-export const formFieldsSchema = z
-  .array(formFieldSchema)
-  .superRefine((fields, ctx) => {
-    const keys = new Set<string>();
-    const positions = new Set<number>();
+const formFieldsSchema = z.array(formFieldSchema).superRefine((fields, ctx) => {
+  const keys = new Set<string>();
+  const positions = new Set<number>();
 
-    for (const field of fields) {
-      if (keys.has(field.key)) {
-        ctx.addIssue({
-          path: ["fields"],
-          message: `Duplicate field key: ${field.key}`,
-          code: "custom",
-        });
-      }
-
-      if (positions.has(field.position)) {
-        ctx.addIssue({
-          path: ["fields"],
-          message: `Duplicate field position: ${field.position}`,
-          code: "custom",
-        });
-      }
-
-      keys.add(field.key);
-      positions.add(field.position);
+  for (const field of fields) {
+    if (keys.has(field.key)) {
+      ctx.addIssue({
+        path: ["fields"],
+        message: `Duplicate field key: ${field.key}`,
+        code: "custom",
+      });
     }
-  });
+
+    if (positions.has(field.position)) {
+      ctx.addIssue({
+        path: ["fields"],
+        message: `Duplicate field position: ${field.position}`,
+        code: "custom",
+      });
+    }
+
+    keys.add(field.key);
+    positions.add(field.position);
+  }
+});
 
 // Full form schema (builder storage)
 export const submittedLeadFormSchema = z.object({

@@ -6,7 +6,7 @@ export const getUsableNetworkPartnerName = (name?: string | null) => {
   return trimmedName && !trimmedName.includes("@") ? trimmedName : null;
 };
 
-export const getNetworkPartnerDisplayName = (name?: string | null) => {
+const getNetworkPartnerDisplayName = (name?: string | null) => {
   return getUsableNetworkPartnerName(name) ?? "there";
 };
 

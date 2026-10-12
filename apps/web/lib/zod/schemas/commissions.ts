@@ -133,7 +133,7 @@ export const CommissionWebhookSchema = CommissionSchema.extend({
   }).nullable(),
 });
 
-export const COMMISSIONS_MAX_PAGE_SIZE = 100;
+const COMMISSIONS_MAX_PAGE_SIZE = 100;
 
 export const getCommissionsQuerySchema = z
   .object({

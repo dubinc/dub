@@ -6,10 +6,7 @@ import { TAB_ITEM_ANIMATION_SETTINGS } from "@dub/ui";
 import { Trophy } from "@dub/ui/icons";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import {
-  BountyEndDate,
-  PartnerBountyCard,
-} from "../../../../partners.dub.co/(dashboard)/programs/[programSlug]/(enrolled)/bounties/bounty-card";
+import { PartnerBountyCard } from "../../../../partners.dub.co/(dashboard)/programs/[programSlug]/(enrolled)/bounties/bounty-card";
 import { useReferralsEmbedData } from "../page-client";
 import { EmbedBountyDetail, EmbedBountyView } from "./detail";
 
@@ -100,5 +97,3 @@ export function ReferralsEmbedBounties() {
     </AnimatePresence>
   );
 }
-
-export { BountyEndDate };

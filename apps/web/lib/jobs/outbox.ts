@@ -122,7 +122,7 @@ export async function persistBackgroundJobs(inputs: DispatchJobInput[]) {
 }
 
 // Delete successfully republished rows; bump attempts on failures.
-export async function settlePublishResults({
+async function settlePublishResults({
   results,
   jobs,
 }: {

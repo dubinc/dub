@@ -6,8 +6,8 @@ import { LemonSqueezyCredentials, LemonSqueezyImportPayload } from "./types";
 // Lemon Squeezy rate limit is 300 requests per minute
 export const LEMONSQUEEZY_MAX_BATCHES = 10;
 
-export const CACHE_EXPIRY = 60 * 60 * 24;
-export const CACHE_KEY_PREFIX = "lemonsqueezy:import";
+const CACHE_EXPIRY = 60 * 60 * 24;
+const CACHE_KEY_PREFIX = "lemonsqueezy:import";
 
 class LemonSqueezyImporter {
   async setCredentials(

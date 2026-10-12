@@ -3,7 +3,7 @@ import { parsePositiveInteger } from "@/scripts/utils/parse-cli-number";
 export const DEFAULT_BATCH_SIZE = 500;
 export const MAX_BATCH_SIZE = 1_000;
 
-export interface BackfillArguments {
+interface BackfillArguments {
   programId?: string;
   all: boolean;
   batchSize: number;

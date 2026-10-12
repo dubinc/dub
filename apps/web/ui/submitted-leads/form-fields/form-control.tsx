@@ -19,7 +19,7 @@ export const maxLengthRule = (maxLength?: number) =>
       }
     : undefined;
 
-export type FormControlProps = {
+type FormControlProps = {
   label: string;
   required?: boolean;
   helperText?: string;
@@ -27,7 +27,7 @@ export type FormControlProps = {
   labelDir?: string;
 } & HTMLAttributes<HTMLLabelElement>;
 
-export const FormControlRequiredBadge = () => {
+const FormControlRequiredBadge = () => {
   return (
     <span className="min-h-4 rounded-md bg-orange-100 px-1 text-xs font-semibold text-orange-600">
       Required

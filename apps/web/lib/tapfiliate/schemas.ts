@@ -1,6 +1,6 @@
 import * as z from "zod/v4";
 
-export const tapfiliateImportSteps = z.enum([
+const tapfiliateImportSteps = z.enum([
   "import-groups",
   "import-partners",
   "import-customers",
@@ -64,7 +64,7 @@ export const tapfiliatePartnerSchema = z.object({
     .nullable(),
 });
 
-export const tapfiliateClickSchema = z.object({
+const tapfiliateClickSchema = z.object({
   created_at: z.string(),
   referrer: z.string().nullable(),
   landing_page: z.string().nullable(),

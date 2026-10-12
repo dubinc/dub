@@ -12,7 +12,7 @@ import { EnrolledPartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
 import { UserSchema } from "./users";
 
-export const PAYOUTS_MAX_PAGE_SIZE = 100;
+const PAYOUTS_MAX_PAGE_SIZE = 100;
 
 export const payoutsQuerySchema = z
   .object({

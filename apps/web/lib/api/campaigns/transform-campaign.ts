@@ -13,7 +13,7 @@ export const campaignEligibilityIncludes = {
   },
 } satisfies Prisma.CampaignInclude;
 
-export type TransformCampaignInput = Prisma.CampaignGetPayload<{
+type TransformCampaignInput = Prisma.CampaignGetPayload<{
   include: {
     groups: {
       select: {

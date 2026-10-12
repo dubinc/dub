@@ -6,13 +6,13 @@ const OPTIMISTIC_ID_PREFIX = "tmp_";
 const stableKeyByMessageId = new Map<string, string>();
 const serverIdByOptimisticId = new Map<string, string>();
 
-export function linkOptimisticMessage(optimisticId: string, serverId: string) {
+function linkOptimisticMessage(optimisticId: string, serverId: string) {
   stableKeyByMessageId.set(optimisticId, optimisticId);
   stableKeyByMessageId.set(serverId, optimisticId);
   serverIdByOptimisticId.set(optimisticId, serverId);
 }
 
-export function stableMessageKey(messageId: string) {
+function stableMessageKey(messageId: string) {
   return stableKeyByMessageId.get(messageId) ?? messageId;
 }
 

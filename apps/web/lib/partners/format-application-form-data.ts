@@ -1,7 +1,7 @@
 import { ProgramApplicationFormDataWithValues } from "@/lib/types";
 import { ProgramApplication } from "@prisma/client";
 
-export interface FormDataKeyValue {
+interface FormDataKeyValue {
   title: string;
   value: string;
   images?: string[];

@@ -18,7 +18,7 @@ interface TrackActivityLogParams
 
 const COMMISSION_ACTIVITY_FIELDS = ["amount", "earnings", "status"];
 
-export function toCommissionActivitySnapshot(
+function toCommissionActivitySnapshot(
   commission: Pick<Commission, "id" | "amount" | "earnings" | "status">,
 ): CommissionActivitySnapshot {
   return {

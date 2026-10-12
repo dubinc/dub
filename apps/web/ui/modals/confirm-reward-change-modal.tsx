@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
 
-export type RewardChangeAction = "created" | "updated" | "deleted";
+type RewardChangeAction = "created" | "updated" | "deleted";
 type RewardNotificationTarget = "group" | "partner" | "link";
 
 function shouldNotifyRewardChange({
@@ -133,7 +133,7 @@ function getDescription({
   );
 }
 
-export function ConfirmRewardChangeModal({
+function ConfirmRewardChangeModal({
   showModal,
   setShowModal,
   action,

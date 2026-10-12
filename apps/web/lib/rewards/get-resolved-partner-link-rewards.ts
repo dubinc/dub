@@ -4,7 +4,7 @@ import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { DiscountProps } from "@/lib/types";
 import { Discount, Reward } from "@prisma/client";
 
-export type LinkRewardWithOptionalRewards = {
+type LinkRewardWithOptionalRewards = {
   clickReward?: Reward | null;
   leadReward?: Reward | null;
   saleReward?: Reward | null;

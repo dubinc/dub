@@ -1,4 +1,4 @@
-export const RESOURCE_KEYS = [
+const RESOURCE_KEYS = [
   "links",
   "workspaces",
   "analytics",

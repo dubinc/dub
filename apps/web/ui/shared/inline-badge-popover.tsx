@@ -100,7 +100,7 @@ export function InlineBadgePopover({
   );
 }
 
-export type InlineBadgePopoverMenuItem<T> = {
+type InlineBadgePopoverMenuItem<T> = {
   icon?: ReactNode;
   text: string;
   description?: string;

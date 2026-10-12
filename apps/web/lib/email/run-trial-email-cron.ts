@@ -11,7 +11,7 @@ import { createHash } from "crypto";
 const CRON_BATCH_SIZE = 50;
 const EMAIL_BATCH_SIZE = 100;
 
-export type RunTrialEmailCronResult = {
+type RunTrialEmailCronResult = {
   sentCount: number;
   workspaceCount: number;
   hasMore: boolean;
@@ -19,7 +19,7 @@ export type RunTrialEmailCronResult = {
 };
 
 /** Only the Prisma methods this cron uses (easy to mock in tests). */
-export type TrialEmailCronPrisma = {
+type TrialEmailCronPrisma = {
   project: Pick<PrismaClient["project"], "findMany">;
   sentEmail: Pick<PrismaClient["sentEmail"], "create">;
 };

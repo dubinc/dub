@@ -21,7 +21,7 @@ export default function ChangelogPopup() {
   );
 }
 
-export function ChangelogPopupInner() {
+function ChangelogPopupInner() {
   const { hidePopup } = useContext(PopupContext);
 
   return (

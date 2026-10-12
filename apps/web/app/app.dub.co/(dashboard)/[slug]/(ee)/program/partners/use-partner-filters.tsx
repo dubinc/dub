@@ -142,7 +142,7 @@ const PARTNER_METRIC_RANGE = [
   },
 ] as const;
 
-export type PartnerFilterKey =
+type PartnerFilterKey =
   | "groupId"
   | "partnerTagId"
   | "status"

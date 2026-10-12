@@ -61,7 +61,7 @@ interface DiscountSheetProps {
 
 type FormData = z.infer<typeof createDiscountSchema>;
 
-export const useAddEditDiscountForm = () => useFormContext<FormData>();
+const useAddEditDiscountForm = () => useFormContext<FormData>();
 
 const COUPON_CREATION_OPTIONS = [
   {

@@ -5,7 +5,7 @@ import * as z from "zod/v4";
 import { RewardProps } from "../types";
 import useWorkspace from "./use-workspace";
 
-export type RewardListItem = RewardProps & {
+type RewardListItem = RewardProps & {
   groupId?: string | null;
   partnersCount?: number;
 };

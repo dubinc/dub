@@ -202,7 +202,7 @@ export async function getSiteLinksDomain(
 // "Site Links" folder for imported links
 // -----------------------------------------------------------------------------
 
-export const SITE_LINKS_FOLDER_NAME = "Site Links";
+const SITE_LINKS_FOLDER_NAME = "Site Links";
 
 export async function getOrCreateSiteLinksFolder({
   projectId,

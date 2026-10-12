@@ -16,7 +16,7 @@ import { cn, nFormatter } from "@dub/utils";
 import { Command } from "cmdk";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
-export type AdditionalRewardOption = {
+type AdditionalRewardOption = {
   id: string;
   label: ReactNode;
   searchValue: string;

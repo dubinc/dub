@@ -14,7 +14,7 @@ interface Account {
   avatarUrl?: string;
 }
 
-export interface FormContextType {
+interface FormContextType {
   sourceAccount: Account;
   targetAccount: Account;
   setSourceAccount: Dispatch<SetStateAction<Account>>;

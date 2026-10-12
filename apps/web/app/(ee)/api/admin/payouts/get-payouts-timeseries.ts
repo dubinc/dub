@@ -10,7 +10,7 @@ interface TimeseriesPoint {
   total: number;
 }
 
-export interface FormattedPayoutsTimeseriesPoint extends TimeseriesPoint {
+interface FormattedPayoutsTimeseriesPoint extends TimeseriesPoint {
   date: Date;
 }
 

@@ -5,7 +5,7 @@ import * as z from "zod/v4";
 import { programResourcesSchema } from "../zod/schemas/program-resources";
 import useWorkspace from "./use-workspace";
 
-export type ProgramResourcesProps = z.infer<typeof programResourcesSchema>;
+type ProgramResourcesProps = z.infer<typeof programResourcesSchema>;
 
 export default function useProgramResources() {
   const { programSlug } = useParams();

@@ -21,7 +21,7 @@ export const GROUP_MOVE_ATTRIBUTES = {
   partnerGroup: WORKFLOW_ATTRIBUTES.partnerGroup,
 };
 
-export const GROUP_MOVE_ATTRIBUTE_KEYS = Object.keys(
+const GROUP_MOVE_ATTRIBUTE_KEYS = Object.keys(
   GROUP_MOVE_ATTRIBUTES,
 ) as readonly (keyof typeof GROUP_MOVE_ATTRIBUTES)[];
 

@@ -3,8 +3,6 @@ import { cn } from "@dub/utils";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-export { LANDER_MARKDOWN_ALLOWED_ELEMENTS };
-
 export function BlockMarkdown({
   className,
   children,

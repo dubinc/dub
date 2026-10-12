@@ -6,7 +6,7 @@ import * as z from "zod/v4";
 
 type PartnerRankingFilters = z.infer<typeof getNetworkPartnersQuerySchema>;
 
-export interface PartnerRankingParams extends PartnerRankingFilters {
+interface PartnerRankingParams extends PartnerRankingFilters {
   programId: string;
   similarPrograms?: Array<{ programId: string; similarityScore: number }>;
 }

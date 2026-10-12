@@ -6,7 +6,7 @@ import { PartnerSchema, partnerPlatformSchema } from "./partners";
 
 export const PARTNER_NETWORK_MAX_PAGE_SIZE = 100;
 
-export const NetworkPartnersStatusSchema = z.enum([
+const NetworkPartnersStatusSchema = z.enum([
   "discover",
   "invited",
   "recruited",

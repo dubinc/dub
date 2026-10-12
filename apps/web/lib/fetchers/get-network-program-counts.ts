@@ -80,7 +80,7 @@ export function buildNetworkProgramCountWhereSql({
   `;
 }
 
-export async function getNetworkProgramTotalCount(
+async function getNetworkProgramTotalCount(
   params: NetworkProgramWhereParams = {},
 ) {
   const whereSql = buildNetworkProgramCountWhereSql(params);
@@ -93,7 +93,7 @@ export async function getNetworkProgramTotalCount(
   return Number(result[0].count);
 }
 
-export async function getNetworkProgramCategoryCounts(
+async function getNetworkProgramCategoryCounts(
   params: NetworkProgramWhereParams = {},
 ) {
   // category counts ignore the active category filter
@@ -117,7 +117,7 @@ export async function getNetworkProgramCategoryCounts(
   }));
 }
 
-export async function getNetworkProgramRewardTypeCounts(
+async function getNetworkProgramRewardTypeCounts(
   params: NetworkProgramWhereParams = {},
 ) {
   // reward type counts ignore the active reward type filter

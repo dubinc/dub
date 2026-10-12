@@ -19,7 +19,7 @@ import {
   type FileInput,
 } from "./submission-fields";
 
-export function SubmissionCardHeader({
+function SubmissionCardHeader({
   title,
   onBack,
   onBackToRoot,
