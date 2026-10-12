@@ -9,9 +9,13 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
+
+/** Keep the shell covered long enough that cached exits (e.g. Exit staging) still feel intentional. */
+const MIN_TRANSITION_MS = 400;
 
 type WorkspaceTransitionContextValue = {
   /** Cover the dashboard shell until the destination workspace is ready. */
@@ -41,6 +45,7 @@ export function WorkspaceTransitionProvider({
   const { slug: currentSlug } = useParams() as { slug?: string };
   const { loading } = useWorkspace();
   const [pendingSlug, setPendingSlug] = useState<string | null>(null);
+  const startedAtRef = useRef<number | null>(null);
 
   const isTransitioning = pendingSlug !== null;
 
@@ -49,6 +54,7 @@ export function WorkspaceTransitionProvider({
       if (!targetSlug || targetSlug === currentSlug) {
         return;
       }
+      startedAtRef.current = Date.now();
       setPendingSlug(targetSlug);
     },
     [currentSlug],
@@ -69,12 +75,23 @@ export function WorkspaceTransitionProvider({
       return;
     }
 
-    // Let the banner + MainNav offset commit before revealing.
-    const frame = requestAnimationFrame(() => {
-      setPendingSlug(null);
-    });
+    // Exit staging usually hits a warm SWR cache, so loading flips false
+    // immediately — hold the overlay for a minimum so it matches Switch to staging.
+    const startedAt = startedAtRef.current ?? Date.now();
+    const remaining = Math.max(
+      0,
+      MIN_TRANSITION_MS - (Date.now() - startedAt),
+    );
 
-    return () => cancelAnimationFrame(frame);
+    const timeout = window.setTimeout(() => {
+      // Let the banner + MainNav offset commit before revealing.
+      requestAnimationFrame(() => {
+        setPendingSlug(null);
+        startedAtRef.current = null;
+      });
+    }, remaining);
+
+    return () => window.clearTimeout(timeout);
   }, [pendingSlug, currentSlug, loading]);
 
   // Safety valve if navigation is cancelled or hangs.
@@ -85,6 +102,7 @@ export function WorkspaceTransitionProvider({
 
     const timeout = window.setTimeout(() => {
       setPendingSlug(null);
+      startedAtRef.current = null;
     }, 10_000);
 
     return () => window.clearTimeout(timeout);
