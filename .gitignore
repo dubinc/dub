@@ -42,6 +42,7 @@ packages/stripe-app/.build/*
 .react-email
 .contentlayer
 .vscode
+.idea
 *.csv
 *.ndjson
 .vitest

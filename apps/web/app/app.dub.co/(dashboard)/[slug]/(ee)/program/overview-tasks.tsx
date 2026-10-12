@@ -1,5 +1,5 @@
 import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
-import usePartnersCount from "@/lib/swr/use-partners-count";
+import { useProgramApplicationsCount } from "@/lib/program-applications/hooks/use-program-applications-count";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
@@ -11,9 +11,11 @@ import { useMemo } from "react";
 export function OverviewTasks() {
   const { slug } = useWorkspace();
 
-  const { partnersCount, loading: partnersCountLoading } = usePartnersCount<
-    number | undefined
-  >({ status: "pending", ignoreParams: true });
+  const { applicationsCount, loading: applicationsCountLoading } =
+    useProgramApplicationsCount<number | undefined>({
+      status: "pending",
+      ignoreParams: true,
+    });
 
   const {
     payoutsCount: eligiblePayoutsCount,
@@ -50,9 +52,9 @@ export function OverviewTasks() {
       {
         icon: UserCheck,
         label: "Review new applications",
-        count: partnersCount,
+        count: applicationsCount,
         href: `/${slug}/program/partners/applications`,
-        loading: partnersCountLoading,
+        loading: applicationsCountLoading,
       },
     ],
     [
@@ -61,8 +63,8 @@ export function OverviewTasks() {
       eligiblePayoutsLoading,
       unreadMessagesCount,
       unreadMessagesLoading,
-      partnersCount,
-      partnersCountLoading,
+      applicationsCount,
+      applicationsCountLoading,
     ],
   );
 
@@ -83,9 +85,10 @@ export function OverviewTasks() {
 
             <div
               className={cn(
-                "flex h-8 items-center rounded-lg bg-black/5 px-4 text-neutral-400",
+                "flex h-8 min-w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 px-1.5 text-sm font-semibold text-blue-600",
+                !(task.count && task.count > 0) &&
+                  "bg-neutral-100 text-neutral-500",
                 task.loading && "w-10 animate-pulse",
-                task.count && task.count > 0 && "bg-blue-100 text-blue-600",
               )}
             >
               {nFormatter(task.count, { full: true }) ??

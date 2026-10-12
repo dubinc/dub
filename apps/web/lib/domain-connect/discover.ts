@@ -1,5 +1,6 @@
 import dns from "node:dns/promises";
 import { isAllowedSyncUXOrigin } from "./allowed-origins";
+import { DOMAIN_CONNECT_PROVIDER_ID } from "./constants";
 import type {
   DomainConnectDiscovery,
   DomainConnectProviderKind,
@@ -8,6 +9,7 @@ import type {
 type DomainConnectSettings = {
   providerId?: string;
   urlSyncUX?: string;
+  urlAPI?: string;
 };
 
 function providerKindFromId(
@@ -26,6 +28,13 @@ const ALLOWED_SETTINGS_HOST_SUFFIXES = [
   ".vercel.com",
   ".cloudflare.com",
 ];
+
+function isAllowedSettingsHost(host: string): boolean {
+  return ALLOWED_SETTINGS_HOST_SUFFIXES.some((suffix) => {
+    const hostnameSuffix = suffix.replace(/^\./, "");
+    return host === hostnameSuffix || host.endsWith(`.${hostnameSuffix}`);
+  });
+}
 
 function settingsBaseFromTxtRecords(records: string[][]): string | null {
   const candidates = records
@@ -59,10 +68,7 @@ function settingsBaseFromTxtRecords(records: string[][]): string | null {
       ) {
         return false;
       }
-      return ALLOWED_SETTINGS_HOST_SUFFIXES.some((suffix) => {
-        const hostnameSuffix = suffix.replace(/^\./, "");
-        return host === hostnameSuffix || host.endsWith(`.${hostnameSuffix}`);
-      });
+      return isAllowedSettingsHost(host);
     });
 
   return candidates[0] ?? null;
@@ -124,7 +130,40 @@ export async function discoverDomainConnect(
   const providerKind = providerKindFromId(dnsProviderId);
   if (!providerKind) return null;
 
-  return { providerKind, dnsProviderId, urlSyncUX };
+  let urlAPI: string | undefined;
+  try {
+    const parsedAPI = new URL(json.urlAPI ?? "");
+    if (
+      parsedAPI.protocol === "https:" &&
+      isAllowedSettingsHost(parsedAPI.hostname)
+    ) {
+      urlAPI = `${parsedAPI.origin}${parsedAPI.pathname}`.replace(/\/$/, "");
+    }
+  } catch {}
+
+  return { providerKind, dnsProviderId, urlSyncUX, urlAPI };
+}
+
+/** Template version from the provider, or undefined when the lookup is inconclusive. */
+export async function fetchDomainConnectTemplateVersion(
+  urlAPI: string,
+  serviceId: string,
+): Promise<number | undefined> {
+  try {
+    const res = await fetch(
+      `${urlAPI}/v2/domainTemplates/providers/${DOMAIN_CONNECT_PROVIDER_ID}/services/${serviceId}`,
+      {
+        headers: { accept: "application/json" },
+        redirect: "manual",
+        signal: AbortSignal.timeout(3000),
+      },
+    );
+    if (!res.ok) return;
+    const { version } = (await res.json()) as { version?: unknown };
+    return typeof version === "number" ? version : undefined;
+  } catch {
+    return;
+  }
 }
 
 /**

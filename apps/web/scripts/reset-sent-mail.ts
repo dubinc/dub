@@ -7,6 +7,7 @@ async function main() {
       where: {
         sentMail: true,
       },
+      take: 1000,
     });
     if (usersToReset.length === 0) {
       console.log("No more users to reset");

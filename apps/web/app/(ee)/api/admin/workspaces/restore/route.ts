@@ -52,9 +52,16 @@ export const POST = withAdmin(
       }
     }
 
+    const workspaceIds = [
+      project.id,
+      ...(project.stagingWorkspaceId ? [project.stagingWorkspaceId] : []),
+    ];
+
     const updatedOwners = await prisma.projectUsers.updateMany({
       where: {
-        projectId: project.id,
+        projectId: {
+          in: workspaceIds,
+        },
         role: "billing",
       },
       data: {
@@ -66,7 +73,9 @@ export const POST = withAdmin(
 
     const updatedMembers = await prisma.projectUsers.updateMany({
       where: {
-        projectId: project.id,
+        projectId: {
+          in: workspaceIds,
+        },
         role: "viewer",
       },
       data: {
@@ -75,6 +84,15 @@ export const POST = withAdmin(
     });
 
     console.log(`Reverted ${updatedMembers.count} viewers to member role`);
+
+    await prisma.project.update({
+      where: {
+        id: project.id,
+      },
+      data: {
+        disabledAt: null,
+      },
+    });
 
     return NextResponse.json({ success: true });
   },

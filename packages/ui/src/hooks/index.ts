@@ -9,6 +9,7 @@ export * from "./use-enter-submit";
 export * from "./use-in-viewport";
 export * from "./use-input-focused";
 export * from "./use-intersection-observer";
+export * from "./use-is-touch-device";
 export * from "./use-keyboard-shortcut";
 export * from "./use-latest-callback";
 export * from "./use-local-storage";

@@ -12,7 +12,7 @@ export async function chargeRefunded({
   workspace,
 }: WebhookHandlerInput<Stripe.ChargeRefundedEvent>): Promise<WebhookHandlerResponse> {
   const charge = event.data.object;
-  const stripeAccountId = event.account as string;
+  const stripeAccountId = workspace.stripeConnectId!;
 
   const stripe = stripeAppClient({
     mode,

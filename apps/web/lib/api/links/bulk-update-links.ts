@@ -40,6 +40,9 @@ export async function bulkUpdateLinks(
 
   const imageUrlNonce = nanoid(7);
 
+  const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+    getParamsFromURL(url || "");
+
   // The bulk payload omits link key but not `partnerId`, so an
   // update can move links between partners. The former owners are unrecoverable
   // after the write, so read them first, and only when the payload can move one.
@@ -71,7 +74,14 @@ export async function bulkUpdateLinks(
           geo: geo === null ? Prisma.DbNull : geo,
           testVariants: testVariants === null ? Prisma.DbNull : testVariants,
 
-          ...(url && getParamsFromURL(url)),
+          // Only persist known UTM Link columns — ignore other query params
+          ...(url && {
+            utm_source: utm_source || null,
+            utm_medium: utm_medium || null,
+            utm_campaign: utm_campaign || null,
+            utm_term: utm_term || null,
+            utm_content: utm_content || null,
+          }),
           // Associate tags by tagNames
           ...(tagNames &&
             workspaceId && {

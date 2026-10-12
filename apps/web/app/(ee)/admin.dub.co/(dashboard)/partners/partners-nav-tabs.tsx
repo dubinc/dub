@@ -12,6 +12,7 @@ export function PartnersNavTabs() {
         id: "network",
         label: "Network Partners",
         icon: GridIcon,
+        href: "/partners/network?networkStatus=submitted",
       },
       {
         id: "trusted",

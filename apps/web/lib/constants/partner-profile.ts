@@ -1,7 +1,6 @@
 import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID } from "@dub/utils";
 
 export const MAX_INVITES_PER_REQUEST = 5;
-export const MAX_PARTNER_USERS = 10;
 export const MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING = 100; // if over 100 links we should filter on TB directly
 
 export const LARGE_PROGRAM_IDS = ["prog_1K0QHV7MP3PR05CJSCF5VN93X"];
@@ -16,6 +15,8 @@ export const PARTNER_NETWORK_EXCLUDED_PROGRAM_IDS = [
 export const PARTNER_NETWORK_MIN_COMMISSIONS_CENTS = 10_00; // $10
 
 export const PARTNER_CUSTOMERS_MAX_PAGE_SIZE = 100;
+
+export const PARTNER_PROGRAMS_MAX_PAGE_SIZE = 100;
 
 export const CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS = [
   "prog_qGGSH0jXFZLeogOnq1sLkriY",

@@ -1,7 +1,7 @@
 import { bulkReactivatePartners } from "@/lib/api/partners/bulk-reactivate-partners";
 import { CRON_BATCH_SIZE, qstash } from "@/lib/cron";
-import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
+import { publishDiscountCodesCreationJob } from "@/lib/jobs/handlers/publish-discount-codes-creation-job";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
@@ -95,15 +95,13 @@ export const POST = withCron(async ({ rawBody }) => {
   });
 
   if (discounts.length > 0) {
-    await enqueueBatchJobs(
+    await publishDiscountCodesCreationJob.dispatchBatch(
       discounts.map((discount) => ({
-        queueName: "create-discount-code",
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create/queue-batches`,
-        deduplicationId: `reactivate-discount-${discount.id}`,
-        body: {
-          discountId: discount.id,
-        },
+        discountId: discount.id,
       })),
+      ({ discountId }) => ({
+        label: discountId,
+      }),
     );
 
     console.log(

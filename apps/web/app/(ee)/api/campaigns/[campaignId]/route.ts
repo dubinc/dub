@@ -6,7 +6,7 @@ import {
 } from "@/lib/api/campaigns/transform-campaign";
 import { validateCampaign } from "@/lib/api/campaigns/validate-campaign";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
-import { throwIfInvalidPartnerTagIds } from "@/lib/api/partner-tags/throw-if-invalid-partner-tag-ids";
+import { throwIfInvalidPartnerTags } from "@/lib/api/partner-tags/throw-if-invalid-partner-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateWorkflowConditions } from "@/lib/api/workflows/validate-workflow-conditions";
@@ -119,7 +119,7 @@ export const PATCH = withWorkspace(
 
       if (!arrayEqual(currentPartnerTagIds, newPartnerTagIds)) {
         if (newPartnerTagIds.length > 0) {
-          updatedPartnerTags = await throwIfInvalidPartnerTagIds({
+          updatedPartnerTags = await throwIfInvalidPartnerTags({
             programId,
             partnerTagIds: newPartnerTagIds,
           });

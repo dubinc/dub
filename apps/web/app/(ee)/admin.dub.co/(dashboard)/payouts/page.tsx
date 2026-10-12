@@ -48,6 +48,13 @@ interface InvoiceData {
   total: number;
 }
 
+interface TopProgramData {
+  id: string;
+  name: string;
+  logo: string | null;
+  payouts: number;
+}
+
 const payoutTabs = [
   {
     id: "payouts",
@@ -87,14 +94,17 @@ function PayoutsPageClient() {
 
   const { pagination, setPagination } = usePagination();
 
-  const { data: { invoices, timeseriesData, totalInvoices } = {}, isLoading } =
-    useSWR<{
-      invoices: InvoiceData[];
-      timeseriesData: TimeseriesData[];
-      totalInvoices: number;
-    }>(`/api/admin/payouts${getQueryString()}`, fetcher, {
-      keepPreviousData: true,
-    });
+  const {
+    data: { invoices, timeseriesData, totalInvoices, programs } = {},
+    isLoading,
+  } = useSWR<{
+    invoices: InvoiceData[];
+    timeseriesData: TimeseriesData[];
+    totalInvoices: number;
+    programs: TopProgramData[];
+  }>(`/api/admin/payouts${getQueryString()}`, fetcher, {
+    keepPreviousData: true,
+  });
 
   const previousPeriodQueryString = useMemo(() => {
     if (!timeseriesData || timeseriesData.length === 0) {
@@ -131,27 +141,6 @@ function PayoutsPageClient() {
     },
   );
 
-  // Extract unique programs from invoices
-  const programs = useMemo(() => {
-    if (!invoices) return [];
-    const programMap = new Map<
-      string,
-      { id: string; name: string; logo: string }
-    >();
-    invoices.forEach((invoice) => {
-      if (!programMap.has(invoice.programId)) {
-        programMap.set(invoice.programId, {
-          id: invoice.programId,
-          name: invoice.programName,
-          logo: invoice.programLogo,
-        });
-      }
-    });
-    return Array.from(programMap.values()).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-  }, [invoices]);
-
   // Filter configuration
   const filters = useMemo(
     () => [
@@ -160,7 +149,7 @@ function PayoutsPageClient() {
         icon: GridIcon,
         label: "Program",
         options:
-          programs.map((program) => ({
+          programs?.map((program) => ({
             value: program.id,
             label: program.name,
             icon: (
@@ -170,6 +159,7 @@ function PayoutsPageClient() {
                 className="size-4 rounded-full"
               />
             ),
+            right: currencyFormatter(program.payouts),
           })) ?? null,
       },
       {

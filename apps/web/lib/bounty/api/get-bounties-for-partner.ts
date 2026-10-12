@@ -70,12 +70,15 @@ export async function getBountiesForPartner({
           partnerId,
         },
         include: {
-          commission: {
+          commissions: {
             select: {
               id: true,
               earnings: true,
               status: true,
               createdAt: true,
+            },
+            orderBy: {
+              createdAt: "asc",
             },
           },
         },

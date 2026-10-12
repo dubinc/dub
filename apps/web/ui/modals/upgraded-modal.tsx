@@ -1,3 +1,4 @@
+import { testIds } from "@/lib/e2e/test-ids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { Button, Modal, useRouterStuff, useScrollProgress } from "@dub/ui";
@@ -130,7 +131,10 @@ function UpgradedModal({
               onScroll={updateScrollProgress}
               className="scrollbar-hide max-h-[calc(100vh-400px)] overflow-y-auto pb-6 text-left"
             >
-              <h1 className="text-lg font-semibold text-neutral-900">
+              <h1
+                className="text-lg font-semibold text-neutral-900"
+                data-testid={testIds.billing.upgradedHeading}
+              >
                 Dub {plan?.name} looks good on you!
               </h1>
               <p className="mt-2 text-sm text-neutral-600">
@@ -173,6 +177,7 @@ function UpgradedModal({
           <Button
             type="button"
             variant={showDotLinkClaimUi ? "secondary" : "primary"}
+            data-testid={testIds.billing.viewDashboard}
             text={
               showDotLinkClaimUi
                 ? "No thanks, take me to the dashboard"

@@ -1,4 +1,7 @@
-import { isExactPartnerIdQuery } from "@/lib/api/partners/program-enrollment-query";
+import {
+  isExactEmailQuery,
+  isExactPartnerIdQuery,
+} from "@/lib/api/partners/program-enrollment-query";
 import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
 import * as z from "zod/v4";
 import {
@@ -62,10 +65,15 @@ export function buildPartnerSearchCandidateQuery({
   // Exact email and tenant lookups remain database-only. The search provider
   // is responsible only for finding relevance-ranked free-text candidates.
   //
-  // A pasted partner ID joins them, and unlike a complete email it needs no
-  // fallback: the provider indexes the ID as a plain token, so a miss there is
-  // the same miss the primary key already gave, without the round trip.
-  if (!query || email || tenantId || isExactPartnerIdQuery(query)) {
+  // A complete email address or a pasted partner ID in the search also stays
+  // on the database path, which matches it exactly.
+  if (
+    !query ||
+    email ||
+    tenantId ||
+    isExactEmailQuery(query) ||
+    isExactPartnerIdQuery(query)
+  ) {
     return null;
   }
 

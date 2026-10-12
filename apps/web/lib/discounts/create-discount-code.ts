@@ -8,13 +8,18 @@ import { sendWorkspaceWebhook } from "../webhook/publish";
 import { DiscountCodeWebhookSchema } from "../zod/schemas/discount";
 import { constructDiscountCode } from "./construct-discount-code";
 import { getDiscountProvider } from "./discount-provider";
+import { isDiscountDeleted } from "./is-discount-deleted";
 
 const MAX_ATTEMPTS = 3;
 
 interface CreateDiscountCodeArgs {
   workspace: Pick<
     Project,
-    "id" | "stripeConnectId" | "shopifyStoreId" | "webhookEnabled"
+    | "id"
+    | "environment"
+    | "stripeConnectId"
+    | "shopifyStoreId"
+    | "webhookEnabled"
   >;
   partner: Pick<Partner, "id" | "name">;
   link: Pick<Link, "id">;
@@ -29,6 +34,13 @@ export async function createDiscountCode({
   discount,
   code,
 }: CreateDiscountCodeArgs) {
+  if (isDiscountDeleted(discount)) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Discount ${discount.id} not found.`,
+    });
+  }
+
   const finalCode =
     code ||
     constructDiscountCode({
@@ -139,7 +151,7 @@ async function createDiscountCodeRecord({
       data: {
         id: createId({ prefix: "dcode_" }),
         code,
-        programId: discount.programId,
+        programId: discount.programId!,
         partnerId: partner.id,
         linkId: link.id,
         discountId: discount.id,

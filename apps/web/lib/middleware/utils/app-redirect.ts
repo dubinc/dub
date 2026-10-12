@@ -1,5 +1,7 @@
 import { getWorkspaceProduct } from "./get-workspace-product";
 
+const EXCLUDED_PAGES = ["/workspaces"];
+
 const APP_REDIRECTS = {
   "/account": "/account/settings",
   "/referrals": "/account/settings/referrals",
@@ -24,6 +26,10 @@ const PROGRAM_REDIRECTS = {
 };
 
 export const appRedirect = async (path: string) => {
+  if (EXCLUDED_PAGES.includes(path)) {
+    return null;
+  }
+
   if (APP_REDIRECTS[path]) {
     return APP_REDIRECTS[path];
   }
@@ -98,10 +104,13 @@ export const appRedirect = async (path: string) => {
       "/$1/program/partners/$2/links?profile=true",
     );
 
+  // Redirect "/[slug]/program/customers/leads" to "/[slug]/program/leads"
+  const programCustomersLeadsRegex = /^\/([^\/]+)\/program\/customers\/leads$/;
+  if (programCustomersLeadsRegex.test(path))
+    return path.replace(programCustomersLeadsRegex, "/$1/program/leads");
+
   // Redirect "/[slug]/[*]/customers/:customerId" to "/[slug]/[*]/customers/:customerId/sales"
-  // Exclude "leads" since it's a tab route, not a customer ID
-  const customersPageRegex =
-    /^\/([^\/]+)\/([^\/]+)\/customers\/(?!leads$)([^\/]+)$/;
+  const customersPageRegex = /^\/([^\/]+)\/([^\/]+)\/customers\/([^\/]+)$/;
   if (customersPageRegex.test(path))
     return path.replace(customersPageRegex, "/$1/$2/customers/$3/sales");
 

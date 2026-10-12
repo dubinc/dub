@@ -1,10 +1,6 @@
-import { PageContent } from "@/ui/layout/page-content";
-import { ProgramInvitationsPageClient } from "./page-client";
+import { redirect } from "next/navigation";
 
+// invitations are now a tab on the Programs page
 export default function ProgramInvitationsPage() {
-  return (
-    <PageContent title="Invitations">
-      <ProgramInvitationsPageClient />
-    </PageContent>
-  );
+  redirect("/programs?tab=invitations");
 }

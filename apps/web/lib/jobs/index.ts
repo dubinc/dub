@@ -1,6 +1,6 @@
 import { logger, toErrorFields } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
-import { chunk } from "@dub/utils";
+import { chunk, sleep } from "@dub/utils";
 import * as z from "zod/v4";
 import { QSTASH_BATCH_CHUNK_SIZE } from "./constants";
 import { persistBackgroundJobs } from "./outbox";
@@ -38,9 +38,7 @@ async function withQStashRetry<T>(fn: () => Promise<T>): Promise<T> {
       return await fn();
     } catch (error) {
       if (attempt < QSTASH_PUBLISH_MAX_RETRIES) {
-        await new Promise((resolve) =>
-          setTimeout(resolve, 1000 * Math.pow(2, attempt)),
-        );
+        await sleep(1000 * Math.pow(2, attempt));
         continue;
       }
 

@@ -4,12 +4,13 @@ import { trackLead } from "@/lib/api/conversions/track-lead";
 import { prisma } from "@/lib/prisma";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
 import { pick } from "@dub/utils";
-import { Project, SubmittedLead } from "@prisma/client";
+import { CommissionSource, Project, SubmittedLead } from "@prisma/client";
 
 interface MarkSubmittedLeadQualifiedInput {
   workspace: Pick<Project, "id" | "stripeConnectId" | "webhookEnabled">;
   lead: SubmittedLead;
   externalId: string | null;
+  userId: string; // user who marked the lead as qualified
 }
 
 // Mark a submitted lead as qualified
@@ -17,6 +18,7 @@ export const markSubmittedLeadQualified = async ({
   workspace,
   lead,
   externalId,
+  userId,
 }: MarkSubmittedLeadQualifiedInput) => {
   // Find the default link for the partner
   const links = await prisma.link.findMany({
@@ -62,6 +64,8 @@ export const markSubmittedLeadQualified = async ({
     mode: "wait",
     workspace: pick(workspace, ["id", "stripeConnectId", "webhookEnabled"]),
     source: "submitted",
+    commissionSource: CommissionSource.user,
+    userId,
   });
 
   const customer = await prisma.customer.findUniqueOrThrow({

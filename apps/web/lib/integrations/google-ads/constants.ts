@@ -21,4 +21,5 @@ export const GOOGLE_ADS_API_VERSION = "v22";
 
 export const GOOGLE_ADS_ALLOWED_WORKSPACE_IDS = new Set<string>([
   DUB_WORKSPACE_ID,
+  "ws_1KHV03S34C41PN8WWM4PRY462",
 ]);

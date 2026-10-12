@@ -66,6 +66,7 @@ export async function AppMiddleware(req: NextRequest) {
       new Date(user.createdAt).getTime() >
         Date.now() - ONBOARDING_WINDOW_SECONDS * 1000 &&
       !["/onboarding", "/account"].some((p) => path.startsWith(p)) &&
+      path !== "/workspaces" &&
       !(await getDefaultWorkspace(user)) &&
       !(await hasPendingInvites({ req, user })) &&
       (await onboardingStepCache.get({ userId: user.id })) !== "completed"
@@ -95,7 +96,6 @@ export async function AppMiddleware(req: NextRequest) {
         "/",
         "/login",
         "/register",
-        "/workspaces",
         "/links",
         "/analytics",
         "/events",

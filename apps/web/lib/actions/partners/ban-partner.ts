@@ -104,6 +104,7 @@ export const banPartner = async ({
       leadRewardId: null,
       saleRewardId: null,
       referralRewardId: null,
+      customRewardId: null,
       discountId: null,
     },
   });

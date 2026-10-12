@@ -51,6 +51,7 @@ model User {
   programApplications     ProgramApplication[]
   sentMessages            Message[]
   partnerComments         PartnerComment[]
+  submittedLeadComments   SubmittedLeadComment[]
   fraudEventGroups        FraudEventGroup[]
   fraudAlertsReviewed     FraudAlert[]                 @relation("FraudAlertReviewer")
   activityLogs            ActivityLog[]

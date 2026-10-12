@@ -1,5 +1,7 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { prisma } from "@/lib/prisma";
+import { ProgramEnvironmentBanner } from "@/lib/sandbox/components/workspace-environment";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { Logo } from "@dub/ui";
 import { Bolt, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";
@@ -48,9 +50,7 @@ export default async function SuccessPage(props: {
 
   const { applicationId, enrollmentId } = searchParams;
 
-  const params = await props.params;
-
-  const { programSlug, groupSlug } = params;
+  const { programSlug, groupSlug } = await props.params;
 
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
@@ -66,11 +66,11 @@ export default async function SuccessPage(props: {
     !program.group.applicationFormPublishedAt
   ) {
     // for the default group:
-    // - if the program is found, redirect to the marketplace program page
+    // - if the program is featured on the marketplace (and not deactivated), redirect to the marketplace program page
     // - otherwise, throw 404
     // for other groups: redirect to the default group variant
     if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
-      if (program) {
+      if (program && program.addedToMarketplaceAt && !program.deactivatedAt) {
         redirect(`/marketplace/${programSlug}`);
       }
       notFound();
@@ -84,10 +84,15 @@ export default async function SuccessPage(props: {
         where: {
           id: applicationId,
         },
+        select: {
+          partnerId: true,
+          email: true,
+        },
       })
     : null;
 
-  const hasPartnerProfile = !!enrollmentId;
+  const hasPartnerProfile = !!enrollmentId || !!application?.partnerId;
+  const isNonProduction = !isProductionEnvironment(program.environment);
 
   return (
     <div
@@ -99,7 +104,13 @@ export default async function SuccessPage(props: {
         } as CSSProperties
       }
     >
-      <ApplyHeader group={program.group} showLogin={false} showApply={false} />
+      <ProgramEnvironmentBanner environment={program.environment} />
+      <ApplyHeader
+        group={program.group}
+        showLogin={false}
+        showApply={false}
+        hasBanner={isNonProduction}
+      />
       <div className="p-6">
         <div className="grid grid-cols-1 gap-5 sm:pt-20">
           <span className="w-fit rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">

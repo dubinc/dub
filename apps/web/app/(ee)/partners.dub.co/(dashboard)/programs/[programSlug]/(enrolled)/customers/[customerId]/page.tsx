@@ -9,7 +9,7 @@ export default async function PartnerProgramCustomerPage({
   const { programSlug, customerId } = await params;
 
   if (customerId === "referrals") {
-    redirect(`/programs/${programSlug}/customers/leads`);
+    redirect(`/programs/${programSlug}/leads`);
   }
   return <ProgramCustomerPageClient />;
 }

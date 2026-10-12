@@ -78,6 +78,7 @@
   "rewards": [
     {
       "id": "rw_1K2J9DRWPPJ2F1RX53N92TSGD",
+      "groupId": "grp_1K2J9DRWPPJ2F1RX53N92TSGC",
       "event": "lead",
       "type": "flat",
       "amountInCents": 1000,
@@ -87,6 +88,7 @@
     },
     {
       "id": "rw_1K2J9DRWPPJ2F1RX53N92TSGE",
+      "groupId": "grp_1K2J9DRWPPJ2F1RX53N92TSGC",
       "event": "sale",
       "type": "flat",
       "amountInCents": 3000,

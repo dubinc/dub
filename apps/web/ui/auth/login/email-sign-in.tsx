@@ -1,4 +1,5 @@
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
+import { testIds } from "@/lib/e2e/test-ids";
 import { Button, Input, useCurrentSubdomain, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { signIn } from "next-auth/react";
@@ -66,7 +67,9 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
 
             if (!accountExists) {
               setClickedMethod(undefined);
-              toast.error("No account found with that email address.");
+              toast.error("No account found with that email address.", {
+                testId: testIds.auth.loginNoAccount,
+              });
               return;
             }
           }
@@ -83,7 +86,9 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
 
           if (!accountExists) {
             setClickedMethod(undefined);
-            toast.error("No account found with that email address.");
+            toast.error("No account found with that email address.", {
+              testId: testIds.auth.loginNoAccount,
+            });
             return;
           }
 
@@ -101,7 +106,11 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
           }
 
           if (response.error) {
-            if (errorCodes[response.error]) {
+            if (response.error === "invalid-credentials") {
+              toast.error(errorCodes[response.error], {
+                testId: testIds.auth.loginInvalidCredentials,
+              });
+            } else if (errorCodes[response.error]) {
               toast.error(errorCodes[response.error]);
             } else {
               toast.error(response.error);
@@ -176,6 +185,7 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
         )}
 
         <Button
+          data-testid={testIds.auth.loginSubmit}
           text={`Log in with ${password ? "password" : "email"}`}
           {...(authMethod !== "email" && {
             type: "button",

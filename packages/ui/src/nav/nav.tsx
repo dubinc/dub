@@ -1,6 +1,6 @@
 "use client";
 
-import { APP_DOMAIN, cn, createHref, fetcher } from "@dub/utils";
+import { APP_DOMAIN, cn, createHref } from "@dub/utils";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import { motion } from "motion/react";
 import Link from "next/link";
@@ -135,6 +135,16 @@ const pillSpring = {
   opacity: { duration: 0 },
 };
 
+// dub.co's session route returns 401 when logged out — cache that as "no session"
+// so revalidation never resets `isLoading` (which unmounts the CTA buttons).
+// Other failures throw, so SWR keeps whatever session it already has.
+const sessionFetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (res.status === 401) return null;
+  if (!res.ok) throw new Error("Failed to fetch session");
+  return res.json();
+};
+
 export function Nav({
   theme = "light",
   staticDomain,
@@ -164,7 +174,7 @@ export function Nav({
   const pathname = usePathname();
   const { data: session, isLoading } = useSWR(
     domain.endsWith("dub.co") && "/api/auth/session",
-    fetcher,
+    sessionFetcher,
     {
       dedupingInterval: 60000,
     },

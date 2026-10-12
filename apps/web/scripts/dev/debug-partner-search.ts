@@ -146,29 +146,27 @@ const PLATFORM_TYPES = [
 ];
 
 /**
- * `searchText` is every searchable value lowercased and space-joined in a fixed
- * order: partner ID, name, email, company, description, platform types, handles,
- * then link keys. Three of those boundaries are recoverable, since the ID is
- * prefixed, the email is address-shaped, and the platform types are a known
- * enum, so the blob splits into name / profile / platforms-and-keys. A document
- * without platforms has no recoverable boundary after the email, so everything
- * past it stays together as `profile`.
+ * `searchText` joins the searchable values in order: partner ID, tenant ID,
+ * name, email, company, description, platform types, handles, link keys. Only
+ * the partner ID prefix, the email shape, and the platform enum are
+ * recoverable, so the split into identity / profile / platforms-and-keys is a
+ * heuristic. The tenant ID has no shape and stays in identity.
  */
 function parseIndexedText(searchText: string) {
   const tokens = searchText.split(" ").filter(Boolean);
   const hasPartnerId = tokens[0]?.startsWith("pn_") ?? false;
   const emailIndex = tokens.findIndex((token) => EMAIL_PATTERN.test(token));
-  // Without an email there is no boundary after the name, so it is assumed to
-  // end at the fourth token, and the profile starts where the name ends.
-  const nameEnd = emailIndex === -1 ? 4 : emailIndex;
-  const profileStart = emailIndex === -1 ? nameEnd : emailIndex + 1;
+  // Without an email there is no boundary after the identity, so it is assumed
+  // to end at the fourth token, and the profile starts where the identity ends.
+  const identityEnd = emailIndex === -1 ? 4 : emailIndex;
+  const profileStart = emailIndex === -1 ? identityEnd : emailIndex + 1;
   const platformIndex = tokens.findIndex(
     (token, index) => index >= profileStart && PLATFORM_TYPES.includes(token),
   );
 
   return {
     tokens,
-    name: tokens.slice(hasPartnerId ? 1 : 0, nameEnd).join(" "),
+    identity: tokens.slice(hasPartnerId ? 1 : 0, identityEnd).join(" "),
     email: emailIndex === -1 ? "" : tokens[emailIndex],
     profile: tokens
       .slice(profileStart, platformIndex === -1 ? undefined : platformIndex)
@@ -212,7 +210,7 @@ function reportProviderHits(
       return {
         rank: index + 1,
         score: hit.score?.toFixed(5),
-        name: parsed.name,
+        identity: parsed.identity,
         email: parsed.email,
         docTokens: parsed.tokens.length,
         queryTerms: summarizeTermMatches(parsed.tokens, normalizedQuery),

@@ -56,9 +56,23 @@ describe("buildPartnerSearchCandidateQuery", () => {
     ["missing search", { ...defaultInput, search: undefined }],
     ["empty search", { ...defaultInput, search: "   " }],
     ["exact email", { ...defaultInput, email: "partner@example.com" }],
+    [
+      "complete email in the search",
+      { ...defaultInput, search: "steven@dub.co" },
+    ],
     ["tenant ID", { ...defaultInput, tenantId: "tenant_test" }],
   ])("keeps %s on the database path", (_name, input) => {
     expect(buildPartnerSearchCandidateQuery(input)).toBeNull();
+  });
+
+  it.each([
+    ["half-typed", "steven@"],
+    ["domain only", "@dub.co"],
+    ["no dot in the domain", "steven@dub"],
+  ])("sends a %s email to the provider", (_label, search) => {
+    expect(
+      buildPartnerSearchCandidateQuery({ programId: "prog_1", search }),
+    ).toMatchObject({ query: search });
   });
 
   describe("pasted partner IDs", () => {

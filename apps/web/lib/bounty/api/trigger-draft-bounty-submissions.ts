@@ -13,9 +13,11 @@ import {
 export async function triggerDraftBountySubmissionCreation({
   programId,
   partnerIds,
+  idempotencyKey,
 }: {
   programId: string;
   partnerIds: string[];
+  idempotencyKey?: string;
 }) {
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
@@ -134,6 +136,9 @@ export async function triggerDraftBountySubmissionCreation({
           bountyId,
           partnerIds,
         },
+        ...(idempotencyKey && {
+          deduplicationId: `${idempotencyKey}-${bountyId}`,
+        }),
       }),
     ),
   );

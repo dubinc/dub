@@ -73,6 +73,9 @@ export function ConversionTrackingToggle() {
 
   const { canTrackConversions } = getPlanCapabilities(plan);
 
+  // Allow turning conversion tracking off even if the plan no longer supports it
+  const isPlanLocked = !canTrackConversions && !conversionEnabled;
+
   const { isMobile } = useMediaQuery();
 
   if (isMobile) return null;
@@ -80,7 +83,7 @@ export function ConversionTrackingToggle() {
   return (
     <Tooltip
       content={
-        !canTrackConversions ? (
+        isPlanLocked ? (
           <TooltipContent
             title="You can only enable conversion tracking on Business plans and above."
             cta="Upgrade to Business"
@@ -107,18 +110,18 @@ export function ConversionTrackingToggle() {
           "transition-colors duration-100 ease-out",
           conversionEnabled &&
             "bg-bg-inverted text-content-inverted border-bg-inverted",
-          (!canTrackConversions || permissionsError) &&
+          (isPlanLocked || permissionsError) &&
             "cursor-not-allowed opacity-50",
         )}
       >
         <span className="text-sm font-medium">Conversion tracking</span>
         <Switch
           checked={conversionEnabled}
-          disabled={isSubmitting || !canTrackConversions || !!permissionsError}
+          disabled={isSubmitting || isPlanLocked || !!permissionsError}
           fn={handleConversionUpdate}
           trackDimensions="radix-state-checked:bg-neutral-600 focus-visible:ring-black/20"
           thumbIcon={
-            !canTrackConversions ? (
+            isPlanLocked ? (
               <CrownSmall className="size-full text-neutral-500" />
             ) : undefined
           }

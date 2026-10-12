@@ -7,13 +7,13 @@ import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { EdgeLinkProps } from "@/lib/planetscale/types";
 import { prisma } from "@/lib/prisma";
-import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
+import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { DEMO_PROGRAM_ID, nanoid } from "@dub/utils";
-import { CommissionType } from "@prisma/client";
+import { CommissionSource, CommissionType } from "@prisma/client";
 import * as z from "zod/v4";
 
 const leadEventSchemaTBWithTimestamp = leadEventSchemaTB.extend({
@@ -211,8 +211,7 @@ export async function createDemoCommission({
   ]);
 
   await queuePartnerCommissionCreation({
-    event:
-      type === "sale" ? CommissionType.sale : CommissionType.lead,
+    event: type === "sale" ? CommissionType.sale : CommissionType.lead,
     programId: DEMO_PROGRAM_ID,
     partnerId: link.partnerId,
     linkId: targetLink.id,
@@ -220,6 +219,7 @@ export async function createDemoCommission({
     eventId: saleEvent?.event_id ?? leadEvent.event_id,
     quantity: 1,
     createdAt: date,
+    source: CommissionSource.api,
     ...(saleEvent && {
       amount: saleEvent.amount,
       currency: saleEvent.currency,

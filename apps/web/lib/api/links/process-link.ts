@@ -1,4 +1,3 @@
-import { isBlacklistedDomain } from "@/lib/edge-config";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -18,6 +17,7 @@ import {
 } from "@dub/utils";
 import { Project, WorkspaceRole } from "@prisma/client";
 import { combineTagIds } from "../tags/combine-tag-ids";
+import { maliciousLinkCheck } from "./malicious-link-check";
 import {
   businessFeaturesCheck,
   dubLinkSubdomainCheck,
@@ -600,24 +600,4 @@ export async function processLink<T extends Record<string, any>>({
     },
     error: null,
   };
-}
-
-async function maliciousLinkCheck(url: string) {
-  // flag for suspicious URL strings
-  if (["?key=", "&key="].some((param) => url.includes(param))) {
-    return true;
-  }
-
-  const domain = getDomainWithoutWWW(url);
-
-  if (!domain) {
-    return false;
-  }
-
-  const domainBlacklisted = await isBlacklistedDomain(domain);
-  if (domainBlacklisted === true) {
-    return true;
-  }
-
-  return false;
 }

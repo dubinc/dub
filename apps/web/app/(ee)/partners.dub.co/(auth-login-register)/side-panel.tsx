@@ -49,16 +49,9 @@ export function SidePanel({
         <>
           <div className="flex flex-col gap-6 px-4 lg:px-10">
             <p className="text-content-default max-w-[370px] text-pretty text-xl font-medium">
-              Join thousands of others who have earned over $10,000,000 on Dub
+              Join thousands of others who have earned over $25,000,000 on Dub
               partnering with world-class companies.
             </p>
-            <Link
-              target="_blank"
-              href="https://dub.co/blog/10m-payouts"
-              className="text-content-emphasis flex h-8 w-fit items-center rounded-lg bg-black/5 px-3 text-sm font-medium transition-[transform,background-color] duration-75 hover:bg-black/10 active:scale-[0.98]"
-            >
-              Read more
-            </Link>
           </div>
 
           <div className="w-full grow basis-0">

@@ -47,6 +47,19 @@ function ActivityChip({ children, className }: ActivityChipProps) {
   );
 }
 
+export function ActivityValueChip({ children, className }: ActivityChipProps) {
+  return (
+    <ActivityChip
+      className={cn(
+        "max-w-full whitespace-normal text-left font-normal leading-5",
+        className,
+      )}
+    >
+      {children}
+    </ActivityChip>
+  );
+}
+
 export function GroupPill({ name, color }: GroupPillProps) {
   const colorClassName = color
     ? getResourceColorData(color)?.groupVariants

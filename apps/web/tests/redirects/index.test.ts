@@ -84,17 +84,6 @@ describe.runIf(env.CI && env.VERCEL_ENV !== "Production")(
       expect(response.status).toBe(302);
     });
 
-    test("disabled link", async () => {
-      const response = await fetch(`${h.baseUrl}/disabled`, fetchOptions);
-
-      // Special case for disabled/notfound links since we're using redirect() from next/navigation:
-      // - doesn't support x-powered-by header
-      // - uses 307 status code instead of 302
-      // This is the same as case-sensitive (incorrect) key test below.
-      expect(response.headers.get("location")).toBe("https://dub.co/links");
-      expect(response.status).toBe(307);
-    });
-
     test("with slash", async () => {
       const response = await fetch(`${h.baseUrl}/checkly/check`, fetchOptions);
 

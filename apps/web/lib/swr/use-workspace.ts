@@ -48,6 +48,11 @@ export default function useWorkspace({
       workspace.payoutsUsage >= workspace.payoutsLimit
         ? true
         : false,
+    exceededPartners:
+      workspace?.partnersLimit &&
+      workspace.partnersUsage >= workspace.partnersLimit
+        ? true
+        : false,
     exceededAI: workspace && workspace.aiUsage >= workspace.aiLimit,
     exceededDomains:
       workspace?.domains && workspace.domains.length >= workspace.domainsLimit,

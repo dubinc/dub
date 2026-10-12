@@ -7,6 +7,7 @@ import {
 } from "@/lib/bounty/periods";
 import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { Button, StatusBadge, Table, useTable } from "@dub/ui";
+import { BountySubmissionStatus } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
@@ -113,7 +114,16 @@ export function EmbedBountySubmissionsTable({
             } else {
               buttonText = "Continue";
             }
-          } else if (["submitted", "approved", "rejected"].includes(status)) {
+          } else if (
+            (
+              [
+                BountySubmissionStatus.submitted,
+                BountySubmissionStatus.partiallyApproved,
+                BountySubmissionStatus.approved,
+                BountySubmissionStatus.rejected,
+              ] as string[]
+            ).includes(status)
+          ) {
             buttonText = "View";
           }
 

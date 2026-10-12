@@ -84,7 +84,8 @@ export function PartnerBountyCard({
         </div>
       )}
 
-      {showRewards && bounty.submissions.some((s) => s.commission != null) && (
+      {showRewards &&
+        bounty.submissions.some((s) => s.commissions.length > 0) && (
         <div className="@3xl/page:block border-border-subtle hidden border-t p-4">
           <BountyRewardsTable
             bounty={bounty}
@@ -105,9 +106,7 @@ export function BountyRewardsTable({
   programSlug?: string;
   className?: string;
 }) {
-  const rewards = bounty.submissions
-    .filter((s) => s.commission != null)
-    .map((s) => s.commission!);
+  const rewards = bounty.submissions.flatMap((s) => s.commissions);
 
   const { table, ...tableProps } = useTable({
     data: rewards,

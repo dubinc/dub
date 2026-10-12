@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID } from "@dub/utils";
 
 export async function getTopProgramsByCommissions({
   programId,
@@ -23,9 +22,10 @@ export async function getTopProgramsByCommissions({
       status: {
         in: ["pending", "processed", "paid"],
       },
-      programId: programId || {
-        notIn: [ACME_PROGRAM_ID, DEMO_PROGRAM_ID],
+      program: {
+        environment: "production",
       },
+      ...(programId ? { programId } : {}),
     },
     orderBy: {
       _sum: {
@@ -39,11 +39,6 @@ export async function getTopProgramsByCommissions({
     where: {
       id: {
         in: programCommissions.map(({ programId }) => programId),
-      },
-      NOT: {
-        slug: {
-          endsWith: "-staging",
-        },
       },
     },
     include: {

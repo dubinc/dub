@@ -3,7 +3,8 @@
 import { getLinkedInPost } from "@/lib/api/scrape-creators/get-linkedin-post";
 import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
 import { prisma } from "@/lib/prisma";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { redis } from "@/lib/upstash/redis";
 import { PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
@@ -30,16 +31,10 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
       throw new Error("Please provide the LinkedIn post URL.");
     }
 
-    // Rate limit check
-    const { success } = await ratelimit(5, "1 h").limit(
-      `social-verification:${partner.id}:${platform}`,
-    );
-
-    if (!success) {
-      throw new Error(
-        "Too many verification attempts. Please try again later.",
-      );
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.socialAccountVerification,
+      identifier: [partner.id, platform],
+    });
 
     // Get the verification code from Redis
     const cacheKey = `social-verification:${partner.id}:${platform}:${handle}`;

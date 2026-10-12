@@ -6,15 +6,19 @@ import useSWR from "swr";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "../constants/misc";
 import useWorkspace from "./use-workspace";
 
+export type UsageResource = "links" | "events" | "payouts";
+
 export function useUsageTimeseries({
   resource: definedResource,
-}: { resource?: "links" | "events" } = {}) {
+}: { resource?: UsageResource } = {}) {
   const {
     id: workspaceId,
     billingCycleStart,
     billingCycleEndsAt,
     planPeriod,
     totalLinks,
+    defaultProgramId,
+    loading: workspaceLoading,
   } = useWorkspace();
 
   const { start: firstDay, end: lastDay } = getBillingPeriodBounds({
@@ -25,7 +29,15 @@ export function useUsageTimeseries({
 
   const searchParams = useSearchParams();
 
-  const defaultActiveTab = useMemo(() => {
+  const availableResources = useMemo<UsageResource[]>(
+    () =>
+      defaultProgramId || workspaceLoading
+        ? ["links", "events", "payouts"]
+        : ["links", "events"],
+    [defaultProgramId, workspaceLoading],
+  );
+
+  const defaultActiveTab = useMemo((): UsageResource => {
     if (totalLinks && totalLinks > MEGA_WORKSPACE_LINKS_LIMIT) {
       return "links";
     }
@@ -34,11 +46,14 @@ export function useUsageTimeseries({
 
   const activeResource = useMemo(() => {
     const tab = searchParams.get("tab");
-    if (tab && ["links", "events"].includes(tab)) {
-      return tab as "links" | "events";
+    if (tab && availableResources.includes(tab as UsageResource)) {
+      return tab as UsageResource;
     }
     return defaultActiveTab;
-  }, [searchParams, defaultActiveTab]);
+  }, [searchParams, availableResources, defaultActiveTab]);
+
+  const resource = definedResource || activeResource;
+  const isLinkResource = resource !== "payouts";
 
   // Get filter parameters from URL
   const folderId = searchParams.get("folderId");
@@ -77,7 +92,7 @@ export function useUsageTimeseries({
   >(
     workspaceId &&
       `/api/workspaces/${workspaceId}/billing/usage?${new URLSearchParams({
-        resource: definedResource || activeResource,
+        resource,
         ...(start &&
           end && {
             start: startOfDay(new Date(start)).toISOString(),
@@ -85,10 +100,12 @@ export function useUsageTimeseries({
           }),
         ...(interval && { interval }),
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        ...(folderId && { folderId }),
-        ...(domain && { domain }),
-        ...(groupBy && {
-          groupBy: groupBy === "folderId" ? "folder_id" : "domain",
+        ...(isLinkResource && {
+          ...(folderId && { folderId }),
+          ...(domain && { domain }),
+          ...(groupBy && {
+            groupBy: groupBy === "folderId" ? "folder_id" : "domain",
+          }),
         }),
       }).toString()}`,
     fetcher,

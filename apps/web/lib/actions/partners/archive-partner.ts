@@ -5,7 +5,10 @@ import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { prisma } from "@/lib/prisma";
-import { archivePartnerSchema } from "@/lib/zod/schemas/partners";
+import {
+  ACTIVE_ENROLLMENT_STATUSES,
+  archivePartnerSchema,
+} from "@/lib/zod/schemas/partners";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -29,6 +32,12 @@ export const archivePartnerAction = authActionClient
       programId,
       include: {},
     });
+
+    if (!ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
+      throw new Error(
+        `You can only archive or unarchive partners in ${ACTIVE_ENROLLMENT_STATUSES.join(", ")} statuses.`,
+      );
+    }
 
     const { status } = await prisma.programEnrollment.update({
       where: {

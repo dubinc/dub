@@ -57,12 +57,28 @@ async function main() {
     },
   });
 
+  const applicationId = createId({ prefix: "pga_" });
+
+  await prisma.programApplication.create({
+    data: {
+      id: applicationId,
+      programId,
+      partnerId,
+      groupId: program.defaultGroupId,
+      name,
+      email,
+      formData: { fields: [] },
+      status: "pending",
+    },
+  });
+
   await prisma.programEnrollment.create({
     data: {
       id: createId({ prefix: "pge_" }),
       programId,
       partnerId,
       groupId: program.defaultGroupId,
+      applicationId,
       status: "pending",
     },
   });
@@ -73,6 +89,7 @@ async function main() {
     data: {
       programId,
       partnerId,
+      programApplicationId: applicationId,
       referredByPartnerId,
       referralSource: "direct",
       visitedAt: now,

@@ -6,6 +6,7 @@ import {
   PAYOUTS_SHEET_ITEMS_LIMIT,
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
+import { TestPayoutBadge } from "@/lib/sandbox/components/test-payout-badge";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
@@ -83,19 +84,23 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       {
         key: "Program",
         value: (
-          <ConditionalLink
-            href={`/programs/${payout.program.slug}`}
-            target="_blank"
-          >
-            <img
-              src={
-                payout.program.logo || `${OG_AVATAR_URL}${payout.program.name}`
-              }
-              alt={payout.program.name}
-              className="mr-1.5 inline-flex size-4 rounded-sm"
-            />
-            {payout.program.name}
-          </ConditionalLink>
+          <div className="flex items-center gap-2">
+            <ConditionalLink
+              href={`/programs/${payout.program.slug}`}
+              target="_blank"
+            >
+              <img
+                src={
+                  payout.program.logo ||
+                  `${OG_AVATAR_URL}${payout.program.name}`
+                }
+                alt={payout.program.name}
+                className="mr-1.5 inline-flex size-4 rounded-sm"
+              />
+              {payout.program.name}
+            </ConditionalLink>
+            <TestPayoutBadge environment={payout.program.environment} />
+          </div>
         ),
       },
       {

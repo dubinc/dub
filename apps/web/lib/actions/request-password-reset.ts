@@ -5,6 +5,7 @@ import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendEmail } from "@dub/email";
 import ResetPasswordLink from "@dub/email/templates/reset-password-link";
+import { APP_DOMAIN } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { flattenValidationErrors } from "next-safe-action";
 import { PASSWORD_RESET_TOKEN_EXPIRY } from "../auth/constants";
@@ -63,7 +64,7 @@ export const requestPasswordResetAction = actionClient
       to: email,
       react: ResetPasswordLink({
         email,
-        url: `${process.env.NEXTAUTH_URL}/auth/reset-password/${token}`,
+        url: `${APP_DOMAIN}/auth/reset-password/${token}`,
       }),
     });
 

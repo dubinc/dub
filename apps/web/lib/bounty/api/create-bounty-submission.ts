@@ -269,9 +269,15 @@ export class BountySubmissionHandler {
         existingSubmission.status !== "draft" ||
         bountyInfo?.hasSocialMetrics
       ) {
+        // e.g. partiallyApproved -> partially approved
+        const status = existingSubmission.status.replace(
+          /[A-Z]/g,
+          (char) => ` ${char.toLowerCase()}`,
+        );
+
         throw new DubApiError({
           code: "conflict",
-          message: `You already have a ${existingSubmission.status} submission for this period.`,
+          message: `You already have a submission for this period (status: ${status}).`,
         });
       }
     }

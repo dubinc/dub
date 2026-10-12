@@ -69,7 +69,7 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Save changes",
     description:
-      "Are you sure you want to save these link settings changes? This will update all links in this group.",
+      "Are you sure you want to save these link settings? This will update all links in this group and overwrite any custom UTM parameters on partner links.",
     onConfirm: () => handleSubmit(onSubmit)(),
     confirmText: "Save changes",
   });

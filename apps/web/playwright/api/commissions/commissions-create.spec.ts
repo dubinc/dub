@@ -74,6 +74,32 @@ async function seedDiscountCode({
   return { code, linkId: link.id };
 }
 
+async function seedCustomer({
+  workspaceId,
+  stripeCustomerId,
+}: {
+  workspaceId: string;
+  stripeCustomerId?: string;
+}) {
+  const { externalId, name } = randomCustomer();
+
+  return prisma.customer.create({
+    data: {
+      id: createId({ prefix: "cus_" }),
+      name,
+      externalId,
+      stripeCustomerId,
+      projectId: workspaceId,
+    },
+  });
+}
+
+async function deleteCustomers(ids: string[]) {
+  await prisma.customer.deleteMany({
+    where: { id: { in: ids } },
+  });
+}
+
 test.describe("Custom commissions", () => {
   test("creates a custom commission", async ({ api, program }) => {
     const description = `custom-${nanoid()}`;
@@ -297,6 +323,224 @@ test.describe("Lead commissions", () => {
             "custom: lead.metadata: Metadata must be less than 10,000 characters when stringified",
         }),
       );
+    });
+  });
+});
+
+test.describe("Inline customer", () => {
+  test("updates the existing customer with the same externalId", async ({
+    api,
+    program,
+    workspace,
+  }) => {
+    const customer = customerBody();
+    const stripeCustomerId = `cus_pw_${nanoid()}`;
+
+    await withCommissionPartner(api, program, async (partnerId) => {
+      expect(
+        await api.post("/api/commissions", {
+          type: "lead",
+          partnerId,
+          customer,
+        }),
+      ).toEqual(expectedQueuedResponse);
+
+      expect(
+        await api.post("/api/commissions", {
+          type: "lead",
+          partnerId,
+          customer: {
+            ...customer,
+            name: "Updated name",
+            stripeCustomerId,
+          },
+        }),
+      ).toEqual(expectedQueuedResponse);
+
+      expect(
+        await prisma.customer.findMany({
+          where: {
+            projectId: workspace.id,
+            externalId: customer.externalId,
+          },
+          select: {
+            name: true,
+            stripeCustomerId: true,
+          },
+        }),
+      ).toEqual([{ name: "Updated name", stripeCustomerId }]);
+    });
+  });
+
+  test("creates one customer for concurrent requests with the same externalId", async ({
+    api,
+    program,
+    workspace,
+  }) => {
+    const customer = customerBody();
+
+    await withCommissionPartner(api, program, async (partnerId) => {
+      const responses = await Promise.all(
+        Array.from({ length: 5 }, () =>
+          api.post("/api/commissions", {
+            type: "lead",
+            partnerId,
+            customer,
+          }),
+        ),
+      );
+
+      expect(responses).toEqual(
+        Array.from({ length: 5 }, () => expectedQueuedResponse),
+      );
+
+      expect(
+        await prisma.customer.count({
+          where: {
+            projectId: workspace.id,
+            externalId: customer.externalId,
+          },
+        }),
+      ).toEqual(1);
+    });
+  });
+
+  test.describe("conflicts", () => {
+    test("rejects a stripeCustomerId owned by another customer", async ({
+      api,
+      program,
+      workspace,
+    }) => {
+      const customer = customerBody();
+      const stripeCustomerId = `cus_pw_${nanoid()}`;
+      const owner = await seedCustomer({
+        workspaceId: workspace.id,
+        stripeCustomerId,
+      });
+
+      try {
+        await withCommissionPartner(api, program, async (partnerId) => {
+          expect(
+            await api.post("/api/commissions", {
+              type: "lead",
+              partnerId,
+              customer: { ...customer, stripeCustomerId },
+            }),
+          ).toEqual(
+            apiError({
+              code: "conflict",
+              message: `The Stripe customer ID ${stripeCustomerId} is already linked to a customer with a different external ID.`,
+            }),
+          );
+
+          expect(
+            await prisma.customer.count({
+              where: {
+                projectId: workspace.id,
+                externalId: customer.externalId,
+              },
+            }),
+          ).toEqual(0);
+        });
+      } finally {
+        await deleteCustomers([owner.id]);
+      }
+    });
+
+    test("rejects updating a customer to a stripeCustomerId owned by another customer", async ({
+      api,
+      program,
+      workspace,
+    }) => {
+      const stripeCustomerId = `cus_pw_${nanoid()}`;
+      const owner = await seedCustomer({
+        workspaceId: workspace.id,
+        stripeCustomerId,
+      });
+      const existing = await seedCustomer({
+        workspaceId: workspace.id,
+      });
+
+      try {
+        await withCommissionPartner(api, program, async (partnerId) => {
+          expect(
+            await api.post("/api/commissions", {
+              type: "lead",
+              partnerId,
+              customer: {
+                ...customerBody(),
+                externalId: existing.externalId,
+                stripeCustomerId,
+              },
+            }),
+          ).toEqual(
+            apiError({
+              code: "conflict",
+              message: `The Stripe customer ID ${stripeCustomerId} is already linked to a different customer than external ID ${existing.externalId}.`,
+            }),
+          );
+
+          expect(
+            await prisma.customer.findMany({
+              where: {
+                id: { in: [owner.id, existing.id] },
+              },
+              select: {
+                id: true,
+                stripeCustomerId: true,
+              },
+              orderBy: {
+                stripeCustomerId: "desc",
+              },
+            }),
+          ).toEqual([
+            { id: owner.id, stripeCustomerId },
+            { id: existing.id, stripeCustomerId: null },
+          ]);
+        });
+      } finally {
+        await deleteCustomers([owner.id, existing.id]);
+      }
+    });
+
+    test("allows only one concurrent create for the same stripeCustomerId", async ({
+      api,
+      program,
+      workspace,
+    }) => {
+      const stripeCustomerId = `cus_pw_${nanoid()}`;
+      const conflict = apiError({
+        code: "conflict",
+        message: `The Stripe customer ID ${stripeCustomerId} is already linked to a customer with a different external ID.`,
+      });
+
+      await withCommissionPartner(api, program, async (partnerId) => {
+        const responses = await Promise.all(
+          Array.from({ length: 5 }, () =>
+            api.post("/api/commissions", {
+              type: "lead",
+              partnerId,
+              customer: { ...customerBody(), stripeCustomerId },
+            }),
+          ),
+        );
+
+        expect(
+          responses.filter((r) => r.status === expectedQueuedResponse.status),
+        ).toEqual([expectedQueuedResponse]);
+        expect(responses.filter((r) => r.status === conflict.status)).toEqual(
+          Array.from({ length: 4 }, () => conflict),
+        );
+
+        expect(
+          await prisma.customer.count({
+            where: {
+              projectId: workspace.id,
+              stripeCustomerId,
+            },
+          }),
+        ).toEqual(1);
+      });
     });
   });
 });
@@ -731,23 +975,35 @@ test.describe("Sale commissions", () => {
     });
   });
 
-  test("imports Stripe invoices", async ({ api, program, workspace }) => {
-    await withCommissionPartner(api, program, async (partnerId) => {
-      expect(
-        await api.post("/api/commissions", {
-          type: "sale",
-          partnerId,
-          importStripeInvoices: true,
-          customer: customerBody(),
-        }),
-      ).toEqual(
-        apiError({
-          code: "bad_request",
-          message: `Your workspace isn't connected to Stripe yet. Please install the Stripe integration to continue: https://app.dub.co/${workspace.slug}/settings/integrations/stripe`,
-        }),
-      );
+  const importStripeInvoicesCases = [
+    { name: "all", body: { stripeInvoicesToImport: "all" } },
+    { name: "invoice IDs", body: { stripeInvoicesToImport: ["in_test"] } },
+    { name: "deprecated flag", body: { importStripeInvoices: true } },
+  ];
+
+  for (const { name, body } of importStripeInvoicesCases) {
+    test(`imports Stripe invoices (${name})`, async ({
+      api,
+      program,
+      workspace,
+    }) => {
+      await withCommissionPartner(api, program, async (partnerId) => {
+        expect(
+          await api.post("/api/commissions", {
+            type: "sale",
+            partnerId,
+            ...body,
+            customer: customerBody(),
+          }),
+        ).toEqual(
+          apiError({
+            code: "bad_request",
+            message: `Your workspace isn't connected to Stripe yet. Please install the Stripe integration to continue: https://app.dub.co/${workspace.slug}/settings/integrations/stripe`,
+          }),
+        );
+      });
     });
-  });
+  }
 
   test.describe("validates", () => {
     const errorCases = [
@@ -762,7 +1018,7 @@ test.describe("Sale commissions", () => {
         expected: apiError({
           code: "unprocessable_entity",
           message:
-            "custom: saleAmount: `sale.amount` or `saleAmount` is required when `importStripeInvoices` is false.",
+            "custom: saleAmount: `sale.amount` or `saleAmount` is required when not importing Stripe invoices.",
         }),
       },
       {
@@ -812,7 +1068,7 @@ test.describe("Sale commissions", () => {
           type: "sale",
           partnerId: "pn_test",
           customerId: "cus_test",
-          importStripeInvoices: true,
+          stripeInvoicesToImport: "all",
           date: "2024-03-01T08:30:00.000Z",
           sale: {
             amount: 5000,
@@ -823,7 +1079,22 @@ test.describe("Sale commissions", () => {
         expected: apiError({
           code: "unprocessable_entity",
           message:
-            "custom: sale: `sale`, `date`, `invoiceId`, `productId` cannot be provided when `importStripeInvoices` is enabled.",
+            "custom: sale: `sale`, `date`, `invoiceId`, `productId` cannot be provided when importing Stripe invoices.",
+        }),
+      },
+      {
+        name: "rejects stripeInvoicesToImport with importStripeInvoices",
+        body: {
+          type: "sale",
+          partnerId: "pn_test",
+          customerId: "cus_test",
+          stripeInvoicesToImport: ["in_test"],
+          importStripeInvoices: true,
+        },
+        expected: apiError({
+          code: "unprocessable_entity",
+          message:
+            "custom: importStripeInvoices: `stripeInvoicesToImport` and `importStripeInvoices` cannot be provided together. Use `stripeInvoicesToImport` instead.",
         }),
       },
       {
@@ -839,7 +1110,7 @@ test.describe("Sale commissions", () => {
         expected: apiError({
           code: "unprocessable_entity",
           message:
-            "custom: invoiceId: `invoiceId`, `productId` cannot be provided when `importStripeInvoices` is enabled.",
+            "custom: invoiceId: `invoiceId`, `productId` cannot be provided when importing Stripe invoices.",
         }),
       },
       {

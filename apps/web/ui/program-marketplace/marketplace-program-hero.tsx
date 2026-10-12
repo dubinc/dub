@@ -62,7 +62,7 @@ export function MarketplaceProgramHero({
           src={program.logo || `${OG_AVATAR_URL}${program.name}`}
           alt={program.name}
           className={cn(
-            "size-16 rounded-full border border-black/5",
+            "size-16 shrink-0 rounded-full border border-black/5 object-cover",
             hasBanner && "-mt-8 border-4 border-neutral-100",
           )}
         />

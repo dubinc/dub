@@ -3,7 +3,9 @@
 import { generateOTP } from "@/lib/auth/utils";
 import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
-import { ratelimit, redis } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { sendBatchEmail } from "@dub/email";
 import VerifyEmailForAccountMerge from "@dub/email/templates/verify-email-for-account-merge";
@@ -13,7 +15,6 @@ import { authPartnerActionClient } from "../safe-action";
 const CACHE_KEY_PREFIX = "merge-partner-accounts";
 const CACHE_EXPIRY_IN = 10 * 60; // 10 minutes
 const EMAIL_OTP_EXPIRY_IN = 5 * 60; // 5 minutes
-const MAX_ATTEMPTS = 3; // 3 attempts per 24 hours
 
 const schema = z.discriminatedUnion("step", [
   z.object({
@@ -71,15 +72,10 @@ const sendTokens = async ({
   targetEmail: string;
   userId: string;
 }) => {
-  const { success } = await ratelimit(MAX_ATTEMPTS, "24 h").limit(
-    `${CACHE_KEY_PREFIX}:step-1:${userId}`,
-  );
-
-  if (!success) {
-    throw new Error(
-      "You've reached the maximum number of attempts for the past 24 hours. Please wait and try again later.",
-    );
-  }
+  await assertRateLimit({
+    policy: RATELIMIT_POLICIES.mergePartnerAccounts,
+    identifier: ["step-1", userId],
+  });
 
   const anotherRequestExists = await redis.exists(
     `${CACHE_KEY_PREFIX}:${userId}`,
@@ -212,15 +208,10 @@ const verifyTokens = async ({
   targetCode: string;
   userId: string;
 }) => {
-  const { success } = await ratelimit(MAX_ATTEMPTS, "24 h").limit(
-    `${CACHE_KEY_PREFIX}:step-2:${userId}`,
-  );
-
-  if (!success) {
-    throw new Error(
-      "You've reached the maximum number of attempts for the past 24 hours. Please wait and try again later.",
-    );
-  }
+  await assertRateLimit({
+    policy: RATELIMIT_POLICIES.mergePartnerAccounts,
+    identifier: ["step-2", userId],
+  });
 
   const [sourceToken, targetToken] = await Promise.all([
     prisma.emailVerificationToken.findUnique({
@@ -313,15 +304,10 @@ const verifyTokens = async ({
 
 // Step 3: Merge partner accounts
 const mergeAccounts = async ({ userId }: { userId: string }) => {
-  const { success } = await ratelimit(MAX_ATTEMPTS, "24 h").limit(
-    `${CACHE_KEY_PREFIX}:step-3:${userId}`,
-  );
-
-  if (!success) {
-    throw new Error(
-      "You've reached the maximum number of attempts for the past 24 hours. Please wait and try again later.",
-    );
-  }
+  await assertRateLimit({
+    policy: RATELIMIT_POLICIES.mergePartnerAccounts,
+    identifier: ["step-3", userId],
+  });
 
   const accounts = await redis.get<{
     sourceEmail: string;

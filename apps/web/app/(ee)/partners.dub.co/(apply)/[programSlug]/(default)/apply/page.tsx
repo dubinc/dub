@@ -1,4 +1,6 @@
 import { getProgram } from "@/lib/fetchers/get-program";
+import { ProgramEnvironmentBanner } from "@/lib/sandbox/components/workspace-environment";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programApplicationFormSchema } from "@/lib/zod/schemas/program-application-form";
 import { ApplicationAnalytics } from "@/ui/application-analytics";
@@ -30,11 +32,11 @@ export default async function ApplicationPage(props: {
     !program.group.applicationFormPublishedAt
   ) {
     // for the default group:
-    // - if the program is found, redirect to the marketplace program page
+    // - if the program is featured on the marketplace (and not deactivated), redirect to the marketplace program page
     // - otherwise, throw 404
     // for other groups: redirect to the default group variant
     if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
-      if (program) {
+      if (program && program.addedToMarketplaceAt && !program.deactivatedAt) {
         redirect(`/marketplace/${programSlug}`);
       }
       notFound();
@@ -47,6 +49,8 @@ export default async function ApplicationPage(props: {
     program.group.applicationFormData || {},
   );
 
+  const isNonProduction = !isProductionEnvironment(program.environment);
+
   return (
     <div
       className="relative"
@@ -57,7 +61,12 @@ export default async function ApplicationPage(props: {
         } as CSSProperties
       }
     >
-      <ApplyHeader group={program.group} showApply={false} />
+      <ProgramEnvironmentBanner environment={program.environment} />
+      <ApplyHeader
+        group={program.group}
+        showApply={false}
+        hasBanner={isNonProduction}
+      />
       <ApplicationAnalytics />
       <div className="p-6">
         {/* Hero section */}

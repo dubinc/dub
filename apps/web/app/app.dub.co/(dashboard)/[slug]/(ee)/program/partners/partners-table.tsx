@@ -930,7 +930,7 @@ function RowMenuButton({
                   <Command.Separator className="border-t border-neutral-200" />
 
                   <Command.Group className="grid gap-px p-1.5">
-                    {!["banned", "deactivated"].includes(
+                    {ACTIVE_ENROLLMENT_STATUSES.includes(
                       row.original.status,
                     ) && (
                       <MenuItem

@@ -18,7 +18,10 @@ import {
   partnerMergedWebhookSchema,
 } from "@/lib/zod/schemas/partners";
 import { payoutWebhookEventSchema } from "@/lib/zod/schemas/payouts";
-import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
+import {
+  partnerApplicationWebhookSchema,
+  programApplicationWebhookSchema,
+} from "@/lib/zod/schemas/program-application";
 import { describe, expect, test } from "vitest";
 import * as z from "zod/v4";
 
@@ -83,12 +86,35 @@ const payoutWebhookEventSchemaExtended = payoutWebhookEventSchema.extend({
     .nullable()
     .transform((str) => (str ? new Date(str) : null)),
   createdAt: z.string().transform((str) => new Date(str)),
+  updatedAt: z.string().transform((str) => new Date(str)),
   initiatedAt: z.string().transform((str) => new Date(str)),
   paidAt: z
     .string()
     .nullable()
     .transform((str) => (str ? new Date(str) : null)),
 });
+
+const programApplicationWebhookSchemaExtended =
+  programApplicationWebhookSchema.extend({
+    partner: programApplicationWebhookSchema.shape.partner.extend({
+      payoutsEnabledAt: z
+        .string()
+        .transform((str) => (str ? new Date(str) : null))
+        .nullable(),
+      platforms: z
+        .array(
+          z.object({
+            type: z.string(),
+            identifier: z.string(),
+            verifiedAt: z
+              .string()
+              .transform((str) => (str ? new Date(str) : null))
+              .nullable(),
+          }),
+        )
+        .nullish(),
+    }),
+  });
 
 const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "link.created": linkEventSchema,
@@ -98,6 +124,7 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "lead.created": leadWebhookEventSchemaExtended,
   "sale.created": saleWebhookEventSchemaExtended,
   "partner.application_submitted": partnerApplicationWebhookSchema,
+  "program_application.created": programApplicationWebhookSchemaExtended,
   "partner.enrolled": enrolledPartnerSchemaExtended,
   "partner.merged": partnerMergedWebhookSchema,
   "commission.created": commissionWebhookEventSchemaExtended,

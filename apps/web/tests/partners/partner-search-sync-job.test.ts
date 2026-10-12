@@ -7,14 +7,14 @@ const BATCH_SIZE = 3;
 const mocks = vi.hoisted(() => ({
   getPartnerSearchProvider: vi.fn(),
   syncPartnerSearchDocuments: vi.fn(),
-  findPartnerSearchSyncEnrollmentIds: vi.fn(),
+  syncPartnerEnrollments: vi.fn(),
 }));
 
 vi.mock("@/lib/api/partners/search", () => ({
   PARTNER_SEARCH_SYNC_BATCH_SIZE: 3,
   getPartnerSearchProvider: mocks.getPartnerSearchProvider,
   syncPartnerSearchDocuments: mocks.syncPartnerSearchDocuments,
-  findPartnerSearchSyncEnrollmentIds: mocks.findPartnerSearchSyncEnrollmentIds,
+  syncPartnerEnrollments: mocks.syncPartnerEnrollments,
 }));
 
 const searchProvider = { name: "turbopuffer" };
@@ -26,7 +26,9 @@ describe("partnerSearchSyncJob", () => {
     mocks.syncPartnerSearchDocuments
       .mockReset()
       .mockResolvedValue({ upserted: 0, deleted: 0 });
-    mocks.findPartnerSearchSyncEnrollmentIds.mockReset().mockResolvedValue([]);
+    mocks.syncPartnerEnrollments
+      .mockReset()
+      .mockResolvedValue({ upserted: 0, lastEnrollmentId: null });
   });
 
   it("skips entirely when no provider is configured", async () => {
@@ -38,7 +40,7 @@ describe("partnerSearchSyncJob", () => {
     });
 
     expect(mocks.syncPartnerSearchDocuments).not.toHaveBeenCalled();
-    expect(mocks.findPartnerSearchSyncEnrollmentIds).not.toHaveBeenCalled();
+    expect(mocks.syncPartnerEnrollments).not.toHaveBeenCalled();
   });
 
   it("syncs the enrollment ids it is given", async () => {
@@ -51,30 +53,28 @@ describe("partnerSearchSyncJob", () => {
       enrollmentIds: ["pge_1", "pge_2"],
       searchProvider,
     });
-    expect(mocks.findPartnerSearchSyncEnrollmentIds).not.toHaveBeenCalled();
+    expect(mocks.syncPartnerEnrollments).not.toHaveBeenCalled();
   });
 
-  it("resolves a partner fan-out before syncing", async () => {
-    mocks.findPartnerSearchSyncEnrollmentIds.mockResolvedValue([
-      "pge_1",
-      "pge_2",
-    ]);
+  it("syncs a partner fan-out in one read", async () => {
+    mocks.syncPartnerEnrollments.mockResolvedValue({
+      upserted: 2,
+      lastEnrollmentId: "pge_2",
+    });
 
     await partnerSearchSyncJob.execute({
       type: "partners",
       partnerIds: ["pn_1"],
     });
 
-    expect(mocks.findPartnerSearchSyncEnrollmentIds).toHaveBeenCalledWith({
+    expect(mocks.syncPartnerEnrollments).toHaveBeenCalledWith({
       partnerIds: ["pn_1"],
       programId: undefined,
       after: undefined,
       take: BATCH_SIZE,
-    });
-    expect(mocks.syncPartnerSearchDocuments).toHaveBeenCalledWith({
-      enrollmentIds: ["pge_1", "pge_2"],
       searchProvider,
     });
+    expect(mocks.syncPartnerSearchDocuments).not.toHaveBeenCalled();
   });
 
   it("continues from the last enrollment when a page comes back full", async () => {
@@ -82,11 +82,10 @@ describe("partnerSearchSyncJob", () => {
       .spyOn(partnerSearchSyncJob, "dispatch")
       .mockResolvedValue({ status: "published", messageId: "msg_1" });
 
-    mocks.findPartnerSearchSyncEnrollmentIds.mockResolvedValue([
-      "pge_1",
-      "pge_2",
-      "pge_3",
-    ]);
+    mocks.syncPartnerEnrollments.mockResolvedValue({
+      upserted: BATCH_SIZE,
+      lastEnrollmentId: "pge_3",
+    });
 
     await partnerSearchSyncJob.execute({
       type: "partners",
@@ -110,10 +109,10 @@ describe("partnerSearchSyncJob", () => {
       .spyOn(partnerSearchSyncJob, "dispatch")
       .mockResolvedValue({ status: "published", messageId: "msg_1" });
 
-    mocks.findPartnerSearchSyncEnrollmentIds.mockResolvedValue([
-      "pge_1",
-      "pge_2",
-    ]);
+    mocks.syncPartnerEnrollments.mockResolvedValue({
+      upserted: 2,
+      lastEnrollmentId: "pge_2",
+    });
 
     await partnerSearchSyncJob.execute({
       type: "partners",
@@ -128,14 +127,16 @@ describe("partnerSearchSyncJob", () => {
       .spyOn(partnerSearchSyncJob, "dispatch")
       .mockResolvedValue({ status: "published", messageId: "msg_1" });
 
-    mocks.findPartnerSearchSyncEnrollmentIds.mockResolvedValue([]);
+    mocks.syncPartnerEnrollments.mockResolvedValue({
+      upserted: 0,
+      lastEnrollmentId: null,
+    });
 
     await partnerSearchSyncJob.execute({
       type: "partners",
       partnerIds: ["pn_1"],
     });
 
-    expect(mocks.syncPartnerSearchDocuments).not.toHaveBeenCalled();
     expect(dispatch).not.toHaveBeenCalled();
   });
 

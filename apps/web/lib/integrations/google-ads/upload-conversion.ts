@@ -6,6 +6,7 @@ import {
   getSearchParams,
   GOOGLE_ADS_INTEGRATION_ID,
   isZeroDecimalCurrency,
+  sleep,
 } from "@dub/utils";
 import * as z from "zod/v4";
 import { GoogleAdsApi, GoogleAdsClickId } from "./api";
@@ -213,9 +214,7 @@ export const uploadGoogleAdsConversion = async (
         };
       } catch (error) {
         if (attempt < maxRetries) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, 1000 * Math.pow(2, attempt)),
-          );
+          await sleep(1000 * Math.pow(2, attempt));
           continue;
         }
 

@@ -1,4 +1,6 @@
 import { getProgram } from "@/lib/fetchers/get-program";
+import { ProgramEnvironmentBanner } from "@/lib/sandbox/components/workspace-environment";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { ApplicationAnalytics } from "@/ui/application-analytics";
@@ -29,11 +31,11 @@ export default async function ApplyPage(props: {
     !program.group.landerPublishedAt
   ) {
     // for the default group:
-    // - if the program is found, redirect to the marketplace program page
+    // - if the program is featured on the marketplace (and not deactivated), redirect to the marketplace program page
     // - otherwise, throw 404
     // for other groups: redirect to the default group variant
     if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
-      if (program) {
+      if (program && program.addedToMarketplaceAt && !program.deactivatedAt) {
         redirect(`/marketplace/${programSlug}`);
       }
       notFound();
@@ -43,6 +45,7 @@ export default async function ApplyPage(props: {
   }
 
   const landerData = programLanderSchema.parse(program.group.landerData || {});
+  const isNonProduction = !isProductionEnvironment(program.environment);
 
   return (
     <div
@@ -54,7 +57,8 @@ export default async function ApplyPage(props: {
         } as CSSProperties
       }
     >
-      <ApplyHeader group={program.group} />
+      <ProgramEnvironmentBanner environment={program.environment} />
+      <ApplyHeader group={program.group} hasBanner={isNonProduction} />
       <ApplicationAnalytics />
       <div className="p-6">
         <LanderHero program={program} landerData={landerData} />

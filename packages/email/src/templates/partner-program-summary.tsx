@@ -2,7 +2,6 @@ import {
   currencyFormatter,
   DUB_LOGO,
   DUB_WORDMARK,
-  formatDate,
   nFormatter,
 } from "@dub/utils";
 import {
@@ -11,7 +10,6 @@ import {
   Container,
   Head,
   Heading,
-  Hr,
   Html,
   Img,
   Link,
@@ -23,14 +21,17 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
+const PARTNERS_URL = "https://partners.dub.co";
+
+// The top programs get a card with full stats, the rest are listed in a compact table
+const MAX_PROGRAM_CARDS = 3;
+
 const ICONS = {
+  earnings: "https://assets.dub.co/misc/icons/nucleo/money-bills.png",
   clicks: "https://assets.dub.co/misc/icons/nucleo/cursor-rays.png",
   leads: "https://assets.dub.co/misc/icons/nucleo/user-plus.png",
   sales: "https://assets.dub.co/misc/icons/nucleo/invoice-dollar.png",
-  earnings: "https://assets.dub.co/misc/icons/nucleo/money-bills.png",
 } as const;
-
-type Icon = keyof typeof ICONS;
 
 const percentStateMap = {
   positive: {
@@ -42,9 +43,31 @@ const percentStateMap = {
     sign: "-",
   },
   neutral: {
-    color: "bg-neutral-50 text-neutral-700",
+    color: "bg-neutral-100 text-neutral-700",
     sign: "",
   },
+};
+
+type MonthMetrics = {
+  earnings: number;
+  clicks: number;
+  leads: number;
+  sales: number;
+};
+
+type ProgramSummary = {
+  id: string;
+  name: string;
+  logo: string | null;
+  slug: string;
+  previousMonth: MonthMetrics;
+  currentMonth: MonthMetrics;
+};
+
+type ReportingPeriod = {
+  month: string;
+  start: string;
+  end: string;
 };
 
 function getPercentChange(current: number, previous: number) {
@@ -55,11 +78,7 @@ function getPercentChange(current: number, previous: number) {
   return Math.round(((current - previous) / Math.abs(previous)) * 100);
 }
 
-function getPercentState(percent?: number) {
-  if (typeof percent !== "number") {
-    return percentStateMap.neutral;
-  }
-
+function getPercentState(percent: number) {
   if (percent > 0) {
     return percentStateMap.positive;
   }
@@ -71,192 +90,122 @@ function getPercentState(percent?: number) {
   return percentStateMap.neutral;
 }
 
-export default function PartnerProgramSummary({
-  program = {
-    name: "Acme",
-    logo: DUB_LOGO,
-    slug: "acme",
-  },
-  partner = {
-    email: "panic@thedis.co",
-    createdAt: new Date(),
-  },
-  previousMonth = {
-    earnings: 12500,
-    clicks: 200,
-    leads: 50,
-    sales: 25,
-  },
-  currentMonth = {
-    earnings: 12850,
-    clicks: 210,
-    leads: 45,
-    sales: 25,
-  },
-  lifetime = {
-    earnings: 11241050,
-    clicks: 398585,
-    leads: 23409,
-    sales: 1492,
-  },
-  reportingPeriod = {
-    month: "May 2025",
-    start: "2025-05-01T00:00:00.000Z",
-    end: "2025-05-31T23:59:59.999Z",
-  },
-}: {
-  program: {
-    name: string;
-    logo: string | null;
-    slug: string;
-  };
-  partner: {
-    email: string | null;
-    createdAt: Date;
-  };
+function getProgramLogo(program: Pick<ProgramSummary, "logo">) {
+  return program.logo || DUB_LOGO;
+}
+
+function getProgramUrl(
+  program: Pick<ProgramSummary, "slug">,
+  reportingPeriod: ReportingPeriod,
+) {
+  return `${PARTNERS_URL}/programs/${program.slug}?start=${reportingPeriod.start}&end=${reportingPeriod.end}`;
+}
+
+const SAMPLE_METRICS = {
   previousMonth: {
-    earnings: number;
-    clicks: number;
-    leads: number;
-    sales: number;
-  };
+    earnings: 100000,
+    clicks: 364,
+    leads: 182,
+    sales: 102,
+  },
   currentMonth: {
-    earnings: number;
-    clicks: number;
-    leads: number;
-    sales: number;
-  };
-  lifetime: {
-    earnings: number;
-    clicks: number;
-    leads: number;
-    sales: number;
-  };
-  reportingPeriod: {
-    month: string;
-    start: string;
-    end: string;
-  };
+    earnings: 100000,
+    clicks: 400,
+    leads: 200,
+    sales: 100,
+  },
+};
+
+const SAMPLE_PROGRAMS: ProgramSummary[] = [
+  "Framer",
+  "Acme",
+  "Guideless",
+  "Granola",
+  "Fillout",
+  "Firecrawl",
+  "Wispr Flow",
+  "Superhuman",
+  "Dub",
+  "Tella",
+].map((name, index) => ({
+  id: `prog_${index + 1}`,
+  name,
+  logo: null,
+  slug: name.toLowerCase().replace(/\s+/g, "-"),
+  previousMonth: SAMPLE_METRICS.previousMonth,
+  currentMonth: {
+    ...SAMPLE_METRICS.currentMonth,
+    earnings: Math.max(0, 100000 - index * 20000),
+  },
+}));
+
+export default function PartnerProgramSummary({
+  email = "panic@thedis.co",
+  reportingPeriod = {
+    month: "August 2026",
+    start: "2026-08-01T00:00:00.000Z",
+    end: "2026-08-31T23:59:59.999Z",
+  },
+  programs = SAMPLE_PROGRAMS,
+}: {
+  email: string;
+  reportingPeriod: ReportingPeriod;
+  programs: ProgramSummary[];
 }) {
-  const monthlyStats = [
-    {
-      title: "Earnings",
-      value: currencyFormatter(currentMonth.earnings),
-      percent: getPercentChange(currentMonth.earnings, previousMonth.earnings),
-    },
-    {
-      title: "Clicks",
-      value: nFormatter(currentMonth.clicks),
-      percent: getPercentChange(currentMonth.clicks, previousMonth.clicks),
-    },
-    {
-      title: "Leads",
-      value: nFormatter(currentMonth.leads),
-      percent: getPercentChange(currentMonth.leads, previousMonth.leads),
-    },
-    {
-      title: "Sales",
-      value: nFormatter(currentMonth.sales),
-      percent: getPercentChange(currentMonth.sales, previousMonth.sales),
-    },
-  ];
-
-  const lifetimeStats = [
-    {
-      title: "Earnings",
-      value: currencyFormatter(lifetime.earnings),
-    },
-    {
-      title: "Clicks",
-      value: nFormatter(lifetime.clicks),
-    },
-    {
-      title: "Leads",
-      value: nFormatter(lifetime.leads),
-    },
-    {
-      title: "Sales",
-      value: nFormatter(lifetime.sales),
-    },
-  ];
-
-  const previewText = monthlyStats
-    .map(
-      ({ title, value, percent }) =>
-        `${title.toUpperCase()} ${value} (${getPercentState(percent).sign}${Math.abs(percent)}%)`,
-    )
-    .join(" | ");
+  const programCards = programs.slice(0, MAX_PROGRAM_CARDS);
+  const programRows = programs.slice(MAX_PROGRAM_CARDS);
 
   return (
     <Html>
       <Head />
-      <Preview>{previewText}</Preview>
+      <Preview>
+        See how you performed across your top Dub programs in{" "}
+        {reportingPeriod.month}, compared with the previous month.
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[600px] space-y-10 px-3 py-5">
+          <Container className="mx-auto my-10 max-w-[600px] px-10 py-5">
             <Section className="mt-8">
-              <Img src={DUB_WORDMARK} height="32" alt={program.name} />
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
 
-            <Heading className="mx-0 mt-[40px] p-0 text-lg font-medium text-black">
-              {program.name} partner program monthly summary (
-              {reportingPeriod.month})
+            <Heading className="mx-0 mb-1 mt-10 p-0 text-lg font-semibold leading-7 text-neutral-800">
+              {reportingPeriod.month} program summary
             </Heading>
 
-            <Section className="mt-6 rounded-xl border border-solid border-neutral-200 bg-neutral-50">
-              <Section className="rounded-t-xl px-6 py-5">
-                <div className="flex items-center">
-                  <Img
-                    src={program.logo || DUB_WORDMARK}
-                    alt={program.name}
-                    height="32"
-                    width="32"
-                    className="mr-4 rounded-md"
-                  />
+            <Text className="m-0 text-sm leading-5 text-neutral-600">
+              See how you performed across your top Dub programs, compared with
+              the previous month.
+            </Text>
 
-                  <div>
-                    <div className="text-base font-semibold leading-tight text-neutral-800">
-                      {program.name}
-                    </div>
-                    <div className="text-xs font-medium text-neutral-500">
-                      Partner since{" "}
-                      {formatDate(partner.createdAt, { month: "short" })}
-                    </div>
-                  </div>
-                </div>
-              </Section>
+            {programCards.map((program) => (
+              <ProgramCard
+                key={program.id}
+                program={program}
+                reportingPeriod={reportingPeriod}
+              />
+            ))}
 
-              <Section className="space-y-6 rounded-xl border-t border-solid border-neutral-200 bg-white p-6">
-                <Section>
-                  <Heading className="mb-4 mt-0 text-base font-semibold leading-6 text-neutral-800">
-                    Stats for {reportingPeriod.month} (vs previous month)
-                  </Heading>
+            {programRows.length > 0 && (
+              <ProgramTable
+                programs={programRows}
+                reportingPeriod={reportingPeriod}
+              />
+            )}
 
-                  <StatsGrid stats={monthlyStats} />
-                </Section>
-
-                <Hr className="mx-0 my-8 w-full border border-neutral-200" />
-
-                <Section>
-                  <Heading className="mb-4 mt-0 text-base font-semibold leading-6 text-neutral-800">
-                    All-time Performance
-                  </Heading>
-
-                  <StatsGrid stats={lifetimeStats} />
-                </Section>
-
-                <Section className="mt-8 text-center">
-                  <Link
-                    href={`https://partners.dub.co/programs/${program.slug}?start=${reportingPeriod.start}&end=${reportingPeriod.end}`}
-                    className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm font-semibold leading-none text-white no-underline"
-                  >
-                    View dashboard
-                  </Link>
-                </Section>
-              </Section>
+            <Section className="mt-5">
+              <Link
+                href={`${PARTNERS_URL}/programs`}
+                className="box-border inline-block rounded-lg bg-neutral-900 px-3.5 py-2 text-sm font-medium leading-5 text-white no-underline"
+              >
+                View all programs
+              </Link>
             </Section>
 
-            <Footer email={partner.email!} />
+            <Footer
+              email={email}
+              notificationSettingsUrl={`${PARTNERS_URL}/profile/notifications`}
+            />
           </Container>
         </Body>
       </Tailwind>
@@ -264,73 +213,227 @@ export default function PartnerProgramSummary({
   );
 }
 
-const StatsGrid = ({
-  stats,
+const ProgramCard = ({
+  program,
+  reportingPeriod,
 }: {
-  stats: {
-    title: string;
-    value: number | string;
-    percent?: number;
-  }[];
+  program: ProgramSummary;
+  reportingPeriod: ReportingPeriod;
 }) => {
+  const { previousMonth, currentMonth } = program;
+
+  const stats = [
+    {
+      title: "Earnings",
+      icon: ICONS.earnings,
+      value: currencyFormatter(currentMonth.earnings),
+      percent: getPercentChange(currentMonth.earnings, previousMonth.earnings),
+    },
+    {
+      title: "Clicks",
+      icon: ICONS.clicks,
+      value: nFormatter(currentMonth.clicks),
+      percent: getPercentChange(currentMonth.clicks, previousMonth.clicks),
+    },
+    {
+      title: "Leads",
+      icon: ICONS.leads,
+      value: nFormatter(currentMonth.leads),
+      percent: getPercentChange(currentMonth.leads, previousMonth.leads),
+    },
+    {
+      title: "Sales",
+      icon: ICONS.sales,
+      value: nFormatter(currentMonth.sales),
+      percent: getPercentChange(currentMonth.sales, previousMonth.sales),
+    },
+  ];
+
   return (
-    <>
-      {[0, 2].map((startIndex) => (
-        <Row
-          key={startIndex}
-          style={{
-            width: "100%",
-            ...(startIndex === 2 && { marginTop: "32px" }),
-          }}
-        >
-          <Column width="50%">
-            <Stats {...stats[startIndex]} />
+    <Section className="mt-5 rounded-xl border border-solid border-neutral-200 bg-neutral-50">
+      <Section className="rounded-t-xl px-3 py-2.5">
+        <Row>
+          <Column width={28} valign="middle">
+            <Img
+              src={getProgramLogo(program)}
+              width="20"
+              height="20"
+              alt={program.name}
+              className="rounded-full"
+            />
           </Column>
-          <Column width="50%">
-            <Stats {...stats[startIndex + 1]} />
+          <Column
+            valign="middle"
+            className="text-sm font-semibold leading-5 text-neutral-800"
+          >
+            {program.name}
+          </Column>
+          <Column align="right" valign="middle">
+            <Link
+              href={getProgramUrl(program, reportingPeriod)}
+              className="box-border inline-block rounded-lg bg-neutral-900 px-2.5 py-1 text-sm font-medium leading-5 text-white no-underline"
+              style={{ whiteSpace: "nowrap" }}
+            >
+              View dashboard
+            </Link>
           </Column>
         </Row>
-      ))}
-    </>
+      </Section>
+
+      <Section className="rounded-xl border-t border-solid border-neutral-200 bg-white p-4">
+        {[0, 2].map((startIndex) => (
+          <Row
+            key={startIndex}
+            style={{
+              width: "100%",
+              ...(startIndex === 2 && { marginTop: "20px" }),
+            }}
+          >
+            <Column width="50%" style={{ paddingRight: "12px" }}>
+              <Stat {...stats[startIndex]} />
+            </Column>
+            <Column width="50%" style={{ paddingLeft: "12px" }}>
+              <Stat {...stats[startIndex + 1]} />
+            </Column>
+          </Row>
+        ))}
+      </Section>
+    </Section>
   );
 };
 
-const Stats = ({
+const Stat = ({
   title,
+  icon,
   value,
   percent,
 }: {
   title: string;
-  value: number | string;
-  percent?: number;
+  icon: string;
+  value: string;
+  percent: number;
 }) => {
-  const icon = ICONS[title.toLowerCase() as Icon];
+  return (
+    <Row>
+      <Column width={48} valign="middle">
+        <div className="box-border h-9 w-9 rounded-md border border-solid border-neutral-200 text-center leading-9">
+          <Img
+            src={icon}
+            alt={title}
+            width="18"
+            height="18"
+            className="inline-block align-middle"
+          />
+        </div>
+      </Column>
+      <Column valign="middle">
+        <Text className="m-0 text-xs font-medium leading-4 text-neutral-500">
+          {title}
+        </Text>
+        <Text className="m-0 text-sm font-medium leading-5 text-neutral-800">
+          {value}
+          <PercentBadge percent={percent} className="ml-1.5" />
+        </Text>
+      </Column>
+    </Row>
+  );
+};
+
+const PercentBadge = ({
+  percent,
+  className,
+}: {
+  percent: number;
+  className?: string;
+}) => {
   const { color, sign } = getPercentState(percent);
 
   return (
-    <div className="flex flex-row items-center bg-white p-0">
-      <div className="flex rounded-md bg-neutral-100 p-3">
-        <Img src={icon} alt={title} className="h-4 w-4" draggable={false} />
-      </div>
-      <div className="ml-3">
-        <p className="mb-0 mt-0 text-left text-xs font-medium text-neutral-500">
-          {title}
-        </p>
-        <div className="flex items-center">
-          <p className="m-0 text-left text-lg font-medium text-neutral-800">
-            {value}
-          </p>
+    <span
+      className={`rounded px-1 py-0.5 text-xs font-medium leading-4 ${color} ${className ?? ""}`}
+    >
+      {/* "–" means no change compared to the previous month */}
+      {percent === 0 ? "–" : `${sign}${Math.abs(percent)}%`}
+    </span>
+  );
+};
 
-          {typeof percent === "number" && (
-            <Text
-              className={`m-0 ml-2 rounded text-xs font-medium ${color} m-auto px-1.5 py-0.5`}
-            >
-              {sign}
-              {Math.abs(percent)}%
-            </Text>
-          )}
-        </div>
-      </div>
-    </div>
+const ProgramTable = ({
+  programs,
+  reportingPeriod,
+}: {
+  programs: ProgramSummary[];
+  reportingPeriod: ReportingPeriod;
+}) => {
+  return (
+    <Section className="mt-5">
+      <Row>
+        <Column className="pb-2.5 text-xs font-medium leading-4 text-neutral-500">
+          Program
+        </Column>
+        <Column
+          align="right"
+          className="pb-2.5 text-xs font-medium leading-4 text-neutral-500"
+        >
+          Earnings
+        </Column>
+        <Column
+          width={48}
+          className="pb-2.5 pl-5 text-xs font-medium leading-4 text-neutral-500"
+        >
+          Change
+        </Column>
+      </Row>
+
+      {programs.map((program) => {
+        const programUrl = getProgramUrl(program, reportingPeriod);
+
+        return (
+          <Row key={program.id}>
+            <Column className="py-2.5">
+              <Row>
+                <Column width={28} valign="middle">
+                  <Link href={programUrl}>
+                    <Img
+                      src={getProgramLogo(program)}
+                      width="20"
+                      height="20"
+                      alt={program.name}
+                      className="rounded-full"
+                    />
+                  </Link>
+                </Column>
+                <Column valign="middle">
+                  <Link
+                    href={programUrl}
+                    className="text-sm font-semibold leading-5 text-neutral-800 no-underline"
+                  >
+                    {program.name}
+                  </Link>
+                </Column>
+              </Row>
+            </Column>
+            <Column align="right" valign="middle" className="py-2.5">
+              <Link
+                href={programUrl}
+                className="text-sm leading-5 text-neutral-800 no-underline"
+              >
+                {currencyFormatter(program.currentMonth.earnings)}
+              </Link>
+            </Column>
+            <Column width={48} valign="middle" className="py-2.5 pl-5">
+              <Link href={programUrl} className="no-underline">
+                <PercentBadge
+                  percent={getPercentChange(
+                    program.currentMonth.earnings,
+                    program.previousMonth.earnings,
+                  )}
+                />
+              </Link>
+            </Column>
+          </Row>
+        );
+      })}
+    </Section>
   );
 };

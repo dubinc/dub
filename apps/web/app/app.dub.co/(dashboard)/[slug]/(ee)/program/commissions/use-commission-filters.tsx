@@ -173,6 +173,7 @@ export function useCommissionFilters() {
       "status",
       "type",
       "payoutId",
+      "bountySubmissionId",
       "groupId",
       "partnerTagId",
     ] as const;
@@ -190,6 +191,7 @@ export function useCommissionFilters() {
     searchParamsObj.status,
     searchParamsObj.type,
     searchParamsObj.payoutId,
+    searchParamsObj.bountySubmissionId,
     searchParamsObj.groupId,
     searchParamsObj.partnerTagId,
   ]);
@@ -251,6 +253,7 @@ export function useCommissionFilters() {
           "partnerId",
           "customerId",
           "payoutId",
+          "bountySubmissionId",
           "groupId",
           "partnerTagId",
           "type",

@@ -1,5 +1,6 @@
 import {
-  findPartnerSearchSyncEnrollmentIds,
+  partnerSearchDocumentSelect,
+  syncPartnerEnrollments,
   syncPartnerSearchDocuments,
   type PartnerSearchDocumentSource,
   type PartnerSearchProvider,
@@ -27,6 +28,7 @@ function createSource(
     programId: "prog_test",
     partnerId: `pn_${id}`,
     status: "approved" as const,
+    tenantId: null,
     groupId: null,
     partner: {
       name: "Rafi Hasan",
@@ -34,10 +36,10 @@ function createSource(
       companyName: "Dub Partners",
       description: "Developer tools educator",
       country: null,
-      programPartnerTags: [],
       platforms: [],
     },
     links: [],
+    programPartnerTags: [],
     ...overrides,
   };
 }
@@ -148,13 +150,9 @@ describe("syncPartnerSearchDocuments", () => {
           companyName: null,
           description: null,
           country: "US",
-          // Tags from another program must not leak into this document.
-          programPartnerTags: [
-            { programId: "prog_test", partnerTagId: "ptag_1" },
-            { programId: "prog_other", partnerTagId: "ptag_other" },
-          ],
           platforms: [{ type: "youtube" as const, identifier: "rafi" }],
         },
+        programPartnerTags: [{ partnerTagId: "ptag_1" }],
       }),
     ]);
 
@@ -172,31 +170,46 @@ describe("syncPartnerSearchDocuments", () => {
   });
 });
 
-describe("findPartnerSearchSyncEnrollmentIds", () => {
+describe("syncPartnerEnrollments", () => {
   beforeEach(() => {
     mocks.findMany.mockReset();
   });
 
-  it("resolves every enrollment a partner has when no program is given", async () => {
-    mocks.findMany.mockResolvedValueOnce([{ id: "pge_1" }, { id: "pge_2" }]);
+  it("reads and upserts one page of documents in a single query", async () => {
+    const searchProvider = createProvider();
+    mocks.findMany.mockResolvedValueOnce([
+      createSource("pge_1"),
+      createSource("pge_2"),
+    ]);
 
-    const ids = await findPartnerSearchSyncEnrollmentIds({
+    const result = await syncPartnerEnrollments({
       partnerIds: ["pn_1"],
+      searchProvider,
     });
 
-    expect(ids).toEqual(["pge_1", "pge_2"]);
-
-    const { where, orderBy } = mocks.findMany.mock.calls[0][0];
-    expect(where).toEqual({ partnerId: { in: ["pn_1"] } });
-    expect(orderBy).toEqual({ id: "asc" });
+    expect(result).toEqual({ upserted: 2, lastEnrollmentId: "pge_2" });
+    expect(mocks.findMany).toHaveBeenCalledTimes(1);
+    expect(mocks.findMany.mock.calls[0][0].where).toEqual({
+      partnerId: { in: ["pn_1"] },
+    });
+    expect(mocks.findMany.mock.calls[0][0]).toMatchObject({
+      select: partnerSearchDocumentSelect,
+      orderBy: { id: "asc" },
+    });
+    expect(
+      vi.mocked(searchProvider.upsert).mock.calls[0][0].map(({ id }) => id),
+    ).toEqual(["pge_1", "pge_2"]);
+    expect(searchProvider.delete).not.toHaveBeenCalled();
   });
 
   it("narrows to a single program when one is given", async () => {
-    mocks.findMany.mockResolvedValueOnce([{ id: "pge_1" }]);
+    const searchProvider = createProvider();
+    mocks.findMany.mockResolvedValueOnce([createSource("pge_1")]);
 
-    await findPartnerSearchSyncEnrollmentIds({
+    await syncPartnerEnrollments({
       partnerIds: ["pn_1"],
       programId: "prog_test",
+      searchProvider,
     });
 
     expect(mocks.findMany.mock.calls[0][0].where).toEqual({
@@ -206,12 +219,14 @@ describe("findPartnerSearchSyncEnrollmentIds", () => {
   });
 
   it("pages past the cursor so a large fan-out can resume", async () => {
-    mocks.findMany.mockResolvedValueOnce([{ id: "pge_3" }]);
+    const searchProvider = createProvider();
+    mocks.findMany.mockResolvedValueOnce([createSource("pge_3")]);
 
-    await findPartnerSearchSyncEnrollmentIds({
+    await syncPartnerEnrollments({
       partnerIds: ["pn_1"],
       after: "pge_2",
       take: 2,
+      searchProvider,
     });
 
     const { where, take } = mocks.findMany.mock.calls[0][0];
@@ -222,10 +237,28 @@ describe("findPartnerSearchSyncEnrollmentIds", () => {
     expect(take).toBe(2);
   });
 
-  it("does not query when there are no partners", async () => {
-    const ids = await findPartnerSearchSyncEnrollmentIds({ partnerIds: [] });
+  it("does not write when the page is empty", async () => {
+    const searchProvider = createProvider();
+    mocks.findMany.mockResolvedValueOnce([]);
 
-    expect(ids).toEqual([]);
+    const result = await syncPartnerEnrollments({
+      partnerIds: ["pn_1"],
+      searchProvider,
+    });
+
+    expect(result).toEqual({ upserted: 0, lastEnrollmentId: null });
+    expect(searchProvider.upsert).not.toHaveBeenCalled();
+  });
+
+  it("does not query when there are no partners", async () => {
+    const searchProvider = createProvider();
+
+    const result = await syncPartnerEnrollments({
+      partnerIds: [],
+      searchProvider,
+    });
+
+    expect(result).toEqual({ upserted: 0, lastEnrollmentId: null });
     expect(mocks.findMany).not.toHaveBeenCalled();
   });
 });

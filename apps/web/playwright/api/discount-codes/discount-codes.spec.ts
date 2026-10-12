@@ -31,14 +31,6 @@ let customDiscountId: string | undefined;
 let partnerGroupId: string | undefined;
 
 test.beforeAll(async ({ program }) => {
-  const discount = await prisma.discount.create({
-    data: {
-      id: createId({ prefix: "disc_" }),
-      programId: program.id,
-      ...customDiscount,
-    },
-  });
-
   const group = await prisma.partnerGroup.create({
     data: {
       id: createId({ prefix: "grp_" }),
@@ -46,6 +38,23 @@ test.beforeAll(async ({ program }) => {
       slug: `pw-dcode-${nanoid(8).toLowerCase()}`,
       name: "Playwright Discount Codes",
       maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+    },
+  });
+
+  const discount = await prisma.discount.create({
+    data: {
+      id: createId({ prefix: "disc_" }),
+      programId: program.id,
+      groupId: group.id,
+      ...customDiscount,
+    },
+  });
+
+  await prisma.partnerGroup.update({
+    where: {
+      id: group.id,
+    },
+    data: {
       discountId: discount.id,
     },
   });
@@ -82,6 +91,24 @@ test.afterAll(async () => {
     await prisma.partnerGroupDefaultLink.deleteMany({
       where: {
         groupId: partnerGroupId,
+      },
+    });
+
+    await prisma.partnerGroup.update({
+      where: {
+        id: partnerGroupId,
+      },
+      data: {
+        discountId: null,
+      },
+    });
+
+    await prisma.discount.updateMany({
+      where: {
+        groupId: partnerGroupId,
+      },
+      data: {
+        groupId: null,
       },
     });
 
@@ -270,6 +297,148 @@ test("POST /discount-codes – auto-generated first-name collision retries", asy
   }
 });
 
+test("POST /discount-codes – uses link-level discount over enrollment discount", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+  let linkDiscountId: string | undefined;
+
+  try {
+    const { data: partner } = await createPartner(api);
+    partnerId = partner.id;
+    const linkId = partner.links?.[0]?.id;
+
+    if (!linkId) {
+      throw new Error("Partner was created without a default link.");
+    }
+
+    const linkDiscount = await prisma.discount.create({
+      data: {
+        id: createId({ prefix: "disc_" }),
+        programId: program.id,
+        ...customDiscount,
+        amount: 25,
+      },
+    });
+    linkDiscountId = linkDiscount.id;
+
+    await prisma.linkReward.create({
+      data: {
+        linkId,
+        discountId: linkDiscount.id,
+      },
+    });
+
+    const { status, data } = await api.post<DiscountCode>(
+      "/api/discount-codes",
+      {
+        partnerId: partner.id,
+        linkId,
+        code: `PW${nanoid(8)}`,
+      },
+    );
+
+    expect(status).toEqual(200);
+    expect(data.discountId).toEqual(linkDiscount.id);
+  } finally {
+    try {
+      await deletePartner(partnerId);
+    } finally {
+      if (linkDiscountId) {
+        await prisma.linkReward.deleteMany({
+          where: {
+            discountId: linkDiscountId,
+          },
+        });
+
+        await prisma.discount.deleteMany({
+          where: {
+            id: linkDiscountId,
+          },
+        });
+      }
+    }
+  }
+});
+
+test("POST /discount-codes – uses link-level discount when enrollment has none", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+  let linkDiscountId: string | undefined;
+
+  try {
+    const { data: partner } = await createPartner(api);
+    partnerId = partner.id;
+    const linkId = partner.links?.[0]?.id;
+
+    if (!linkId) {
+      throw new Error("Partner was created without a default link.");
+    }
+
+    await prisma.programEnrollment.update({
+      where: {
+        partnerId_programId: {
+          partnerId: partner.id,
+          programId: program.id,
+        },
+      },
+      data: {
+        discountId: null,
+      },
+    });
+
+    const linkDiscount = await prisma.discount.create({
+      data: {
+        id: createId({ prefix: "disc_" }),
+        programId: program.id,
+        ...customDiscount,
+        amount: 15,
+      },
+    });
+    linkDiscountId = linkDiscount.id;
+
+    await prisma.linkReward.create({
+      data: {
+        linkId,
+        discountId: linkDiscount.id,
+      },
+    });
+
+    const { status, data } = await api.post<DiscountCode>(
+      "/api/discount-codes",
+      {
+        partnerId: partner.id,
+        linkId,
+        code: `PW${nanoid(8)}`,
+      },
+    );
+
+    expect(status).toEqual(200);
+    expect(data.discountId).toEqual(linkDiscount.id);
+  } finally {
+    try {
+      await deletePartner(partnerId);
+    } finally {
+      if (linkDiscountId) {
+        await prisma.linkReward.deleteMany({
+          where: {
+            discountId: linkDiscountId,
+          },
+        });
+
+        await prisma.discount.deleteMany({
+          where: {
+            id: linkDiscountId,
+          },
+        });
+      }
+    }
+  }
+});
+
 test("POST /discount-codes – same link", async ({ api }) => {
   let partnerId: string | undefined;
 
@@ -329,41 +498,50 @@ test("POST /discount-codes – duplicate code", async ({ api }) => {
   }
 });
 
-const invalidCodeCases = [
-  {
-    name: "POST /discount-codes – invalid characters",
-    code: "NOT VALID!",
-    message:
-      "invalid_format: code: Code can only contain letters, numbers, dashes, and underscores.",
-  },
-  {
-    name: "POST /discount-codes – too long",
-    code: "A".repeat(101),
-    message: "too_big: code: Code must be 100 characters or fewer.",
-  },
-];
+test("POST /discount-codes – custom provider allows special characters", async ({
+  api,
+}) => {
+  let partnerId: string | undefined;
 
-for (const { name, code, message } of invalidCodeCases) {
-  test(name, async ({ api }) => {
-    expect(
-      await api.post("/api/discount-codes", {
-        partnerId: "pn_x",
-        linkId: "link_x",
-        code,
-      }),
-    ).toEqual({
-      status: 422,
-      data: {
-        error: {
-          code: "unprocessable_entity",
-          message,
-          doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-        },
-      },
+  try {
+    const { status, data, partner, body } = await createDiscountCode(api, {
+      code: `NOT VALID!@10.${nanoid(6)}`,
     });
+    partnerId = partner.id;
+
+    expect(status).toEqual(200);
+    expect(data).toEqual({
+      id: expect.any(String),
+      code: body.code,
+      discountId: customDiscountId,
+      partnerId: partner.id,
+      linkId: body.linkId,
+      disabledAt: null,
+    });
+  } finally {
+    await deletePartner(partnerId);
+  }
+});
+
+test("POST /discount-codes – too long", async ({ api }) => {
+  expect(
+    await api.post("/api/discount-codes", {
+      partnerId: "pn_x",
+      linkId: "link_x",
+      code: "A".repeat(101),
+    }),
+  ).toEqual({
+    status: 422,
+    data: {
+      error: {
+        code: "unprocessable_entity",
+        message: "too_big: code: Code must be 100 characters or fewer.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    },
   });
-}
+});
 
 test("POST /discount-codes – missing partnerId", async ({ api }) => {
   expect(
@@ -416,6 +594,24 @@ test("GET /discount-codes – by discountId", async ({ api }) => {
 
     expect(status).toEqual(200);
     expect(data.map((code) => code.id)).toContain(created.data.id);
+  } finally {
+    await deletePartner(partnerId);
+  }
+});
+
+test("GET /discount-codes – by code", async ({ api }) => {
+  let partnerId: string | undefined;
+
+  try {
+    const created = await createDiscountCode(api);
+    partnerId = created.partner.id;
+
+    const { status, data } = await api.get<DiscountCode[]>(
+      `/api/discount-codes?code=${encodeURIComponent(created.data.code)}`,
+    );
+
+    expect(status).toEqual(200);
+    expect(data).toEqual([created.data]);
   } finally {
     await deletePartner(partnerId);
   }

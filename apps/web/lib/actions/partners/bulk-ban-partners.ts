@@ -73,6 +73,7 @@ export const bulkBanPartnersAction = authActionClient
         leadRewardId: null,
         saleRewardId: null,
         referralRewardId: null,
+        customRewardId: null,
         discountId: null,
       },
     });

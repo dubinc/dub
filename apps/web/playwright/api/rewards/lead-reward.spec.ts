@@ -6,8 +6,10 @@ import type {
   LinkProps,
   RewardConditionsArray,
 } from "@/lib/types";
+import { sleep } from "@dub/utils";
 import { expect } from "@playwright/test";
 import { EventType, Prisma, RewardStructure } from "@prisma/client";
+
 import { randomCustomer } from "../../utils";
 import { deleteCommissionPartner } from "../commissions/helpers";
 import { trackClick, trackLead } from "../conversions/helpers";
@@ -199,7 +201,7 @@ async function expectNoCommission(
   { customerExternalId }: { customerExternalId: string },
 ) {
   // Give the create-partner-commission workflow time to run (and skip).
-  await new Promise((resolve) => setTimeout(resolve, 5_000));
+  await sleep(5_000);
 
   const customer = await prisma.customer.findUnique({
     where: {
@@ -244,7 +246,7 @@ async function expectLeadCommissionCount(
   });
 
   // Give a follow-up create-partner-commission workflow time to run (or skip).
-  await new Promise((resolve) => setTimeout(resolve, 5_000));
+  await sleep(5_000);
 
   await expect
     .poll(async () => {
