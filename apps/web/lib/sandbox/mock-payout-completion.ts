@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
-import { currencyFormatter } from "@dub/utils";
+import { chunk, currencyFormatter, log } from "@dub/utils";
 import {
   CommissionStatus,
   Invoice,
@@ -74,17 +74,6 @@ export async function mockPayoutCompletion({
   });
 
   await prisma.$transaction([
-    prisma.commission.updateMany({
-      where: {
-        payoutId: {
-          in: payoutIds,
-        },
-      },
-      data: {
-        status: CommissionStatus.paid,
-      },
-    }),
-
     prisma.payout.updateMany({
       where: {
         id: {
@@ -107,6 +96,37 @@ export async function mockPayoutCompletion({
       },
     }),
   ]);
+
+  const commissionIds = commissions.map((c) => c.id);
+
+  let totalUpdatedCommissions = 0;
+  for (const commissionIdsBatch of chunk(commissionIds, 250)) {
+    try {
+      const { count } = await prisma.commission.updateMany({
+        where: {
+          id: {
+            in: commissionIdsBatch,
+          },
+        },
+        data: {
+          status: CommissionStatus.paid,
+        },
+      });
+
+      totalUpdatedCommissions += count;
+      console.log(
+        `Marked ${totalUpdatedCommissions}/${commissionIds.length} commissions as paid`,
+      );
+    } catch (error) {
+      await log({
+        message: `[mockPayoutCompletion] Failed to mark commissions as paid for payouts ${payoutIds.join(
+          ", ",
+        )}: ${error.message}`,
+        type: "errors",
+        mention: true,
+      });
+    }
+  }
 
   // Group partner -> payouts so we send only one email per partner when there are multiple payouts
   const partnerPayouts = payouts.reduce(
