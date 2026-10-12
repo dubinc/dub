@@ -2,11 +2,22 @@
 // User IDs listed here will NOT have access to ADMIN_RESTRICTED_PATHS.
 const ADMIN_ACCESS_BLOCKLIST: string[] = ["user_1M3YFDDQ97AGTKWQ9NCSRQTYB"];
 
-const ADMIN_RESTRICTED_PATHS = ["/links", "/revenue", "/domains"];
+const ADMIN_RESTRICTED_PATHS = [
+  "/links",
+  "/analytics",
+  "/commissions",
+  "/payouts",
+  "/revenue",
+  "/domains",
+];
 
 const ADMIN_RESTRICTED_API_PATHS = [
   "/api/admin/links",
   "/api/admin/workspaces",
+  "/api/admin/analytics",
+  "/api/admin/events",
+  "/api/admin/commissions",
+  "/api/admin/payouts",
   "/api/admin/revenue",
   "/api/admin/domains",
 ];
@@ -14,7 +25,7 @@ const ADMIN_RESTRICTED_API_PATHS = [
 const matchesPath = (pathname: string, paths: string[]) =>
   paths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
-const isAdminAccessRestricted = (userId?: string | null): boolean =>
+export const isAdminAccessRestricted = (userId?: string | null): boolean =>
   !!userId && ADMIN_ACCESS_BLOCKLIST.includes(userId);
 
 export const canAccessAdminPath = ({
