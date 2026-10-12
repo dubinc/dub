@@ -677,11 +677,11 @@ async function main() {
   await createFolders(data);
   await createProgram(data);
   await createStagingWorkspace(data.workspace.id);
-  await createStagingProgram(data.workspace.id);
-  console.log("Created staging workspace and program");
   await createEmailDomains(data);
   await createRewards(data);
   await createGroups(data);
+  await createStagingProgram(data.workspace.id);
+  console.log("Created staging workspace and program");
   await createPartners(data);
   await createIntegrations(data);
 }
