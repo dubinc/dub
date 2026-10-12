@@ -2,34 +2,6 @@ import { WorkspaceRole } from "@prisma/client";
 import { PermissionAction } from "../rbac/permissions";
 import { ResourceKey } from "../rbac/resources";
 
-// Scopes introduced after API keys already existed. A key or OAuth installation
-// created before `enforcedAt` keeps these permissions without selecting the scope.
-// Keep permissions that share a cutoff in one entry. Add a new entry when a
-// scope needs a different cutoff.
-export const LEGACY_SCOPE_GRANTS: {
-  enforcedAt: Date;
-  permissions: readonly PermissionAction[];
-}[] = [
-  {
-    enforcedAt: new Date("2026-10-09T00:00:00.000Z"),
-    permissions: [
-      "partners.read",
-      "partners.write",
-      "program_applications.read",
-      "program_applications.write",
-      "customers.read",
-      "customers.write",
-      "discount_codes.read",
-      "discount_codes.write",
-      "commissions.read",
-      "commissions.write",
-      "bounties.read",
-      "bounties.write",
-      "payouts.read",
-    ],
-  },
-];
-
 export const SCOPES = [
   "links.read",
   "links.write",
@@ -306,6 +278,34 @@ const RESOURCE_SCOPES: {
       "analytics.read",
       "groups.read",
       "groups.write",
+      "partners.read",
+      "partners.write",
+      "program_applications.read",
+      "program_applications.write",
+      "customers.read",
+      "customers.write",
+      "discount_codes.read",
+      "discount_codes.write",
+      "commissions.read",
+      "commissions.write",
+      "bounties.read",
+      "bounties.write",
+      "payouts.read",
+    ],
+  },
+];
+
+// Scopes introduced after API keys already existed. A key or OAuth installation
+// created before `enforcedAt` keeps these permissions without selecting the scope.
+// Keep permissions that share a cutoff in one entry. Add a new entry when a
+// scope needs a different cutoff.
+export const LEGACY_SCOPE_GRANTS: {
+  enforcedAt: Date;
+  permissions: readonly PermissionAction[];
+}[] = [
+  {
+    enforcedAt: new Date("2026-10-09T00:00:00.000Z"),
+    permissions: [
       "partners.read",
       "partners.write",
       "program_applications.read",
