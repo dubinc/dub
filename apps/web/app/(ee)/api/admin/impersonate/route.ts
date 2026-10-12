@@ -8,6 +8,7 @@ import { emailSchema } from "@/lib/zod/schemas/auth";
 import {
   APP_DOMAIN,
   isAppHostname,
+  isDubDomain,
   PARTNERS_DOMAIN,
   validDomainRegex,
   validSlugRegex,
@@ -17,7 +18,9 @@ import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 
 const userSelect = {
+  name: true,
   email: true,
+  image: true,
   projects: {
     select: {
       project: {
@@ -40,6 +43,11 @@ const userSelect = {
             },
           },
         },
+      },
+    },
+    where: {
+      project: {
+        environment: "production",
       },
     },
     orderBy: {
@@ -106,7 +114,32 @@ type ImpersonateIdentifier =
   | { type: "email"; email: string }
   | { type: "slug"; slug: string }
   | { type: "domain"; domain: string }
-  | { type: "stripeCustomerId"; stripeCustomerId: string };
+  | { type: "stripeCustomerId"; stripeCustomerId: string }
+  | { type: "link"; domain: string; key: string };
+
+type ImpersonateUserRecord = Prisma.UserGetPayload<{
+  select: typeof userSelect;
+}>;
+
+type ImpersonateProject = Prisma.UserGetPayload<{
+  select: typeof userSelect;
+}>["projects"][number]["project"];
+
+type ImpersonateLinkDetails = {
+  domain: string;
+  key: string;
+  url: string;
+  shortLink: string;
+  createdBy: boolean;
+  project: ImpersonateProject | null;
+};
+
+type FindUserResult =
+  | { error: string }
+  | { user: ImpersonateUserRecord; link?: ImpersonateLinkDetails };
+
+const IMPERSONATE_QUERY_ERROR =
+  "Enter a user email, workspace slug, domain, short link, or Stripe customer ID";
 
 const STRIPE_CUSTOMER_ID_REGEX = /cus_[a-zA-Z0-9]+/;
 
@@ -114,10 +147,7 @@ function parseImpersonateQuery(
   raw: unknown,
 ): ImpersonateIdentifier | { error: string } {
   if (typeof raw !== "string" || !raw.trim()) {
-    return {
-      error:
-        "Enter a user email, workspace slug, domain, or Stripe customer ID",
-    };
+    return { error: IMPERSONATE_QUERY_ERROR };
   }
 
   let query = raw.trim();
@@ -164,6 +194,15 @@ function parseImpersonateQuery(
     }
   }
 
+  if (hostname && pathname) {
+    const dubDomain = hostname.replace(/^www\./, "");
+    const key = decodePathKey(pathname);
+    // dub.sh/abc (and other Dub short domains) impersonate the link creator
+    if (key && isDubDomain(dubDomain)) {
+      return { type: "link", domain: dubDomain, key };
+    }
+  }
+
   const domain = normalizeDomainInput(hostname ?? query);
   if (validDomainRegex.test(domain)) {
     return { type: "domain", domain };
@@ -174,9 +213,17 @@ function parseImpersonateQuery(
     return { type: "slug", slug };
   }
 
-  return {
-    error: "Enter a user email, workspace slug, domain, or Stripe customer ID",
-  };
+  return { error: IMPERSONATE_QUERY_ERROR };
+}
+
+function decodePathKey(pathname: string) {
+  const key = pathname.replace(/^\/+|\/+$/g, "");
+  if (!key) return "";
+  try {
+    return decodeURIComponent(key);
+  } catch {
+    return key;
+  }
 }
 
 // POST /api/admin/impersonate
@@ -197,16 +244,21 @@ export const POST = withAdmin(async ({ req }) => {
   }
 
   const { user: response } = result;
+  const link = "link" in result ? result.link : undefined;
 
   if (!response.email) {
     return new Response("User not found", { status: 404 });
   }
 
+  const workspaces = await serializeWorkspaces(
+    response.projects.map(({ project }) => project),
+  );
+
   const data = {
     email: response.email,
-    workspaces: await serializeWorkspaces(
-      response.projects.map(({ project }) => project),
-    ),
+    name: response.name,
+    image: response.image,
+    workspaces,
     programs:
       response.partners.length > 0
         ? response.partners[0].partner.programs.map(({ program, ...rest }) => ({
@@ -215,14 +267,35 @@ export const POST = withAdmin(async ({ req }) => {
           }))
         : [],
     impersonateUrl: await getImpersonateUrl(response.email),
+    ...(link
+      ? {
+          link: {
+            domain: link.domain,
+            key: link.key,
+            url: link.url,
+            shortLink: link.shortLink,
+            createdBy: link.createdBy,
+            workspace: await serializeLinkWorkspace(link.project, workspaces),
+          },
+        }
+      : {}),
   };
 
   return NextResponse.json(data);
 });
 
-type ImpersonateProject = Prisma.UserGetPayload<{
-  select: typeof userSelect;
-}>["projects"][number]["project"];
+async function serializeLinkWorkspace(
+  project: ImpersonateProject | null,
+  workspaces: Awaited<ReturnType<typeof serializeWorkspaces>>,
+) {
+  if (!project) return null;
+
+  return (
+    workspaces.find((workspace) => workspace.id === project.id) ??
+    (await serializeWorkspaces([project]))[0] ??
+    null
+  );
+}
 
 async function serializeWorkspaces(projects: ImpersonateProject[]) {
   const useLast30DaysStats = projects.length <= 2;
@@ -340,7 +413,87 @@ async function getLast30DayWorkspaceStats(projects: ImpersonateProject[]) {
   return new Map(entries);
 }
 
-async function findUser(identifier: ImpersonateIdentifier) {
+async function findUserByLink(
+  domain: string,
+  key: string,
+): Promise<FindUserResult> {
+  const link = await prisma.link.findUnique({
+    where: { domain_key: { domain, key } },
+    select: {
+      domain: true,
+      key: true,
+      url: true,
+      shortLink: true,
+      user: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
+      project: {
+        select: {
+          ...userSelect.projects.select.project.select,
+          users: {
+            where: ownerSelect.users.where,
+            orderBy: ownerSelect.users.orderBy,
+            take: ownerSelect.users.take,
+            select: {
+              user: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!link) {
+    return { error: "Link not found" };
+  }
+
+  const creatorId = link.user?.email ? link.user.id : null;
+  const userId = creatorId ?? link.project?.users[0]?.user.id;
+
+  if (!userId) {
+    return { error: "Link owner not found" };
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: userSelect,
+  });
+
+  if (!user?.email) {
+    return { error: "Link owner not found" };
+  }
+
+  const project = link.project
+    ? (({ users: _users, ...rest }) => rest)(link.project)
+    : null;
+
+  return {
+    user,
+    link: {
+      domain: link.domain,
+      key: link.key,
+      url: link.url,
+      shortLink: link.shortLink,
+      createdBy: Boolean(creatorId),
+      project,
+    },
+  };
+}
+
+async function findUser(
+  identifier: ImpersonateIdentifier,
+): Promise<FindUserResult> {
+  if (identifier.type === "link") {
+    return findUserByLink(identifier.domain, identifier.key);
+  }
+
   if (identifier.type === "email") {
     const userEmails = [identifier.email];
     const partner = await prisma.partner.findUnique({
