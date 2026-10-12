@@ -36,7 +36,7 @@ const PAYOUT_STATUS_CONFIG = {
         This program has external payouts enabled, which means partners will
         receive payouts externally via the{" "}
         <code className="rounded-md bg-neutral-100 px-1 py-0.5 font-mono">
-          payout.confirmed
+          external_payout.confirmed
         </code>{" "}
         <a
           href="/settings/webhooks"

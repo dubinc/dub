@@ -59,7 +59,8 @@ export function getVisibleWebhookTriggers(
  *
  * - Always includes workspace-level events.
  * - Adds program-level events when the workspace has a program;
- *   `payout.confirmed` only for programs in `EXTERNAL_PAYOUTS_PROGRAM_IDS`.
+ *   `external_payout.confirmed` / deprecated `payout.confirmed` only for
+ *   programs in `EXTERNAL_PAYOUTS_PROGRAM_IDS`.
  * - When `supportedTriggers` is passed (integrations like Zapier or Slack),
  *   keeps only the events that integration supports.
  * - Applies legacy/current event visibility via `getVisibleWebhookTriggers`.
@@ -76,7 +77,8 @@ export function getAvailableWebhookTriggers({
   const programTriggers = defaultProgramId
     ? PROGRAM_LEVEL_WEBHOOK_TRIGGERS.filter(
         (trigger) =>
-          trigger !== "payout.confirmed" ||
+          (trigger !== "payout.confirmed" &&
+            trigger !== "external_payout.confirmed") ||
           EXTERNAL_PAYOUTS_PROGRAM_IDS.includes(defaultProgramId),
       )
     : [];

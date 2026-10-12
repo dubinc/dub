@@ -11,6 +11,7 @@ import linkDeleted from "./link-deleted.json";
 import linkUpdated from "./link-updated.json";
 import partnerEnrolled from "./partner-enrolled.json";
 import partnerMerged from "./partner-merged.json";
+import externalPayoutConfirmed from "./external-payout-confirmed.json";
 import payoutConfirmed from "./payout-confirmed.json";
 import programApplicationCreated from "./program-application-created.json";
 import programApplicationSubmitted from "./program-application-submitted.json";
@@ -31,6 +32,7 @@ export const samplePayload: Record<WebhookTrigger, any> = {
   "bounty.created": bountyCreated,
   "bounty.updated": bountyUpdated,
   "payout.confirmed": payoutConfirmed,
+  "external_payout.confirmed": externalPayoutConfirmed,
   "discount_code.created": discountCodeCreated,
   "discount_code.deleted": discountCodeDeleted,
 };

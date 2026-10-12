@@ -714,6 +714,7 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "bounty.created": bountyTemplates,
   "bounty.updated": bountyTemplates,
   "payout.confirmed": payoutConfirmedTemplate,
+  "external_payout.confirmed": payoutConfirmedTemplate,
   "discount_code.created": discountCodeTemplates,
   "discount_code.deleted": discountCodeTemplates,
 };

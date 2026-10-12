@@ -74,7 +74,7 @@ function WebhookInfo() {
     <Callout variant="warn" size={1}>
       Ensure webhooks are configured to listen for the{" "}
       <code className="rounded bg-amber-200 px-1 py-0.5 font-mono text-xs text-amber-900">
-        payout.confirmed
+        external_payout.confirmed
       </code>{" "}
       event.{" "}
       <Link

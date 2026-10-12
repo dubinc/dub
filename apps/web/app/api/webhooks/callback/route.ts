@@ -84,8 +84,8 @@ export const POST = async (req: Request) => {
       ? [resetWebhookFailureCount(webhookId)]
       : []),
 
-    // Handle payout events
-    ...(event === "payout.confirmed"
+    // Handle external payout events
+    ...(event === "external_payout.confirmed" || event === "payout.confirmed"
       ? [
           handleExternalPayoutEvent({
             webhook,

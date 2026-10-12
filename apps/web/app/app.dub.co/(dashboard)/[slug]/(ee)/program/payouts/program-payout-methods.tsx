@@ -192,7 +192,7 @@ function ExternalPayoutMethods() {
   const { slug } = useWorkspace();
   const { webhooks } = useWebhooks();
 
-  // Filter webhooks with payout.confirmed trigger
+  // Filter webhooks with external_payout.confirmed (or deprecated payout.confirmed)
   const externalPayoutWebhooks = useMemo(() => {
     if (!webhooks) return [];
 
@@ -200,7 +200,8 @@ function ExternalPayoutMethods() {
       (webhook) =>
         webhook.triggers &&
         Array.isArray(webhook.triggers) &&
-        webhook.triggers.includes("payout.confirmed") &&
+        (webhook.triggers.includes("external_payout.confirmed") ||
+          webhook.triggers.includes("payout.confirmed")) &&
         webhook.disabledAt === null &&
         webhook.installationId === null,
     );

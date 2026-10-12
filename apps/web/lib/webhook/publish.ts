@@ -14,7 +14,7 @@ export const sendWorkspaceWebhook = async ({
   trigger: WebhookTrigger;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   data: WebhookEventPayload;
-  webhooks?: Pick<Webhook, "id" | "url" | "secret">[]; // optionally accept webhooks when sending bulk webhooks (eg: payout.confirmed)
+  webhooks?: Pick<Webhook, "id" | "url" | "secret">[]; // optionally accept webhooks when sending bulk webhooks (eg: external_payout.confirmed)
 }) => {
   if (!workspace.webhookEnabled) {
     return;

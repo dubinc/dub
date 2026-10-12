@@ -139,11 +139,28 @@ export const confirmPayoutsAction = authActionClient
           pageSize: Infinity,
         }),
 
-        getWebhooks({
-          workspaceId: workspace.id,
-          triggers: ["payout.confirmed"],
-          disabled: false,
-          installationId: null,
+        Promise.all([
+          getWebhooks({
+            workspaceId: workspace.id,
+            triggers: ["external_payout.confirmed"],
+            disabled: false,
+            installationId: null,
+          }),
+          getWebhooks({
+            workspaceId: workspace.id,
+            triggers: ["payout.confirmed"],
+            disabled: false,
+            installationId: null,
+          }),
+        ]).then(([current, legacy]) => {
+          const seen = new Set<string>();
+          return [...current, ...legacy].filter((webhook) => {
+            if (seen.has(webhook.id)) {
+              return false;
+            }
+            seen.add(webhook.id);
+            return true;
+          });
         }),
       ]);
 
@@ -154,7 +171,7 @@ export const confirmPayoutsAction = authActionClient
 
       if (hasExternalPayouts && payoutWebhooks.length === 0) {
         throw new Error(
-          `EXTERNAL_WEBHOOK_REQUIRED: This invoice includes at least one external payout, which requires an active webhook subscribed to the "payout.confirmed" event. Please set one up before proceeding.`,
+          `EXTERNAL_WEBHOOK_REQUIRED: This invoice includes at least one external payout, which requires an active webhook subscribed to the "external_payout.confirmed" event. Please set one up before proceeding.`,
         );
       }
     }

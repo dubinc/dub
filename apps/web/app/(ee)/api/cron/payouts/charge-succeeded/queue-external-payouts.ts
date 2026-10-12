@@ -80,9 +80,10 @@ export async function queueExternalPayouts(
     where: {
       projectId: invoice.workspaceId,
       disabledAt: null,
-      triggers: {
-        array_contains: ["payout.confirmed"],
-      },
+      OR: [
+        { triggers: { array_contains: ["external_payout.confirmed"] } },
+        { triggers: { array_contains: ["payout.confirmed"] } },
+      ],
     },
     select: {
       id: true,
@@ -93,7 +94,7 @@ export async function queueExternalPayouts(
 
   if (webhooks.length === 0) {
     await log({
-      message: `No payout.confirmed webhook found for workspace ${invoice.workspaceId} (program: ${program.slug}, invoice: ${invoice.id}). Skipping external payouts...`,
+      message: `No external_payout.confirmed webhook found for workspace ${invoice.workspaceId} (program: ${program.slug}, invoice: ${invoice.id}). Skipping external payouts...`,
       type: "errors",
       mention: true,
     });
@@ -110,14 +111,23 @@ export async function queueExternalPayouts(
         },
       });
 
+      const workspace = {
+        id: invoice.workspaceId,
+        webhookEnabled: true as const,
+      };
+
+      // Send "payout.confirmed" webhook (deprecated)
       await sendWorkspaceWebhook({
-        workspace: {
-          id: invoice.workspaceId,
-          webhookEnabled: true,
-        },
-        webhooks,
+        workspace,
         data,
         trigger: "payout.confirmed",
+      });
+
+      // Send "external_payout.confirmed" webhook
+      await sendWorkspaceWebhook({
+        workspace,
+        data,
+        trigger: "external_payout.confirmed",
       });
     } catch (error) {
       console.error(error.message);
