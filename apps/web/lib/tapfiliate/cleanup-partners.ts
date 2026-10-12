@@ -1,3 +1,6 @@
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
+import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
@@ -45,25 +48,43 @@ export async function cleanupPartners(payload: TapfiliateImportPayload) {
       .filter((partnerId): partnerId is string => partnerId !== null);
 
     if (partnerIdsWithNoLeads.length > 0) {
-      // Remove program enrollments and links for partners with no leads
-      await prisma.$transaction(async (tx) => {
-        await tx.programEnrollment.deleteMany({
-          where: {
-            programId,
-            partnerId: {
-              in: partnerIdsWithNoLeads,
-            },
+      const linksToDelete = await prisma.link.findMany({
+        where: {
+          programId,
+          partnerId: {
+            in: partnerIdsWithNoLeads,
           },
-        });
+        },
+      });
 
-        await tx.link.deleteMany({
-          where: {
-            programId,
-            partnerId: {
-              in: partnerIdsWithNoLeads,
-            },
+      await bulkDeleteLinks(linksToDelete);
+
+      // Resolved before the delete, since nothing can map these partners back
+      // to their enrollments afterwards.
+      const removedEnrollments = await prisma.programEnrollment.findMany({
+        where: {
+          programId,
+          partnerId: {
+            in: partnerIdsWithNoLeads,
           },
-        });
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      await prisma.programEnrollment.deleteMany({
+        where: {
+          programId,
+          partnerId: {
+            in: partnerIdsWithNoLeads,
+          },
+        },
+      });
+
+      // Queue an index update because the enrollments were deleted.
+      await queuePartnerSearchSync({
+        enrollmentIds: removedEnrollments.map(({ id }) => id),
       });
 
       // Remove partners that are not enrolled in any other program
@@ -108,13 +129,20 @@ export async function cleanupPartners(payload: TapfiliateImportPayload) {
         });
 
         if (partnersWithoutUserAccount.length > 0) {
-          await prisma.partner.deleteMany({
-            where: {
-              id: {
-                in: partnersWithoutUserAccount.map(({ id }) => id),
-              },
-            },
-          });
+          const partnerIdsToDelete = partnersWithoutUserAccount.map(
+            ({ id }) => id,
+          );
+
+          // using conn.execute here since Prisma throws on partner.deleteMany()
+          await conn.execute(
+            `DELETE FROM Partner WHERE id IN (${partnerIdsToDelete.map(() => "?").join(",")})`,
+            partnerIdsToDelete,
+          );
+
+          console.log(
+            "Removed the following partners",
+            partnersWithoutUserAccount,
+          );
         }
       }
     }

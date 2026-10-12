@@ -19,10 +19,7 @@ export const handleDomainUpdates = async ({
   changed: boolean;
 }) => {
   if (changed) {
-    await log({
-      message: `Domain *${domain}* changed status to *${verified}*`,
-      type: "cron",
-    });
+    console.log(`Domain *${domain}* changed status to *${verified}*`);
   }
 
   if (verified) return;
@@ -91,10 +88,10 @@ export const handleDomainUpdates = async ({
       },
     });
     if (linksClicks._sum.clicks && linksClicks._sum.clicks > 0) {
-      return await log({
-        message: `Domain *${domain}* has been invalid for > 30 days but has links with clicks, skipping.`,
-        type: "cron",
-      });
+      console.log(
+        `Domain "${domain}" has been invalid for > 30 days but has links with clicks, skipping...`,
+      );
+      return;
     }
 
     // else, delete the domain
@@ -184,11 +181,10 @@ const sendDomainInvalidEmail = async ({
   emails: string[];
   type: "first" | "second";
 }) => {
+  console.log(
+    `Domain *${domain}* is invalid for ${invalidDays} days, email sent.`,
+  );
   return await Promise.allSettled([
-    log({
-      message: `Domain *${domain}* is invalid for ${invalidDays} days, email sent.`,
-      type: "cron",
-    }),
     sendBatchEmail(
       emails.map((email) => ({
         subject: `Your domain ${domain} needs to be configured`,

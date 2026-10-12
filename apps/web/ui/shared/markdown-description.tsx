@@ -19,7 +19,12 @@ export const MarkdownDescription = ({
         a: ({ children, href }) => {
           if (!href) return null;
           return (
-            <a href={href} target="_blank">
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            >
               {children}
             </a>
           );

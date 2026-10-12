@@ -14,9 +14,9 @@ export function SelectField({
   keyPath?: string;
   field: SelectFieldData;
 }) {
-  const { getFieldState, control } = useFormContext<any>();
+  const { getFieldState, control, formState } = useFormContext<any>();
   const keyPath = keyPathProp || `formData.${field.key}`;
-  const state = getFieldState(keyPath);
+  const state = getFieldState(keyPath, formState);
   const error = !!state.error;
 
   const options = field.options.map((option) => ({

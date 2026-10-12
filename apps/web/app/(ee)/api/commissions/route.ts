@@ -19,19 +19,12 @@ import * as z from "zod/v4";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const isHoldStatus = searchParams.status === "hold";
-  const {
-    status: _status,
-    fraudEventGroupId,
-    type: rawType,
-    ...restSearchParams
-  } = searchParams;
-
-  let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema.parse(
-    isHoldStatus
-      ? restSearchParams
-      : { ...restSearchParams, status: searchParams.status },
-  );
+  let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema
+    .extend({
+      fraudEventGroupId: z.string().optional(),
+      type: z.string().optional(), // May be comma-separated string, for multi-value handling
+    })
+    .parse(searchParams);
 
   if (tenantId && !partnerId) {
     const partner = await prisma.programEnrollment.findUnique({
@@ -58,18 +51,15 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const commissions = await getCommissions({
     ...filters,
-    // Pass raw type string (may be comma-separated) for multi-value handling
-    ...(rawType && { type: rawType }),
     partnerId,
     programId,
-    isHoldStatus,
-    ...(fraudEventGroupId && { fraudEventGroupId }),
   });
 
   return NextResponse.json(
     z.array(CommissionEnrichedSchema).parse(
       commissions.map((c) => ({
         ...c,
+        paidAt: c.payout?.paidAt ?? null,
         customer: transformCustomerForCommission(c.customer),
         partner: {
           ...c.partner,
@@ -100,25 +90,21 @@ export const POST = withWorkspace(
 
     console.timeEnd("createManualCommissions");
 
-    return NextResponse.json(
-      createCommissionResponseSchema.parse({
-        success: true,
-        message: "Your commissions are being created and will appear shortly.",
-      }),
-      {
-        status: 202,
-      },
-    );
+    const isClawback = body.type === "custom" && body.amount < 0;
+
+    const response = createCommissionResponseSchema.parse({
+      success: true,
+      message: isClawback
+        ? "A clawback has been queued for the partner!"
+        : "Your commissions are being created and will appear shortly.",
+    });
+
+    return NextResponse.json(response, {
+      status: 202,
+    });
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );

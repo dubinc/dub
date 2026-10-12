@@ -6,15 +6,17 @@ import {
 } from "@/lib/api/oauth/utils";
 import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { generateOTP } from "@/lib/auth/utils";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
-import { isGenericEmail } from "@/lib/is-generic-email";
+import { isGenericEmail } from "@/lib/email/is-generic-email";
 import {
   sanitizeSocialHandle,
   SOCIAL_PLATFORM_CONFIGS,
 } from "@/lib/social-utils";
 import { PartnerProps } from "@/lib/types";
-import { ratelimit } from "@/lib/upstash/ratelimit";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { redis } from "@/lib/upstash/redis";
 import {
   getDomainWithoutWWW,
@@ -22,6 +24,7 @@ import {
   PARTNERS_DOMAIN_WITH_NGROK,
 } from "@dub/utils";
 import { PlatformType } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";
@@ -59,16 +62,10 @@ export const startPartnerPlatformVerificationAction = authPartnerActionClient
     const { partner } = ctx;
     const { platform, handle, source } = parsedInput;
 
-    // Rate limit check
-    const { success } = await ratelimit(5, "1 h").limit(
-      `social-verification:${partner.id}:${platform}`,
-    );
-
-    if (!success) {
-      throw new Error(
-        "Too many verification attempts. Please try again later.",
-      );
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.socialAccountVerification,
+      identifier: [partner.id, platform],
+    });
 
     const params: VerificationParams = {
       partner,
@@ -77,19 +74,29 @@ export const startPartnerPlatformVerificationAction = authPartnerActionClient
       source,
     };
 
-    // For website
-    if (platform === "website") {
-      return startWebsiteVerification(params);
-    }
+    const startVerification = async () => {
+      // For website
+      if (platform === "website") {
+        return startWebsiteVerification(params);
+      }
 
-    // For OAuth based verification
-    const oauthProvider = PARTNER_PLATFORMS_PROVIDERS[platform];
-    if (oauthProvider) {
-      return startOAuthVerification(params);
-    }
+      // For OAuth based verification
+      const oauthProvider = PARTNER_PLATFORMS_PROVIDERS[platform];
+      if (oauthProvider) {
+        return startOAuthVerification(params);
+      }
 
-    // For code based verification
-    return startCodeVerification(params);
+      // For code based verification
+      return startCodeVerification(params);
+    };
+
+    const result = await startVerification();
+
+    // Queue an index update because verification upserts the searchable platform identifier.
+    // Queued once here rather than at each of the four upserts.
+    waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
+
+    return result;
   });
 
 // Start website verification using TXT record (or auto-verify if email domain matches)

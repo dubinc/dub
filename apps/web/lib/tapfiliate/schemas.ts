@@ -17,6 +17,24 @@ export const tapfiliateImportPayloadSchema = z.object({
   action: tapfiliateImportSteps,
   page: z.number().optional(), // Tapfiliate pagination
   startingAfter: z.string().optional(), // Dub pagination
+  customerSource: z.enum(["customers", "conversions"]).optional(),
+});
+
+// GET /affiliates/
+export const tapfiliateListPartnersInputSchema = z.object({
+  page: z.number(),
+});
+
+// GET /customers/
+export const tapfiliateListCustomersInputSchema = z.object({
+  program_id: z.string(),
+  page: z.number(),
+});
+
+// GET /conversions/
+export const tapfiliateListConversionsInputSchema = z.object({
+  program_id: z.string(),
+  page: z.number(),
 });
 
 export const tapfiliateGroupSchema = z.object({
@@ -46,17 +64,17 @@ export const tapfiliatePartnerSchema = z.object({
     .nullable(),
 });
 
+export const tapfiliateClickSchema = z.object({
+  created_at: z.string(),
+  referrer: z.string().nullable(),
+  landing_page: z.string().nullable(),
+});
+
 export const tapfiliateCustomerSchema = z.object({
   id: z.string(),
   customer_id: z.string().describe("External customer ID."),
   created_at: z.string(),
-  click: z
-    .object({
-      created_at: z.string(),
-      referrer: z.string().nullable(),
-      landing_page: z.string().nullable(),
-    })
-    .nullable(),
+  click: tapfiliateClickSchema.nullable(),
   program: tapfiliateProgramSchema
     .pick({
       id: true,
@@ -80,6 +98,8 @@ export const tapfiliateCommissionSchema = z.object({
 
 export const tapfiliateConversionSchema = z.object({
   id: z.number(),
+  created_at: z.string(),
+  external_id: z.string().nullish(),
   program: tapfiliateProgramSchema
     .pick({
       id: true,
@@ -88,7 +108,14 @@ export const tapfiliateConversionSchema = z.object({
   customer: tapfiliateCustomerSchema
     .pick({
       customer_id: true,
+      affiliate: true,
     })
-    .nullable(),
+    .nullish(),
+  affiliate: tapfiliatePartnerSchema
+    .pick({
+      id: true,
+    })
+    .nullish(),
+  click: tapfiliateClickSchema.nullish(),
   commissions: z.array(tapfiliateCommissionSchema).nullable(),
 });

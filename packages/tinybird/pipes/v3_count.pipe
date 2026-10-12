@@ -319,4 +319,4 @@ FROM
     {% else %} count_clicks
     {% end %}
 
-
+TYPE ENDPOINT

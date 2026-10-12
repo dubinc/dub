@@ -57,7 +57,10 @@ export function PartnerPlatformCard({
             {verified && (
               <Tooltip content="Verified" disableHoverableContent>
                 <div className="shrink-0">
-                  <BadgeCheck2 variant="fill" className="size-3.5 text-green-600" />
+                  <BadgeCheck2
+                    variant="fill"
+                    className="size-3.5 text-green-600"
+                  />
                 </div>
               </Tooltip>
             )}

@@ -36,7 +36,7 @@ export interface RewardfulLink {
 }
 
 export interface RewardfulCustomer {
-  id: string;
+  id: string | null;
   name: string;
   email: string;
   platform: string;

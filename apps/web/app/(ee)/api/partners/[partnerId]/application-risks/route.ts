@@ -1,4 +1,4 @@
-import { getPartnerApplicationRisks } from "@/lib/api/fraud/get-partner-application-risks";
+import { getProgramApplicationRisks } from "@/lib/api/fraud/get-program-application-risks";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withWorkspace } from "@/lib/auth";
@@ -22,7 +22,7 @@ export const GET = withWorkspace(
       },
     });
 
-    const { risksDetected, riskSeverity } = await getPartnerApplicationRisks({
+    const { risksDetected, riskSeverity } = await getProgramApplicationRisks({
       program: { id: programId },
       partner,
     });

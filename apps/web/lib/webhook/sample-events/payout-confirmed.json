@@ -9,9 +9,11 @@
   "periodStart": "2025-10-22T15:49:33.343Z",
   "periodEnd": "2025-10-31T18:29:59.999Z",
   "createdAt": "2025-10-22T15:50:13.661Z",
+  "updatedAt": "2025-10-22T15:50:13.661Z",
   "initiatedAt": "2025-10-22T15:50:13.661Z",
   "paidAt": null,
   "mode": "external",
+  "traceId": null,
   "partner": {
     "id": "cm6v2l38p000zubyl5fly3i7w",
     "name": "Matthew Hayden",

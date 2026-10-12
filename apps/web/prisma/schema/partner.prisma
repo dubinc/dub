@@ -70,7 +70,7 @@ model Partner {
   stripeRecipientId            String?              @unique
   payoutMethodHash             String?
   cryptoWalletAddress          String?
-  tremendousEmail              String?              @unique
+  tremendousEmail              String?
 
   // timestamp fields
   createdAt   DateTime  @default(now())
@@ -83,6 +83,7 @@ model Partner {
   invoiceSettings     Json?
   changeHistoryLog    Json?
   referredByPartnerId String?
+  usersLimit          Int     @default(10)
 
   programs                   ProgramEnrollment[]
   users                      PartnerUser[]
@@ -96,6 +97,7 @@ model Partner {
   messages                   Message[]
   sentMessages               Message[]                          @relation("SenderPartner")
   comments                   PartnerComment[]
+  submittedLeadComments      SubmittedLeadComment[]
   discountCodes              DiscountCode[]
   notificationEmails         NotificationEmail[]
   monthlyTraffic             MonthlyTraffic?
@@ -110,6 +112,7 @@ model Partner {
   partnerRewinds             PartnerRewind[]
   platforms                  PartnerPlatform[]
   referredApplications       ProgramApplicationEvent[]
+  programApplications        ProgramApplication[]
   submittedLeads             SubmittedLead[]
 
   @@index(country)
@@ -119,6 +122,7 @@ model Partner {
   @@index(cryptoWalletAddress)
   @@index(identityVerifiedAt)
   @@index(referredByPartnerId)
+  @@index(tremendousEmail)
   @@fulltext([email, name, companyName]) // For full-text search
 }
 

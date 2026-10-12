@@ -3,7 +3,6 @@ import useCustomers from "@/lib/swr/use-customers";
 import useGroups from "@/lib/swr/use-groups";
 import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import usePartners from "@/lib/swr/use-partners";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
@@ -24,7 +23,6 @@ import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 export function useCommissionFilters() {
-  const { slug } = useWorkspace();
   const { commissionsCount } = useCommissionsCount({ exclude: ["status"] });
   const { searchParamsObj, queryParams } = useRouterStuff();
 
@@ -175,6 +173,7 @@ export function useCommissionFilters() {
       "status",
       "type",
       "payoutId",
+      "bountySubmissionId",
       "groupId",
       "partnerTagId",
     ] as const;
@@ -192,6 +191,7 @@ export function useCommissionFilters() {
     searchParamsObj.status,
     searchParamsObj.type,
     searchParamsObj.payoutId,
+    searchParamsObj.bountySubmissionId,
     searchParamsObj.groupId,
     searchParamsObj.partnerTagId,
   ]);
@@ -253,6 +253,7 @@ export function useCommissionFilters() {
           "partnerId",
           "customerId",
           "payoutId",
+          "bountySubmissionId",
           "groupId",
           "partnerTagId",
           "type",

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { isGenericEmail } from "../is-generic-email";
+import { isGenericEmail } from "../email/is-generic-email";
 import { plain, PlainUser } from "./client";
 import { upsertPlainCustomer } from "./upsert-plain-customer";
 

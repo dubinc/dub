@@ -55,7 +55,7 @@ export function SetWriteKey({
   );
 
   return (
-    <form className="mt-4 flex items-end gap-2" onSubmit={onSubmit}>
+    <form className="flex items-end gap-2" onSubmit={onSubmit}>
       <div className="w-full rounded-lg border border-neutral-200 bg-white">
         <div className="flex items-center gap-x-2 border-b border-neutral-200 px-6 py-4">
           <Lock className="size-4" />

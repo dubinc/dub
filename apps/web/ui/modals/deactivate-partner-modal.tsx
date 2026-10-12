@@ -162,7 +162,7 @@ export function useDeactivatePartnerModal({
         partner={partner}
       />
     );
-  }, [showDeactivatePartnerModal, setShowDeactivatePartnerModal, partner]);
+  }, [showDeactivatePartnerModal, setShowDeactivatePartnerModal]);
 
   return useMemo(
     () => ({

@@ -1,7 +1,9 @@
+import { withAxiom } from "@/lib/axiom/server";
 import { stripe } from "@/lib/stripe";
 import { log } from "@dub/utils";
 import Stripe from "stripe";
 import { logAndRespond } from "../../cron/utils";
+import { chargeDisputeCreated } from "./charge-dispute-created";
 import { chargeFailed } from "./charge-failed";
 import { chargeRefunded } from "./charge-refunded";
 import { chargeSucceeded } from "./charge-succeeded";
@@ -17,6 +19,7 @@ const relevantEvents = new Set([
   "charge.succeeded",
   "charge.failed",
   "charge.refunded",
+  "charge.dispute.created",
   "checkout.session.completed",
   "customer.subscription.created",
   "customer.subscription.updated",
@@ -27,13 +30,15 @@ const relevantEvents = new Set([
 ]);
 
 // POST /api/stripe/webhook – listen to Stripe webhooks
-export const POST = async (req: Request) => {
+export const POST = withAxiom(async (req: Request) => {
   const buf = await req.text();
   const sig = req.headers.get("Stripe-Signature") as string;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   let event: Stripe.Event;
   try {
-    if (!sig || !webhookSecret) return;
+    if (!sig || !webhookSecret) {
+      return logAndRespond("Invalid request", { status: 400 });
+    }
     event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
   } catch (err: any) {
     console.log(`❌ Error message: ${err.message}`);
@@ -60,6 +65,9 @@ export const POST = async (req: Request) => {
         break;
       case "charge.refunded":
         response = await chargeRefunded(event);
+        break;
+      case "charge.dispute.created":
+        response = await chargeDisputeCreated(event);
         break;
       case "checkout.session.completed":
         response = await checkoutSessionCompleted(event);
@@ -94,4 +102,4 @@ export const POST = async (req: Request) => {
   }
 
   return logAndRespond(`[${event.type}]: ${response}`);
-};
+});

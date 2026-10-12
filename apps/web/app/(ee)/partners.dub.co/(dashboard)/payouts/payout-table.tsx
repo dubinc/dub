@@ -1,12 +1,15 @@
 "use client";
 
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
+import { TestPayoutBadge } from "@/lib/sandbox/components/test-payout-badge";
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutRowMenu } from "@/ui/partners/payout-row-menu";
 import { PayoutStatusBadgePartner } from "@/ui/partners/payout-status-badge-partner";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
   AnimatedSizeContainer,
   Filter,
@@ -31,11 +34,18 @@ import {
   formatPeriod,
 } from "@dub/utils";
 import { PayoutStatus } from "@prisma/client";
+import { Cell } from "@tanstack/react-table";
 import { addBusinessDays } from "date-fns";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PayoutDetailsSheet } from "./partner-payout-details-sheet";
 import { usePayoutFilters } from "./use-payout-filters";
+
+type ColumnMeta = {
+  filterParams?: (
+    args: Pick<Cell<PartnerPayoutResponse, any>, "row">,
+  ) => Record<string, any>;
+};
 
 export function PayoutTable() {
   const { queryParams, searchParams } = useRouterStuff();
@@ -43,7 +53,7 @@ export function PayoutTable() {
   const sortBy = searchParams.get("sortBy") || "initiatedAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const { payouts, error, loading } = usePartnerPayouts();
+  const { payouts, error, isLoading } = usePartnerPayouts();
   const { payoutsCount } = usePartnerPayoutsCount();
 
   const [detailsSheetState, setDetailsSheetState] = useState<
@@ -65,8 +75,6 @@ export function PayoutTable() {
 
   const table = useTable({
     data: payouts || [],
-    loading,
-    error: error ? "Failed to load payouts" : undefined,
     columns: [
       {
         id: "periodEnd",
@@ -74,6 +82,7 @@ export function PayoutTable() {
         accessorFn: (d) => formatPeriod(d),
       },
       {
+        id: "program",
         header: "Program",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
@@ -86,10 +95,17 @@ export function PayoutTable() {
               className="size-4 rounded-full"
             />
             <span>{row.original.program.name}</span>
+            <TestPayoutBadge environment={row.original.program.environment} />
           </div>
         ),
+        meta: {
+          filterParams: ({ row }) => ({
+            programId: row.original.program.id,
+          }),
+        },
       },
       {
+        id: "status",
         header: "Status",
         cell: ({ row }) => (
           <PayoutStatusBadgePartner
@@ -97,6 +113,11 @@ export function PayoutTable() {
             program={row.original.program}
           />
         ),
+        meta: {
+          filterParams: ({ row }) => ({
+            status: row.original.status,
+          }),
+        },
       },
       {
         id: "initiatedAt",
@@ -213,8 +234,19 @@ export function PayoutTable() {
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
+
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
+    },
     resourceName: (p) => `payout${p ? "s" : ""}`,
     rowCount: payoutsCount?.[0]?.count ?? 0,
+    loading: isLoading,
+    error: error ? "Failed to load payouts" : undefined,
   });
 
   return (
@@ -281,6 +313,21 @@ function PartnerPayoutFilters() {
 
 function AmountRowItem({ payout }: { payout: PartnerPayoutResponse }) {
   const display = currencyFormatter(payout.amount);
+
+  // for clawback payouts with description
+  if (payout.amount < 0 && payout.description) {
+    return (
+      <Tooltip
+        content={formatCommissionDescriptionTooltip(payout.description, {
+          variant: "partner",
+        })}
+      >
+        <span className="cursor-help truncate text-red-600 underline decoration-dotted underline-offset-2">
+          {display}
+        </span>
+      </Tooltip>
+    );
+  }
 
   if (
     payout.status === PayoutStatus.pending &&

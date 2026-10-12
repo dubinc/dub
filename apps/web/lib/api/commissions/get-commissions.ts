@@ -2,14 +2,15 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { prisma } from "@/lib/prisma";
 import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { parseFilterValue } from "@dub/utils";
-import {
-  CommissionStatus,
-  CommissionType,
-  FraudEventStatus,
-} from "@prisma/client";
+import { CommissionStatus, CommissionType, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
+import { getFraudEventGroupEventIds } from "../fraud/get-fraud-event-group-event-ids";
 import { buildPaginationQuery } from "../pagination";
+import {
+  buildCommissionMetadataWhere,
+  parseCommissionMetadataQuery,
+} from "./metadata-filters";
 
 type CommissionsFilters = Omit<
   z.infer<typeof getCommissionsQuerySchema>,
@@ -17,9 +18,19 @@ type CommissionsFilters = Omit<
 > & {
   type?: string;
   programId: string;
-  isHoldStatus?: boolean;
   fraudEventGroupId?: string;
 };
+
+const commissionIncludes = {
+  customer: true,
+  partner: true,
+  programEnrollment: true,
+  payout: {
+    select: {
+      paidAt: true,
+    },
+  },
+} satisfies Prisma.CommissionInclude;
 
 export async function getCommissions(filters: CommissionsFilters) {
   const {
@@ -30,6 +41,7 @@ export async function getCommissions(filters: CommissionsFilters) {
     type,
     customerId,
     payoutId,
+    bountySubmissionId,
     groupId,
     partnerTagId,
     fraudEventGroupId,
@@ -37,10 +49,28 @@ export async function getCommissions(filters: CommissionsFilters) {
     end,
     interval,
     timezone,
-    isHoldStatus,
     startingAfter,
     endingBefore,
+    query,
   } = filters;
+
+  // Metadata filter
+  const parsedMetadataQuery = parseCommissionMetadataQuery(query);
+  const metadataWhere = buildCommissionMetadataWhere(parsedMetadataQuery);
+
+  // InvoiceId is unique within a program
+  if (invoiceId) {
+    return await prisma.commission.findMany({
+      where: {
+        invoiceId,
+        programId,
+        ...metadataWhere,
+      },
+      include: {
+        ...commissionIncludes,
+      },
+    });
+  }
 
   const paginationQuery = buildPaginationQuery(filters);
 
@@ -66,24 +96,13 @@ export async function getCommissions(filters: CommissionsFilters) {
     }
   }
 
-  // Resolve fraudEventGroupId to eventIds
-  let eventIds: string[] | undefined;
-
-  if (fraudEventGroupId) {
-    const fraudEvents = await prisma.fraudEvent.findMany({
-      where: {
+  // Filter the commissions based on the risk event group
+  const eventIds = fraudEventGroupId
+    ? await getFraudEventGroupEventIds({
         fraudEventGroupId,
-        eventId: {
-          not: null,
-        },
-      },
-      select: {
-        eventId: true,
-      },
-    });
-
-    eventIds = fraudEvents.map((e) => e.eventId!);
-  }
+        programId,
+      })
+    : undefined;
 
   const { startDate, endDate } = getStartEndDates({
     interval,
@@ -119,19 +138,17 @@ export async function getCommissions(filters: CommissionsFilters) {
         }
       : null;
 
-  const statusFilter = isHoldStatus
-    ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
-    : status
-      ? status
-      : customerId || partnerFilter || typeFilter
-        ? undefined
-        : {
-            notIn: [
-              CommissionStatus.duplicate,
-              CommissionStatus.fraud,
-              CommissionStatus.canceled,
-            ],
-          };
+  const statusFilter = status
+    ? status
+    : type || customerId || payoutId || bountySubmissionId || partnerId
+      ? undefined
+      : {
+          notIn: [
+            CommissionStatus.duplicate,
+            CommissionStatus.fraud,
+            CommissionStatus.canceled,
+          ],
+        };
 
   const programEnrollmentFilter = {
     ...(groupFilter && {
@@ -146,58 +163,46 @@ export async function getCommissions(filters: CommissionsFilters) {
           ? { none: { partnerTagId: { in: partnerTagFilter.values } } }
           : { some: { partnerTagId: { in: partnerTagFilter.values } } },
     }),
-    ...(isHoldStatus && {
-      fraudEventGroups: {
-        some: {
-          status: FraudEventStatus.pending,
-        },
-      },
-    }),
   };
 
   return await prisma.commission.findMany({
-    where: invoiceId
-      ? {
-          invoiceId,
-          programId,
-        }
-      : {
-          earnings: {
-            not: 0,
-          },
-          programId,
-          ...(partnerFilter && {
-            partnerId:
-              partnerFilter.sqlOperator === "NOT IN"
-                ? { notIn: partnerFilter.values }
-                : { in: partnerFilter.values },
-          }),
-          status: statusFilter,
-          ...(typeFilter && {
-            type:
-              typeFilter.sqlOperator === "NOT IN"
-                ? { notIn: typeFilter.values }
-                : { in: typeFilter.values },
-          }),
-          customerId,
-          payoutId,
-          ...(eventIds && {
-            eventId: {
-              in: eventIds,
-            },
-          }),
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
-          ...(Object.keys(programEnrollmentFilter).length > 0 && {
-            programEnrollment: programEnrollmentFilter,
-          }),
+    where: {
+      earnings: {
+        not: 0,
+      },
+      programId,
+      ...(partnerFilter && {
+        partnerId:
+          partnerFilter.sqlOperator === "NOT IN"
+            ? { notIn: partnerFilter.values }
+            : { in: partnerFilter.values },
+      }),
+      status: statusFilter,
+      ...(typeFilter && {
+        type:
+          typeFilter.sqlOperator === "NOT IN"
+            ? { notIn: typeFilter.values }
+            : { in: typeFilter.values },
+      }),
+      customerId,
+      payoutId,
+      bountySubmissionId,
+      ...(eventIds && {
+        eventId: {
+          in: eventIds,
         },
+      }),
+      createdAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+      ...(Object.keys(programEnrollmentFilter).length > 0 && {
+        programEnrollment: programEnrollmentFilter,
+      }),
+      ...metadataWhere,
+    },
     include: {
-      customer: true,
-      partner: true,
-      programEnrollment: true,
+      ...commissionIncludes,
     },
     ...paginationQuery,
   });

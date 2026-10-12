@@ -1,4 +1,7 @@
-import { base64ImageSchema } from "@/lib/zod/schemas/images";
+import {
+  base64ImageSchema,
+  invalidImageFormatMessage,
+} from "@/lib/zod/schemas/images";
 import { describe, expect, it } from "vitest";
 
 describe("base64ImageSchema", () => {
@@ -10,20 +13,29 @@ describe("base64ImageSchema", () => {
     ).resolves.not.toThrow();
   });
 
+  it("should validate a correct base64 AVIF image", async () => {
+    // ISO BMFF ftyp box with the avif brand — enough for file-type detection
+    const avifHeader = Buffer.alloc(64);
+    avifHeader.writeUInt32BE(0x1c, 0);
+    avifHeader.write("ftypavif", 4);
+    const validAvifImage = `data:image/avif;base64,${avifHeader.toString("base64")}`;
+    await expect(
+      base64ImageSchema.parseAsync(validAvifImage),
+    ).resolves.not.toThrow();
+  });
+
   it("should reject an invalid image type", async () => {
     const invalidImageType =
       "data:image/invalid;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
     await expect(
       base64ImageSchema.parseAsync(invalidImageType),
-    ).rejects.toThrow(
-      "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
-    );
+    ).rejects.toThrow(invalidImageFormatMessage);
   });
 
   it("should reject malformed base64 data", async () => {
     const malformedBase64 = "data:image/png;base64,invalid-base64-data";
     await expect(base64ImageSchema.parseAsync(malformedBase64)).rejects.toThrow(
-      "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
+      invalidImageFormatMessage,
     );
   });
 
@@ -31,7 +43,7 @@ describe("base64ImageSchema", () => {
     const noPrefix =
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
     await expect(base64ImageSchema.parseAsync(noPrefix)).rejects.toThrow(
-      "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
+      invalidImageFormatMessage,
     );
   });
 
@@ -41,7 +53,7 @@ describe("base64ImageSchema", () => {
       "data:image/png;base64," +
       Buffer.from("This is not an image").toString("base64");
     await expect(base64ImageSchema.parseAsync(textContent)).rejects.toThrow(
-      "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
+      invalidImageFormatMessage,
     );
   });
 
@@ -70,7 +82,7 @@ describe("base64ImageSchema", () => {
         ).toString("base64");
 
       await expect(base64ImageSchema.parseAsync(xssPayload)).rejects.toThrow(
-        "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
+        invalidImageFormatMessage,
       );
     });
 
@@ -100,9 +112,7 @@ describe("base64ImageSchema", () => {
 
       await expect(
         base64ImageSchema.parseAsync(phishingPayload),
-      ).rejects.toThrow(
-        "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
-      );
+      ).rejects.toThrow(invalidImageFormatMessage);
     });
   });
 });

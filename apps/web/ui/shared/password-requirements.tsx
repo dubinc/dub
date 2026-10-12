@@ -58,7 +58,8 @@ export const PasswordRequirements = memo(function PasswordRequirements({
               checked ? "text-green-600" : errors[field] && "text-red-600",
             )}
           >
-            <CircleCheck variant="fill"
+            <CircleCheck
+              variant="fill"
               className={cn(
                 "size-2.5 transition-opacity",
                 checked

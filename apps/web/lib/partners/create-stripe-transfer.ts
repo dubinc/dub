@@ -16,8 +16,9 @@ import {
   log,
   pluralize,
 } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { Prisma, WorkspaceEnvironment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { PARTNER_IDS_TO_LOG_PAYOUTS_FOR } from "../constants/misc";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
 import { markPayoutsAsProcessed } from "../payouts/mark-payouts-as-processed";
@@ -45,13 +46,6 @@ export const createStripeTransfer = async ({
     },
   });
 
-  // should never happen, but just in case
-  if (!partner.stripeConnectId || !partner.payoutsEnabledAt) {
-    throw new Error(
-      `Partner ${partner.email} does not have an active payout account`,
-    );
-  }
-
   const commonInclude: Prisma.PayoutInclude = {
     program: {
       select: {
@@ -71,6 +65,11 @@ export const createStripeTransfer = async ({
           status: "processed",
           stripeTransferId: null,
           method: "connect",
+          program: {
+            workspace: {
+              environment: WorkspaceEnvironment.production,
+            },
+          },
         },
         orderBy: {
           id: "asc",
@@ -85,6 +84,11 @@ export const createStripeTransfer = async ({
               invoiceId,
               status: "processing",
               method: "connect",
+              program: {
+                workspace: {
+                  environment: WorkspaceEnvironment.production,
+                },
+              },
             },
             orderBy: {
               id: "asc",
@@ -105,51 +109,14 @@ export const createStripeTransfer = async ({
     return;
   }
 
-  // total transferable amount is the sum of all previously processed payouts (but not sent yet) and the current invoice payouts
-  const totalTransferableAmount = allPayouts.reduce(
-    (acc, payout) => acc + payout.amount,
-    0,
-  );
-
-  if (totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
-    const message = `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`;
-
-    // For force-withdrawal action, throw so the error surfaces back to partners.
-    // Otherwise (e.g. cron-driven payouts) just log and skip silently.
-    if (forceWithdrawal) {
-      throw new Error(message);
-    } else {
-      console.warn(message);
-      return;
-    }
+  // should never happen, but just in case
+  if (!partner.stripeConnectId || !partner.payoutsEnabledAt) {
+    await markPayoutsAsProcessed(currentInvoicePayouts);
+    console.warn(
+      `Partner ${partner.email} does not have an active payout account.`,
+    );
+    return;
   }
-
-  let withdrawalFee = 0;
-
-  // If the total transferable amount is less than the minimum withdrawal amount
-  if (totalTransferableAmount < MIN_WITHDRAWAL_AMOUNT_CENTS) {
-    // if we're forcing a withdrawal, we need to charge a withdrawal fee
-    if (forceWithdrawal) {
-      withdrawalFee = BELOW_MIN_WITHDRAWAL_FEE_CENTS;
-      // else, we will just update current invoice payouts to "processed" status
-    } else {
-      await markPayoutsAsProcessed(currentInvoicePayouts);
-
-      console.log(
-        `Total processed payouts (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.id} are below ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS)}, skipping...`,
-      );
-
-      // skip creating a transfer
-      return;
-    }
-  }
-
-  // Minus the withdrawal fee from the total amount
-  const finalTransferableAmount = totalTransferableAmount - withdrawalFee;
-
-  const allPayoutsProgramNames = [
-    ...new Set(allPayouts.map((p) => p.program.name)), // deduplicate program names
-  ];
 
   const stripeConnectAccount = await stripe.accounts.retrieve(
     partner.stripeConnectId,
@@ -174,10 +141,65 @@ export const createStripeTransfer = async ({
 
     await markPayoutsAsProcessed(currentInvoicePayouts);
 
+    const message = `Partner's Stripe Express account (${partner.stripeConnectId}) is not configured to receive transfers`;
+
+    if (forceWithdrawal) {
+      throw new Error(message);
+    } else {
+      console.warn(message);
+      return;
+    }
+  }
+
+  // total transferable amount is the sum of all previously processed payouts (but not sent yet) and the current invoice payouts
+  const totalTransferableAmount = allPayouts.reduce(
+    (acc, payout) => acc + payout.amount,
+    0,
+  );
+
+  // For force-withdrawals, if amount is less than the minimum force withdrawal amount, throw an error
+  if (
+    forceWithdrawal &&
+    totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS
+  ) {
     throw new Error(
-      `Partner's Stripe Express account (${partner.stripeConnectId}) is not configured to receive transfers`,
+      `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`,
     );
   }
+
+  let withdrawalFee = 0;
+
+  // If the total transferable amount is less than the minimum withdrawal amount
+  if (totalTransferableAmount < MIN_WITHDRAWAL_AMOUNT_CENTS) {
+    // if we're forcing a withdrawal, we need to charge a withdrawal fee
+    if (forceWithdrawal) {
+      withdrawalFee = BELOW_MIN_WITHDRAWAL_FEE_CENTS;
+      // else, we will just update current invoice payouts to "processed" status
+    } else {
+      await markPayoutsAsProcessed(currentInvoicePayouts);
+
+      const message = `Total processed payouts (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.id} are below ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS)}, skipping...`;
+      console.log(message);
+
+      if (PARTNER_IDS_TO_LOG_PAYOUTS_FOR.includes(partner.id)) {
+        await log({
+          message,
+          type: "alerts",
+          mention: true,
+        });
+      }
+
+      // skip creating a transfer
+      return;
+    }
+  }
+
+  // Minus the withdrawal fee from the total amount
+  const finalTransferableAmount = totalTransferableAmount - withdrawalFee;
+
+  const allPayoutsProgramNames = [
+    ...new Set(allPayouts.map((p) => p.program.name)), // deduplicate program names
+  ];
 
   // will be used for transfer_group
   const finalPayoutInvoiceId = allPayouts[allPayouts.length - 1].invoiceId;
@@ -210,12 +232,22 @@ export const createStripeTransfer = async ({
     },
   );
 
-  console.log(
-    `Transfer of ${currencyFormatter(finalTransferableAmount)} (${transfer.id}) created for partner ${partner.id} for ${pluralize(
-      "payout",
-      allPayouts.length,
-    )} ${allPayouts.map((p) => p.id).join(", ")}`,
-  );
+  const message = `Transfer of ${currencyFormatter(finalTransferableAmount)} (${transfer.id}) created for partner ${partner.id} for ${pluralize(
+    "payout",
+    allPayouts.length,
+  )} ${allPayouts.map((p) => p.id).join(", ")}`;
+
+  console.log(message);
+
+  if (PARTNER_IDS_TO_LOG_PAYOUTS_FOR.includes(partner.id)) {
+    waitUntil(
+      log({
+        message,
+        type: "alerts",
+        mention: true,
+      }),
+    );
+  }
 
   const payoutIds = allPayouts.map((p) => p.id);
 

@@ -1,15 +1,24 @@
 "use client";
 
-import { consolidateScopes, getScopesForRole } from "@/lib/api/tokens/scopes";
+import {
+  canInstallOAuthApp,
+  UNVERIFIED_APP_INSTALL_MESSAGE,
+} from "@/lib/api/oauth/can-install-oauth-app";
 import { clientAccessCheck } from "@/lib/client-access-check";
-import useWorkspaces from "@/lib/swr/use-workspaces";
+import { WorkspaceProps } from "@/lib/types";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { WorkspaceSelector } from "@/ui/workspaces/workspace-selector";
 import { Button } from "@dub/ui";
+import { Integration } from "@prisma/client";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import * as z from "zod/v4";
+import { useAuthorizeWorkspace } from "./authorize-workspace-context";
+
+interface AuthorizeFormProps extends z.infer<typeof authorizeRequestSchema> {
+  integration: Pick<Integration, "verified" | "projectId" | "userId">;
+}
 
 export const AuthorizeForm = ({
   client_id,
@@ -19,67 +28,26 @@ export const AuthorizeForm = ({
   scope,
   code_challenge,
   code_challenge_method,
-}: z.infer<typeof authorizeRequestSchema>) => {
+  integration,
+}: AuthorizeFormProps) => {
   const { data: session } = useSession();
-  const { workspaces, loading: workspacesLoading } = useWorkspaces();
   const [submitting, setSubmitting] = useState(false);
-  const [selectedWorkspace, setSelectedWorkspace] = useState<string | null>(
-    null,
-  );
+  const {
+    selectedWorkspace,
+    setSelectedWorkspace,
+    workspaces,
+    workspacesLoading,
+  } = useAuthorizeWorkspace();
 
-  useEffect(() => {
-    setSelectedWorkspace(session?.user?.["defaultWorkspace"] || null);
-  }, [session]);
+  const userId = session?.user?.id;
 
-  const { permissionsError, missingScopes, workspaceUnresolvedMessage } =
-    useMemo(() => {
-      if (!selectedWorkspace) {
-        return {
-          permissionsError: undefined,
-          missingScopes: [] as string[],
-          workspaceUnresolvedMessage: undefined,
-        };
-      }
-
-      if (workspacesLoading || workspaces === undefined) {
-        return {
-          permissionsError: undefined,
-          missingScopes: [] as string[],
-          workspaceUnresolvedMessage: "Loading workspaces...",
-        };
-      }
-
-      const workspace = workspaces.find(
-        (workspace) => workspace.slug === selectedWorkspace,
-      );
-
-      if (!workspace) {
-        return {
-          permissionsError: undefined,
-          missingScopes: [] as string[],
-          workspaceUnresolvedMessage: "Please select a valid workspace",
-        };
-      }
-
-      const userRole = workspace.users[0].role;
-
-      const permissionsError = clientAccessCheck({
-        action: "integrations.write",
-        role: userRole,
-        customPermissionDescription: "install this integration",
-      }).error;
-
-      const scopesForRole = getScopesForRole(userRole);
-      const missingScopes = consolidateScopes(scope).filter(
-        (scope) => !scopesForRole.includes(scope) && scope !== "user.read",
-      );
-
-      return {
-        permissionsError,
-        missingScopes,
-        workspaceUnresolvedMessage: undefined,
-      };
-    }, [workspaces, workspacesLoading, selectedWorkspace, scope]);
+  const authorizeDisabledTooltip = getAuthorizeError({
+    selectedWorkspace,
+    workspaces,
+    workspacesLoading,
+    integration,
+    userId,
+  });
 
   // Decline the request
   const onDecline = () => {
@@ -100,19 +68,10 @@ export const AuthorizeForm = ({
       return;
     }
 
-    const workspaceId = workspaces?.find(
-      (workspace) => workspace.slug === selectedWorkspace,
-    )?.id;
-
-    if (!workspaceId) {
-      toast.error("Please select a workspace to continue");
-      return;
-    }
-
     setSubmitting(true);
 
     const response = await fetch(
-      `/api/oauth/authorize?workspaceId=${workspaceId}`,
+      `/api/oauth/authorize?workspaceId=${selectedWorkspace.id}`,
       {
         method: "POST",
         body: JSON.stringify(Object.fromEntries(new FormData(e.currentTarget))),
@@ -152,8 +111,12 @@ export const AuthorizeForm = ({
       </p>
       <div className="max-w-md py-2">
         <WorkspaceSelector
-          selectedWorkspace={selectedWorkspace || ""}
-          setSelectedWorkspace={setSelectedWorkspace}
+          selectedWorkspace={selectedWorkspace?.slug || ""}
+          setSelectedWorkspace={(slug) => {
+            setSelectedWorkspace(
+              workspaces?.find((workspace) => workspace.slug === slug) ?? null,
+            );
+          }}
         />
       </div>
       <div className="mt-4 flex justify-between gap-4">
@@ -168,23 +131,50 @@ export const AuthorizeForm = ({
           text="Authorize"
           type="submit"
           loading={submitting}
-          disabled={
-            !selectedWorkspace ||
-            !!workspaceUnresolvedMessage ||
-            !!permissionsError ||
-            missingScopes.length > 0
-          }
-          disabledTooltip={
-            !selectedWorkspace
-              ? "Please select a workspace to continue"
-              : workspaceUnresolvedMessage ||
-                permissionsError ||
-                (missingScopes.length > 0
-                  ? "You don't have the permission to install this integration"
-                  : undefined)
-          }
+          disabledTooltip={authorizeDisabledTooltip}
         />
       </div>
     </form>
   );
+};
+
+const getAuthorizeError = ({
+  selectedWorkspace,
+  workspaces,
+  workspacesLoading,
+  integration,
+  userId,
+}: {
+  selectedWorkspace: WorkspaceProps | null;
+  workspaces: WorkspaceProps[] | undefined;
+  workspacesLoading: boolean;
+  integration: AuthorizeFormProps["integration"];
+  userId: string | undefined;
+}) => {
+  if (!selectedWorkspace) {
+    return "Please select a workspace to continue";
+  }
+
+  if (workspacesLoading || workspaces === undefined) {
+    return "Loading workspaces...";
+  }
+
+  if (
+    !userId ||
+    !canInstallOAuthApp({ integration, workspace: selectedWorkspace, userId })
+  ) {
+    return UNVERIFIED_APP_INSTALL_MESSAGE;
+  }
+
+  const { error: permissionsError } = clientAccessCheck({
+    action: "integrations.write",
+    role: selectedWorkspace.users[0].role,
+    customPermissionDescription: "install this integration",
+  });
+
+  if (typeof permissionsError === "string") {
+    return permissionsError;
+  }
+
+  return undefined;
 };

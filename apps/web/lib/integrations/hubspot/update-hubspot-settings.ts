@@ -15,8 +15,26 @@ export const updateHubSpotSettingsAction = authActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { leadTriggerEvent, leadLifecycleStageId, closedWonDealStageId } =
-      parsedInput;
+    const {
+      leadTriggerEvent,
+      leadLifecycleStageId,
+      leadDealStageId,
+      closedWonDealStageId,
+    } = parsedInput;
+
+    if (leadTriggerEvent === "dealStageReached") {
+      if (!leadDealStageId) {
+        throw new Error("Lead deal stage ID is required.");
+      }
+
+      if (
+        leadDealStageId.toLowerCase() === closedWonDealStageId?.toLowerCase()
+      ) {
+        throw new Error(
+          "Lead deal stage ID must be different from the closed won deal stage ID.",
+        );
+      }
+    }
 
     const installedIntegration = await prisma.installedIntegration.findFirst({
       where: {
@@ -41,7 +59,12 @@ export const updateHubSpotSettingsAction = authActionClient
         settings: {
           ...current,
           leadTriggerEvent,
-          leadLifecycleStageId,
+          leadLifecycleStageId:
+            leadTriggerEvent === "lifecycleStageReached"
+              ? leadLifecycleStageId
+              : null,
+          leadDealStageId:
+            leadTriggerEvent === "dealStageReached" ? leadDealStageId : null,
           closedWonDealStageId,
         },
       },

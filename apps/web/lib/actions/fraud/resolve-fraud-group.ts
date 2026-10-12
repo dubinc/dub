@@ -50,6 +50,7 @@ export const resolveFraudGroupAction = authActionClient
       },
       userId: user.id,
       ...(resolutionReason && { resolutionReason }),
+      releaseHoldCommissions: true,
     });
 
     // Add the resolution reason as a comment to the partner

@@ -1,32 +1,32 @@
 import { DubApiError } from "@/lib/api/errors";
-import { prisma } from "@/lib/prisma";
-import { storage } from "@/lib/storage";
-import { ratelimit } from "@/lib/upstash";
+import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
+import { signedUploadInputSchema } from "@/lib/storage/schemas";
+import { validateSignedUpload } from "@/lib/storage/validate-signed-upload";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
-import { nanoid, R2_URL } from "@dub/utils";
-import { ProgramEnrollment } from "@prisma/client";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import { nanoid } from "@dub/utils";
+import { ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
+import * as z from "zod/v4";
+import {
+  bountyEligibilityIncludes,
+  canPartnerSubmitBounty,
+} from "./bounty-availability";
+import { getBountyOrThrow } from "./get-bounty-or-throw";
 
-const MAX_ATTEMPTS = 25;
-const CACHE_KEY_PREFIX = "bounty:submission:file:upload";
-
-type GetBountySubmissionUploadUrlParams = {
+type GetBountySubmissionUploadUrlParams = z.infer<
+  typeof signedUploadInputSchema
+> & {
   bountyId: string;
   fileName: string;
-  contentType: string;
-  contentLength: number;
   programEnrollment: Pick<
     ProgramEnrollment,
-    "programId" | "partnerId" | "groupId"
-  >;
+    "programId" | "partnerId" | "groupId" | "status" | "createdAt"
+  > & {
+    programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
+  };
 };
-
-const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_IMAGE_CONTENT_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/svg+xml",
-]);
 
 export async function getBountySubmissionUploadUrl({
   bountyId,
@@ -35,7 +35,14 @@ export async function getBountySubmissionUploadUrl({
   contentLength,
   programEnrollment,
 }: GetBountySubmissionUploadUrlParams) {
-  const { programId, partnerId } = programEnrollment;
+  const { programId, partnerId, status } = programEnrollment;
+
+  if (!ACTIVE_ENROLLMENT_STATUSES.includes(status)) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You are not allowed to submit a bounty for this program.",
+    });
+  }
 
   if (!fileName.trim()) {
     throw new DubApiError({
@@ -44,103 +51,48 @@ export async function getBountySubmissionUploadUrl({
     });
   }
 
-  if (!ALLOWED_IMAGE_CONTENT_TYPES.has(contentType)) {
-    throw new DubApiError({
-      code: "unprocessable_entity",
-      message: "Unsupported file type. Please upload SVG, JPG, PNG, or WEBP.",
-    });
-  }
+  validateSignedUpload({
+    contentLength,
+    contentType,
+    policy: "bountySubmissionImages",
+  });
 
-  if (
-    !Number.isInteger(contentLength) ||
-    contentLength <= 0 ||
-    contentLength > MAX_UPLOAD_SIZE_BYTES
-  ) {
-    throw new DubApiError({
-      code: "unprocessable_entity",
-      message: "File size exceeds maximum of 5MB.",
-    });
-  }
+  await assertRateLimit({
+    policy: RATELIMIT_POLICIES.bountySubmissionUpload,
+    identifier: [bountyId, partnerId],
+  });
 
-  const { success } = await ratelimit(MAX_ATTEMPTS, "24 h").limit(
-    `${CACHE_KEY_PREFIX}:${bountyId}:${partnerId}`,
-  );
-
-  if (!success) {
-    throw new DubApiError({
-      code: "rate_limit_exceeded",
-      message:
-        "You've reached the maximum number of attempts to upload a file for this bounty.",
-    });
-  }
-
-  const bounty = await prisma.bounty.findUniqueOrThrow({
-    where: {
-      id: bountyId,
-    },
-    select: {
-      programId: true,
-      type: true,
-      startsAt: true,
-      endsAt: true,
-      archivedAt: true,
-      submissionRequirements: true,
-      groups: {
+  const bounty = await getBountyOrThrow({
+    bountyId,
+    programId,
+    include: {
+      ...bountyEligibilityIncludes,
+      program: {
         select: {
-          groupId: true,
+          id: true,
+          defaultGroupId: true,
         },
       },
     },
   });
 
-  if (bounty.programId !== programId) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "This bounty is not for this program.",
-    });
-  }
-
-  if (bounty.groups.length > 0) {
-    const isInGroup = bounty.groups.find(
-      ({ groupId }) => groupId === programEnrollment.groupId,
-    );
-
-    if (!isInGroup) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "You are not allowed to submit this bounty.",
-      });
-    }
-  }
-
-  // Validate the bounty dates
-  const now = new Date();
-
-  if (bounty.startsAt && bounty.startsAt > now) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "This bounty is not yet available.",
-    });
-  }
-
-  if (bounty.endsAt && bounty.endsAt < now) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "This bounty is no longer available.",
-    });
-  }
-
-  if (bounty.archivedAt) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "This bounty is archived.",
-    });
-  }
-
   if (bounty.type === "performance") {
     throw new DubApiError({
       code: "forbidden",
       message: "You are not allowed to submit a performance bounty.",
+    });
+  }
+
+  const canSubmitBounty = canPartnerSubmitBounty({
+    program: bounty.program,
+    bounty,
+    programEnrollment,
+  });
+
+  if (!canSubmitBounty) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Bounty not found.",
     });
   }
 
@@ -160,18 +112,21 @@ export async function getBountySubmissionUploadUrl({
   }
 
   try {
-    const key = `programs/${programId}/bounties/${bountyId}/submissions/${partnerId}/${nanoid(7)}`;
-    const signedUrl = await storage.getSignedUploadUrl({
-      key,
-      contentLength,
+    const { signedUrl, destinationUrl } = await createSignedUploadUrl({
+      key: `programs/${programId}/bounties/${bountyId}/submissions/${partnerId}/${nanoid(10)}`,
       contentType,
+      contentLength,
     });
 
     return {
       signedUrl,
-      destinationUrl: `${R2_URL}/${key}`,
+      destinationUrl,
     };
   } catch (e) {
+    if (e instanceof DubApiError) {
+      throw e;
+    }
+
     throw new DubApiError({
       code: "internal_server_error",
       message: "Failed to get signed URL for upload.",

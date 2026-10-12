@@ -136,7 +136,7 @@ export function useWorkspaceUserRoleModal({
         role={role}
       />
     );
-  }, [showWorkspaceUserRoleModal, setShowWorkspaceUserRoleModal, user, role]);
+  }, [showWorkspaceUserRoleModal, setShowWorkspaceUserRoleModal]);
 
   return useMemo(
     () => ({

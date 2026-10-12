@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getPlanAndTierFromPriceId, TRIAL_LIMITS } from "@dub/utils";
+import { TRIAL_LIMITS } from "@dub/utils";
 import { differenceInHours } from "date-fns";
 import Stripe from "stripe";
 import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
@@ -10,12 +10,6 @@ export async function customerSubscriptionUpdated(
 ) {
   const updatedSubscription = event.data.object;
   const priceId = updatedSubscription.items.data[0].price.id;
-
-  const { plan } = getPlanAndTierFromPriceId({ priceId });
-
-  if (!plan) {
-    return `Invalid price ID in customer.subscription.updated event: ${priceId}`;
-  }
 
   if (
     ![

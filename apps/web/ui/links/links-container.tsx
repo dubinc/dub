@@ -18,6 +18,7 @@ import {
 } from "react";
 import { PageWidthWrapper } from "../layout/page-width-wrapper";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
+import { Callout } from "../shared/callout";
 import { LinkCard } from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
 import { LinkSelectionProvider } from "./link-selection-provider";
@@ -108,9 +109,9 @@ function LinksList({
     <LinksListContext.Provider value={{ openMenuLinkId, setOpenMenuLinkId }}>
       <LinkSelectionProvider links={links}>
         {error ? (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <Callout variant="error" size={2}>
             {errorMessage}
-          </div>
+          </Callout>
         ) : !links || links.length ? (
           // Cards
           <CardList variant={compact ? "compact" : "loose"} loading={loading}>

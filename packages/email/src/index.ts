@@ -54,7 +54,9 @@ export const sendBatchEmail = async (
     );
 
     return {
-      data: null,
+      data: {
+        data: emails.map(() => ({ id: crypto.randomUUID() })),
+      },
       error: null,
     };
   }

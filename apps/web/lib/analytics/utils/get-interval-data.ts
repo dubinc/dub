@@ -15,7 +15,7 @@ const INTERVAL_DATA: Record<
   ({ timezone }: { timezone?: string }) => {
     startDate: TZDate;
     endDate: TZDate;
-    granularity: "minute" | "hour" | "day" | "month";
+    granularity: "hour" | "day" | "month";
   }
 > = {
   "24h": ({ timezone }) => ({

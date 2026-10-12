@@ -323,4 +323,4 @@ FROM
     {% else %} click_events
     {% end %}
 
-
+TYPE ENDPOINT

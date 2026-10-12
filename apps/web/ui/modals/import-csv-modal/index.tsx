@@ -12,7 +12,7 @@ import {
 } from "@dub/ui";
 import { TableIcon } from "@dub/ui/icons";
 import { ArrowRight } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -31,6 +31,7 @@ import {
 } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { useImportModalParam } from "../use-import-modal-param";
 import { FieldMapping } from "./field-mapping";
 import { SelectFile } from "./select-file";
 
@@ -97,15 +98,9 @@ function ImportCsvModal({
   const router = useRouter();
   const { slug } = useParams() as { slug?: string };
   const { queryParams } = useRouterStuff();
-  const searchParams = useSearchParams();
   const { id: workspaceId } = useWorkspace();
 
   const { folderId } = useCurrentFolderId();
-
-  useEffect(
-    () => setShowImportCsvModal(searchParams?.get("import") === "csv"),
-    [searchParams],
-  );
 
   const {
     control,
@@ -270,7 +265,8 @@ function ImportCsvModal({
 }
 
 export function useImportCsvModal() {
-  const [showImportCsvModal, setShowImportCsvModal] = useState(false);
+  const [showImportCsvModal, setShowImportCsvModal] =
+    useImportModalParam("csv");
 
   const ImportCsvModalCallback = useCallback(() => {
     return (

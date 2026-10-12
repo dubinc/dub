@@ -2,18 +2,18 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { prisma } from "@/lib/prisma";
 import { getCommissionsCountQuerySchema } from "@/lib/zod/schemas/commissions";
 import { parseFilterValue } from "@dub/utils";
-import {
-  CommissionStatus,
-  CommissionType,
-  FraudEventStatus,
-} from "@prisma/client";
+import { CommissionStatus, CommissionType } from "@prisma/client";
 import * as z from "zod/v4";
+import { getFraudEventGroupEventIds } from "../fraud/get-fraud-event-group-event-ids";
+import {
+  buildCommissionMetadataWhere,
+  parseCommissionMetadataQuery,
+} from "./metadata-filters";
 
 type CommissionsCountFilters = z.infer<
   typeof getCommissionsCountQuerySchema
 > & {
   programId: string;
-  isHoldStatus?: boolean;
   fraudEventGroupId?: string;
 };
 
@@ -23,6 +23,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     type,
     partnerId,
     payoutId,
+    bountySubmissionId,
     customerId,
     groupId,
     partnerTagId,
@@ -32,27 +33,16 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     interval,
     timezone,
     programId,
-    isHoldStatus,
+    query,
   } = filters;
 
-  // Resolve fraudEventGroupId to eventIds
-  let eventIds: string[] | undefined;
-
-  if (fraudEventGroupId) {
-    const fraudEvents = await prisma.fraudEvent.findMany({
-      where: {
+  // Filter the commissions based on the risk event group
+  const eventIds = fraudEventGroupId
+    ? await getFraudEventGroupEventIds({
         fraudEventGroupId,
-        eventId: {
-          not: null,
-        },
-      },
-      select: {
-        eventId: true,
-      },
-    });
-
-    eventIds = fraudEvents.map((e) => e.eventId!);
-  }
+        programId,
+      })
+    : undefined;
 
   const { startDate, endDate } = getStartEndDates({
     interval,
@@ -61,18 +51,20 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     timezone,
   });
 
-  const statusFilter = isHoldStatus
-    ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
-    : status ?? {
-        notIn: [
-          CommissionStatus.duplicate,
-          CommissionStatus.fraud,
-          CommissionStatus.canceled,
-        ],
-      };
-
   const groupFilter = parseFilterValue(groupId);
   const partnerTagFilter = parseFilterValue(partnerTagId);
+
+  const statusFilter = status
+    ? status
+    : type || customerId || payoutId || bountySubmissionId || partnerId
+      ? undefined
+      : {
+          notIn: [
+            CommissionStatus.duplicate,
+            CommissionStatus.fraud,
+            CommissionStatus.canceled,
+          ],
+        };
 
   const programEnrollmentFilter = {
     ...(groupFilter && {
@@ -87,18 +79,15 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
           ? { none: { partnerTagId: { in: partnerTagFilter.values } } }
           : { some: { partnerTagId: { in: partnerTagFilter.values } } },
     }),
-    ...(isHoldStatus && {
-      fraudEventGroups: {
-        some: {
-          status: FraudEventStatus.pending,
-        },
-      },
-    }),
   };
 
   const partnerFilter = parseFilterValue(partnerId);
   const customerFilter = parseFilterValue(customerId);
   const typeFilter = parseFilterValue(type);
+
+  // Metadata filter
+  const parsedMetadataQuery = parseCommissionMetadataQuery(query);
+  const metadataWhere = buildCommissionMetadataWhere(parsedMetadataQuery);
 
   const commissionsCount = await prisma.commission.groupBy({
     by: ["status"],
@@ -121,6 +110,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
             : { in: typeFilter.values as CommissionType[] },
       }),
       payoutId,
+      bountySubmissionId,
       ...(customerFilter && {
         customerId:
           customerFilter.sqlOperator === "NOT IN"
@@ -134,11 +124,12 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       }),
       createdAt: {
         gte: startDate,
-        lt: endDate,
+        lte: endDate,
       },
       ...(Object.keys(programEnrollmentFilter).length > 0 && {
         programEnrollment: programEnrollmentFilter,
       }),
+      ...metadataWhere,
     },
     _count: true,
     _sum: {

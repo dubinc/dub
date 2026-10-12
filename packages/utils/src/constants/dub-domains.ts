@@ -19,7 +19,7 @@ export const DUB_DOMAINS = [
     primary: false,
     archived: false,
     placeholder: "https://chat.openai.com/g/g-UGjKKONEe-domainsgpt",
-    allowedHostnames: ["openai.com", "chatgpt.com"],
+    allowedHostnames: ["openai.com", "chatgpt.com", "chatgpt.site"],
     description: "Branded domain for ChatGPT links (convos, custom GPTs).",
     projectId: DUB_WORKSPACE_ID,
   },

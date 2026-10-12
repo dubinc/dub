@@ -3,12 +3,12 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { prisma } from "@/lib/prisma";
-import {
-  TREMENDOUS_ENABLED_PROGRAM_IDS,
-  TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS,
-} from "@/lib/tremendous/constants";
-import { ratelimit, redis } from "@/lib/upstash";
+import { TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS } from "@/lib/tremendous/constants";
+import { redis } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { emailSchema } from "@/lib/zod/schemas/auth";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { TREMENDOUS_SUPPORTED_COUNTRIES } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -22,26 +22,21 @@ const verifyOtpSchema = z.object({
 // POST /api/embed/referrals/tremendous/verify-otp
 export const POST = withReferralsEmbedToken(
   async ({ req, programEnrollment }) => {
-    if (!TREMENDOUS_ENABLED_PROGRAM_IDS.includes(programEnrollment.programId)) {
+    if (!ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
       throw new DubApiError({
         code: "forbidden",
-        message: "Gift card payouts are not available for this program.",
+        message:
+          "You cannot set up payouts because your enrollment in this program is not active.",
       });
     }
 
     const { email, code } = verifyOtpSchema.parse(await parseRequestBody(req));
     const { partnerId } = programEnrollment;
 
-    const { success } = await ratelimit(10, "24 h").limit(
-      `tremendous-verify-otp:${partnerId}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Too many requests. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.tremendousVerifyOtp,
+      identifier: partnerId,
+    });
 
     const emailDomain = extractEmailDomain(email)!;
 
@@ -73,30 +68,16 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    const [partner, duplicatePartner] = await prisma.$transaction([
-      prisma.partner.findUniqueOrThrow({
-        where: {
-          id: partnerId,
-        },
-        select: {
-          id: true,
-          country: true,
-          defaultPayoutMethod: true,
-        },
-      }),
-
-      prisma.partner.findFirst({
-        where: {
-          tremendousEmail: email,
-          id: {
-            not: partnerId,
-          },
-        },
-        select: {
-          id: true,
-        },
-      }),
-    ]);
+    const partner = await prisma.partner.findUniqueOrThrow({
+      where: {
+        id: partnerId,
+      },
+      select: {
+        id: true,
+        country: true,
+        defaultPayoutMethod: true,
+      },
+    });
 
     if (
       partner.country &&
@@ -112,14 +93,6 @@ export const POST = withReferralsEmbedToken(
       throw new DubApiError({
         code: "bad_request",
         message: "You already have a payout method connected.",
-      });
-    }
-
-    if (duplicatePartner) {
-      throw new DubApiError({
-        code: "conflict",
-        message:
-          "Unable to save partner details. Please verify the email address and try again.",
       });
     }
 

@@ -1,14 +1,37 @@
+"use client";
+
+import { clientAccessCheck } from "@/lib/client-access-check";
+import { isAllowedSyncUXOrigin } from "@/lib/domain-connect/allowed-origins";
+import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EmailDomainProps } from "@/lib/types";
+import { useForwardDnsInstructionsModal } from "@/ui/modals/forward-dns-instructions-modal";
+import { Callout } from "@/ui/shared/callout";
 import { GetDomainResponseSuccess } from "@dub/email/resend/types";
-import { CircleCheck, CopyButton, StatusBadge, Table, useTable } from "@dub/ui";
-import { capitalize, fetcher } from "@dub/utils";
-import useSWRImmutable from "swr/immutable";
+import {
+  Button,
+  Cloudflare,
+  CopyButton,
+  StatusBadge,
+  Table,
+  useTable,
+  Vercel,
+} from "@dub/ui";
+import { EnvelopeArrowRight } from "@dub/ui/icons";
+import { capitalize, cn, fetcher } from "@dub/utils";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import useSWR from "swr";
 import { EMAIL_DOMAIN_STATUS_TO_VARIANT } from "./constants";
 
 interface EmailDomainDnsRecordsProps {
   domain: EmailDomainProps;
 }
+
+type EmailDomainVerifyResponse = GetDomainResponseSuccess & {
+  domainConnect?: DomainConnectDiscovery | null;
+};
 
 interface DomainRecord {
   record: string;
@@ -168,22 +191,85 @@ function DnsRecordsTable({
   );
 }
 
+// Hide until Domain Connect + forward-instructions email template are ready to ship for email domains.
+const ENABLE_EMAIL_DNS_ACTIONS = false;
+
 export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug, role } = useWorkspace();
+  const pathname = usePathname();
+  const [autoLoading, setAutoLoading] = useState(false);
 
-  const { data, isValidating } = useSWRImmutable<GetDomainResponseSuccess>(
-    workspaceId &&
-      `/api/email-domains/${domain.slug}/verify?workspaceId=${workspaceId}`,
-    fetcher,
-    {
-      onError: (error) => {
-        console.error("Failed to fetch email domain verification", error);
+  const { error: permissionsError } = clientAccessCheck({
+    action: "domains.write",
+    role,
+  });
+
+  const { data, error, isLoading, isValidating, mutate } =
+    useSWR<EmailDomainVerifyResponse>(
+      workspaceId &&
+        `/api/email-domains/${domain.slug}/verify?workspaceId=${workspaceId}`,
+      fetcher,
+      {
+        revalidateOnFocus: false,
+        dedupingInterval: 5000,
+        onError: (err) => {
+          console.error("Failed to fetch email domain verification", err);
+        },
       },
-    },
-  );
+    );
 
+  const domainConnect = data?.domainConnect ?? null;
   const isVerified = data?.status === "verified";
-  const records = data?.records || [];
+  const records = data?.records;
+
+  const { ForwardDnsInstructionsModal, setShowForwardDnsModal } =
+    useForwardDnsInstructionsModal({
+      domain: domain.slug,
+      workspaceId: workspaceId ?? "",
+      endpoint: workspaceId
+        ? `/api/email-domains/${encodeURIComponent(domain.slug)}/forward-instructions?workspaceId=${workspaceId}`
+        : "",
+    });
+
+  const providerLabel =
+    domainConnect?.providerKind === "cloudflare" ? "Cloudflare" : "Vercel";
+  const ProviderIcon =
+    domainConnect?.providerKind === "cloudflare" ? Cloudflare : Vercel;
+
+  const handleAutoConfigure = async () => {
+    if (!workspaceId) return;
+    setAutoLoading(true);
+    try {
+      const res = await fetch(
+        `/api/email-domains/${encodeURIComponent(domain.slug)}/domain-connect/apply?workspaceId=${workspaceId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            returnTo: pathname ?? `/${workspaceSlug}/settings/domains/email`,
+          }),
+        },
+      );
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(json?.error?.message ?? "Could not start auto configure.");
+        return;
+      }
+      if (json?.applyUrl) {
+        if (!isAllowedSyncUXOrigin(json.applyUrl as string)) {
+          toast.error("Invalid redirect URL from server.");
+          return;
+        }
+        window.location.assign(json.applyUrl as string);
+        return;
+      }
+      toast.error("Could not start auto configure.");
+    } catch {
+      toast.error("Could not start auto configure.");
+    } finally {
+      setAutoLoading(false);
+    }
+  };
 
   const dmarcRecords = [
     {
@@ -195,59 +281,113 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
     },
   ];
 
+  if (error && !data) {
+    return (
+      <div className="mt-4 flex flex-col items-center gap-3 rounded-lg bg-neutral-100/80 p-4 text-center">
+        <p className="text-sm text-neutral-600">
+          Failed to load verification records. Please try again.
+        </p>
+        <Button
+          type="button"
+          variant="secondary"
+          text="Retry"
+          className="w-fit"
+          loading={isValidating}
+          onClick={() => mutate()}
+        />
+      </div>
+    );
+  }
+
+  if (!data || isLoading) {
+    return (
+      <div className="mt-4">
+        <div className="h-20 animate-pulse rounded-lg bg-neutral-200" />
+      </div>
+    );
+  }
+
   return (
     <div className="mt-4 space-y-4">
-      {!records && !isValidating ? (
-        <div className="h-20 animate-pulse rounded-lg bg-neutral-200" />
-      ) : isVerified ? (
-        <div className="flex items-center gap-2 text-pretty rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
-          <CircleCheck className="h-5 w-5 shrink-0" />
-          <div>
-            Good news! All the DNS records are verified. You are ready to start
-            sending emails with this domain.
-          </div>
-        </div>
+      {isVerified ? (
+        <Callout variant="success" size={2}>
+          Good news! All the DNS records are verified. You are ready to start
+          sending emails with this domain.
+        </Callout>
       ) : records && records.length > 0 ? (
         <div className="flex flex-col gap-8">
           <div className="flex flex-col gap-4 rounded-lg border border-neutral-200 bg-neutral-100 p-4">
             <div className="flex flex-col gap-6">
-              {records.length > 0 && (
-                <DnsRecordsTable
-                  title="DKIM and SPF (Required)"
-                  description={
-                    <p className="text-sm text-neutral-700">
-                      To authorize Dub to send emails from{" "}
-                      <strong>{domain.slug}</strong> to your partners, verify
-                      that the DNS records listed below are properly configured
-                      in your domain's DNS settings.
-                    </p>
-                  }
-                  records={records}
-                  showPriority
-                  showStatus
-                />
-              )}
+              <DnsRecordsTable
+                title="DKIM and SPF (Required)"
+                description={
+                  <p className="text-sm text-neutral-700">
+                    To authorize Dub to send emails from{" "}
+                    <strong>{domain.slug}</strong> to your partners, verify that
+                    the DNS records listed below are properly configured in your
+                    domain's DNS settings.
+                  </p>
+                }
+                records={records}
+                showPriority
+                showStatus
+              />
             </div>
           </div>
 
           <div className="flex flex-col rounded-lg border border-neutral-200 bg-neutral-100 p-4">
-            {dmarcRecords.length > 0 && (
-              <DnsRecordsTable
-                title="DMARC (Recommended)"
-                description={
-                  <p className="text-sm text-neutral-700">
-                    Add DMARC record to build trust in your domain and protect
-                    against email spoofing.
-                  </p>
-                }
-                records={dmarcRecords}
-              />
-            )}
+            <DnsRecordsTable
+              title="DMARC (Recommended)"
+              description={
+                <p className="text-sm text-neutral-700">
+                  Add DMARC record to build trust in your domain and protect
+                  against email spoofing.
+                </p>
+              }
+              records={dmarcRecords}
+            />
           </div>
+
+          {ENABLE_EMAIL_DNS_ACTIONS && (domainConnect || workspaceId) && (
+            <div className="flex flex-wrap gap-2">
+              {domainConnect && workspaceId && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  text={`Auto configure with ${providerLabel}`}
+                  icon={
+                    <ProviderIcon
+                      className={cn(
+                        "size-4 shrink-0",
+                        domainConnect.providerKind === "cloudflare"
+                          ? "text-[#F6821F]"
+                          : "text-black",
+                      )}
+                    />
+                  }
+                  className="w-fit"
+                  onClick={handleAutoConfigure}
+                  loading={autoLoading}
+                />
+              )}
+              {workspaceId && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  text="Forward instructions"
+                  icon={<EnvelopeArrowRight className="size-4 shrink-0" />}
+                  className="w-fit"
+                  onClick={() => setShowForwardDnsModal(true)}
+                  disabledTooltip={permissionsError || undefined}
+                />
+              )}
+            </div>
+          )}
+          {ENABLE_EMAIL_DNS_ACTIONS && <ForwardDnsInstructionsModal />}
         </div>
       ) : (
         <div className="rounded-lg bg-neutral-100/80 p-4 text-center text-sm text-neutral-600">
-          Loading verification records...
+          No verification records available for this domain yet.
         </div>
       )}
     </div>

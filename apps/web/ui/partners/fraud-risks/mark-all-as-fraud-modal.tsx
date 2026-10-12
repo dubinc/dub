@@ -58,8 +58,9 @@ function MarkAllAsFraudModal({
     workspaceId
       ? `/api/commissions?${new URLSearchParams({
           workspaceId,
-          status: "pending",
+          status: "hold",
           fraudEventGroupId: fraudGroup.id,
+          partnerId: partner.id,
           pageSize: "100",
         }).toString()}`
       : null,

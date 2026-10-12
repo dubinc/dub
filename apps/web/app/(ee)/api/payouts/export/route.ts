@@ -1,10 +1,6 @@
 import { convertToCSV } from "@/lib/analytics/utils";
 import { formatPayoutsForExport } from "@/lib/api/payouts/format-payouts-for-export";
-import {
-  getPayouts,
-  getPayoutsCount,
-  parsePayoutsQuery,
-} from "@/lib/api/payouts/get-payouts";
+import { getPayouts, getPayoutsCount } from "@/lib/api/payouts/get-payouts";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
@@ -19,14 +15,8 @@ export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const isHoldStatus = searchParams.status === "hold";
-    const { status: _status, ...restSearchParams } = searchParams;
-
-    const { columns } = payoutsExportQuerySchema.parse(
-      isHoldStatus ? restSearchParams : searchParams,
-    );
-
-    const filters = parsePayoutsQuery(searchParams);
+    const parsedParams = payoutsExportQuerySchema.parse(searchParams);
+    const { columns, ...filters } = parsedParams;
 
     const count = await getPayoutsCount({
       programId,
@@ -37,7 +27,7 @@ export const GET = withWorkspace(
       await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/payouts`,
         body: {
-          ...searchParams,
+          ...filters,
           columns: columns.join(","),
           workspaceId: workspace.id,
           programId,
@@ -51,9 +41,10 @@ export const GET = withWorkspace(
     const payouts = await getPayouts({
       workspaceId: workspace.id,
       programId,
-      filters,
-      page: 1,
-      pageSize: MAX_PAYOUTS_TO_EXPORT,
+      filters: {
+        ...filters,
+        pageSize: MAX_PAYOUTS_TO_EXPORT,
+      },
     });
 
     const rows = formatPayoutsForExport(payouts, columns);

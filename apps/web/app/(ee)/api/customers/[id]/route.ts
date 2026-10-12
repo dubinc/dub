@@ -39,14 +39,7 @@ export const GET = withWorkspace(
     return NextResponse.json(responseSchema.parse(transformCustomer(customer)));
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -57,8 +50,15 @@ export const PATCH = withWorkspace(
     const { includeExpandedFields } =
       getCustomersQuerySchema.parse(searchParams);
 
-    const { name, email, avatar, externalId, stripeCustomerId } =
-      updateCustomerBodySchema.parse(await parseRequestBody(req));
+    const {
+      name,
+      email,
+      avatar,
+      externalId,
+      stripeCustomerId,
+      country,
+      subscriptionCanceledAt,
+    } = updateCustomerBodySchema.parse(await parseRequestBody(req));
 
     const customer = await getCustomerOrThrow(
       {
@@ -91,6 +91,8 @@ export const PATCH = withWorkspace(
           avatar: finalCustomerAvatar,
           externalId,
           stripeCustomerId,
+          country,
+          subscriptionCanceledAt,
         },
       });
 
@@ -150,14 +152,7 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );
@@ -187,14 +182,7 @@ export const DELETE = withWorkspace(
     });
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );

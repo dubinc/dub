@@ -1,3 +1,4 @@
+import { WorkspaceEnvironmentBanner } from "@/lib/sandbox/components/workspace-environment";
 import { MainNav } from "@/ui/layout/main-nav";
 import { AppSidebarNav } from "@/ui/layout/sidebar/app-sidebar-nav";
 import { HelpButton } from "@/ui/layout/sidebar/help-button";
@@ -5,6 +6,7 @@ import { NewsRSC } from "@/ui/layout/sidebar/news-rsc";
 import { ReferButton } from "@/ui/layout/sidebar/refer-button";
 import Toolbar from "@/ui/layout/toolbar/toolbar";
 import { UpgradeBanner } from "@/ui/layout/upgrade-banner";
+import { ModalProvider } from "@/ui/modals/modal-provider";
 import { constructMetadata } from "@dub/utils";
 import { ReactNode } from "react";
 
@@ -13,8 +15,9 @@ export const metadata = constructMetadata();
 
 export default async function Layout({ children }: { children: ReactNode }) {
   return (
-    <>
+    <ModalProvider>
       <div className="min-h-screen w-full bg-white">
+        <WorkspaceEnvironmentBanner />
         <UpgradeBanner />
         <MainNav
           sidebar={AppSidebarNav}
@@ -30,6 +33,6 @@ export default async function Layout({ children }: { children: ReactNode }) {
         </MainNav>
       </div>
       <Toolbar show={["onboarding"]} />
-    </>
+    </ModalProvider>
   );
 }

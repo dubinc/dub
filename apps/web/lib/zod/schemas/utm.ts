@@ -1,11 +1,18 @@
+import {
+  PARTNER_MACRO_VALUES,
+  isValidPartnerMacroTemplate,
+} from "@/lib/partners/macros";
 import * as z from "zod/v4";
 
-const UTM_TAG_MAX_LENGTH = 255;
+export const UTM_TAG_MAX_LENGTH = 255;
 
 export const utmTagInputSchema = z
   .string()
   .trim()
   .max(UTM_TAG_MAX_LENGTH)
+  .refine((v) => v === "" || isValidPartnerMacroTemplate(v), {
+    message: `Invalid macro in value. Use only: ${PARTNER_MACRO_VALUES.join(", ")}`,
+  })
   .transform((v) => (v === "" ? null : v))
   .nullish();
 

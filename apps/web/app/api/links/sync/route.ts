@@ -27,6 +27,7 @@ export const POST = withWorkspace(
               domain: link.domain,
               key: link.key,
             },
+            projectId: null,
             userId: null,
           },
         });
@@ -41,6 +42,7 @@ export const POST = withWorkspace(
       return new Response(
         exceededLimitError({
           plan: workspace.plan,
+          planPeriod: workspace.planPeriod,
           limit: workspace.linksLimit,
           type: "links",
         }),

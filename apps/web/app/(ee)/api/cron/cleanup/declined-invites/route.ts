@@ -1,4 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
@@ -29,7 +31,7 @@ export async function POST(req: Request) {
               lt: subDays(new Date(), 90),
             },
           },
-          take: 250,
+          take: PRISMA_UPDATEMANY_LIMIT,
         });
 
       if (declinedProgramEnrollments.length === 0) {
@@ -50,6 +52,11 @@ export async function POST(req: Request) {
       console.log(
         `Deleted ${deletedRes.count} declined programEnrollments that are older than 90 days`,
       );
+
+      // Queue an index update because the declined enrollments were deleted.
+      await queuePartnerSearchSync({
+        enrollmentIds: declinedProgramEnrollments.map(({ id }) => id),
+      });
     }
 
     return NextResponse.json({ status: "OK" });

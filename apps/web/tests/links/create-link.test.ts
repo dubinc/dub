@@ -4,7 +4,7 @@ import { Link, Tag } from "@prisma/client";
 import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { describe, expect, onTestFinished, test } from "vitest";
 import * as z from "zod/v4";
-import { randomId, randomTagName } from "../utils/helpers";
+import { randomId, randomKey, randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK, E2E_WEBHOOK_ID } from "../utils/resource";
 import { LinkSchema, expectedLink } from "../utils/schema";
@@ -82,7 +82,7 @@ describe.sequential("POST /links", async () => {
   });
 
   test("user defined key", async ({ onTestFinished }) => {
-    const key = randomId();
+    const key = randomKey();
 
     onTestFinished(async () => {
       await h.deleteLink(link.id);

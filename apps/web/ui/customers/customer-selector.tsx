@@ -103,11 +103,7 @@ export function CustomerSelector({
         }
         caret={true}
         placeholder={variant === "header" ? "" : "Select customer"}
-        searchPlaceholder={
-          variant === "header"
-            ? "Search customers..."
-            : "Search or create customer..."
-        }
+        searchPlaceholder="Search by email, name, or ID"
         onSearchChange={setSearch}
         {...(variant !== "header" && {
           createLabel: (search: string) =>

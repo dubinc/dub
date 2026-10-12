@@ -72,7 +72,8 @@ export function useCampaignConfirmationModals({
   });
 
   const { totalPartners } = usePartnersCountByGroupIds({
-    groupIds: campaign.type === "marketing" ? watch("groupIds") : undefined,
+    groupIds: watch("groupIds"),
+    partnerTagIds: watch("partnerTagIds"),
   });
 
   const {

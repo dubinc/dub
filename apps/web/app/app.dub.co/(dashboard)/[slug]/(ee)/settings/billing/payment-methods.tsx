@@ -2,11 +2,16 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
+import type {
+  PaymentMethodMicrodeposit,
+  WorkspacePaymentMethod,
+} from "@/lib/stripe/microdeposit-types";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useAddPaymentMethodModal } from "@/ui/modals/add-payment-method-modal";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useVerifyMicrodepositsModal } from "@/ui/modals/verify-microdeposits-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
@@ -60,7 +65,10 @@ export default function PaymentMethods() {
   }
 
   return (
-    <div className="mb-8 rounded-xl border border-neutral-200 bg-white">
+    <div
+      id="payment-methods"
+      className="mb-8 scroll-mt-16 rounded-xl border border-neutral-200 bg-white"
+    >
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:flex-row md:items-center md:p-8">
         <div>
           <h2 className="text-xl font-medium">Payment methods</h2>
@@ -140,7 +148,7 @@ const PaymentMethodCard = ({
   isDefault = false,
 }: {
   type: Stripe.PaymentMethod.Type;
-  paymentMethod?: Stripe.PaymentMethod;
+  paymentMethod?: WorkspacePaymentMethod;
   forPayouts?: boolean;
   isDefault?: boolean;
 }) => {
@@ -152,6 +160,8 @@ const PaymentMethodCard = ({
     iconBgColor,
     description,
   } = result.find((method) => method.type === type) || result[0];
+
+  const microdeposit = paymentMethod?.microdeposit ?? null;
 
   return (
     <>
@@ -174,6 +184,16 @@ const PaymentMethodCard = ({
                     Default
                   </Badge>
                 )}
+                {forPayouts &&
+                  (microdeposit ? (
+                    <Badge variant="amber" className="text-[0.625rem]">
+                      Unverified
+                    </Badge>
+                  ) : (
+                    <Badge variant="green" className="text-[0.625rem]">
+                      Verified
+                    </Badge>
+                  ))}
               </div>
               <p className="text-sm text-neutral-500">{description}</p>
             </div>
@@ -183,7 +203,8 @@ const PaymentMethodCard = ({
               paymentMethod={paymentMethod}
               title={title}
               isDefault={isDefault}
-              canSetDefault={!forPayouts}
+              canSetDefault={!forPayouts && !microdeposit}
+              microdeposit={microdeposit}
             />
           )}
         </div>
@@ -197,11 +218,13 @@ const PaymentMethodActions = ({
   title,
   isDefault,
   canSetDefault,
+  microdeposit,
 }: {
-  paymentMethod: Stripe.PaymentMethod;
+  paymentMethod: WorkspacePaymentMethod;
   title: string;
   isDefault: boolean;
   canSetDefault: boolean;
+  microdeposit: PaymentMethodMicrodeposit | null;
 }) => {
   const [openPopover, setOpenPopover] = useState(false);
   const [isSettingDefault, setIsSettingDefault] = useState(false);
@@ -212,6 +235,12 @@ const PaymentMethodActions = ({
     role,
     customPermissionDescription: "manage payment methods",
   }).error;
+
+  const { setShowVerifyMicrodepositsModal, verifyMicrodepositsModal } =
+    useVerifyMicrodepositsModal({
+      paymentMethodId: paymentMethod.id,
+      microdeposit: microdeposit ?? { type: "amounts", arrivalDate: null },
+    });
 
   const setDefaultPaymentMethod = async () => {
     setIsSettingDefault(true);
@@ -274,55 +303,67 @@ const PaymentMethodActions = ({
   return (
     <>
       {confirmModal}
-      <Popover
-        openPopover={openPopover}
-        setOpenPopover={setOpenPopover}
-        align="end"
-        content={
-          <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[160px]">
-              {canSetDefault && !isDefault && (
+      {microdeposit && verifyMicrodepositsModal}
+      <div className="flex items-center gap-2">
+        {microdeposit && (
+          <Button
+            type="button"
+            className="h-9 w-fit"
+            text="Verify"
+            onClick={() => setShowVerifyMicrodepositsModal(true)}
+            disabledTooltip={billingWriteError}
+          />
+        )}
+        <Popover
+          openPopover={openPopover}
+          setOpenPopover={setOpenPopover}
+          align="end"
+          content={
+            <Command tabIndex={0} loop className="focus:outline-none">
+              <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[160px]">
+                {canSetDefault && !isDefault && (
+                  <MenuItem
+                    as={Command.Item}
+                    icon={isSettingDefault ? LoadingSpinner : Flag2}
+                    onSelect={() => {
+                      setDefaultPaymentMethod();
+                    }}
+                    loading={isSettingDefault}
+                    disabledTooltip={billingWriteError}
+                  >
+                    Set as default
+                  </MenuItem>
+                )}
                 <MenuItem
                   as={Command.Item}
-                  icon={isSettingDefault ? LoadingSpinner : Flag2}
+                  icon={Trash}
+                  variant="danger"
                   onSelect={() => {
-                    setDefaultPaymentMethod();
+                    setOpenPopover(false);
+                    setShowConfirmModal(true);
                   }}
-                  loading={isSettingDefault}
-                  disabledTooltip={billingWriteError}
+                  disabledTooltip={
+                    isDefault
+                      ? "Default payment method cannot be removed. Set a new default payment method first before removing."
+                      : billingWriteError
+                  }
                 >
-                  Set as default
+                  Remove
                 </MenuItem>
-              )}
-              <MenuItem
-                as={Command.Item}
-                icon={Trash}
-                variant="danger"
-                onSelect={() => {
-                  setOpenPopover(false);
-                  setShowConfirmModal(true);
-                }}
-                disabledTooltip={
-                  isDefault
-                    ? "Default payment method cannot be removed. Set a new default payment method first before removing."
-                    : billingWriteError
-                }
-              >
-                Remove
-              </MenuItem>
-            </Command.List>
-          </Command>
-        }
-      >
-        <Button
-          type="button"
-          variant="secondary"
-          className="h-9 w-fit px-1.5"
-          aria-label="Open payment method actions"
-          icon={<ThreeDots className="size-3.5 shrink-0" />}
-          onClick={() => setOpenPopover(!openPopover)}
-        />
-      </Popover>
+              </Command.List>
+            </Command>
+          }
+        >
+          <Button
+            type="button"
+            variant="secondary"
+            className="h-9 w-fit px-1.5"
+            aria-label="Open payment method actions"
+            icon={<ThreeDots className="size-3.5 shrink-0" />}
+            onClick={() => setOpenPopover(!openPopover)}
+          />
+        </Popover>
+      </div>
     </>
   );
 };

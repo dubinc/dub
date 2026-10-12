@@ -1,12 +1,13 @@
 "use client";
 
+import { isEventBasedReward } from "@/lib/api/rewards/custom-reward-utils";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import {
   DiscountProps,
   GroupBountySummaryProps,
   RewardProps,
 } from "@/lib/types";
-import { Gift, Heart, Icon, Trophy } from "@dub/ui";
+import { DiscountCode, Heart, Icon, Trophy } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
 import { formatDiscountDescription } from "../format-discount-description";
@@ -27,6 +28,10 @@ export function LanderRewards({
   className?: string;
 }) {
   const sortedFilteredRewards = rewards.filter((reward) => {
+    if (!isEventBasedReward(reward)) {
+      return false;
+    }
+
     const rawAmount =
       reward.type === "flat" ? reward.amountInCents : reward.amountInPercentage;
 
@@ -67,7 +72,9 @@ export function LanderRewards({
             ))}
 
             {discount && (
-              <Item icon={Gift}>{formatDiscountDescription(discount)}</Item>
+              <Item icon={DiscountCode}>
+                {formatDiscountDescription(discount)}
+              </Item>
             )}
           </ul>
         </div>
@@ -111,8 +118,8 @@ const Item = ({
   children,
 }: PropsWithChildren<{ icon: Icon }>) => {
   return (
-    <li className="flex items-center gap-2 leading-5">
-      <IconComponent className="size-4 shrink-0 text-neutral-600" />
+    <li className="flex items-start gap-2 leading-5">
+      <IconComponent className="mt-0.5 size-4 shrink-0 text-neutral-600" />
       <div>{children}</div>
     </li>
   );

@@ -38,8 +38,9 @@ export function AssociatedCommissionsTable({
 
   const query = {
     workspaceId: workspaceId!,
-    status: "pending",
+    status: "hold",
     fraudEventGroupId: fraudGroup.id,
+    partnerId: fraudGroup.partner.id,
   };
 
   const {
@@ -88,10 +89,7 @@ export function AssociatedCommissionsTable({
         header: "Customer",
         cell: ({ row }) =>
           row.original.customer ? (
-            <CustomerRowItem
-              customer={row.original.customer}
-              href={`/${slug}/program/customers/${row.original.customer.id}`}
-            />
+            <CustomerRowItem customer={row.original.customer} />
           ) : (
             "-"
           ),
@@ -147,6 +145,10 @@ export function AssociatedCommissionsTable({
           className: "[&_tr:last-child>td]:border-b-transparent",
         }),
     columnPinning: { right: ["menu"] },
+    onRowClick: (row) =>
+      window.open(`/${slug}/program/commissions/${row.original.id}`, "_blank"),
+    onRowAuxClick: (row) =>
+      window.open(`/${slug}/program/commissions/${row.original.id}`, "_blank"),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     scrollWrapperClassName: "min-h-0",

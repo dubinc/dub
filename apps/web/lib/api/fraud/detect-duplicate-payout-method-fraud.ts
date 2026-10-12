@@ -4,6 +4,8 @@ import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { FraudRuleType, ProgramEnrollment } from "@prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
 import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
+import { holdPendingCommissions } from "./hold-pending-commissions";
+import { holdProcessedCommissions } from "./hold-processed-commissions";
 
 type DetectDuplicatePayoutMethodFraudOptions =
   | { payoutMethodHash: string; cryptoWalletAddress?: never }
@@ -106,5 +108,13 @@ export async function detectDuplicatePayoutMethodFraud({
     }
   }
 
-  await createFraudEvents(fraudEvents);
+  const { affectedGroups } = await createFraudEvents(fraudEvents);
+
+  const results = await Promise.allSettled([
+    holdPendingCommissions(affectedGroups),
+    holdProcessedCommissions(affectedGroups),
+  ]);
+  results
+    .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+    .forEach((r) => console.error("Failed to hold commissions:", r.reason));
 }

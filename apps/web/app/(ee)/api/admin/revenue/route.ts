@@ -17,7 +17,7 @@ const adminRevenueQuerySchema = z
 
 export const GET = withAdmin(async ({ searchParams }) => {
   const {
-    interval = "30d",
+    interval = "1y",
     start,
     end,
   } = adminRevenueQuerySchema.parse(searchParams);

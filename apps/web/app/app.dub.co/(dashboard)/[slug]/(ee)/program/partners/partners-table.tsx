@@ -2,6 +2,7 @@
 
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
+import { getDeletePartnerDisabledTooltip } from "@/lib/partners/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -16,6 +17,7 @@ import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useBulkDeactivatePartnersModal } from "@/ui/modals/bulk-deactivate-partners-modal";
 import { useChangeGroupModal } from "@/ui/modals/change-group-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
+import { useDeletePartnerModal } from "@/ui/modals/delete-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
 import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
@@ -115,6 +117,11 @@ const partnersColumns = {
   ],
 };
 
+// Searching sorts by relevance so the closest match to the query is the first
+// row. A column sort still applies to the same relevance-ranked candidates, but
+// it reorders them, so the best match moves down the list.
+const PARTNER_SEARCH_RESET_PARAMS = ["sortBy", "sortOrder"];
+
 const getPartnerUrl = ({
   workspaceSlug,
   id,
@@ -131,15 +138,27 @@ export function PartnersTable() {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
 
+  // A blank query is not searchable, and asking for relevance without one is a
+  // 400 from the API.
+  const search = searchParams.get("search")?.trim();
+
+  const defaultStatus = program?.deactivatedAt
+    ? ProgramEnrollmentStatus.deactivated
+    : ProgramEnrollmentStatus.approved;
+
   const status = (
     searchParams.get("status") || searchParams.get("search")
       ? undefined
-      : "approved_invited"
+      : defaultStatus
   ) as ProgramEnrollmentStatus;
 
   const sortBy =
     searchParams.get("sortBy") ||
-    (program?.primaryRewardEvent === "lead" ? "totalLeads" : "totalSaleAmount");
+    (search
+      ? "relevance"
+      : program?.primaryRewardEvent === "lead"
+        ? "totalLeads"
+        : "totalSaleAmount");
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
@@ -154,6 +173,7 @@ export function PartnersTable() {
     data: partners,
     error,
     isLoading,
+    isValidating,
   } = useSWR<EnrolledPartnerProps[]>(
     `/api/partners${getQueryString({
       workspaceId,
@@ -186,23 +206,24 @@ export function PartnersTable() {
           minSize: 150,
           maxSize: 250,
           cell: ({ row }) => {
-            const showInvitedInline =
+            const showDeactivatedInline =
               columnVisibility.status === false &&
-              row.original.status === ProgramEnrollmentStatus.invited &&
-              searchParams.get("status") !== ProgramEnrollmentStatus.invited;
+              row.original.status === ProgramEnrollmentStatus.deactivated &&
+              searchParams.get("status") !==
+                ProgramEnrollmentStatus.deactivated;
 
             return (
               <PartnerRowItem
                 partner={row.original}
                 showPermalink={false}
                 suffix={
-                  showInvitedInline ? (
+                  showDeactivatedInline ? (
                     <StatusBadge
                       size="sm"
                       icon={null}
-                      variant={PartnerStatusBadges.invited.variant}
+                      variant={PartnerStatusBadges.deactivated.variant}
                     >
-                      {PartnerStatusBadges.invited.label}
+                      {PartnerStatusBadges.deactivated.label}
                     </StatusBadge>
                   ) : null
                 }
@@ -446,7 +467,13 @@ export function PartnersTable() {
           ),
         },
       ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
-    [workspaceId, groups, columnVisibility, searchParams, workspaceSlug],
+    [
+      workspaceId,
+      groups,
+      workspaceSlug,
+      columnVisibility.status,
+      searchParams.get("status"),
+    ],
   );
 
   const { table, ...tableProps } = useTable({
@@ -509,8 +536,8 @@ export function PartnersTable() {
       <PartnersBulkActionsBar
         table={table}
         showBulkActionsMenu={
-          !searchParams.get("status") ||
-          searchParams.get("status") === "approved"
+          (searchParams.get("status") || status) ===
+          ProgramEnrollmentStatus.approved
         }
       />
     ),
@@ -524,7 +551,12 @@ export function PartnersTable() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PartnersFilters sortBy={sortBy} sortOrder={sortOrder} status={status} />
+      <PartnersFilters
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        status={status}
+        searchLoading={isValidating}
+      />
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
@@ -551,11 +583,20 @@ function PartnersFilters({
   sortBy,
   sortOrder,
   status,
+  searchLoading,
 }: {
   sortBy: string;
   sortOrder: "asc" | "desc";
-  status: ProgramEnrollmentStatus;
+  status: ProgramEnrollmentStatus | undefined;
+  searchLoading: boolean;
 }) {
+  const { queryParams, searchParams } = useRouterStuff();
+
+  const { partnersCount: inviteCount } = usePartnersCount<number>({
+    status: ProgramEnrollmentStatus.invited,
+    ignoreParams: true,
+  });
+
   const {
     filters,
     activeFilters,
@@ -564,22 +605,56 @@ function PartnersFilters({
     onRemoveFilter,
     onRemoveAll,
     onToggleOperator,
-  } = usePartnerFilters({ sortBy, sortOrder, status });
+    setSelectedFilter,
+    setSearch,
+  } = usePartnerFilters({
+    sortBy,
+    sortOrder,
+    ...(status && { status }),
+  });
+
+  const showPendingInvitesButton =
+    inviteCount > 0 &&
+    searchParams.get("status") !== ProgramEnrollmentStatus.invited;
 
   return (
     <div>
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <Filter.Select
-          className="w-full md:w-fit"
-          filters={filters}
-          activeFilters={activeFilters}
-          onSelect={onSelect}
-          onRemove={onRemove}
-          onRemoveFilter={onRemoveFilter}
-        />
+        <div className="flex items-center gap-2">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onRemoveFilter={onRemoveFilter}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
+          />
+          {showPendingInvitesButton ? (
+            <Button
+              text="Pending invites"
+              variant="secondary"
+              className="w-fit"
+              right={
+                <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-xs font-medium text-neutral-700">
+                  {inviteCount}
+                </span>
+              }
+              onClick={() =>
+                queryParams({
+                  set: { status: ProgramEnrollmentStatus.invited },
+                  del: "page",
+                })
+              }
+            />
+          ) : null}
+        </div>
         <SearchBoxPersisted
-          placeholder="Search by name, email, or company"
+          placeholder="Search by name, email, link, etc."
           inputClassName="md:w-80"
+          loading={searchLoading}
+          resetParamsOnChange={PARTNER_SEARCH_RESET_PARAMS}
         />
       </div>
       <AnimatedSizeContainer height>
@@ -724,6 +799,15 @@ function RowMenuButton({
       partner: row.original,
     });
 
+  const { DeletePartnerModal, setShowDeletePartnerModal } =
+    useDeletePartnerModal({
+      partner: row.original,
+    });
+
+  const deletePartnerDisabledTooltip = getDeletePartnerDisabledTooltip(
+    row.original,
+  );
+
   const { executeAsync: resendInvite, isPending: isResendingInvite } =
     useAction(resendProgramInviteAction, {
       onSuccess: async () => {
@@ -751,7 +835,7 @@ function RowMenuButton({
 
   return (
     <>
-      <ChangeGroupModal />
+      {ChangeGroupModal}
       <UpdatePartnerTagsModal
         showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
         setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
@@ -762,6 +846,7 @@ function RowMenuButton({
       <UnbanPartnerModal />
       <DeactivatePartnerModal />
       <ReactivatePartnerModal />
+      <DeletePartnerModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -845,7 +930,7 @@ function RowMenuButton({
                   <Command.Separator className="border-t border-neutral-200" />
 
                   <Command.Group className="grid gap-px p-1.5">
-                    {!["banned", "deactivated"].includes(
+                    {ACTIVE_ENROLLMENT_STATUSES.includes(
                       row.original.status,
                     ) && (
                       <MenuItem
@@ -902,6 +987,17 @@ function RowMenuButton({
                         }}
                       />
                     )}
+
+                    <MenuItem
+                      icon={Trash}
+                      label="Permanently delete"
+                      variant="danger"
+                      onSelect={() => {
+                        setShowDeletePartnerModal(true);
+                        setIsOpen(false);
+                      }}
+                      disabledTooltip={deletePartnerDisabledTooltip}
+                    />
                   </Command.Group>
                 </>
               )}
@@ -1000,7 +1096,7 @@ const PartnersBulkActionsBar = memo(function PartnersBulkActionsBar({
 
   return (
     <>
-      <ChangeGroupModal />
+      {ChangeGroupModal}
       <UpdatePartnerTagsModal
         showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
         setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
@@ -1079,25 +1175,29 @@ function MenuItem({
     },
   };
 
-  const { text, icon } = variantStyles[variant];
+  const { text, icon } = disabledTooltip
+    ? { text: "text-content-disabled", icon: "text-content-disabled" }
+    : variantStyles[variant];
 
   return (
     <DynamicTooltipWrapper
       tooltipProps={disabledTooltip ? { content: disabledTooltip } : undefined}
     >
-      <Command.Item
-        className={cn(
-          "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
-          disabledTooltip
-            ? "cursor-not-allowed opacity-75"
-            : "data-[selected=true]:bg-neutral-100",
-          text,
-        )}
-        onSelect={disabledTooltip ? undefined : onSelect}
-      >
-        <IconComp className={cn("size-4 shrink-0", icon)} />
-        {label}
-      </Command.Item>
+      <div>
+        <Command.Item
+          className={cn(
+            "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
+            disabledTooltip
+              ? "cursor-not-allowed opacity-50"
+              : "data-[selected=true]:bg-neutral-100",
+            text,
+          )}
+          onSelect={disabledTooltip ? undefined : onSelect}
+        >
+          <IconComp className={cn("size-4 shrink-0", icon)} />
+          {label}
+        </Command.Item>
+      </div>
     </DynamicTooltipWrapper>
   );
 }

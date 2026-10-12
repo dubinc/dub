@@ -4,7 +4,10 @@ import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan"
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { prisma } from "@/lib/prisma";
-import { ratelimit, redis } from "@/lib/upstash";
+import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
+import { redis } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { inviteTeammatesSchema } from "@/lib/zod/schemas/invites";
 import {
   getWorkspaceUsersQuerySchema,
@@ -42,12 +45,15 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.read"],
+    requiredRoles: ["owner", "member", "billing"],
   },
 );
 
 // POST /api/workspaces/[idOrSlug]/invites – invite a teammate
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
+    assertNotStagingWorkspace(workspace);
+
     const { teammates } = inviteTeammatesSchema.parse(await req.json());
 
     for (const teammate of teammates) {
@@ -57,17 +63,10 @@ export const POST = withWorkspace(
       });
     }
 
-    const { success } = await ratelimit(1, "1 s").limit(
-      `workspace-invites:${workspace.id}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message:
-          "You've reached the rate limit for inviting teammates. Please try again later after few seconds.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.workspaceInvite,
+      identifier: workspace.id,
+    });
 
     if (teammates.length > 10) {
       throw new DubApiError({
@@ -132,6 +131,7 @@ export const POST = withWorkspace(
         code: "exceeded_limit",
         message: exceededLimitError({
           plan: workspace.plan,
+          planPeriod: workspace.planPeriod,
           limit: workspace.usersLimit,
           type: "users",
         }),
@@ -179,6 +179,8 @@ const updateInviteRoleSchema = z.object({
 // PATCH /api/workspaces/[idOrSlug]/invites - update an invite's role
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
+    assertNotStagingWorkspace(workspace);
+
     const { email, role } = updateInviteRoleSchema.parse(await req.json());
 
     assertRoleAllowedForPlan({
@@ -224,6 +226,8 @@ export const PATCH = withWorkspace(
 // DELETE /api/workspaces/[idOrSlug]/invites – delete a pending invite
 export const DELETE = withWorkspace(
   async ({ searchParams, workspace }) => {
+    assertNotStagingWorkspace(workspace);
+
     const { email } = z
       .object({
         email: z.email(),

@@ -64,6 +64,7 @@ export const bulkResolveFraudGroupsAction = authActionClient
       },
       userId: user.id,
       ...(resolutionReason && { resolutionReason }),
+      releaseHoldCommissions: true,
     });
 
     // Add the resolution reason as a comment to each unique partner

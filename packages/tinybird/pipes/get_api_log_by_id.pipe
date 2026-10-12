@@ -1,6 +1,7 @@
 NODE endpoint
 SQL >
-    %
+
+%
     SELECT
         id,
         timestamp,
@@ -11,6 +12,7 @@ SQL >
         duration,
         user_agent,
         request_body,
+        query_params,
         response_body,
         token_id,
         user_id,
@@ -20,3 +22,5 @@ SQL >
         id = {{ String(id) }}
         AND workspace_id = {{ String(workspaceId) }}
     LIMIT 1
+
+TYPE ENDPOINT

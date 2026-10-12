@@ -24,6 +24,7 @@ export const GET = withReferralsEmbedToken(
 
     const analytics = await getAnalytics({
       ...parsedQuery,
+      workspaceId: program.workspaceId,
       linkId: parseFilterValue(links.map((link) => link.id)),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });

@@ -11,9 +11,10 @@ import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { programApplicationFormSchema } from "./program-application-form";
 import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
+import { submittedLeadFormSchema } from "./submitted-lead-form";
 import { centsSchemaWithDefault, parseUrlSchema } from "./utils";
 import { UTMTemplateSchema } from "./utm";
-import { workflowConditionSchema } from "./workflows";
+import { workflowConditionsSchema } from "./workflows";
 
 export const DEFAULT_PARTNER_GROUP = {
   name: "Default Group",
@@ -64,16 +65,18 @@ export const GroupSchema = z.object({
   brandColor: z.string().nullable(),
   holdingPeriodDays: z.number(),
   autoApprovePartnersEnabledAt: z.coerce.date().nullish(),
+  submittedLeadsEnabledAt: z.coerce.date().nullish(),
   clickReward: RewardSchema.nullish(),
   leadReward: RewardSchema.nullish(),
   saleReward: RewardSchema.nullish(),
   referralReward: RewardSchema.nullish(),
+  customReward: RewardSchema.nullish(),
   discount: DiscountSchema.nullish(),
   utmTemplate: UTMTemplateSchema.nullish(),
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
   maxPartnerLinks: z.number(),
   linkStructure: z.enum(PartnerLinkStructure),
-  moveRules: z.array(workflowConditionSchema).nullish().default(null),
+  moveRules: workflowConditionsSchema.nullish().default(null),
 });
 
 export const GroupWithFormDataSchema = GroupSchema.extend({
@@ -81,6 +84,7 @@ export const GroupWithFormDataSchema = GroupSchema.extend({
   applicationFormPublishedAt: z.date().nullable(),
   landerData: programLanderSchema.nullable(),
   landerPublishedAt: z.date().nullable(),
+  submittedLeadFormData: submittedLeadFormSchema.nullish(),
   bounties: z.array(GroupBountySummarySchema).optional(),
 });
 
@@ -152,7 +156,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
   autoApprovePartners: z.coerce.boolean().optional(),
   updateAutoApprovePartnersForAllGroups: z.coerce.boolean().optional(),
   updateHoldingPeriodDaysForAllGroups: z.coerce.boolean().optional(),
-  moveRules: z.array(workflowConditionSchema).optional(),
+  moveRules: workflowConditionsSchema.optional(),
 });
 
 export const PartnerGroupDefaultLinkSchema = z.object({
@@ -194,3 +198,14 @@ export const getGroupsCountQuerySchema = z.object({
 export const groupRulesSchema = z.array(
   GroupSchema.pick({ id: true, name: true, moveRules: true }),
 );
+
+export function sanitizeAdditionalLinks(links: unknown) {
+  if (!Array.isArray(links)) {
+    return [];
+  }
+
+  return links.flatMap((link) => {
+    const parsed = additionalPartnerLinkSchema.safeParse(link);
+    return parsed.success ? [parsed.data] : [];
+  });
+}

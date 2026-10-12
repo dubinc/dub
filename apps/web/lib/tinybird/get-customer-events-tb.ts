@@ -10,12 +10,15 @@ const pipe = tb.buildPipe({
 export const getCustomerEventsTB = async ({
   customerId,
   linkIds,
+  limit,
 }: {
   customerId: string;
   linkIds?: string[];
+  limit?: number;
 }) => {
   return await pipe({
     customerId,
     ...(linkIds ? { linkIds } : {}),
+    ...(limit ? { limit } : {}),
   });
 };

@@ -3,8 +3,10 @@ import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan"
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { withSession } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { prisma } from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // POST /api/workspaces/[idOrSlug]/invites/accept – accept a workspace invite
@@ -60,6 +62,7 @@ export const POST = withSession(async ({ session, params }) => {
         id: true,
         slug: true,
         plan: true,
+        planPeriod: true,
         usersLimit: true,
         _count: {
           select: {
@@ -93,6 +96,7 @@ export const POST = withSession(async ({ session, params }) => {
       code: "exceeded_limit",
       message: exceededLimitError({
         plan: workspace.plan as PlanProps,
+        planPeriod: workspace.planPeriod,
         limit: workspace.usersLimit,
         type: "users",
       }),
@@ -134,6 +138,7 @@ export const POST = withSession(async ({ session, params }) => {
         code: "exceeded_limit",
         message: exceededLimitError({
           plan: workspace.plan as PlanProps,
+          planPeriod: workspace.planPeriod,
           limit: workspace.usersLimit,
           type: "users",
         }),
@@ -157,6 +162,14 @@ export const POST = withSession(async ({ session, params }) => {
     userId: session.user.id,
     step: "completed",
   });
+
+  waitUntil(
+    syncStagingWorkspaceJob.dispatch({
+      action: "add-member",
+      workspaceId: workspace.id,
+      userId: session.user.id,
+    }),
+  );
 
   return NextResponse.json({ message: "Invite accepted." });
 });

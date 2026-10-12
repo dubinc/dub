@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { DubProductIcon } from "@dub/ui";
 import { capitalize } from "@dub/utils";
 import { LaterButton } from "../../later-button";
@@ -14,6 +15,7 @@ export default function Plan() {
 
   return (
     <StepPage
+      headingTestId={testIds.onboarding.stepPlan}
       title={
         <>
           Choose your{" "}
@@ -57,6 +59,7 @@ export default function Plan() {
           <LaterButton
             next="success"
             className="underline-offset-4 hover:underline"
+            data-testid={testIds.onboarding.freePlan}
           >
             Start for free, pick a plan later
           </LaterButton>

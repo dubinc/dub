@@ -2,7 +2,9 @@ import {
   VITEST_POLL_INTERVAL_MS,
   VITEST_TEST_TIMEOUT_MS,
 } from "@/lib/constants/misc";
+import { sleep } from "@dub/utils";
 import { expect } from "vitest";
+
 import { HttpClient } from "../../utils/http";
 
 interface VerifyBountySubmissionProps {
@@ -56,9 +58,7 @@ export const verifyBountySubmission = async ({
       return submission;
     }
 
-    await new Promise((resolve) =>
-      setTimeout(resolve, VITEST_POLL_INTERVAL_MS),
-    );
+    await sleep(VITEST_POLL_INTERVAL_MS);
   }
 
   const lastState = lastSubmission

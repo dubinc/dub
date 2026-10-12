@@ -9,7 +9,7 @@ enum FraudRuleType {
   customerEmailSuspiciousDomain
   referralSourceBanned
   paidTrafficDetected
-  partnerCrossProgramBan // Cross-program ban from other programs
+  partnerCrossProgramBan // Network-level ban from other programs
   partnerDuplicateAccount // Duplicate identity with other partners
 }
 

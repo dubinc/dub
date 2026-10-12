@@ -1,4 +1,4 @@
-import { qstash } from "@/lib/cron";
+import { qstashWithoutBypass } from "@/lib/cron";
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Webhook, WebhookReceiver } from "@prisma/client";
@@ -92,12 +92,24 @@ const publishWebhookEventToQStash = async ({
   // TODO:
   // Add deduplicationId to the webhook
 
-  const response = await qstash.publishJSON({
+  // here, we use qstashWithoutBypass to avoid passing the
+  // Vercel automation bypass secret to arbitrary third party webhook receivers
+  const response = await qstashWithoutBypass.publishJSON({
     url: webhook.url,
     body: finalPayload,
     headers: {
       "Dub-Signature": signature,
       "Upstash-Hide-Headers": "true",
+
+      // for Vercel preview (e2e tests), we need to pass the
+      // Vercel automation bypass secret to the callback URL
+      // see: https://upstash.com/docs/qstash/features/callbacks#configuring-callbacks
+      ...(process.env.VERCEL_ENV === "preview" && {
+        "Upstash-Callback-Forward-x-vercel-protection-bypass":
+          process.env.VERCEL_AUTOMATION_BYPASS_SECRET || "",
+        "Upstash-Failure-Callback-Forward-x-vercel-protection-bypass":
+          process.env.VERCEL_AUTOMATION_BYPASS_SECRET || "",
+      }),
 
       // Integration specific headers
       ...(receiver === "segment" && {
@@ -108,6 +120,8 @@ const publishWebhookEventToQStash = async ({
     },
     callback: callbackUrl.href,
     failureCallback: failureCallbackUrl.href,
+
+    // for E2E tests, add a 5s delay
     ...(process.env.NODE_ENV === "test" && { delay: 5 }),
   });
 

@@ -117,7 +117,7 @@ export function useArchivePartnerModal({
         partner={partner}
       />
     );
-  }, [showArchivePartnerModal, setShowArchivePartnerModal, partner]);
+  }, [showArchivePartnerModal, setShowArchivePartnerModal]);
 
   return useMemo(
     () => ({

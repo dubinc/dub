@@ -94,7 +94,11 @@ export const GET = withPartnerProfile(
 
     const result = enrollments.map((enrollment) => ({
       id: enrollment.partner.id,
-      email: obfuscateCustomerEmail(enrollment.partner.email ?? ""),
+      email: enrollment.partner.email
+        ? programEnrollment.customerDataSharingEnabledAt
+          ? enrollment.partner.email
+          : obfuscateCustomerEmail(enrollment.partner.email)
+        : "",
       country: enrollment.partner.country,
       programEnrollment: {
         ...enrollment,

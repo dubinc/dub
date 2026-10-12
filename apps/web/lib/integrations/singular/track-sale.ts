@@ -1,6 +1,7 @@
 import { trackSale } from "@/lib/api/conversions/track-sale";
 import { WorkspaceProps } from "@/lib/types";
 import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
+import { CommissionSource } from "@prisma/client";
 import * as z from "zod/v4";
 
 // TODO:
@@ -61,5 +62,6 @@ export const trackSingularSaleEvent = async ({
     leadEventName,
     metadata: null,
     workspace,
+    commissionSource: CommissionSource.singular,
   });
 };

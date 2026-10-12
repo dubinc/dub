@@ -1,18 +1,14 @@
 import { startPartnerStackImportAction } from "@/lib/actions/partners/start-partnerstack-import";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { X } from "@/ui/shared/icons";
 import { Button, Logo, Modal, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { ArrowRight } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { useRouter } from "next/navigation";
+import { Dispatch, SetStateAction, useCallback, useState } from "react";
 import { toast } from "sonner";
 import { MarkdownDescription } from "../shared/markdown-description";
+import { useImportModalParam } from "./use-import-modal-param";
 
 function ImportPartnerStackModal({
   showImportPartnerStackModal,
@@ -21,16 +17,7 @@ function ImportPartnerStackModal({
   showImportPartnerStackModal: boolean;
   setShowImportPartnerStackModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-
-  useEffect(() => {
-    if (searchParams?.get("import") === "partnerstack") {
-      setShowImportPartnerStackModal(true);
-    } else {
-      setShowImportPartnerStackModal(false);
-    }
-  }, [searchParams]);
 
   return (
     <Modal
@@ -42,6 +29,17 @@ function ImportPartnerStackModal({
         })
       }
     >
+      <Button
+        variant="outline"
+        icon={<X className="size-5" />}
+        className="absolute right-4 top-4 h-auto w-fit p-1"
+        onClick={() => {
+          setShowImportPartnerStackModal(false);
+          queryParams({
+            del: "import",
+          });
+        }}
+      />
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
           <img
@@ -170,7 +168,7 @@ function TokenForm({ onClose }: { onClose: () => void }) {
 
 export function useImportPartnerStackModal() {
   const [showImportPartnerStackModal, setShowImportPartnerStackModal] =
-    useState(false);
+    useImportModalParam("partnerstack");
 
   const ImportPartnerStackModalCallback = useCallback(
     () => (

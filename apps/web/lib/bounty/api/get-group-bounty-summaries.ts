@@ -5,10 +5,11 @@ type BountyEligibilityCandidate = {
   id: string;
   name: string | null;
   type: BountyType;
-  startsAt: Date;
+  startsAt: Date | null;
   endsAt: Date | null;
   archivedAt: Date | null;
   groups: { groupId: string }[];
+  partnerTags: { partnerTagId: string }[];
 };
 
 export function filterActiveGroupBounties(
@@ -26,11 +27,15 @@ export function filterActiveGroupBounties(
       return false;
     }
 
-    if (bounty.startsAt > now) {
+    if (bounty.startsAt && bounty.startsAt > now) {
       return false;
     }
 
     if (bounty.endsAt && bounty.endsAt <= now) {
+      return false;
+    }
+
+    if (bounty.partnerTags.length > 0) {
       return false;
     }
 
@@ -64,6 +69,11 @@ export async function getGroupBountySummaries({
       groups: {
         select: {
           groupId: true,
+        },
+      },
+      partnerTags: {
+        select: {
+          partnerTagId: true,
         },
       },
     },

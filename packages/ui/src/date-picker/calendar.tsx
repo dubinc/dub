@@ -107,7 +107,7 @@ function Calendar({
           "rounded aria-selected:bg-blue-500 aria-selected:text-white",
         day_disabled:
           "!text-neutral-300 line-through disabled:hover:bg-transparent",
-        day_outside: "text-neutral-400",
+        day_outside: "text-neutral-400 opacity-50",
         day_range_middle:
           "!rounded-none aria-selected:!bg-blue-100 aria-selected:!text-blue-900",
         day_range_start: "rounded-r-none !rounded-l",

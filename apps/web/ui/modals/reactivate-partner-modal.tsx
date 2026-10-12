@@ -113,7 +113,7 @@ export function useReactivatePartnerModal({
         partner={partner}
       />
     );
-  }, [showReactivatePartnerModal, setShowReactivatePartnerModal, partner]);
+  }, [showReactivatePartnerModal, setShowReactivatePartnerModal]);
 
   return useMemo(
     () => ({

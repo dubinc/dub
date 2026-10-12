@@ -12,6 +12,7 @@ export const updateConfig = async ({
     | "keys"
     | "whitelist"
     | "emails"
+    | "emailDomainTerms"
     | "reserved"
     | "reservedUsernames"
     | "partnersPortal";

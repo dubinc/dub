@@ -1,6 +1,6 @@
 "use client";
 
-import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import { Button } from "@dub/ui";
 import { nFormatter } from "@dub/utils";
 import { CampaignType } from "@prisma/client";
@@ -8,12 +8,12 @@ import { CampaignTypeIcon } from "./campaign-type-icon";
 import { CampaignsPageContent } from "./campaigns-page-content";
 
 export function CampaignsUpsell() {
-  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal();
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
 
   return (
     <CampaignsPageContent>
-      {partnersUpgradeModal}
+      {advancedUpsellModal}
       <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
         <div
           className="flex w-full max-w-sm flex-col gap-4 overflow-hidden px-4 [mask-image:linear-gradient(transparent,black,transparent)]"
@@ -42,7 +42,7 @@ export function CampaignsUpsell() {
         </div>
         <div className="flex items-center gap-2">
           <Button
-            onClick={() => setShowPartnersUpgradeModal(true)}
+            onClick={() => setShowAdvancedUpsellModal(true)}
             text="Upgrade to Advanced"
             className="h-8 px-3"
           />

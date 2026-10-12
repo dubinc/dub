@@ -69,13 +69,17 @@ export function ProgramPayoutMethods() {
       details = `Account ending in ••••${pm.card.last4}`;
     } else if (pm.us_bank_account) {
       title = "ACH";
-      details = `Account ending in ••••${pm.us_bank_account.last4}`;
+      details = pm.us_bank_account.bank_name
+        ? `${pm.us_bank_account.bank_name} ••••${pm.us_bank_account.last4}`
+        : `••••${pm.us_bank_account.last4}`;
     } else if (pm.acss_debit) {
       title = "ACSS Debit";
-      details = `Account ending in ••••${pm.acss_debit.last4}`;
+      details = pm.acss_debit.bank_name
+        ? `${pm.acss_debit.bank_name} ••••${pm.acss_debit.last4}`
+        : `••••${pm.acss_debit.last4}`;
     } else if (pm.sepa_debit) {
       title = "SEPA Debit";
-      details = `Account ending in ••••${pm.sepa_debit.last4}`;
+      details = `••••${pm.sepa_debit.last4}`;
     } else {
       title = paymentMethod.label;
       details = `Account ending in ••••${pm[paymentMethod.type]?.last4 || "****"}`;
@@ -136,7 +140,7 @@ export function ProgramPayoutMethods() {
         {program?.payoutMode !== "internal" && <ExternalPayoutMethods />}
 
         {!paymentMethodsLoading && displayPaymentMethods.length === 0 && (
-          <div className="flex flex-col items-center justify-center rounded-lg bg-neutral-50 py-6">
+          <div className="flex flex-col items-center justify-center rounded-xl bg-neutral-100 py-6">
             <MoneyBill className="mb-2 size-6 text-neutral-900" />
             <h3 className="text-content-emphasis text-xs font-semibold leading-4">
               No payout methods

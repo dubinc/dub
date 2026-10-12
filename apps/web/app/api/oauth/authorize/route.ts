@@ -1,7 +1,11 @@
 import { DubApiError } from "@/lib/api/errors";
+import {
+  canInstallOAuthApp,
+  UNVERIFIED_APP_INSTALL_MESSAGE,
+} from "@/lib/api/oauth/can-install-oauth-app";
 import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken } from "@/lib/api/oauth/utils";
-import { consolidateScopes, getScopesForRole } from "@/lib/api/tokens/scopes";
+import { getGrantedScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -21,19 +25,11 @@ export const POST = withWorkspace(
       code_challenge_method: codeChallengeMethod,
     } = authorizeRequestSchema.parse(await parseRequestBody(req));
 
-    // Check if the user has the required scopes for the workspace selected
-    const userRole = workspace.users[0].role;
-    const scopesForRole = getScopesForRole(userRole);
-    const scopesMissing = consolidateScopes(scope).filter(
-      (scope) => !scopesForRole.includes(scope) && scope !== "user.read",
-    );
-
-    if (scopesMissing.length > 0) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "You don't have the permission to install this integration.",
-      });
-    }
+    // Grant the subset of requested scopes the user can actually authorize
+    const grantedScopes = getGrantedScopesForRole({
+      scopes: scope,
+      role: workspace.users[0].role,
+    });
 
     const app = await prisma.oAuthApp.findUniqueOrThrow({
       where: {
@@ -42,13 +38,27 @@ export const POST = withWorkspace(
       select: {
         redirectUris: true,
         pkce: true,
-        integrationId: true,
+        integration: {
+          select: {
+            id: true,
+            verified: true,
+            projectId: true,
+            userId: true,
+          },
+        },
       },
     });
 
+    if (!app.integration) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Could not find OAuth application.",
+      });
+    }
+
     if (
       [STRIPE_INTEGRATION_ID, SHOPIFY_INTEGRATION_ID].includes(
-        app.integrationId,
+        app.integration.id,
       ) &&
       (workspace.plan === "free" || workspace.plan === "pro")
     ) {
@@ -76,13 +86,26 @@ export const POST = withWorkspace(
       });
     }
 
+    if (
+      !canInstallOAuthApp({
+        integration: app.integration,
+        workspace,
+        userId: session.user.id,
+      })
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: UNVERIFIED_APP_INSTALL_MESSAGE,
+      });
+    }
+
     const { code } = await prisma.oAuthCode.create({
       data: {
         clientId,
         redirectUri,
         projectId: workspace.id,
         userId: session.user.id,
-        scopes: scope.join(" "),
+        scopes: grantedScopes.join(" "),
         code: createToken({ length: OAUTH_CONFIG.CODE_LENGTH }),
         expiresAt: new Date(Date.now() + OAUTH_CONFIG.CODE_LIFETIME * 1000),
         ...(app.pkce && { codeChallenge, codeChallengeMethod }),

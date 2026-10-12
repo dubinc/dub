@@ -1,4 +1,6 @@
 import { createId } from "@/lib/api/create-id";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
+import { retallyPayoutsAmount } from "@/lib/payouts/retally-payouts-amount";
 import { prisma } from "@/lib/prisma";
 import { groupBy, linkConstructorSimple } from "@dub/utils";
 import "dotenv-flow/config";
@@ -112,9 +114,9 @@ async function main() {
         data: {
           partnerId: link.actualPartnerId!,
         },
-        limit: 250,
+        limit: PRISMA_UPDATEMANY_LIMIT,
       });
-      if (updatedCommissions.count < 250) {
+      if (updatedCommissions.count < PRISMA_UPDATEMANY_LIMIT) {
         break;
       }
       console.log(
@@ -237,35 +239,7 @@ async function main() {
       ),
     ];
 
-    for (const payoutId of payoutIdsToRetally) {
-      const data = await prisma.commission.aggregate({
-        _sum: {
-          earnings: true,
-        },
-        where: {
-          payoutId,
-        },
-      });
-      const payoutAmount = data._sum.earnings ?? 0;
-      if (payoutAmount === 0) {
-        console.log(`Deleting payout ${payoutId}`);
-        await prisma.payout.delete({
-          where: {
-            id: payoutId,
-          },
-        });
-      } else {
-        console.log(`Updating payout ${payoutId} with amount ${payoutAmount}`);
-        await prisma.payout.update({
-          where: {
-            id: payoutId,
-          },
-          data: {
-            amount: payoutAmount,
-          },
-        });
-      }
-    }
+    await retallyPayoutsAmount(payoutIdsToRetally);
 
     await syncTotalCommissions({
       partnerId: link.currenctPartnerId!,

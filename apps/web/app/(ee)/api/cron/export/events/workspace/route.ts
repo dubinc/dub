@@ -24,6 +24,7 @@ const payloadSchema = eventsQuerySchema.extend({
     .pipe(z.string().array()),
   workspaceId: z.string(),
   userId: z.string(),
+  dataAvailableFrom: z.coerce.date().optional(),
 });
 
 // POST /api/cron/export/events/workspace - QStash worker for processing large event exports

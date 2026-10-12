@@ -4,11 +4,11 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { prisma } from "@/lib/prisma";
-import { PlanProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { parseAnalyticsQuery } from "@/lib/zod/schemas/analytics";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +49,12 @@ export const GET = async (req: Request) => {
         },
         select: {
           id: true,
-          dashboard: true,
+          dashboard: {
+            select: {
+              id: true,
+              password: true,
+            },
+          },
           projectId: true,
           project: {
             select: {
@@ -81,6 +86,8 @@ export const GET = async (req: Request) => {
         });
       }
 
+      await assertDashboardPassword(folder.dashboard);
+
       workspace = folder.project;
 
       if ("links" in folder && folder.links?.length) link = folder.links[0];
@@ -103,7 +110,12 @@ export const GET = async (req: Request) => {
           },
           select: {
             id: true,
-            dashboard: true,
+            dashboard: {
+              select: {
+                id: true,
+                password: true,
+              },
+            },
             projectId: true,
             project: {
               select: {
@@ -124,6 +136,8 @@ export const GET = async (req: Request) => {
           });
         }
 
+        await assertDashboardPassword(link.dashboard);
+
         workspace = link.project;
       }
     }
@@ -140,7 +154,8 @@ export const GET = async (req: Request) => {
       throw new DubApiError({
         code: "forbidden",
         message: exceededLimitError({
-          plan: workspace.plan as PlanProps,
+          plan: workspace.plan,
+          planPeriod: workspace.planPeriod,
           limit: workspace.usageLimit,
           type: "clicks",
         }),
@@ -185,3 +200,23 @@ export const GET = async (req: Request) => {
     return handleAndReturnErrorResponse(error);
   }
 };
+
+async function assertDashboardPassword(dashboard: {
+  id: string;
+  password: string | null;
+}) {
+  if (!dashboard.password) {
+    return;
+  }
+
+  const cookiePassword = (await cookies()).get(
+    `dub_password_${dashboard.id}`,
+  )?.value;
+
+  if (cookiePassword !== dashboard.password) {
+    throw new DubApiError({
+      code: "unauthorized",
+      message: "This dashboard is password protected",
+    });
+  }
+}

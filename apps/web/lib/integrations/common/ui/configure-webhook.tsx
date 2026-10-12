@@ -3,12 +3,9 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps } from "@/lib/types";
-import {
-  LINK_CLICK_WEBHOOK_TRIGGER,
-  PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
-  WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
-} from "@/lib/webhook/constants";
+import { LINK_CLICK_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
 import type { WebhookTrigger } from "@/lib/webhook/types";
+import { getAvailableWebhookTriggers } from "@/lib/webhook/utils";
 import { Link } from "@/ui/shared/icons";
 import {
   isWebhookTriggerSelectionInvalid,
@@ -17,7 +14,7 @@ import {
 } from "@/ui/webhooks/webhook-trigger-selector";
 import { Button } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 
@@ -113,14 +110,11 @@ export function ConfigureWebhook({
   const canManageWebhook =
     !permissionsError || plan === "free" || plan === "pro";
 
-  const availableTriggers = useMemo(
-    () =>
-      [
-        ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
-        ...(defaultProgramId ? PROGRAM_LEVEL_WEBHOOK_TRIGGERS : []),
-      ].filter((trigger) => supportedEvents.includes(trigger)),
-    [defaultProgramId, supportedEvents],
-  );
+  const availableTriggers = getAvailableWebhookTriggers({
+    defaultProgramId,
+    subscribedTriggers: webhook?.triggers,
+    supportedTriggers: supportedEvents,
+  });
 
   const selectionInvalid = isWebhookTriggerSelectionInvalid(triggerSelection);
 
