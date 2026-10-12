@@ -85,7 +85,7 @@ export const POST = async (req: Request) => {
       : []),
 
     // Handle external payout events
-    ...(event === "external_payout.confirmed" || event === "payout.confirmed"
+    ...(event === "external_payout.confirmed"
       ? [
           handleExternalPayoutEvent({
             webhook,

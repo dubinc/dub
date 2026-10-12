@@ -9,7 +9,7 @@ interface WebhookPayload {
   payload: {
     id: string;
     data: z.infer<typeof payoutWebhookEventSchema>;
-    event: "external_payout.confirmed" | "payout.confirmed";
+    event: "external_payout.confirmed";
   };
 }
 
@@ -18,13 +18,8 @@ export async function handleExternalPayoutEvent({
   status,
   payload,
 }: WebhookPayload) {
-  if (
-    payload.event !== "external_payout.confirmed" &&
-    payload.event !== "payout.confirmed"
-  ) {
-    console.log(
-      "Event is not an external_payout.confirmed event. Skipping...",
-    );
+  if (payload.event !== "external_payout.confirmed") {
+    console.log("Event is not an external_payout.confirmed event. Skipping...");
     return;
   }
 

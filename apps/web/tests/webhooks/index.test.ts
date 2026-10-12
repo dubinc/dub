@@ -130,7 +130,6 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "commission.created": commissionWebhookEventSchemaExtended,
   "bounty.created": bountyWebhookEventSchemaExtended,
   "bounty.updated": bountyWebhookEventSchemaExtended,
-  "payout.confirmed": payoutWebhookEventSchemaExtended,
   "external_payout.confirmed": payoutWebhookEventSchemaExtended,
   "discount_code.created": DiscountCodeWebhookSchema,
   "discount_code.deleted": DiscountCodeWebhookSchema,

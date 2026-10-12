@@ -21,12 +21,8 @@ export async function validateWebhook({
 }) {
   const { url, linkScope, linkIds, folderIds, triggers } = input;
 
-  // external_payout.confirmed (and deprecated payout.confirmed) require external payouts
-  const hasExternalPayoutTrigger =
-    triggers?.includes("external_payout.confirmed") ||
-    triggers?.includes("payout.confirmed");
-
-  if (hasExternalPayoutTrigger) {
+  // external_payout.confirmed trigger requires external payouts enabled
+  if (triggers && triggers.includes("external_payout.confirmed")) {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const program = await prisma.program.findUniqueOrThrow({
@@ -40,13 +36,9 @@ export async function validateWebhook({
 
     // TODO: Maybe show this for all in the future?
     if (program.payoutMode === "internal") {
-      const unavailableTrigger = triggers?.includes("external_payout.confirmed")
-        ? "external_payout.confirmed"
-        : "payout.confirmed";
-
       throw new DubApiError({
         code: "bad_request",
-        message: `The '${unavailableTrigger}' trigger is not currently available for your workspace.`,
+        message: `The 'external_payout.confirmed' trigger is not currently available for your workspace.`,
       });
     }
   }

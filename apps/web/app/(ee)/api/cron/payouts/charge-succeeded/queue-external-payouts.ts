@@ -80,13 +80,14 @@ export async function queueExternalPayouts(
     where: {
       projectId: invoice.workspaceId,
       disabledAt: null,
-      OR: [
-        { triggers: { array_contains: ["external_payout.confirmed"] } },
-        { triggers: { array_contains: ["payout.confirmed"] } },
-      ],
+      triggers: {
+        array_contains: ["external_payout.confirmed"],
+      },
     },
     select: {
       id: true,
+      url: true,
+      secret: true,
     },
   });
 
@@ -109,21 +110,12 @@ export async function queueExternalPayouts(
         },
       });
 
-      const workspace = {
-        id: invoice.workspaceId,
-        webhookEnabled: true as const,
-      };
-
-      // Send "payout.confirmed" webhook (deprecated)
       await sendWorkspaceWebhook({
-        workspace,
-        data,
-        trigger: "payout.confirmed",
-      });
-
-      // Send "external_payout.confirmed" webhook
-      await sendWorkspaceWebhook({
-        workspace,
+        workspace: {
+          id: invoice.workspaceId,
+          webhookEnabled: true,
+        },
+        webhooks,
         data,
         trigger: "external_payout.confirmed",
       });

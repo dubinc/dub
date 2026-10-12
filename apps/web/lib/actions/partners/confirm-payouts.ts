@@ -139,28 +139,11 @@ export const confirmPayoutsAction = authActionClient
           pageSize: Infinity,
         }),
 
-        Promise.all([
-          getWebhooks({
-            workspaceId: workspace.id,
-            triggers: ["external_payout.confirmed"],
-            disabled: false,
-            installationId: null,
-          }),
-          getWebhooks({
-            workspaceId: workspace.id,
-            triggers: ["payout.confirmed"],
-            disabled: false,
-            installationId: null,
-          }),
-        ]).then(([current, legacy]) => {
-          const seen = new Set<string>();
-          return [...current, ...legacy].filter((webhook) => {
-            if (seen.has(webhook.id)) {
-              return false;
-            }
-            seen.add(webhook.id);
-            return true;
-          });
+        getWebhooks({
+          workspaceId: workspace.id,
+          triggers: ["external_payout.confirmed"],
+          disabled: false,
+          installationId: null,
         }),
       ]);
 

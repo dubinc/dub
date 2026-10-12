@@ -27,7 +27,6 @@ export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
   "commission.created",
   "bounty.created",
   "bounty.updated",
-  "payout.confirmed",
   "external_payout.confirmed",
   "discount_code.created",
   "discount_code.deleted",
@@ -42,10 +41,7 @@ export const WEBHOOK_TRIGGERS = [
 export const DEPRECATED_WEBHOOK_TRIGGERS = new Map<
   WebhookTrigger,
   WebhookTrigger
->([
-  ["partner.application_submitted", "program_application.created"],
-  ["payout.confirmed", "external_payout.confirmed"],
-]);
+>([["partner.application_submitted", "program_application.created"]]);
 
 export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
   "link.created": "Occurs whenever a link is created",
@@ -65,8 +61,6 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
     "Occurs whenever a commission is created for a partner (clawbacks will also trigger this event with a negative amount)",
   "bounty.created": "Occurs whenever a bounty is created in your program",
   "bounty.updated": "Occurs whenever a bounty in your program is updated",
-  "payout.confirmed":
-    "Occurs whenever an external payout in your program is confirmed",
   "external_payout.confirmed":
     "Occurs whenever an external payout in your program is confirmed",
   "discount_code.created":
