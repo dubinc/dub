@@ -39,6 +39,7 @@ async function seedPendingApplication(program: {
     data: {
       id: applicationId,
       programId: program.id,
+      partnerId,
       groupId: program.defaultGroupId,
       name,
       email,
@@ -181,7 +182,7 @@ test("GET /partners/applications/:id", async ({ api, program }) => {
       programId: string;
       name: string;
       email: string;
-    }>(`/api/partners/applications/${seeded.applicationId}`);
+    }>(`/api/program-applications/${seeded.applicationId}`);
 
     expect(status).toEqual(200);
     expect(data).toMatchObject({
@@ -194,9 +195,7 @@ test("GET /partners/applications/:id", async ({ api, program }) => {
 });
 
 test("GET /partners/applications/:id - not found", async ({ api }) => {
-  expect(
-    await api.get("/api/partners/applications/pga_does_not_exist"),
-  ).toEqual(
+  expect(await api.get("/api/program-applications/pga_does_not_exist")).toEqual(
     apiError({
       code: "not_found",
       message: "Application pga_does_not_exist not found.",

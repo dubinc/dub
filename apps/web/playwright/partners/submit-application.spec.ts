@@ -109,7 +109,7 @@ test.describe("Public application form", () => {
         id: string;
         name: string;
         email: string;
-      }>(`/api/partners/applications/${applicationId}`);
+      }>(`/api/program-applications/${applicationId}`);
 
       expect(status).toEqual(200);
       expect(data).toMatchObject({
