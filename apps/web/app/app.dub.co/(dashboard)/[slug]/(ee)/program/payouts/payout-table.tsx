@@ -80,6 +80,7 @@ function isPayoutEligibleForBatchConfirm(
   }
 
   if (
+    environment != null &&
     !isProductionEnvironment(environment) &&
     programPayoutMode !== ProgramPayoutMode.external
   ) {
@@ -356,7 +357,8 @@ export function PayoutTable() {
                       minimum payout amount
                     </a>
                   </li>
-                  {isProductionEnvironment(program?.environment) && (
+                  {(!program ||
+                    isProductionEnvironment(program.environment)) && (
                     <li>Partner has not connected payouts</li>
                   )}
                   <li>
@@ -475,6 +477,7 @@ function AmountRowItem({
 
   const minPayoutAmount = program?.minPayoutAmount || 0;
   const display = currencyFormatter(payout.amount);
+  const programLoaded = !!program;
   const isProductionProgram = isProductionEnvironment(program?.environment);
 
   if (payout.status === PayoutStatus.pending) {
@@ -502,6 +505,7 @@ function AmountRowItem({
     if (payout.mode === PayoutMode.external) {
       const missingTenantId = !payout.partner?.tenantId;
       const requiresTenantId =
+        !programLoaded ||
         isProductionProgram ||
         program?.payoutMode === ProgramPayoutMode.external;
       const blocksExternalPayout = missingTenantId && requiresTenantId;
@@ -539,7 +543,7 @@ function AmountRowItem({
     if (
       payout.mode === PayoutMode.internal &&
       !payout.partner?.payoutsEnabledAt &&
-      isProductionProgram
+      (!programLoaded || isProductionProgram)
     ) {
       return (
         <Tooltip content="This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program.">

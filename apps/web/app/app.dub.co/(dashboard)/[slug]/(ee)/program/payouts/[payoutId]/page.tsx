@@ -521,43 +521,47 @@ function PayoutConfirmButton() {
   const permissionsError =
     typeof _permissionsError === "string" ? _permissionsError : null;
 
+  const programLoaded = !!program;
   const isProductionProgram = isProductionEnvironment(program?.environment);
   const requiresTenantId =
-    !isProductionProgram && program?.payoutMode === ProgramPayoutMode.external;
+    programLoaded &&
+    !isProductionProgram &&
+    program?.payoutMode === ProgramPayoutMode.external;
   const missingExternalTenant = !payout?.partner.tenantId && requiresTenantId;
   const partnerNotConnected =
     !payout?.partner.payoutsEnabledAt && isProductionProgram;
+  const disabledTooltip = !programLoaded
+    ? undefined
+    : missingExternalTenant
+      ? "This partner does not have a tenant ID configured, which is required to process external payouts."
+      : partnerNotConnected
+        ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
+        : permissionsError || undefined;
+  const confirmBlocked = !programLoaded || !!disabledTooltip;
 
   const url = `/${slug}/program/payouts?status=pending&confirmPayouts=true&selectedPayoutIds=${payout?.id}`;
 
   useKeyboardShortcut("c", () => router.push(url), {
-    enabled:
-      !!payout?.id &&
-      !partnerNotConnected &&
-      !missingExternalTenant &&
-      !permissionsError,
+    enabled: !!payout?.id && !confirmBlocked,
   });
 
   if (payout?.status !== "pending") {
     return null;
   }
 
+  const button = (
+    <Button
+      text="Confirm payout"
+      className="h-8 px-3 sm:h-9"
+      shortcut="C"
+      disabled={!programLoaded}
+      disabledTooltip={disabledTooltip}
+    />
+  );
+
   return (
     <div className="flex items-center gap-2">
-      <Link href={url}>
-        <Button
-          text="Confirm payout"
-          className="h-8 px-3 sm:h-9"
-          shortcut="C"
-          disabledTooltip={
-            missingExternalTenant
-              ? "This partner does not have a tenant ID configured, which is required to process external payouts."
-              : partnerNotConnected
-                ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
-                : permissionsError || undefined
-          }
-        />
-      </Link>
+      {confirmBlocked ? button : <Link href={url}>{button}</Link>}
     </div>
   );
 }

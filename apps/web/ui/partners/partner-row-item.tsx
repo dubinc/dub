@@ -86,8 +86,8 @@ function usePartnerPayoutStatus(partner: PartnerRowItemProps["partner"]) {
   // Non-production programs always show a simulated payout. In production, external
   // programs and unconnected hybrid partners are external; everyone else is
   // enabled once payouts are connected and disabled until then.
-  if (showPayoutsEnabled) {
-    if (!isProductionEnvironment(program?.environment)) {
+  if (showPayoutsEnabled && program) {
+    if (!isProductionEnvironment(program.environment)) {
       statusKey = "simulated";
     } else if (
       program?.payoutMode === "external" ||
