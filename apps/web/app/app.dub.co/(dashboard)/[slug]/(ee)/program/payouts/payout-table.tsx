@@ -1,6 +1,5 @@
 "use client";
 
-import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useGroups from "@/lib/swr/use-groups";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
@@ -40,7 +39,6 @@ import {
   PayoutMode,
   PayoutStatus,
   ProgramPayoutMode,
-  WorkspaceEnvironment,
 } from "@prisma/client";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -48,64 +46,8 @@ import { useMemo } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { PayoutPaidCell } from "./payout-paid-cell";
+import { usePayoutBatchConfirm } from "./use-payout-batch-confirm";
 import { usePayoutFilters } from "./use-payout-filters";
-
-/** Matches server `getPayoutEligibilityFilter` and in-table warnings in `AmountRowItem`. */
-function isPayoutEligibleForBatchConfirm(
-  payout: PayoutResponse,
-  {
-    minPayoutAmount,
-    programPayoutMode,
-    environment,
-  }: {
-    minPayoutAmount: number;
-    programPayoutMode: ProgramPayoutMode;
-    environment?: WorkspaceEnvironment | null;
-  },
-) {
-  if (payout.status !== PayoutStatus.pending) {
-    return false;
-  }
-
-  if (payout.amount < minPayoutAmount) {
-    return false;
-  }
-
-  if (
-    payout.partner.defaultPayoutMethod === PartnerPayoutMethod.tremendous &&
-    (payout.amount < TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS ||
-      payout.amount > TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS)
-  ) {
-    return false;
-  }
-
-  if (
-    environment != null &&
-    !isProductionEnvironment(environment) &&
-    programPayoutMode !== ProgramPayoutMode.external
-  ) {
-    return true;
-  }
-
-  // Derive effective mode the same way server does
-  const effectiveMode = getEffectivePayoutMode({
-    payoutMode: programPayoutMode,
-    payoutsEnabledAt: payout.partner.payoutsEnabledAt ?? null,
-  });
-
-  if (effectiveMode === PayoutMode.external && !payout.partner?.tenantId) {
-    return false;
-  }
-
-  if (
-    effectiveMode === PayoutMode.internal &&
-    !payout.partner?.payoutsEnabledAt
-  ) {
-    return false;
-  }
-
-  return true;
-}
 
 const PAYOUTS_MAX_PAGE_SIZE = 50;
 
@@ -138,9 +80,8 @@ export function PayoutTable() {
     defaultProgramId,
   } = useWorkspace();
 
-  const { program } = useProgram();
   const { groups } = useGroups();
-  const minPayoutAmount = program?.minPayoutAmount ?? 0;
+  const { getBatchConfirm } = usePayoutBatchConfirm();
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "payouts-table-columns",
@@ -320,65 +261,18 @@ export function PayoutTable() {
       const selectedPayouts = table
         .getSelectedRowModel()
         .rows.map((r) => r.original);
-
-      const eligibilityCtx = {
-        minPayoutAmount,
-        programPayoutMode: program?.payoutMode ?? "internal",
-        environment: program?.environment,
-      };
-
-      const hasIneligibleAmongSelection =
-        selectedPayouts.length > 0 &&
-        selectedPayouts.some(
-          (payout) => !isPayoutEligibleForBatchConfirm(payout, eligibilityCtx),
-        );
+      const { disabled, disabledTooltip, eligiblePayouts } =
+        getBatchConfirm(selectedPayouts);
 
       return (
         <Button
           variant="primary"
           text="Confirm selected"
           className="h-7 w-fit rounded-lg px-2.5"
-          disabled={hasIneligibleAmongSelection}
-          disabledTooltip={
-            hasIneligibleAmongSelection ? (
-              <div className="max-w-xs space-y-2 px-4 py-3 text-left text-sm">
-                <p>
-                  Your selection includes payouts that are ineligible for
-                  payment:
-                </p>
-                <ul className="list-disc space-y-1 pl-4 marker:text-neutral-500">
-                  <li>
-                    Below the{" "}
-                    <a
-                      href="https://dub.co/help/article/partner-payouts#minimum-payout-amount"
-                      target="_blank"
-                      className="cursor-help underline decoration-dotted underline-offset-2"
-                    >
-                      minimum payout amount
-                    </a>
-                  </li>
-                  {(!program ||
-                    isProductionEnvironment(program.environment)) && (
-                    <li>Partner has not connected payouts</li>
-                  )}
-                  <li>
-                    Not within the gift card payout amount range of{" "}
-                    {MIN_GIFT_CARD_PAYOUT_AMOUNT} –{" "}
-                    {MAX_GIFT_CARD_PAYOUT_AMOUNT}
-                  </li>
-                </ul>
-              </div>
-            ) : undefined
-          }
+          disabled={disabled}
+          disabledTooltip={disabledTooltip}
           onClick={() => {
-            const current = table
-              .getSelectedRowModel()
-              .rows.map((r) => r.original);
-            const pendingEligible = current.filter((p) =>
-              isPayoutEligibleForBatchConfirm(p, eligibilityCtx),
-            );
-
-            if (pendingEligible.length === 0) {
+            if (eligiblePayouts.length === 0) {
               toast.error("Select at least one eligible pending payout.");
               return;
             }
@@ -386,7 +280,7 @@ export function PayoutTable() {
             queryParams({
               set: {
                 confirmPayouts: "true",
-                selectedPayoutIds: pendingEligible.map((p) => p.id).join(","),
+                selectedPayoutIds: eligiblePayouts.map((p) => p.id).join(","),
               },
               del: ["selectedPayoutId", "excludedPayoutIds"],
             });

@@ -2,7 +2,11 @@ import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useProgram from "@/lib/swr/use-program";
 import { CircleArrowRight, DynamicTooltipWrapper, GreekTemple } from "@dub/ui";
 import { cn, formatDateTimeSmart } from "@dub/utils";
-import { PartnerNetworkStatus, PartnerPayoutMethod } from "@prisma/client";
+import {
+  PartnerNetworkStatus,
+  PartnerPayoutMethod,
+  WorkspaceEnvironment,
+} from "@prisma/client";
 import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -28,9 +32,6 @@ interface PartnerRowItemProps {
     payoutsEnabledAt?: Date | null;
   };
 }
-
-const SIMULATED_PAYOUT_TOOLTIP =
-  "This is a staging/sandbox workspace so payouts will be simulated, no real money will be transferred.";
 
 const PAYOUT_STATUS_CONFIG = {
   external: {
@@ -104,22 +105,28 @@ function usePartnerPayoutStatus(partner: PartnerRowItemProps["partner"]) {
   return {
     statusKey,
     showPayoutsEnabled,
+    environment: program?.environment,
   };
 }
 
 function PartnerPayoutStatusTooltip({
   statusKey,
   partner,
+  environment,
 }: {
   statusKey: keyof typeof PAYOUT_STATUS_CONFIG | null;
   partner: PartnerRowItemProps["partner"];
+  environment?: WorkspaceEnvironment;
 }) {
   if (!statusKey) return null;
 
   if (statusKey === "simulated") {
+    if (!environment) return null;
+
     return (
       <div className="max-w-xs text-pretty p-2.5 text-sm text-neutral-500">
-        {SIMULATED_PAYOUT_TOOLTIP}
+        This is a {environment} workspace so payouts will be simulated, no real
+        money will be transferred.
       </div>
     );
   }
@@ -186,7 +193,8 @@ export function PartnerRowItem({
   suffix,
 }: PartnerRowItemProps) {
   const { slug } = useParams();
-  const { statusKey, showPayoutsEnabled } = usePartnerPayoutStatus(partner);
+  const { statusKey, showPayoutsEnabled, environment } =
+    usePartnerPayoutStatus(partner);
 
   const As = showPermalink ? Link : "div";
 
@@ -201,6 +209,7 @@ export function PartnerRowItem({
                     <PartnerPayoutStatusTooltip
                       statusKey={statusKey}
                       partner={partner}
+                      environment={environment}
                     />
                   ),
                 }
