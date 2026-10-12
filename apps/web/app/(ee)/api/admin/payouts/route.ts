@@ -3,7 +3,6 @@ import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { getPaginationQuerySchema } from "@/lib/zod/schemas/misc";
-import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID } from "@dub/utils";
 import { InvoiceStatus, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -41,28 +40,10 @@ export const GET = withAdmin(async ({ searchParams }) => {
   });
 
   const invoiceWhere: Prisma.InvoiceWhereInput = {
-    ...(programId
-      ? { programId }
-      : {
-          AND: [
-            {
-              programId: {
-                notIn: [ACME_PROGRAM_ID, DEMO_PROGRAM_ID],
-              },
-            },
-            {
-              program: {
-                is: {
-                  NOT: {
-                    slug: {
-                      endsWith: "-staging",
-                    },
-                  },
-                },
-              },
-            },
-          ],
-        }),
+    program: {
+      environment: "production",
+    },
+    ...(programId ? { programId } : {}),
     status: status || {
       not: "failed",
     },
@@ -72,37 +53,39 @@ export const GET = withAdmin(async ({ searchParams }) => {
     },
   };
 
-  const [invoices, totalInvoices, timeseriesData, programs] = await Promise.all([
-    prisma.invoice.findMany({
-      where: invoiceWhere,
-      include: {
-        program: {
-          select: {
-            name: true,
-            logo: true,
+  const [invoices, totalInvoices, timeseriesData, programs] = await Promise.all(
+    [
+      prisma.invoice.findMany({
+        where: invoiceWhere,
+        include: {
+          program: {
+            select: {
+              name: true,
+              logo: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      skip: ((page ?? 1) - 1) * pageSize,
-      take: pageSize,
-    }),
-    prisma.invoice.count({
-      where: invoiceWhere,
-    }),
-    getPayoutsTimeseries({
-      programId,
-      status,
-      startDate,
-      endDate,
-      granularity,
-      timezone,
-    }),
-    // not scoped to programId so the program filter always lists all top programs
-    getTopProgramsByPayouts({ status, startDate, endDate }),
-  ]);
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip: ((page ?? 1) - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.invoice.count({
+        where: invoiceWhere,
+      }),
+      getPayoutsTimeseries({
+        programId,
+        status,
+        startDate,
+        endDate,
+        granularity,
+        timezone,
+      }),
+      // not scoped to programId so the program filter always lists all top programs
+      getTopProgramsByPayouts({ status, startDate, endDate }),
+    ],
+  );
 
   const formattedInvoices = invoices.map((invoice) => ({
     date: invoice.createdAt,

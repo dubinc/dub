@@ -4,11 +4,22 @@ export const ADMIN_ACCESS_BLOCKLIST: string[] = [
   "user_1M3YFDDQ97AGTKWQ9NCSRQTYB",
 ];
 
-export const ADMIN_RESTRICTED_PATHS = ["/links", "/revenue", "/domains"];
+export const ADMIN_RESTRICTED_PATHS = [
+  "/links",
+  "/analytics",
+  "/commissions",
+  "/payouts",
+  "/revenue",
+  "/domains",
+];
 
 const ADMIN_RESTRICTED_API_PATHS = [
   "/api/admin/links",
   "/api/admin/workspaces",
+  "/api/admin/analytics",
+  "/api/admin/events",
+  "/api/admin/commissions",
+  "/api/admin/payouts",
   "/api/admin/revenue",
   "/api/admin/domains",
 ];
