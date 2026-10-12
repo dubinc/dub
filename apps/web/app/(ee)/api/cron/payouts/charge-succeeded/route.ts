@@ -142,7 +142,7 @@ export const POST = withCron(async ({ rawBody }) => {
           ]
         : []),
 
-      ...(isProductionWorkspace ? [queueExternalPayouts(invoice)] : []),
+      queueExternalPayouts(invoice),
 
       // For non-production workspaces, mock the payout completion
       ...(!isProductionWorkspace
