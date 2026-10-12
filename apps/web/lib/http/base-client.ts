@@ -22,6 +22,52 @@ function isRetryableStatus(status: number) {
   return RETRYABLE_STATUS_CODES.has(status) || status >= 500;
 }
 
+function parseRetryAfterMs(header: string | null, now = Date.now()) {
+  if (header == null) {
+    return null;
+  }
+
+  const value = header.trim();
+
+  if (!value) {
+    return null;
+  }
+
+  if (/^\d+$/.test(value)) {
+    return Number(value) * 1000;
+  }
+
+  const dateMs = Date.parse(value);
+
+  if (Number.isNaN(dateMs)) {
+    return null;
+  }
+
+  const delayMs = dateMs - now;
+
+  if (delayMs < 0) {
+    return null;
+  }
+
+  return delayMs;
+}
+
+function retrySleepMs({
+  jitteredBackoffMs,
+  retryAfterMs,
+  maxDelayMs,
+}: {
+  jitteredBackoffMs: number;
+  retryAfterMs: number | null;
+  maxDelayMs: number;
+}) {
+  if (retryAfterMs == null) {
+    return jitteredBackoffMs;
+  }
+
+  return Math.min(maxDelayMs, Math.max(jitteredBackoffMs, retryAfterMs));
+}
+
 export interface HttpRequestOptions<
   TInput extends z.ZodType = z.ZodType,
   TOutput extends z.ZodType = z.ZodType,
@@ -282,12 +328,18 @@ export abstract class HttpBaseClient {
       }
 
       if (!response.ok && canRetry && isRetryableStatus(response.status)) {
+        const retryAfterMs =
+          response.status === 429 || response.status === 503
+            ? parseRetryAfterMs(response.headers.get("retry-after"))
+            : null;
+
         await response.body?.cancel();
         await this.waitBeforeRetry({
           method,
           url: safeUrl,
           attempt,
           reason: `status ${response.status}`,
+          retryAfterMs,
         });
         continue;
       }
@@ -371,17 +423,24 @@ export abstract class HttpBaseClient {
     url,
     attempt,
     reason,
+    retryAfterMs = null,
   }: {
     method: string;
     url: string;
     attempt: number;
     reason: string;
+    retryAfterMs?: number | null;
   }) {
+    const maxDelayMs = this.retry?.maxDelay ?? DEFAULT_MAX_RETRY_DELAY_MS;
     const backoff = Math.min(
-      this.retry?.maxDelay ?? DEFAULT_MAX_RETRY_DELAY_MS,
+      maxDelayMs,
       (this.retry?.delay ?? 0) * 2 ** attempt,
     );
-    const delay = Math.round(Math.random() * backoff);
+    const delay = retrySleepMs({
+      jitteredBackoffMs: Math.round(Math.random() * backoff),
+      retryAfterMs,
+      maxDelayMs,
+    });
 
     if (this.debug) {
       console.log(

@@ -1,6 +1,7 @@
 import { PartnerPlatform, PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
 import { ScrapeCreatorsApiError, scrapeCreatorsClient } from "./client";
+import { missingAccountMessage } from "./missing-account-message";
 import { socialProfileSchema } from "./schema";
 
 type ScrapeCreatorsProfile = z.output<typeof socialProfileSchema>;
@@ -136,15 +137,10 @@ export async function getSocialProfile({
   } catch (error) {
     if (error instanceof ScrapeCreatorsApiError) {
       if (error.status === 404) {
-        const notFound = socialProfileSchema.safeParse(error.data);
+        const message = missingAccountMessage(error.data);
 
-        if (
-          notFound.success &&
-          notFound.data.platform === "account_not_found"
-        ) {
-          throw new AccountNotFoundError(
-            notFound.data.message || "Account doesn't exist.",
-          );
+        if (message) {
+          throw new AccountNotFoundError(message);
         }
       }
 
