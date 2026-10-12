@@ -1,5 +1,7 @@
 "use client";
 
+import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useGroups from "@/lib/swr/use-groups";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
@@ -35,8 +37,10 @@ import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import {
   PartnerPayoutMethod,
+  PayoutMode,
   PayoutStatus,
   ProgramPayoutMode,
+  WorkspaceEnvironment,
 } from "@prisma/client";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -52,9 +56,11 @@ function isPayoutEligibleForBatchConfirm(
   {
     minPayoutAmount,
     programPayoutMode,
+    environment,
   }: {
     minPayoutAmount: number;
     programPayoutMode: ProgramPayoutMode;
+    environment?: WorkspaceEnvironment | null;
   },
 ) {
   if (payout.status !== PayoutStatus.pending) {
@@ -65,24 +71,34 @@ function isPayoutEligibleForBatchConfirm(
     return false;
   }
 
-  // Derive effective mode the same way server does
-  const effectiveMode = payout.partner.payoutsEnabledAt
-    ? "internal"
-    : programPayoutMode === "hybrid" || programPayoutMode === "external"
-      ? "external"
-      : programPayoutMode;
-
-  if (effectiveMode === "external" && !payout.partner?.tenantId) {
-    return false;
-  }
-  if (effectiveMode === "internal" && !payout.partner?.payoutsEnabledAt) {
-    return false;
-  }
-
   if (
     payout.partner.defaultPayoutMethod === PartnerPayoutMethod.tremendous &&
     (payout.amount < TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS ||
       payout.amount > TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS)
+  ) {
+    return false;
+  }
+
+  if (
+    !isProductionEnvironment(environment) &&
+    programPayoutMode !== ProgramPayoutMode.external
+  ) {
+    return true;
+  }
+
+  // Derive effective mode the same way server does
+  const effectiveMode = getEffectivePayoutMode({
+    payoutMode: programPayoutMode,
+    payoutsEnabledAt: payout.partner.payoutsEnabledAt ?? null,
+  });
+
+  if (effectiveMode === PayoutMode.external && !payout.partner?.tenantId) {
+    return false;
+  }
+
+  if (
+    effectiveMode === PayoutMode.internal &&
+    !payout.partner?.payoutsEnabledAt
   ) {
     return false;
   }
@@ -307,6 +323,7 @@ export function PayoutTable() {
       const eligibilityCtx = {
         minPayoutAmount,
         programPayoutMode: program?.payoutMode ?? "internal",
+        environment: program?.environment,
       };
 
       const hasIneligibleAmongSelection =
@@ -339,7 +356,9 @@ export function PayoutTable() {
                       minimum payout amount
                     </a>
                   </li>
-                  <li>Partner has not connected payouts</li>
+                  {isProductionEnvironment(program?.environment) && (
+                    <li>Partner has not connected payouts</li>
+                  )}
                   <li>
                     Not within the gift card payout amount range of{" "}
                     {MIN_GIFT_CARD_PAYOUT_AMOUNT} –{" "}
@@ -456,6 +475,7 @@ function AmountRowItem({
 
   const minPayoutAmount = program?.minPayoutAmount || 0;
   const display = currencyFormatter(payout.amount);
+  const isProductionProgram = isProductionEnvironment(program?.environment);
 
   if (payout.status === PayoutStatus.pending) {
     if (payout.amount < minPayoutAmount) {
@@ -479,27 +499,33 @@ function AmountRowItem({
       );
     }
 
-    if (payout.mode === "external") {
+    if (payout.mode === PayoutMode.external) {
+      const missingTenantId = !payout.partner?.tenantId;
+      const requiresTenantId =
+        isProductionProgram ||
+        program?.payoutMode === ProgramPayoutMode.external;
+      const blocksExternalPayout = missingTenantId && requiresTenantId;
+
       return (
         <div className="flex items-center gap-1.5">
           <DynamicTooltipWrapper
             tooltipProps={{
-              content: payout.partner?.tenantId ? undefined : (
+              content: blocksExternalPayout ? (
                 <TooltipContent
                   title="This partner does not have a tenant ID configured, which is required to process external payouts."
                   cta="Learn more"
                   href="http://dub.co/docs/partners/external-payouts"
                   target="_blank"
                 />
-              ),
+              ) : undefined,
             }}
           >
             <span
               className={cn(
                 "truncate",
-                payout.partner?.tenantId
-                  ? "text-neutral-700"
-                  : "text-neutral-400 underline decoration-dotted underline-offset-2",
+                blocksExternalPayout
+                  ? "text-neutral-400 underline decoration-dotted underline-offset-2"
+                  : "text-neutral-700",
               )}
             >
               {display}
@@ -510,7 +536,11 @@ function AmountRowItem({
       );
     }
 
-    if (payout.mode === "internal" && !payout.partner?.payoutsEnabledAt) {
+    if (
+      payout.mode === PayoutMode.internal &&
+      !payout.partner?.payoutsEnabledAt &&
+      isProductionProgram
+    ) {
       return (
         <Tooltip content="This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program.">
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">

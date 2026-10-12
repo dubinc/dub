@@ -2,7 +2,9 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { usePayout } from "@/lib/swr/use-payout";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, PayoutResponse } from "@/lib/types";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
@@ -40,7 +42,7 @@ import {
   formatDateTimeSmart,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
-import { PayoutStatus } from "@prisma/client";
+import { PayoutStatus, ProgramPayoutMode } from "@prisma/client";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { useMemo } from "react";
@@ -507,6 +509,7 @@ function PayoutDetailsskeleton() {
 
 function PayoutConfirmButton() {
   const { slug, role } = useWorkspace();
+  const { program } = useProgram();
   const { payout } = usePayout();
   const router = useRouter();
 
@@ -518,11 +521,21 @@ function PayoutConfirmButton() {
   const permissionsError =
     typeof _permissionsError === "string" ? _permissionsError : null;
 
+  const isProductionProgram = isProductionEnvironment(program?.environment);
+  const requiresTenantId =
+    !isProductionProgram && program?.payoutMode === ProgramPayoutMode.external;
+  const missingExternalTenant = !payout?.partner.tenantId && requiresTenantId;
+  const partnerNotConnected =
+    !payout?.partner.payoutsEnabledAt && isProductionProgram;
+
   const url = `/${slug}/program/payouts?status=pending&confirmPayouts=true&selectedPayoutIds=${payout?.id}`;
 
   useKeyboardShortcut("c", () => router.push(url), {
     enabled:
-      !!payout?.id && !!payout.partner.payoutsEnabledAt && !permissionsError,
+      !!payout?.id &&
+      !partnerNotConnected &&
+      !missingExternalTenant &&
+      !permissionsError,
   });
 
   if (payout?.status !== "pending") {
@@ -537,9 +550,11 @@ function PayoutConfirmButton() {
           className="h-8 px-3 sm:h-9"
           shortcut="C"
           disabledTooltip={
-            !payout.partner.payoutsEnabledAt
-              ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
-              : permissionsError || undefined
+            missingExternalTenant
+              ? "This partner does not have a tenant ID configured, which is required to process external payouts."
+              : partnerNotConnected
+                ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
+                : permissionsError || undefined
           }
         />
       </Link>

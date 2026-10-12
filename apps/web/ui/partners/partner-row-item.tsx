@@ -1,3 +1,4 @@
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useProgram from "@/lib/swr/use-program";
 import { CircleArrowRight, DynamicTooltipWrapper, GreekTemple } from "@dub/ui";
 import { cn, formatDateTimeSmart } from "@dub/utils";
@@ -27,6 +28,9 @@ interface PartnerRowItemProps {
     payoutsEnabledAt?: Date | null;
   };
 }
+
+const SIMULATED_PAYOUT_TOOLTIP =
+  "This is a staging/sandbox workspace so payouts will be simulated, no real money will be transferred.";
 
 const PAYOUT_STATUS_CONFIG = {
   external: {
@@ -68,35 +72,34 @@ const PAYOUT_STATUS_CONFIG = {
     iconClassName: "border-red-300 bg-red-200 text-red-800",
     indicatorColor: "bg-red-500",
   },
+  simulated: {
+    indicatorColor: "bg-yellow-500",
+  },
 } as const;
 
 function usePartnerPayoutStatus(partner: PartnerRowItemProps["partner"]) {
   const { program } = useProgram();
 
   const showPayoutsEnabled = "payoutsEnabledAt" in partner;
+  let statusKey: keyof typeof PAYOUT_STATUS_CONFIG | null = null;
 
-  const isExternalPayoutEnabled =
-    showPayoutsEnabled &&
-    (() => {
-      switch (program?.payoutMode) {
-        case "external":
-          return true;
-        case "hybrid":
-          return partner.payoutsEnabledAt === null;
-        case "internal":
-          return false;
-        default:
-          return false;
-      }
-    })();
-
-  const statusKey: keyof typeof PAYOUT_STATUS_CONFIG | null = showPayoutsEnabled
-    ? isExternalPayoutEnabled
-      ? "external"
-      : partner.payoutsEnabledAt
-        ? "enabled"
-        : "disabled"
-    : null;
+  // Non-production programs always show a simulated payout. In production, external
+  // programs and unconnected hybrid partners are external; everyone else is
+  // enabled once payouts are connected and disabled until then.
+  if (showPayoutsEnabled) {
+    if (!isProductionEnvironment(program?.environment)) {
+      statusKey = "simulated";
+    } else if (
+      program?.payoutMode === "external" ||
+      (program?.payoutMode === "hybrid" && partner.payoutsEnabledAt === null)
+    ) {
+      statusKey = "external";
+    } else if (partner.payoutsEnabledAt) {
+      statusKey = "enabled";
+    } else {
+      statusKey = "disabled";
+    }
+  }
 
   return {
     statusKey,
@@ -112,6 +115,14 @@ function PartnerPayoutStatusTooltip({
   partner: PartnerRowItemProps["partner"];
 }) {
   if (!statusKey) return null;
+
+  if (statusKey === "simulated") {
+    return (
+      <div className="max-w-xs text-pretty p-2.5 text-sm text-neutral-500">
+        {SIMULATED_PAYOUT_TOOLTIP}
+      </div>
+    );
+  }
 
   const {
     title,
