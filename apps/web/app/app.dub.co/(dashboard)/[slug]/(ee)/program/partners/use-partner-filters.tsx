@@ -1,6 +1,6 @@
+import { usePartnerTags } from "@/lib/partner-tags/hooks/use-partner-tags";
+import { usePartnerTagsCount } from "@/lib/partner-tags/hooks/use-partner-tags-count";
 import useGroups from "@/lib/swr/use-groups";
-import { usePartnerTags } from "@/lib/swr/use-partner-tags";
-import { usePartnerTagsCount } from "@/lib/swr/use-partner-tags-count";
 import usePartners from "@/lib/swr/use-partners";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";

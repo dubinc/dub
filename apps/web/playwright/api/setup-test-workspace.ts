@@ -5,6 +5,7 @@ import {
   DEFAULT_ADDITIONAL_PARTNER_LINKS,
   DEFAULT_PARTNER_GROUP,
 } from "@/lib/zod/schemas/groups";
+import { INFINITY_NUMBER } from "@dub/utils";
 import { EventType, RewardStructure } from "@prisma/client";
 import { config as loadEnv } from "dotenv-flow";
 import { mkdir, writeFile } from "fs/promises";
@@ -137,6 +138,7 @@ export async function setupTestWorkspace() {
       aiLimit: 1000,
       partnersLimit: 1000,
       groupsLimit: 100,
+      partnerTagsLimit: INFINITY_NUMBER,
       shopifyStoreId: TEST_WORKSPACE.shopify.storeId,
     },
     create: {
@@ -154,6 +156,7 @@ export async function setupTestWorkspace() {
       aiLimit: 1000,
       partnersLimit: 1000,
       groupsLimit: 100,
+      partnerTagsLimit: INFINITY_NUMBER,
       shopifyStoreId: TEST_WORKSPACE.shopify.storeId,
     },
   });

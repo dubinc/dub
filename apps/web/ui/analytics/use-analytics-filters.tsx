@@ -1,9 +1,9 @@
 import { generateFilters } from "@/lib/ai/generate-filters";
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
+import { usePartnerTags } from "@/lib/partner-tags/hooks/use-partner-tags";
 import useCustomer from "@/lib/swr/use-customer";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
-import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { CountryFlag } from "@/ui/shared/country-flag";
@@ -117,13 +117,11 @@ export function useAnalyticsFilters({
     [searchParamsObj.partnerTagId],
   );
 
-  const { partnerTags: partnerTagsById } = usePartnerTags(
-    {
-      query: { ids: partnerTagIdParsed?.values },
-      enabled: !!partnerTagIdParsed?.values?.length && !!programPage,
-    },
-    { keepPreviousData: true },
-  );
+  const { partnerTags: partnerTagsById } = usePartnerTags({
+    query: { ids: partnerTagIdParsed?.values },
+    enabled: !!partnerTagIdParsed?.values?.length && !!programPage,
+    swrOptions: { keepPreviousData: true },
+  });
 
   const partnerTagIdToName = useMemo(
     () => new Map((partnerTagsById ?? []).map((t) => [t.id, t.name])),

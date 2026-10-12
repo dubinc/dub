@@ -1,7 +1,7 @@
+import { usePartnerTags } from "@/lib/partner-tags/hooks/use-partner-tags";
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useCustomers from "@/lib/swr/use-customers";
 import useGroups from "@/lib/swr/use-groups";
-import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import usePartners from "@/lib/swr/use-partners";
 import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";

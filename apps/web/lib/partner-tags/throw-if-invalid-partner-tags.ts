@@ -1,5 +1,5 @@
-import { DubApiError } from "@/lib/api/errors";
-import { prisma } from "@/lib/prisma";
+import { DubApiError } from "../api/errors";
+import { prisma } from "../prisma";
 
 export async function throwIfInvalidPartnerTags({
   programId,

@@ -1,7 +1,7 @@
 "use client";
 
-import { usePartnerTags } from "@/lib/swr/use-partner-tags";
-import { usePartnerTagsCount } from "@/lib/swr/use-partner-tags-count";
+import { usePartnerTags } from "@/lib/partner-tags/hooks/use-partner-tags";
+import { usePartnerTagsCount } from "@/lib/partner-tags/hooks/use-partner-tags-count";
 import { PartnerTagProps } from "@/lib/types";
 import { PARTNER_TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-tags";
 import {

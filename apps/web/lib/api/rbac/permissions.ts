@@ -30,6 +30,8 @@ export const PERMISSION_ACTIONS = [
   "messages.write",
   "payouts.write",
   "billing.write",
+  "partnerTags.read",
+  "partnerTags.write",
 ] as const;
 
 export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
@@ -182,6 +184,16 @@ export const ROLE_PERMISSIONS: {
   {
     action: "messages.write",
     description: "manage messages",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "partnerTags.read",
+    description: "access partner tags",
+    roles: ["owner", "member", "viewer", "billing"],
+  },
+  {
+    action: "partnerTags.write",
+    description: "manage partner tags",
     roles: ["owner", "member"],
   },
 ];
