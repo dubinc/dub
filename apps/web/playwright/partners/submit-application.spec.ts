@@ -246,7 +246,7 @@ async function expectPendingApplication(
   partnerId: string,
 ) {
   const { status, data } = await api.get<PartnerApplicationProps[]>(
-    "/api/partners/applications?pageSize=100",
+    `/api/partners/applications?search=${encodeURIComponent(partnerId)}`,
   );
   expect(status).toEqual(200);
   expect(
@@ -293,6 +293,13 @@ async function ensureApprovedApplyPartner() {
       },
     });
   }
+
+  await prisma.partnerUser.deleteMany({
+    where: {
+      userId: user.id,
+      partnerId: { not: partner.id },
+    },
+  });
 
   await prisma.partnerUser.upsert({
     where: {
@@ -389,7 +396,9 @@ async function cleanupApplication({
       programId: program.id,
       OR: [
         ...(email ? [{ email }] : []),
-        ...(partnerId ? [{ enrollment: { is: { partnerId } } }] : []),
+        ...(partnerId
+          ? [{ partnerId }, { enrollment: { is: { partnerId } } }]
+          : []),
       ],
     },
     select: { id: true },
