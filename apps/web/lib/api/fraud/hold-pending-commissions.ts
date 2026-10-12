@@ -1,11 +1,12 @@
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { chunk, groupBy } from "@dub/utils";
 import { CommissionStatus, Prisma, ProgramEnrollment } from "@prisma/client";
 import { syncTotalCommissions } from "../partners/sync-total-commissions";
 
 // Bulk-hold pending commissions for partner-program pairs flagged by partner-level fraud
-// (duplicate identity, duplicate payout method, cross-program ban).
+// (duplicate identity, duplicate payout method, network-level ban).
 export async function holdPendingCommissions(
   programEnrollments: Pick<ProgramEnrollment, "programId" | "partnerId">[],
 ) {
@@ -60,7 +61,7 @@ export async function holdPendingCommissions(
             },
           },
         },
-        take: 250,
+        take: PRISMA_UPDATEMANY_LIMIT,
       });
 
       if (pendingCommissions.length === 0) {

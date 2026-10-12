@@ -11,22 +11,23 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
+import { CommissionSource } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { orderSchema } from "./schema";
+import { shopifyCheckoutCache } from "./checkout-cache";
+import { ShopifyError } from "./error";
+import { ShopifyOrder } from "./schema";
 
 export async function createShopifySale({
-  event,
+  order,
   customerId,
   workspaceId,
   leadData,
 }: {
-  event: any;
+  order: ShopifyOrder;
   customerId: string;
   workspaceId: string;
   leadData: LeadEventTB;
 }) {
-  const order = orderSchema.parse(event);
-
   const {
     checkout_token: checkoutToken,
     confirmation_number: invoiceId,
@@ -48,14 +49,14 @@ export async function createShopifySale({
   );
 
   if (!ok) {
-    return new Response(
-      `[Shopify] Order has been processed already. Skipping...`,
+    throw new ShopifyError(
+      "Sale event for this order has been processed already. Skipping the order...",
     );
   }
 
   const saleData = {
     ...leadData,
-    workspace_id: leadData.workspace_id || workspaceId, // in case for some reason the lead event doesn't have workspace_id
+    workspace_id: workspaceId,
     event_id: nanoid(16),
     event_name: "Purchase",
     payment_processor: "shopify",
@@ -127,7 +128,7 @@ export async function createShopifySale({
         firstSaleAt: existingCustomer.firstSaleAt ? undefined : new Date(),
       },
     }),
-    redis.del(`shopify:checkout:${checkoutToken}`),
+    shopifyCheckoutCache.delete(checkoutToken),
   ]);
 
   // for program links
@@ -147,6 +148,7 @@ export async function createShopifySale({
       quantity: 1,
       invoiceId: saleData.invoice_id,
       currency: saleData.currency,
+      source: CommissionSource.shopify,
       context: {
         customer: {
           country: customer.country,
@@ -166,8 +168,7 @@ export async function createShopifySale({
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: "partnerMetricsUpdated",
-          reason: "sale",
+          event: "saleRecorded",
           identity: {
             workspaceId: workspaceId,
             programId: link.programId,
@@ -223,4 +224,8 @@ export async function createShopifySale({
         : []),
     ]),
   );
+
+  return {
+    saleData,
+  };
 }

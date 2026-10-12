@@ -1,4 +1,4 @@
-import { withdrawPartnerApplicationAction } from "@/lib/actions/partners/withdraw-partner-application";
+import { withdrawProgramApplicationAction } from "@/lib/actions/partners/withdraw-program-application";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { ProgramEnrollmentProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
@@ -6,6 +6,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { Button, StatusBadge } from "@dub/ui";
+import { STANDARD_REAPPLICATION_DAYS } from "@dub/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode } from "react";
@@ -34,8 +35,7 @@ const states: Record<
   }),
   rejected: () => ({
     title: "Application rejected",
-    description:
-      "Your application has been rejected. You can re-apply in 30 days.",
+    description: `Your application has been rejected. You can re-apply in ${STANDARD_REAPPLICATION_DAYS} days.`,
   }),
 };
 
@@ -58,7 +58,7 @@ export function UnapprovedProgramPage({
     confirmText: "Withdraw application",
     onConfirm: async () => {
       try {
-        await withdrawPartnerApplicationAction({
+        await withdrawProgramApplicationAction({
           programId: programEnrollment.programId,
         });
         mutatePrefix("/api/partner-profile/programs");

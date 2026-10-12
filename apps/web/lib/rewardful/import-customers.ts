@@ -48,19 +48,31 @@ export async function importCustomers(payload: RewardfulImportPayload) {
       )
       .map((r) => r.stripe_customer_id!);
 
-    const externalIds = referrals.map((r) => r.customer.id);
+    // Rewardful can return a customer object with a null id.
+    const externalIds = referrals
+      .map((r) => r.customer.id)
+      .filter((id): id is string => Boolean(id));
 
-    const existingCustomers = await prisma.customer.findMany({
-      where: {
-        OR: [
-          { stripeCustomerId: { in: stripeCustomerIds } },
-          {
-            projectId: workspace.id,
-            externalId: { in: externalIds },
-          },
-        ],
-      },
-    });
+    const existingCustomers =
+      stripeCustomerIds.length === 0 && externalIds.length === 0
+        ? []
+        : await prisma.customer.findMany({
+            where: {
+              OR: [
+                ...(stripeCustomerIds.length > 0
+                  ? [{ stripeCustomerId: { in: stripeCustomerIds } }]
+                  : []),
+                ...(externalIds.length > 0
+                  ? [
+                      {
+                        projectId: workspace.id,
+                        externalId: { in: externalIds },
+                      },
+                    ]
+                  : []),
+              ],
+            },
+          });
 
     const referrralChunks = chunk(referrals, 10);
     for (const referralChunk of referrralChunks) {

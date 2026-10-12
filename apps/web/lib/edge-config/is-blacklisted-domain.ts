@@ -1,12 +1,10 @@
 import { getAll } from "@vercel/edge-config";
 
-export const isBlacklistedDomain = async (domain: string): Promise<boolean> => {
-  if (!process.env.EDGE_CONFIG) {
-    return false;
-  }
-
-  if (!domain) {
-    return false;
+export const isBlacklistedDomain = async (
+  domain: string,
+): Promise<"whitelisted" | "blacklisted" | null> => {
+  if (!process.env.EDGE_CONFIG || !domain) {
+    return null;
   }
 
   try {
@@ -17,8 +15,7 @@ export const isBlacklistedDomain = async (domain: string): Promise<boolean> => {
     } = await getAll(["domains", "terms", "whitelistedDomains"]);
 
     if (whitelistedDomains.includes(domain)) {
-      console.log("Domain is whitelisted", domain);
-      return false;
+      return "whitelisted";
     }
 
     const blacklistedTermsRegex = new RegExp(
@@ -27,15 +24,15 @@ export const isBlacklistedDomain = async (domain: string): Promise<boolean> => {
         .join("|"),
     );
 
-    const isBlacklisted =
-      blacklistedDomains.includes(domain) || blacklistedTermsRegex.test(domain);
-
-    if (isBlacklisted) {
-      return true;
+    if (
+      blacklistedDomains.includes(domain) ||
+      blacklistedTermsRegex.test(domain)
+    ) {
+      return "blacklisted";
     }
 
-    return false;
-  } catch (e) {
-    return false;
+    return null;
+  } catch {
+    return null;
   }
 };

@@ -5,6 +5,7 @@ import { scaleBand, scaleLinear, scaleUtc } from "@visx/scale";
 import { Bar, Circle, Line } from "@visx/shape";
 import { PropsWithChildren, useMemo, useState } from "react";
 import { ChartContext, ChartTooltipContext } from "./chart-context";
+import { ClampedTooltip } from "./clamped-tooltip";
 import {
   ChartProps,
   Datum,
@@ -12,7 +13,15 @@ import {
 } from "./types";
 import { useTooltip } from "./use-tooltip";
 
-type TimeSeriesChartProps<T extends Datum> = PropsWithChildren<ChartProps<T>>;
+type TimeSeriesChartProps<T extends Datum> = PropsWithChildren<
+  ChartProps<T> & {
+    /**
+     * "flip" (the default) flips the tooltip near an edge. "clamp" also keeps
+     * it inside the chart, for narrow charts on mobile.
+     */
+    tooltipBounds?: "flip" | "clamp";
+  }
+>;
 
 export function TimeSeriesChart<T extends Datum>(
   props: TimeSeriesChartProps<T>,
@@ -44,6 +53,8 @@ function TimeSeriesChartInner<T extends Datum>({
   tooltipClassName = "",
   defaultTooltipIndex = null,
   onHoverDateChange,
+  onXValueClick,
+  tooltipBounds = "flip",
   margin: marginProp = {
     top: 12,
     right: 5,
@@ -223,6 +234,17 @@ function TimeSeriesChartInner<T extends Datum>({
               onTouchMove={handleTooltip}
               onMouseMove={handleTooltip}
               onMouseLeave={hideTooltip}
+              onClick={() => {
+                if (tooltipData) {
+                  onXValueClick?.(tooltipData);
+                }
+              }}
+              onTouchEnd={() => {
+                if (tooltipData) {
+                  onXValueClick?.(tooltipData);
+                }
+              }}
+              className={onXValueClick ? "cursor-pointer" : undefined}
               fill="transparent"
             />
           </Group>
@@ -230,31 +252,56 @@ function TimeSeriesChartInner<T extends Datum>({
 
         {/* Tooltips */}
         <div className="pointer-events-none absolute inset-0">
-          {tooltipData && (
-            <TooltipWrapper
-              key={tooltipData.date.toString()}
-              left={(tooltipLeft ?? 0) + margin.left}
-              top={(tooltipTop ?? 0) + margin.top}
-              offsetLeft={
+          {tooltipData &&
+            (() => {
+              // Anchor bars at their center so the offset is symmetric when
+              // the tooltip flips to the left near the right edge
+              const left =
+                (tooltipLeft ?? 0) +
+                margin.left +
+                ("bandwidth" in xScale ? xScale.bandwidth() / 2 : 0);
+              const top = (tooltipTop ?? 0) + margin.top;
+              const offsetLeft =
                 "bandwidth" in xScale
-                  ? xScale.bandwidth() * (1 + xScale.padding())
-                  : 8
-              }
-              offsetTop={12}
-              className="absolute"
-              unstyled={true}
-            >
-              <div
-                className={cn(
-                  "border-border-default bg-bg-default pointer-events-none rounded-lg border px-4 py-2 text-base shadow-sm",
-                  tooltipClassName,
-                )}
-              >
-                {tooltipContent?.(tooltipData) ??
-                  series[0].valueAccessor(tooltipData)}
-              </div>
-            </TooltipWrapper>
-          )}
+                  ? xScale.bandwidth() * (0.5 + xScale.padding())
+                  : 8;
+              const body = (
+                <div
+                  className={cn(
+                    "border-border-default bg-bg-default pointer-events-none rounded-lg border px-4 py-2 text-base shadow-sm",
+                    tooltipClassName,
+                  )}
+                >
+                  {tooltipContent?.(tooltipData) ??
+                    series[0].valueAccessor(tooltipData)}
+                </div>
+              );
+
+              return tooltipBounds === "clamp" ? (
+                <ClampedTooltip
+                  left={left}
+                  top={top}
+                  offsetLeft={offsetLeft}
+                  offsetTop={12}
+                  containerWidth={outerWidth}
+                  containerHeight={outerHeight}
+                >
+                  {body}
+                </ClampedTooltip>
+              ) : (
+                <TooltipWrapper
+                  key={tooltipData.date.toString()}
+                  left={left}
+                  top={top}
+                  offsetLeft={offsetLeft}
+                  offsetTop={12}
+                  className="absolute"
+                  unstyled={true}
+                >
+                  {body}
+                </TooltipWrapper>
+              );
+            })()}
         </div>
       </ChartTooltipContext.Provider>
     </ChartContext.Provider>

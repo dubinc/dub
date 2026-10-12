@@ -9,8 +9,9 @@ export const HUBSPOT_DEFAULT_SETTINGS = {
 };
 
 export const LEAD_TRIGGER_EVENT_OPTIONS = [
-  "lifecycleStageReached",
-  "dealCreated",
+  "lifecycleStageReached", // contact's lifecyclestage reaches leadLifecycleStageId
+  "dealCreated", // a deal is created for the contact
+  "dealStageReached", // a deal's dealstage reaches leadDealStageId
 ] as const;
 
 export const HUBSPOT_DUB_CONTACT_PROPERTIES = [

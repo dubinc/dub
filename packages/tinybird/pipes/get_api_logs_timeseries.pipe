@@ -1,0 +1,141 @@
+DESCRIPTION >
+    API logs request-volume timeseries by status class
+
+
+NODE day_intervals
+SQL >
+
+%
+    WITH
+        toStartOfDay(
+            toDateTime64({{ DateTime64(start, '2024-06-01 00:00:00.000') }}, 3),
+            {{ String(timezone, 'UTC') }}
+        ) AS start,
+        toStartOfDay(
+            toDateTime64({{ DateTime64(end, '2024-06-07 00:00:00.000') }}, 3)
+                - toIntervalMillisecond(1),
+            {{ String(timezone, 'UTC') }}
+        ) AS end,
+        dateDiff('day', start, end) + 1 AS days_diff
+    SELECT
+        arrayJoin(
+            arrayMap(
+                x -> toDateTime64(start + toIntervalDay(x), 3, {{ String(timezone, 'UTC') }}),
+                range(0, days_diff)
+            )
+        ) as interval
+
+
+
+NODE hour_intervals
+SQL >
+
+%
+    WITH
+        toStartOfHour(
+            toDateTime64({{ DateTime64(start, '2024-06-01 00:00:00.000') }}, 3),
+            {{ String(timezone, 'UTC') }}
+        ) AS start,
+        toStartOfHour(
+            toDateTime64({{ DateTime64(end, '2024-06-07 00:00:00.000') }}, 3)
+                - toIntervalMillisecond(1),
+            {{ String(timezone, 'UTC') }}
+        ) AS end,
+        dateDiff('hour', start, end) + 1 AS hours_diff
+    SELECT
+        arrayJoin(
+            arrayMap(
+                x -> toDateTime64(start + toIntervalHour(x), 3, {{ String(timezone, 'UTC') }}),
+                range(0, hours_diff)
+            )
+        ) as interval
+
+
+
+NODE minute_intervals
+SQL >
+
+%
+    WITH
+        toStartOfMinute(
+            toDateTime64({{ DateTime64(start, '2024-06-01 00:00:00.000') }}, 3),
+            {{ String(timezone, 'UTC') }}
+        ) AS start,
+        toStartOfMinute(
+            toDateTime64({{ DateTime64(end, '2024-06-07 00:00:00.000') }}, 3)
+                - toIntervalMillisecond(1),
+            {{ String(timezone, 'UTC') }}
+        ) AS end,
+        dateDiff('minute', start, end) + 1 AS minutes_diff
+    SELECT
+        arrayJoin(
+            arrayMap(
+                x -> toDateTime64(start + toIntervalMinute(x), 3, {{ String(timezone, 'UTC') }}),
+                range(0, minutes_diff)
+            )
+        ) as interval
+
+
+
+NODE counts
+SQL >
+
+%
+    SELECT
+        {% if defined(granularity) and granularity == 'minute' %}
+            toDateTime64(toStartOfMinute(timestamp, {{ String(timezone, 'UTC') }}), 3)
+        {% elif defined(granularity) and granularity == 'hour' %}
+            toDateTime64(toStartOfHour(timestamp, {{ String(timezone, 'UTC') }}), 3)
+        {% else %}
+            toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
+        {% end %} AS interval,
+        countIf(status_code >= 200 AND status_code < 300) AS status2xx,
+        countIf(status_code >= 400 AND status_code < 500) AS status4xx,
+        countIf(status_code >= 500) AS status5xx,
+        countIf(status_code < 200 OR (status_code >= 300 AND status_code < 400)) AS statusOther
+    FROM dub_api_logs
+    WHERE
+        workspace_id = {{ String(workspaceId) }}
+        {% if defined(start) and defined(end) %}
+            AND timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
+            AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
+        {% end %}
+        {% if defined(routePattern) %} AND route_pattern = {{ String(routePattern) }} {% end %}
+        {% if defined(method) %} AND method = {{ String(method) }} {% end %}
+        {% if defined(statusCode) %} AND status_code = {{ UInt16(statusCode) }} {% end %}
+        {% if defined(tokenId) %} AND token_id = {{ String(tokenId) }} {% end %}
+        {% if defined(requestId) %} AND id = {{ String(requestId) }} {% end %}
+        {% if defined(requestType) %} AND request_type = {{ String(requestType) }} {% end %}
+    GROUP BY interval
+
+
+
+NODE endpoint
+SQL >
+
+%
+    SELECT
+        formatDateTime(interval, '%FT%T.000%z') as date,
+        formatDateTime(
+            {% if defined(granularity) and granularity == 'minute' %}
+                interval + toIntervalMinute(1)
+            {% elif defined(granularity) and granularity == 'hour' %}
+                interval + toIntervalHour(1)
+            {% else %}
+                interval + toIntervalDay(1)
+            {% end %},
+            '%FT%T.000%z'
+        ) as dateEnd,
+        coalesce(status2xx, 0) as status2xx,
+        coalesce(status4xx, 0) as status4xx,
+        coalesce(status5xx, 0) as status5xx,
+        coalesce(statusOther, 0) as statusOther
+    FROM
+        {% if defined(granularity) and granularity == 'minute' %} minute_intervals
+        {% elif defined(granularity) and granularity == 'hour' %} hour_intervals
+        {% else %} day_intervals
+        {% end %}
+    LEFT JOIN counts USING interval
+    ORDER BY interval
+
+TYPE ENDPOINT

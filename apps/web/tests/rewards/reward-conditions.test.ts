@@ -1,5 +1,6 @@
 import { evaluateRewardConditions } from "@/lib/partners/evaluate-reward-conditions";
 import { RewardContext } from "@/lib/types";
+import { rewardConditionSchema } from "@/lib/zod/schemas/rewards";
 import { describe, expect, test } from "vitest";
 
 describe("evaluateRewardConditions", () => {
@@ -597,6 +598,198 @@ describe("evaluateRewardConditions", () => {
 
         expect(result).toBe(null);
       });
+
+      test("should not match when condition value is an empty array", () => {
+        expect(
+          evaluateRewardConditions({
+            conditions: [
+              {
+                operator: "AND" as const,
+                amountInCents: 5000,
+                conditions: [
+                  {
+                    entity: "customer" as const,
+                    attribute: "country" as const,
+                    operator: "not_in" as const,
+                    value: [],
+                  },
+                ],
+              },
+            ],
+            context: { customer: { country: "FR" } },
+          }),
+        ).toBe(null);
+      });
+
+      test("should not match when condition value is not an array", () => {
+        expect(
+          evaluateRewardConditions({
+            conditions: [
+              {
+                operator: "AND" as const,
+                amountInCents: 5000,
+                conditions: [
+                  {
+                    entity: "customer" as const,
+                    attribute: "country" as const,
+                    operator: "not_in" as const,
+                    value: "US",
+                  },
+                ],
+              },
+            ],
+            context: { customer: { country: "FR" } },
+          }),
+        ).toBe(null);
+      });
+    });
+
+    describe("contains", () => {
+      test("should match when field contains the substring", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "contains" as const,
+                value: "plan",
+              },
+            ],
+          },
+        ];
+
+        expect(
+          evaluateRewardConditions({
+            conditions,
+            context: { sale: { productId: "premium-plan" } },
+          }),
+        ).toEqual(conditions[0]);
+      });
+
+      test("should not match when field does not contain the substring", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "contains" as const,
+                value: "plan",
+              },
+            ],
+          },
+        ];
+
+        expect(
+          evaluateRewardConditions({
+            conditions,
+            context: { sale: { productId: "basic-tier" } },
+          }),
+        ).toBe(null);
+      });
+
+      test("should not match when needle is empty string", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "contains" as const,
+                value: "  ",
+              },
+            ],
+          },
+        ];
+
+        expect(
+          evaluateRewardConditions({
+            conditions,
+            context: { sale: { productId: "any-value" } },
+          }),
+        ).toBe(null);
+      });
+    });
+
+    describe("not_contains", () => {
+      test("should match when field does not contain the substring", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "not_contains" as const,
+                value: "plan",
+              },
+            ],
+          },
+        ];
+
+        expect(
+          evaluateRewardConditions({
+            conditions,
+            context: { sale: { productId: "basic-tier" } },
+          }),
+        ).toEqual(conditions[0]);
+      });
+
+      test("should not match when field contains the substring", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "not_contains" as const,
+                value: "plan",
+              },
+            ],
+          },
+        ];
+
+        expect(
+          evaluateRewardConditions({
+            conditions,
+            context: { sale: { productId: "premium-plan" } },
+          }),
+        ).toBe(null);
+      });
+
+      test("should not match when needle is empty string", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "not_contains" as const,
+                value: "  ",
+              },
+            ],
+          },
+        ];
+
+        expect(
+          evaluateRewardConditions({
+            conditions,
+            context: { sale: { productId: "any-value" } },
+          }),
+        ).toBe(null);
+      });
     });
 
     describe("starts_with", () => {
@@ -659,6 +852,30 @@ describe("evaluateRewardConditions", () => {
 
         expect(result).toBe(null);
       });
+
+      test("should not match when value is empty string", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "starts_with" as const,
+                value: "",
+              },
+            ],
+          },
+        ];
+
+        expect(
+          evaluateRewardConditions({
+            conditions,
+            context: { sale: { productId: "any-value" } },
+          }),
+        ).toBe(null);
+      });
     });
 
     describe("ends_with", () => {
@@ -690,6 +907,28 @@ describe("evaluateRewardConditions", () => {
         });
 
         expect(result).toEqual(conditions[0]);
+      });
+
+      test("should not match when value is empty string", () => {
+        expect(
+          evaluateRewardConditions({
+            conditions: [
+              {
+                operator: "AND" as const,
+                amountInCents: 5000,
+                conditions: [
+                  {
+                    entity: "sale" as const,
+                    attribute: "productId" as const,
+                    operator: "ends_with" as const,
+                    value: "",
+                  },
+                ],
+              },
+            ],
+            context: { sale: { productId: "any-value" } },
+          }),
+        ).toBe(null);
       });
 
       test("should not match when string does not end with value", () => {
@@ -1868,5 +2107,378 @@ describe("evaluateRewardConditions", () => {
 
       expect(result).toBeNull();
     });
+  });
+
+  describe("metadata conditions (lead / sale)", () => {
+    test("matches lead metadata equals_to", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 100,
+          conditions: [
+            {
+              entity: "lead" as const,
+              attribute: "metadata" as const,
+              metadataField: "plan",
+              operator: "equals_to" as const,
+              value: "pro",
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        lead: { metadata: { plan: "pro" } },
+      };
+
+      expect(evaluateRewardConditions({ conditions, context })).toEqual(
+        conditions[0],
+      );
+    });
+
+    test("matches sale metadata greater_than for string number", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 200,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "seats",
+              operator: "greater_than" as const,
+              value: 5,
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        sale: {
+          amount: 1000,
+          metadata: { seats: "10" },
+        },
+      };
+
+      expect(evaluateRewardConditions({ conditions, context })).toEqual(
+        conditions[0],
+      );
+    });
+
+    test("matches sale metadata equals_to when metadata is number and condition value is number", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 500,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "seats",
+              operator: "equals_to" as const,
+              value: 42,
+            },
+          ],
+        },
+      ];
+
+      expect(
+        evaluateRewardConditions({
+          conditions,
+          context: { sale: { metadata: { seats: 42 } } },
+        }),
+      ).toEqual(conditions[0]);
+      expect(
+        evaluateRewardConditions({
+          conditions,
+          context: { sale: { metadata: { seats: "42" } } },
+        }),
+      ).toEqual(conditions[0]);
+    });
+
+    test("equals_to uses string comparison when condition.value is a string", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 200,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "tier",
+              operator: "equals_to" as const,
+              value: "gold",
+            },
+          ],
+        },
+      ];
+
+      // metadata value is the string "gold" — should match
+      expect(
+        evaluateRewardConditions({
+          conditions,
+          context: { sale: { metadata: { tier: "gold" } } },
+        }),
+      ).toEqual(conditions[0]);
+
+      // metadata value is numeric "42" but condition.value is string "42" — should match
+      const numericStringConditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 200,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "tier",
+              operator: "equals_to" as const,
+              value: "42",
+            },
+          ],
+        },
+      ];
+
+      expect(
+        evaluateRewardConditions({
+          conditions: numericStringConditions,
+          context: { sale: { metadata: { tier: "42" } } },
+        }),
+      ).toEqual(numericStringConditions[0]);
+
+      // metadata value is number 42 and condition.value is string "42" — SHOULD match
+      // because we stringify the metadata before comparing when condition.value is a string
+      expect(
+        evaluateRewardConditions({
+          conditions: numericStringConditions,
+          context: { sale: { metadata: { tier: 42 } } },
+        }),
+      ).toEqual(numericStringConditions[0]);
+    });
+
+    test("returns null when metadata key is missing", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 100,
+          conditions: [
+            {
+              entity: "lead" as const,
+              attribute: "metadata" as const,
+              metadataField: "missing",
+              operator: "equals_to" as const,
+              value: "x",
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        lead: { metadata: { plan: "pro" } },
+      };
+
+      expect(evaluateRewardConditions({ conditions, context })).toBeNull();
+    });
+
+    test("returns null when metadataField is empty", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 100,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "  ",
+              operator: "equals_to" as const,
+              value: "a",
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        sale: { metadata: { tier: "a" } },
+      };
+
+      expect(evaluateRewardConditions({ conditions, context })).toBeNull();
+    });
+
+    test("returns null when metadata value is null (numeric operator)", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 100,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "seats",
+              operator: "greater_than" as const,
+              value: 0,
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        sale: {
+          metadata: { seats: null },
+        },
+      };
+
+      expect(evaluateRewardConditions({ conditions, context })).toBeNull();
+    });
+
+    test("returns null when metadata value is empty string (numeric operator)", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 100,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "seats",
+              operator: "greater_than" as const,
+              value: 0,
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        sale: {
+          metadata: { seats: "" },
+        },
+      };
+
+      expect(evaluateRewardConditions({ conditions, context })).toBeNull();
+    });
+  });
+});
+
+describe("rewardConditionSchema", () => {
+  test("rejects metadata attribute when metadataField is missing or only whitespace", () => {
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "lead",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "x",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "lead",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "x",
+        metadataField: "  ",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "lead",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "x",
+        metadataField: "plan",
+      }).success,
+    ).toBe(true);
+
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "sale",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "x",
+        metadataField: "plan",
+      }).success,
+    ).toBe(true);
+  });
+
+  test("rejects metadata attribute for entities other than lead and sale", () => {
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "customer",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "x",
+        metadataField: "plan",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "partner",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "x",
+        metadataField: "plan",
+      }).success,
+    ).toBe(false);
+  });
+
+  test("allows is one of / is not one of with string arrays", () => {
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "customer",
+        attribute: "country",
+        operator: "in",
+        value: ["US", "CA"],
+      }).success,
+    ).toBe(true);
+
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "customer",
+        attribute: "country",
+        operator: "not_in",
+        value: ["US", "CA"],
+      }).success,
+    ).toBe(true);
+  });
+
+  test("rejects non-metadata attribute for lead entity", () => {
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "lead",
+        attribute: "country",
+        operator: "equals_to",
+        value: "US",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "lead",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "x",
+        metadataField: "plan",
+      }).success,
+    ).toBe(true);
+  });
+
+  test("allows non-metadata attributes without metadataField", () => {
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "customer",
+        attribute: "country",
+        operator: "equals_to",
+        value: "US",
+      }).success,
+    ).toBe(true);
   });
 });

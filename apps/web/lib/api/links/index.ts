@@ -1,5 +1,6 @@
 export * from "./archive-link";
 export * from "./bulk-create-links";
+export * from "./bulk-delete-links";
 export * from "./create-link";
 export * from "./delete-link";
 export * from "./get-links-count";

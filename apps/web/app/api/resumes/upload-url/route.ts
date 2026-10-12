@@ -1,6 +1,10 @@
-import { storage } from "@/lib/storage";
-import { ratelimit } from "@/lib/upstash";
-import { LOCALHOST_IP, nanoid, R2_URL } from "@dub/utils";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
+import { signedUploadInputSchema } from "@/lib/storage/schemas";
+import { validateSignedUpload } from "@/lib/storage/validate-signed-upload";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
+import { LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -17,26 +21,42 @@ export const POST = async (req: NextRequest) => {
     CORS_HEADERS["Access-Control-Allow-Origin"] = origin;
   }
 
-  // Max 5 requests per minute
-  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-  const { success } = await ratelimit(5, "1 m").limit(`upload-resume:${ip}`);
+  try {
+    const { contentType, contentLength } = signedUploadInputSchema.parse(
+      await req.json(),
+    );
 
-  if (!success) {
-    return new Response("Don't DDoS me pls 🥺", { status: 429 });
+    validateSignedUpload({
+      contentLength,
+      contentType,
+      policy: "resumes",
+    });
+
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+
+    if (ip) {
+      await assertRateLimit({
+        policy: RATELIMIT_POLICIES.resumeUpload,
+        identifier: [ip],
+      });
+    }
+
+    const { signedUrl, destinationUrl } = await createSignedUploadUrl({
+      key: `resumes/${nanoid(10)}`,
+      contentType,
+      contentLength,
+    });
+
+    return NextResponse.json(
+      {
+        signedUrl,
+        destinationUrl,
+      },
+      {
+        headers: CORS_HEADERS,
+      },
+    );
+  } catch (error) {
+    return handleAndReturnErrorResponse(error, CORS_HEADERS);
   }
-
-  const key = `resumes/${nanoid(16)}`;
-  const signedUrl = await storage.getSignedUploadUrl({
-    key,
-    contentType: "application/pdf",
-  });
-
-  return NextResponse.json(
-    {
-      key,
-      signedUrl,
-      destinationUrl: `${R2_URL}/${key}`,
-    },
-    { headers: CORS_HEADERS },
-  );
 };

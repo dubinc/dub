@@ -38,7 +38,13 @@ export default function FailedPayment({
   attemptCount: number;
 }) {
   const title = `${
-    attemptCount == 2 ? "2nd notice: " : attemptCount == 3 ? "3rd notice: " : ""
+    attemptCount === 1
+      ? ""
+      : attemptCount == 2
+        ? "2nd notice: "
+        : attemptCount == 3
+          ? "3rd notice: "
+          : "Final notice: "
   }Your payment for Dub failed`;
 
   // Check if plan has partner access (Business, Advanced, Enterprise have payouts > 0)
@@ -61,8 +67,9 @@ export default function FailedPayment({
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
-              {attemptCount == 2 ? "2nd " : attemptCount == 3 ? "3rd " : ""}
-              payment attempt failed
+              {attemptCount == 2 || attemptCount == 3
+                ? `${attemptCount == 2 ? "2nd" : "3rd"} payment attempt failed`
+                : "Failed Payment for Dub"}
             </Heading>
             <Text className="text-sm leading-6 text-black">
               Hey{user.name ? ` ${user.name}` : ""},
@@ -88,16 +95,16 @@ export default function FailedPayment({
                 href="https://dub.co/help/article/how-to-change-billing-information"
                 className="font-medium text-blue-600 no-underline"
               >
-                update your payment information
+                update your payment method
               </Link>{" "}
-              using the link below:
+              and retry your payment using the link below:
             </Text>
             <Section className="my-8">
               <Link
                 className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.co/${workspace.slug}/settings/billing`}
+                href={`https://app.dub.co/${workspace.slug}/settings/billing#payment-methods`}
               >
-                Update payment information
+                Update payment method
               </Link>
             </Section>
             <Text className="text-sm leading-6 text-black">

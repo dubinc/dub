@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { retallyPayoutsAmount } from "@/lib/payouts/retally-payouts-amount";
 import { prisma } from "@/lib/prisma";
 import { groupBy, linkConstructorSimple } from "@dub/utils";
@@ -113,9 +114,9 @@ async function main() {
         data: {
           partnerId: link.actualPartnerId!,
         },
-        limit: 250,
+        limit: PRISMA_UPDATEMANY_LIMIT,
       });
-      if (updatedCommissions.count < 250) {
+      if (updatedCommissions.count < PRISMA_UPDATEMANY_LIMIT) {
         break;
       }
       console.log(

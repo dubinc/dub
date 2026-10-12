@@ -1,20 +1,17 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
-import { qstash } from "@/lib/cron";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { syncDiscountCodes } from "@/lib/discounts/sync-discount-codes";
 import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
+import { syncGroupUtmJob } from "@/lib/jobs/handlers/sync-group-utm-job";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { MAX_DEFAULT_LINKS_PER_GROUP } from "@/lib/zod/schemas/groups";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  isFulfilled,
-  log,
-  prettyPrint,
-} from "@dub/utils";
+import { isFulfilled, log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { remapPartnerGroupDefaultLinks } from "./utils";
@@ -25,7 +22,6 @@ const schema = z.object({
   groupId: z.string(),
   partnerIds: z.array(z.string()),
   userId: z.string().nullish(),
-  isGroupDeleted: z.boolean().optional(),
 });
 
 /**
@@ -37,9 +33,9 @@ const schema = z.object({
     2. for the ones that don't match, set partnerGroupDefaultLinkId to null (linksToRemoveMapping)
     3. for the new group's default links that don't exist in the old group, create them (linksToCreate)
 
-    This runs when:
-    1. partners are moved to a group
-    2. a group is deleted and partners need to be moved to the default group
+    This runs when partners are moved to a group. If the emptied source group is
+    deleted before remap finishes, its default links are soft-deleted (groupId
+    null) so partnerGroupDefaultLinkId stays set until this job remaps them.
  */
 
 // POST /api/cron/groups/remap-default-links
@@ -48,8 +44,9 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { programId, groupId, partnerIds, userId, isGroupDeleted } =
-      schema.parse(JSON.parse(rawBody));
+    const { programId, groupId, partnerIds, userId } = schema.parse(
+      JSON.parse(rawBody),
+    );
 
     if (partnerIds.length === 0) {
       return logAndRespond(
@@ -88,17 +85,11 @@ export async function POST(req: Request) {
           partner: true,
           partnerGroup: true,
           links: {
-            // if this was invoked from the DELETE /groups/[groupId] route, the partnerGroupDefaultLinkId will be null
-            // due to Prisma cascade SetNull on delete – therefore we should take all links and remap them instead.
-            ...(isGroupDeleted
-              ? {}
-              : {
-                  where: {
-                    partnerGroupDefaultLinkId: {
-                      not: null,
-                    },
-                  },
-                }),
+            where: {
+              partnerGroupDefaultLinkId: {
+                not: null,
+              },
+            },
             orderBy: {
               createdAt: "asc",
             },
@@ -158,14 +149,14 @@ export async function POST(req: Request) {
 
       const processedLinks = (
         await Promise.allSettled(
-          linksToCreate.map((link) => {
+          linksToCreate.map(async (link) => {
             const programEnrollment = programEnrollments.find(
               (p) => p.partner.id === link.partnerId,
             );
 
             const partner = programEnrollment?.partner;
 
-            return generatePartnerLink({
+            const processedLink = await generatePartnerLink({
               workspace: {
                 id: program.workspace.id,
                 plan: program.workspace.plan as WorkspaceProps["plan"],
@@ -188,6 +179,12 @@ export async function POST(req: Request) {
               },
               userId: userId ?? undefined,
               appsFlyerParameters,
+            });
+
+            return applyGroupUtmToLink({
+              link: processedLink,
+              utmTemplate: partnerGroup.utmTemplate,
+              partnerName: partner?.name,
             });
           }),
         )
@@ -251,31 +248,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const syncUtmJob = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
-      body: {
-        groupId,
-        partnerIds,
-      },
+    await syncGroupUtmJob.dispatch({
+      groupId,
+      partnerIds,
     });
 
-    console.log(
-      `Scheduled sync-utm job for group ${groupId}: ${prettyPrint(syncUtmJob)}`,
-    );
-
-    const remapDiscountCodesJob = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-discount-codes`,
-      body: {
-        programId,
-        partnerIds,
-        groupId,
-        isGroupDeleted,
-      },
+    await syncDiscountCodes({
+      programId,
+      partnerIds,
     });
-
-    console.log(
-      `Scheduled remap-discount-codes job for group ${groupId}: ${prettyPrint(remapDiscountCodesJob)}`,
-    );
 
     return logAndRespond(`Finished creating default links for the partners.`);
   } catch (error) {

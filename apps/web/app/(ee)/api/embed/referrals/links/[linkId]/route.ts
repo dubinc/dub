@@ -2,13 +2,14 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { processLink, updateLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { parseRequestBody } from "@/lib/api/utils";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { prisma } from "@/lib/prisma";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
+  ACTIVE_ENROLLMENT_STATUSES,
   createPartnerLinkSchema,
-  INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { getPrettyUrl } from "@dub/utils";
@@ -18,16 +19,17 @@ import { NextResponse } from "next/server";
 // PATCH /api/embed/referrals/links/[linkId] - update a link for a partner
 export const PATCH = withReferralsEmbedToken(
   async ({ req, params, programEnrollment, program, links, group }) => {
+    if (!ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You cannot update links in this program because your enrollment is not active.",
+      });
+    }
+
     const { url, key } = createPartnerLinkSchema
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
-
-    if (INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: `You are ${programEnrollment.status} from this program hence cannot create links.`,
-      });
-    }
 
     const link = links.find((link) => link.id === params.linkId);
 
@@ -59,6 +61,25 @@ export const PATCH = withReferralsEmbedToken(
     }
 
     validatePartnerLinkUrl({ group, url });
+
+    const [groupUtmTemplate, partner] = await Promise.all([
+      group.utmTemplateId
+        ? prisma.utmTemplate.findUnique({
+            where: {
+              id: group.utmTemplateId,
+            },
+          })
+        : null,
+
+      prisma.partner.findUnique({
+        where: {
+          id: programEnrollment.partnerId,
+        },
+        select: {
+          name: true,
+        },
+      }),
+    ]);
 
     // if domain and key are the same, we don't need to check if the key exists
     const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();
@@ -93,13 +114,21 @@ export const PATCH = withReferralsEmbedToken(
       });
     }
 
+    const linkWithUtm = applyGroupUtmToLink({
+      link: processedLink,
+      utmTemplate: groupUtmTemplate,
+      partnerName: partner?.name,
+    });
+
     const partnerLink = await updateLink({
       oldLink: {
         domain: link.domain,
         key: link.key,
         image: link.image,
+        programId: link.programId,
+        partnerId: link.partnerId,
       },
-      updatedLink: processedLink,
+      updatedLink: linkWithUtm,
     });
 
     waitUntil(
@@ -113,6 +142,7 @@ export const PATCH = withReferralsEmbedToken(
             webhookEnabled: true,
           },
         });
+
         if (workspace) {
           await sendWorkspaceWebhook({
             trigger: "link.updated",

@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { usePayout } from "@/lib/swr/use-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, PayoutResponse } from "@/lib/types";
@@ -9,11 +10,9 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ActivityEvent } from "@/ui/partners/activity-event";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
+import { CommissionDescriptionLabel } from "@/ui/partners/commission-description-label";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
-import {
-  CommissionTypeBadge,
-  getCommissionTypeLabel,
-} from "@/ui/partners/commission-type-badge";
+import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
@@ -166,6 +165,7 @@ function PayoutDetailsContent({
       Partner: (
         <ConditionalLink
           href={`/${slug}/program/partners/${payout.partner.id}`}
+          target="_blank"
           className="flex min-w-0 items-center gap-1.5 text-neutral-500"
         >
           <PartnerAvatar
@@ -324,9 +324,11 @@ function PayoutDetailsContent({
                   {row.original.customer.email || row.original.customer.name}
                 </Link>
               ) : (
-                <span className="max-w-xs truncate text-sm text-neutral-700">
-                  {getCommissionTypeLabel(row.original)}
-                </span>
+                <CommissionDescriptionLabel
+                  commission={row.original}
+                  context={{ variant: "program", workspaceSlug: slug }}
+                  className="max-w-xs truncate text-sm text-neutral-700"
+                />
               )}
               <span className="text-xs text-neutral-500">
                 {formatDateTime(row.original.createdAt)}
@@ -351,7 +353,41 @@ function PayoutDetailsContent({
         minSize: 120,
         size: 120,
         maxSize: 120,
-        cell: ({ row }) => currencyFormatter(row.original.earnings),
+        cell: ({ row }) => {
+          const commission = row.original;
+          const earnings = currencyFormatter(commission.earnings);
+
+          if (commission.description) {
+            return (
+              <Tooltip
+                content={formatCommissionDescriptionTooltip(
+                  commission.description,
+                  { variant: "program", workspaceSlug: slug },
+                )}
+              >
+                <span
+                  className={cn(
+                    "cursor-help truncate underline decoration-dotted underline-offset-2",
+                    commission.earnings < 0 && "text-red-600",
+                  )}
+                >
+                  {earnings}
+                </span>
+              </Tooltip>
+            );
+          }
+
+          return (
+            <span
+              className={cn(
+                commission.earnings < 0 && "text-red-600",
+                "truncate",
+              )}
+            >
+              {earnings}
+            </span>
+          );
+        },
       },
       {
         id: "menu",

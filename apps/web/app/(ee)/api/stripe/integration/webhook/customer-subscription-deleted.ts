@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
+import { WebhookHandlerResponse } from "./types";
 
 // Handle event "customer.subscription.deleted"
 export async function customerSubscriptionDeleted(
   event: Stripe.CustomerSubscriptionDeletedEvent,
-) {
+): Promise<WebhookHandlerResponse> {
   const deletedSubscription = event.data.object;
 
   const customer = await prisma.customer.findUnique({
@@ -26,6 +27,5 @@ export async function customerSubscriptionDeleted(
 
   return {
     response: `Subscription cancelled, updating customer ${updatedCustomer.id} with subscriptionCanceledAt: ${updatedCustomer.subscriptionCanceledAt}`,
-    workspaceId: customer.projectId,
   };
 }

@@ -5,13 +5,25 @@ enum PlanPeriod {
   biweekly
 }
 
+enum WorkspaceEnvironment {
+  production
+  staging
+  sandbox
+}
+
+enum DubProduct {
+  program
+  links
+}
+
 model Project {
-  id               String  @id
+  id               String     @id
   name             String
-  slug             String  @unique
+  slug             String     @unique
   logo             String?
-  inviteCode       String? @unique
-  defaultProgramId String? @unique // default affiliate program ID for the workspace
+  inviteCode       String?    @unique
+  defaultProduct   DubProduct @default(links)
+  defaultProgramId String?    @unique // default affiliate program ID for the workspace
 
   plan                   String      @default("free")
   planTier               Int         @default(1)
@@ -23,6 +35,9 @@ model Project {
   subscriptionCanceledAt DateTime? // when the workspace's subscription was canceled (or set to cancel)
   paymentFailedAt        DateTime?
   invoicePrefix          String?     @unique // prefix used to generate unique invoice numbers (for Dub Payouts)
+
+  environment        WorkspaceEnvironment @default(production)
+  stagingWorkspaceId String?              @unique
 
   stripeConnectId String? @unique // for Stripe Integration
   shopifyStoreId  String? @unique // for Shopify Integration
@@ -71,6 +86,7 @@ model Project {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   usageLastChecked DateTime  @default(now())
+  disabledAt       DateTime?
 
   users                 ProjectUsers[]
   invites               ProjectInvite[]

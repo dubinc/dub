@@ -59,6 +59,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     z.array(CommissionEnrichedSchema).parse(
       commissions.map((c) => ({
         ...c,
+        paidAt: c.payout?.paidAt ?? null,
         customer: transformCustomerForCommission(c.customer),
         partner: {
           ...c.partner,
@@ -89,25 +90,21 @@ export const POST = withWorkspace(
 
     console.timeEnd("createManualCommissions");
 
-    return NextResponse.json(
-      createCommissionResponseSchema.parse({
-        success: true,
-        message: "Your commissions are being created and will appear shortly.",
-      }),
-      {
-        status: 202,
-      },
-    );
+    const isClawback = body.type === "custom" && body.amount < 0;
+
+    const response = createCommissionResponseSchema.parse({
+      success: true,
+      message: isClawback
+        ? "A clawback has been queued for the partner!"
+        : "Your commissions are being created and will appear shortly.",
+    });
+
+    return NextResponse.json(response, {
+      status: 202,
+    });
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );

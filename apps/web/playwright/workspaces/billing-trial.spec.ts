@@ -1,4 +1,4 @@
-import { DUB_TRIAL_PERIOD_DAYS } from "@dub/utils";
+import { testIds } from "@/lib/e2e/test-ids";
 import { expect, test } from "@playwright/test";
 import {
   applyMockActivatedPaidPlan,
@@ -38,17 +38,11 @@ test.describe("Billing trial checkout", () => {
 
     try {
       await page.goto(`/${slug}/settings/billing/upgrade`);
-      await expect(
-        page.getByRole("heading", { name: "Plans", exact: true }),
-      ).toBeVisible({ timeout: 30_000 });
+      await expect(page.getByTestId(testIds.billing.plansHeading)).toBeVisible({
+        timeout: 30_000,
+      });
 
-      const proCard = page.getByRole("heading", { name: "Pro", exact: true });
-      await proCard
-        .locator("xpath=ancestor::div[contains(@class,'flex-col')][1]")
-        .getByRole("button", {
-          name: new RegExp(`Start ${DUB_TRIAL_PERIOD_DAYS}-day trial`, "i"),
-        })
-        .click();
+      await page.getByTestId(testIds.billing.planCta("pro")).click();
 
       await page.waitForURL(
         (u) => {
@@ -79,11 +73,11 @@ test.describe("Billing trial checkout", () => {
         .not.toBeNull();
 
       await expect(
-        page.getByRole("heading", { name: /Dub Pro looks good on you/i }),
+        page.getByTestId(testIds.billing.upgradedHeading),
       ).toBeVisible({ timeout: 15_000 });
 
-      await page.getByRole("button", { name: "View dashboard" }).click();
-      await expect(page.getByText("Free trial", { exact: true })).toBeVisible({
+      await page.getByTestId(testIds.billing.viewDashboard).click();
+      await expect(page.getByTestId(testIds.billing.freeTrial)).toBeVisible({
         timeout: 15_000,
       });
     } finally {
@@ -127,13 +121,11 @@ test.describe("Free trial user navigation", () => {
   }) => {
     await page.goto(`/${slug}/settings/billing`);
 
-    await expect(page.getByText(/Trial ends on/)).toBeVisible({
+    await expect(page.getByTestId(testIds.billing.trialBanner)).toBeVisible({
       timeout: 15_000,
     });
-    await expect(
-      page.getByRole("button", { name: "Start paid plan" }),
-    ).toBeVisible();
-    await expect(page.getByRole("link", { name: "View plans" })).toBeVisible();
+    await expect(page.getByTestId(testIds.billing.startPaidPlan)).toBeVisible();
+    await expect(page.getByTestId(testIds.billing.viewPlans)).toBeVisible();
   });
 
   test("upgrade page shows Activate plan for current Business plan", async ({
@@ -141,18 +133,12 @@ test.describe("Free trial user navigation", () => {
   }) => {
     await page.goto(`/${slug}/settings/billing/upgrade`);
 
-    await expect(
-      page.getByRole("heading", { name: "Plans", exact: true }),
-    ).toBeVisible({ timeout: 30_000 });
-
-    const businessCard = page.getByRole("heading", {
-      name: "Business",
-      exact: true,
+    await expect(page.getByTestId(testIds.billing.plansHeading)).toBeVisible({
+      timeout: 30_000,
     });
+
     await expect(
-      businessCard
-        .locator("xpath=ancestor::div[contains(@class,'flex-col')][1]")
-        .getByRole("button", { name: "Activate plan" }),
+      page.getByTestId(testIds.billing.planCta("business")),
     ).toBeVisible();
   });
 
@@ -176,17 +162,14 @@ test.describe("Free trial user navigation", () => {
 
     await page.goto(`/${slug}/settings/billing`);
 
-    await page.getByRole("button", { name: "Start paid plan" }).click();
-    const confirmModal = page.getByRole("dialog").filter({
-      has: page.getByRole("heading", { name: "Plan start confirmation" }),
-    });
-    await expect(confirmModal).toBeVisible();
+    await page.getByTestId(testIds.billing.startPaidPlan).click();
     await expect(
-      confirmModal.getByText(
-        "You'll be charged today and your trial will end.",
-      ),
+      page.getByTestId(testIds.billing.startPaidPlanHeading),
     ).toBeVisible();
-    await confirmModal.getByRole("button", { name: "Start paid plan" }).click();
+    await expect(
+      page.getByTestId(testIds.billing.startPaidPlanNotice),
+    ).toBeVisible();
+    await page.getByTestId(testIds.billing.confirmStartPaidPlan).click();
 
     await page.waitForURL((u) => {
       const url = new URL(u);
@@ -196,7 +179,7 @@ test.describe("Free trial user navigation", () => {
       );
     });
     await expect(
-      page.getByRole("heading", { name: /Dub Business looks good on you/i }),
+      page.getByTestId(testIds.billing.upgradedHeading),
     ).toBeVisible({ timeout: 15_000 });
   });
 });

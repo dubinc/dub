@@ -30,6 +30,22 @@
 
    The seeded test user (`E2E_PARTNER_EMAIL`) must exist in your local database — run `tsx apps/web/playwright/seed.ts` to create it. Signup tests generate a fresh user each run via MailHog email verification.
 
+## API tests
+
+API specs under `playwright/api` use a Bearer token. `globalSetup` upserts a dedicated user, workspace, and token into `playwright/.auth/api.json` before any project runs. No MailHog or browser auth required.
+
+```sh
+pnpm --filter web test:e2e --project=api
+pnpm --filter web test:e2e --project=api playwright/api/tags/tags.spec.ts
+pnpm --filter web test:e2e --project=api playwright/api/tags/tags.spec.ts -g "POST /tags"
+```
+
+`-g` / `--grep` matches the test title (regex). Combine with a file path to narrow further.
+
+## Locators
+
+UI specs locate controls with `page.getByTestId` and IDs from [`lib/e2e/test-ids.ts`](../lib/e2e/test-ids.ts), not button labels or headings. That stays stable when copy changes and when i18n lands. Form fields can still use `input[name]`. Sonner toasts used as assertions set the same ID via the toast `testId` option.
+
 ## Running tests
 
 Make sure the dev server is running first (`pnpm dev`), then:

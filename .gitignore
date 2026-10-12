@@ -42,6 +42,7 @@ packages/stripe-app/.build/*
 .react-email
 .contentlayer
 .vscode
+.idea
 *.csv
 *.ndjson
 .vitest
@@ -51,3 +52,4 @@ playwright-report/
 **/playwright/.auth/
 test-results/
 blob-report/
+.pnpm-store

@@ -18,6 +18,7 @@ import { Fragment, ReactNode, useMemo, useRef, useState } from "react";
 import { MessageInput, PendingAttachment } from "../shared/message-input";
 import { MessageAttachmentsList } from "./message-attachments";
 import { MessageMarkdown } from "./message-markdown";
+import { reconcileMessages } from "./optimistic-message";
 
 interface Sender {
   name: string | null;
@@ -121,6 +122,10 @@ export function MessagesPanel({
     first.senderUserId === second.senderUserId &&
     first.senderPartnerId === second.senderPartnerId;
 
+  // Keep the optimistic message and its persisted replacement on one key so
+  // the entrance animation doesn't play a second time when the send resolves.
+  const renderedMessages = messages ? reconcileMessages(messages) : undefined;
+
   return (
     <div className="flex size-full flex-col">
       {messages ? (
@@ -130,22 +135,29 @@ export function MessagesPanel({
             className="scrollbar-hide flex grow flex-col-reverse overflow-y-auto"
           >
             <div className="flex flex-col items-stretch gap-2 p-6">
-              {messages?.map((message, idx) => {
-                const isNewDate =
-                  idx === 0 || isMessageNewDate(message, messages[idx - 1]);
+              {renderedMessages?.map(({ message, key }, idx) => {
+                const previousMessage = renderedMessages[idx - 1]?.message;
+                const nextMessage = renderedMessages[idx + 1]?.message;
+
+                const isNewDate = previousMessage
+                  ? isMessageNewDate(message, previousMessage)
+                  : true;
 
                 // If it's been more than 5 minutes since the last message
                 const isNewTime =
-                  isNewDate || isMessageNewTime(message, messages[idx - 1]);
+                  isNewDate ||
+                  (previousMessage
+                    ? isMessageNewTime(message, previousMessage)
+                    : true);
 
                 const isMySide = isMessageMySide(message);
                 const isMe = isMessageFromMe(message);
 
                 // Only show avatar if it's the last from a side
-                const showAvatar =
-                  idx === messages.length - 1 ||
-                  !isMessageSameSender(message, messages[idx + 1]) ||
-                  isMessageNewTime(message, messages[idx + 1]);
+                const showAvatar = nextMessage
+                  ? !isMessageSameSender(message, nextMessage) ||
+                    isMessageNewTime(message, nextMessage)
+                  : true;
 
                 // Message is new if it was sent within the last 10 seconds (used for intro animations)
                 const isNew =
@@ -156,18 +168,25 @@ export function MessagesPanel({
                 const showStatusIndicator =
                   currentUserType === "user" &&
                   isMySide &&
-                  (idx === messages.length - 1 ||
-                    messages.slice(idx + 1).findIndex(isMessageMySide) === -1);
+                  (idx === renderedMessages.length - 1 ||
+                    renderedMessages
+                      .slice(idx + 1)
+                      .findIndex(({ message: laterMessage }) =>
+                        isMessageMySide(laterMessage),
+                      ) === -1);
 
                 const sender = message.senderPartner || message.senderUser;
 
                 const isFirstFromSender =
-                  idx === 0 || !isMessageSameSender(message, messages[idx - 1]);
+                  !previousMessage ||
+                  !isMessageSameSender(message, previousMessage);
+
+                // Messages continuing a sender's group sit tighter together:
+                // trims the container's 8px gap down to 2px
+                const isGroupedWithPrevious = !isFirstFromSender && !isNewTime;
 
                 return (
-                  <Fragment
-                    key={`${new Date(message.createdAt).getTime()}-${message.senderUserId}-${message.senderPartnerId}`}
-                  >
+                  <Fragment key={key}>
                     {isNewTime && (
                       <div
                         className={cn(
@@ -199,6 +218,7 @@ export function MessagesPanel({
                         showStatusIndicator={showStatusIndicator}
                         isNewTime={isNewTime}
                         isFirstFromSender={isFirstFromSender}
+                        isGroupedWithPrevious={isGroupedWithPrevious}
                         isNew={isNew}
                         program={program}
                       />
@@ -210,6 +230,7 @@ export function MessagesPanel({
                             ? "origin-bottom-right flex-row-reverse"
                             : "origin-bottom-left",
                           isNew && "animate-scale-in-fade",
+                          isGroupedWithPrevious && "-mt-1.5",
                         )}
                       >
                         {/* Avatar */}
@@ -244,7 +265,7 @@ export function MessagesPanel({
                           {message.text && (
                             <div
                               className={cn(
-                                "max-w-[min(100%,512px)] rounded-xl px-4 py-2.5 text-sm",
+                                "min-w-0 max-w-[min(100%,512px)] rounded-xl px-4 py-2.5 text-sm",
                                 isMySide
                                   ? "rounded-br bg-neutral-700"
                                   : "rounded-bl bg-neutral-100",
@@ -438,6 +459,7 @@ function CampaignMessage({
   showStatusIndicator,
   isNewTime,
   isFirstFromSender,
+  isGroupedWithPrevious,
   isNew,
   program,
 }: {
@@ -448,6 +470,7 @@ function CampaignMessage({
   showStatusIndicator: boolean;
   isNewTime: boolean;
   isFirstFromSender: boolean;
+  isGroupedWithPrevious: boolean;
   isNew: boolean;
   program?: Pick<ProgramProps, "logo" | "name"> | null;
 }) {
@@ -461,6 +484,7 @@ function CampaignMessage({
           ? "origin-bottom-right flex-row-reverse"
           : "origin-bottom-left",
         isNew && "animate-scale-in-fade",
+        isGroupedWithPrevious && "-mt-1.5",
       )}
     >
       <MessageAvatar sender={sender} program={program} message={message} />
@@ -484,7 +508,7 @@ function CampaignMessage({
 
         <div
           className={cn(
-            "max-w-[min(100%,512px)] rounded-xl text-sm",
+            "min-w-0 max-w-[min(100%,512px)] rounded-xl text-sm",
             isMySide
               ? "text-content-inverted rounded-br bg-neutral-700"
               : "text-content-default rounded-bl bg-neutral-100",
@@ -530,7 +554,7 @@ function CampaignMessage({
             <div
               className={cn(
                 "max-w-lg overflow-hidden",
-                isExpanded ? "px-2 py-2.5" : "max-h-0 px-2 py-0",
+                isExpanded ? "px-4 py-2.5" : "max-h-0 px-4 py-0",
               )}
             >
               <MessageMarkdown invert={isMySide}>

@@ -2,6 +2,7 @@ import {
   CUSTOMER_LEVEL_FRAUD_RULES,
   PARTNER_LEVEL_FRAUD_RULES,
 } from "@/lib/api/fraud/constants";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { groupBy } from "@dub/utils";
 import {
@@ -142,7 +143,7 @@ async function main() {
               },
             },
           },
-          take: 250,
+          take: PRISMA_UPDATEMANY_LIMIT,
         });
 
         if (commissions.length === 0) {

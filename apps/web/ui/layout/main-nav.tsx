@@ -1,5 +1,6 @@
 "use client";
 
+import { useDashboardBannerVisible } from "@/lib/hooks/use-dashboard-banner-visible";
 import {
   consumePendingDashboardScrollTop,
   DUB_DASHBOARD_MAIN_SCROLL_ID,
@@ -18,7 +19,6 @@ import {
   useLayoutEffect,
   useState,
 } from "react";
-import { useUpgradeBannerVisibility } from "./upgrade-banner";
 
 type SideNavContext = {
   isOpen: boolean;
@@ -35,6 +35,7 @@ export function MainNav({
   sidebar: Sidebar,
   toolContent,
   newsContent,
+  hasBanner,
 }: PropsWithChildren<{
   sidebar: ComponentType<{
     toolContent?: ReactNode;
@@ -42,13 +43,13 @@ export function MainNav({
   }>;
   toolContent?: ReactNode;
   newsContent?: ReactNode;
+  hasBanner?: boolean;
 }>) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
   const { isDesktop } = useMediaQuery();
   const [isOpen, setIsOpen] = useState(false);
-  const { isVisible: isUpgradeBannerVisible } = useUpgradeBannerVisibility();
+  const { hasBanner: hasBannerFromHook } = useDashboardBannerVisible();
 
   // Prevent body scroll when side nav is open
   useEffect(() => {
@@ -75,6 +76,8 @@ export function MainNav({
     });
   }, [searchParams.toString()]);
 
+  const displayBanner = hasBanner ?? hasBannerFromHook;
+
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[min-content_minmax(0,1fr)]">
       {/* Side nav backdrop */}
@@ -84,9 +87,7 @@ export function MainNav({
           isOpen
             ? "bg-black/20 backdrop-blur-sm"
             : "bg-transparent max-lg:pointer-events-none",
-          isUpgradeBannerVisible
-            ? "top-12 h-[calc(100dvh-48px)]"
-            : "top-0 h-dvh",
+          displayBanner ? "top-12 h-[calc(100dvh-48px)]" : "top-0 h-dvh",
         )}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
@@ -108,7 +109,7 @@ export function MainNav({
       <div
         className={cn(
           "bg-neutral-200 pb-[var(--page-bottom-margin)] pt-[var(--page-top-margin)] [--page-bottom-margin:0px] [--page-top-margin:0px] lg:pb-2 lg:pr-2 lg:[--page-bottom-margin:0.5rem] lg:[--page-top-margin:0.5rem]",
-          isUpgradeBannerVisible ? "mt-12 h-[calc(100vh-48px)]" : "h-screen",
+          displayBanner ? "mt-12 h-[calc(100vh-48px)]" : "h-screen",
         )}
       >
         <div

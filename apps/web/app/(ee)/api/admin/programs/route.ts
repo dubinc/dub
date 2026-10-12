@@ -1,3 +1,4 @@
+import { revalidateExternalMarketplacePages } from "@/lib/api/programs/revalidate-program-public-pages";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { anthropic } from "@ai-sdk/anthropic";
@@ -69,6 +70,7 @@ Meta Description: ${description}`;
 export const GET = withAdmin(async () => {
   const programs = await prisma.program.findMany({
     where: {
+      environment: "production",
       addedToMarketplaceAt: {
         not: null,
       },
@@ -160,6 +162,8 @@ export const POST = withAdmin(
       },
     });
 
+    revalidateExternalMarketplacePages();
+
     return NextResponse.json(updatedProgram);
   },
   {
@@ -220,6 +224,10 @@ export const PATCH = withAdmin(
         }),
       ),
     );
+
+    if (updatesToApply.length > 0) {
+      revalidateExternalMarketplacePages();
+    }
 
     return NextResponse.json({
       ok: true,

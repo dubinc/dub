@@ -1,4 +1,5 @@
 import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplicate-payout-method-fraud";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { qstash } from "@/lib/cron";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
@@ -106,6 +107,11 @@ export async function accountUpdated(event: Stripe.AccountUpdatedEvent) {
       }),
     },
   });
+
+  // Queue an index update because the partner country moved (filterable field)
+  if (countryChanged) {
+    await queuePartnerSearchSync({ partnerIds: [partner.id] });
+  }
 
   if (!hasPayoutStateChanged) {
     return `No change in payout state for partner ${partner.email} (${partner.stripeConnectId}), skipping...`;

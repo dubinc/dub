@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { ApplicationAnalytics } from "@/ui/application-analytics";
 import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
@@ -86,7 +87,10 @@ function Verify() {
     <AuthLayout>
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center gap-1 text-center">
-          <h3 className="text-center text-xl font-semibold">
+          <h3
+            className="text-center text-xl font-semibold"
+            data-testid={testIds.auth.verifyEmailHeading}
+          >
             Verify your email address
           </h3>
           <p className="text-base font-medium text-neutral-500">

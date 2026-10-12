@@ -2,7 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { getDomainWithoutWWW, randomValue } from "@dub/utils";
 import { createId } from "../api/create-id";
-import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "../zod/schemas/groups";
+import {
+  DEFAULT_ADDITIONAL_PARTNER_LINKS,
+  sanitizeAdditionalLinks,
+} from "../zod/schemas/groups";
 import { PartnerStackApi } from "./api";
 import { partnerStackImporter } from "./importer";
 import { PartnerStackImportPayload } from "./types";
@@ -51,12 +54,12 @@ export async function importGroups(payload: PartnerStackImportPayload) {
           name: group.name,
           slug: group.slug,
           color: randomValue(RESOURCE_COLORS),
-          additionalLinks: [
+          additionalLinks: sanitizeAdditionalLinks([
             {
               domain: getDomainWithoutWWW(program.url),
               validationMode: "domain",
             },
-          ],
+          ]),
           maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
           partnerGroupDefaultLinks: {
             create: {

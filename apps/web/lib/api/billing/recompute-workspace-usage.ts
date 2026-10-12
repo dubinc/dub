@@ -1,5 +1,5 @@
-import { getWorkspaceUsage } from "@/lib/tinybird/get-workspace-usage";
 import { prisma } from "@/lib/prisma";
+import { getWorkspaceUsage } from "@/lib/tinybird/get-workspace-usage";
 import { getBillingStartDate } from "@dub/utils";
 import { Project } from "@prisma/client";
 

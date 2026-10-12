@@ -20,3 +20,5 @@ export const ErrorCode = z.enum(
     ...(keyof typeof ErrorCodes)[],
   ],
 );
+
+export type HttpStatusCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];

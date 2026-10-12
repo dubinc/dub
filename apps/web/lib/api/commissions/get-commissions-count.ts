@@ -5,6 +5,10 @@ import { parseFilterValue } from "@dub/utils";
 import { CommissionStatus, CommissionType } from "@prisma/client";
 import * as z from "zod/v4";
 import { getFraudEventGroupEventIds } from "../fraud/get-fraud-event-group-event-ids";
+import {
+  buildCommissionMetadataWhere,
+  parseCommissionMetadataQuery,
+} from "./metadata-filters";
 
 type CommissionsCountFilters = z.infer<
   typeof getCommissionsCountQuerySchema
@@ -19,6 +23,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     type,
     partnerId,
     payoutId,
+    bountySubmissionId,
     customerId,
     groupId,
     partnerTagId,
@@ -28,6 +33,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     interval,
     timezone,
     programId,
+    query,
   } = filters;
 
   // Filter the commissions based on the risk event group
@@ -48,13 +54,17 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
   const groupFilter = parseFilterValue(groupId);
   const partnerTagFilter = parseFilterValue(partnerTagId);
 
-  const statusFilter = status ?? {
-    notIn: [
-      CommissionStatus.duplicate,
-      CommissionStatus.fraud,
-      CommissionStatus.canceled,
-    ],
-  };
+  const statusFilter = status
+    ? status
+    : type || customerId || payoutId || bountySubmissionId || partnerId
+      ? undefined
+      : {
+          notIn: [
+            CommissionStatus.duplicate,
+            CommissionStatus.fraud,
+            CommissionStatus.canceled,
+          ],
+        };
 
   const programEnrollmentFilter = {
     ...(groupFilter && {
@@ -74,6 +84,10 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
   const partnerFilter = parseFilterValue(partnerId);
   const customerFilter = parseFilterValue(customerId);
   const typeFilter = parseFilterValue(type);
+
+  // Metadata filter
+  const parsedMetadataQuery = parseCommissionMetadataQuery(query);
+  const metadataWhere = buildCommissionMetadataWhere(parsedMetadataQuery);
 
   const commissionsCount = await prisma.commission.groupBy({
     by: ["status"],
@@ -96,6 +110,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
             : { in: typeFilter.values as CommissionType[] },
       }),
       payoutId,
+      bountySubmissionId,
       ...(customerFilter && {
         customerId:
           customerFilter.sqlOperator === "NOT IN"
@@ -114,6 +129,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       ...(Object.keys(programEnrollmentFilter).length > 0 && {
         programEnrollment: programEnrollmentFilter,
       }),
+      ...metadataWhere,
     },
     _count: true,
     _sum: {

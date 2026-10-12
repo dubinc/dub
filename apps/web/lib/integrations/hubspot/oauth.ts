@@ -51,6 +51,40 @@ class HubSpotOAuthProvider extends OAuthProvider<
     return credentials;
   }
 
+  async uninstall(installation: InstalledIntegration) {
+    const token = hubSpotAuthTokenSchema.parse(installation.credentials);
+
+    let accessToken = decryptOrPassthrough(token.access_token);
+
+    if (!this.isTokenValid(token)) {
+      const newToken = await this.refreshToken(
+        decryptOrPassthrough(token.refresh_token),
+      );
+
+      accessToken = newToken.access_token;
+    }
+
+    const response = await fetch(
+      "https://api.hubapi.com/appinstalls/2026-03/external-install",
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const data = await response.text();
+
+      console.error("[HubSpot] uninstall", data);
+
+      throw new Error(
+        `[HubSpot] Failed to uninstall the app from HubSpot portal ${token.hub_id}.`,
+      );
+    }
+  }
+
   isTokenValid(token: HubSpotAuthToken) {
     if (!token.created_at) {
       return false;

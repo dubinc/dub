@@ -3,6 +3,7 @@
 import {
   FRAUD_GROUP_EXPIRY_DAYS,
   FRAUD_RULES_BY_TYPE,
+  NON_EXPIRING_FRAUD_RULE_TYPES,
 } from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudGroups } from "@/lib/swr/use-fraud-groups";
@@ -11,7 +12,7 @@ import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useBulkResolveFraudGroupsModal } from "@/ui/modals/bulk-resolve-fraud-groups-modal";
-import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
+import { useRejectProgramApplicationModal } from "@/ui/modals/reject-program-application-modal";
 import { RiskDisclaimerBanner } from "@/ui/partners/fraud-risks/risk-disclaimer-banner";
 import { RiskReviewSheet } from "@/ui/partners/fraud-risks/risk-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -43,6 +44,7 @@ import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { addDays, differenceInDays } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { RiskCenterMenu } from "./risk-center-menu";
 import { useFraudGroupFilters } from "./use-fraud-group-filters";
 
 export function RiskEventsTable() {
@@ -165,6 +167,7 @@ export function RiskEventsTable() {
                 id: partner.id,
                 name: partner.name || "Unknown",
                 image: partner.image,
+                networkStatus: partner.networkStatus,
               }}
               showFraudIndicator={false}
             />
@@ -188,7 +191,10 @@ export function RiskEventsTable() {
             "The date and time of the most recent occurrence of this risk event.",
         },
         cell: ({ row }) => (
-          <LastDetectedCell lastEventAt={row.original.lastEventAt} />
+          <LastDetectedCell
+            lastEventAt={row.original.lastEventAt}
+            type={row.original.type}
+          />
         ),
       },
       {
@@ -370,7 +376,26 @@ export function RiskEventsTable() {
   );
 }
 
-function LastDetectedCell({ lastEventAt }: { lastEventAt: Date | string }) {
+function LastDetectedCell({
+  lastEventAt,
+  type,
+}: {
+  lastEventAt: Date | string;
+  type: FraudGroupProps["type"];
+}) {
+  if (NON_EXPIRING_FRAUD_RULE_TYPES.includes(type)) {
+    return (
+      <TimestampTooltip
+        timestamp={lastEventAt}
+        side="right"
+        rows={["local", "utc", "unix"]}
+        delayDuration={150}
+      >
+        {formatDateTimeSmart(lastEventAt)}
+      </TimestampTooltip>
+    );
+  }
+
   const daysUntilExpiry = differenceInDays(
     addDays(new Date(lastEventAt), FRAUD_GROUP_EXPIRY_DAYS),
     new Date(),
@@ -445,6 +470,9 @@ function PendingFraudFilters() {
           onSearchChange={setSearch}
           onSelectedFilterChange={setSelectedFilter}
         />
+        <div className="flex justify-end">
+          <RiskCenterMenu />
+        </div>
       </div>
       <AnimatedSizeContainer height>
         <div>
@@ -479,9 +507,9 @@ function RowMenuButton({ row }: { row: Row<FraudGroupProps> }) {
   });
 
   const {
-    RejectPartnerApplicationModal,
-    setShowRejectPartnerApplicationModal,
-  } = useRejectPartnerApplicationModal({
+    RejectProgramApplicationModal,
+    setShowRejectProgramApplicationModal,
+  } = useRejectProgramApplicationModal({
     partner,
     onConfirm: async () => {
       await mutatePrefix("/api/fraud/groups");
@@ -495,7 +523,7 @@ function RowMenuButton({ row }: { row: Row<FraudGroupProps> }) {
   return (
     <>
       <BanPartnerModal />
-      {RejectPartnerApplicationModal}
+      {RejectProgramApplicationModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -509,7 +537,7 @@ function RowMenuButton({ row }: { row: Row<FraudGroupProps> }) {
                     label="Reject application"
                     variant="danger"
                     onSelect={() => {
-                      setShowRejectPartnerApplicationModal(true);
+                      setShowRejectProgramApplicationModal(true);
                       setIsOpen(false);
                     }}
                   />

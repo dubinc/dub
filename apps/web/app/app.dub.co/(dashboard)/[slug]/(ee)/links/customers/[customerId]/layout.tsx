@@ -83,7 +83,6 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
               customer={customer}
               customerActivity={customerActivity}
               isCustomerActivityLoading={!customer || isCustomerActivityLoading}
-              workspaceSlug={workspaceSlug}
             />
           </div>
           <div className="@3xl/page:order-1">
@@ -100,7 +99,7 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
                   Activity
                 </h2>
                 <Link
-                  href={`/${workspaceSlug}/events?interval=all&customerId=${customerId}`}
+                  href={`/${workspaceSlug}/events?interval=all&event=sales&customerId=${customerId}`}
                 >
                   <Button
                     variant="secondary"

@@ -227,6 +227,7 @@ export function ResolvedRiskEventsTable({ status }: { status: StatusTab }) {
         },
       });
     },
+    containerClassName: "border-none",
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (plural) => `${status} risk event${plural ? "s" : ""}`,
@@ -271,7 +272,7 @@ export function ResolvedRiskEventsTable({ status }: { status: StatusTab }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       {detailsSheetState.groupId && currentFraudGroup && (
         <RiskReviewSheet
           isOpen={detailsSheetState.open}
@@ -298,12 +299,11 @@ export function ResolvedRiskEventsTable({ status }: { status: StatusTab }) {
         />
       )}
 
-      <ResolvedRiskEventsFilters status={status} />
-
       {fraudGroups?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
+          className="border-none"
           title={emptyState.title}
           description={emptyState.description}
           cardContent={() => (
@@ -314,11 +314,11 @@ export function ResolvedRiskEventsTable({ status }: { status: StatusTab }) {
           )}
         />
       )}
-    </div>
+    </>
   );
 }
 
-function ResolvedRiskEventsFilters({ status }: { status: StatusTab }) {
+export function ResolvedRiskEventsFilters({ status }: { status: StatusTab }) {
   const {
     filters,
     activeFilters,
@@ -333,7 +333,7 @@ function ResolvedRiskEventsFilters({ status }: { status: StatusTab }) {
 
   return (
     <div>
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="flex w-full flex-col items-center gap-2 min-[550px]:flex-row min-[550px]:items-center">
         <Filter.Select
           className="w-full md:w-fit"
           filters={filters}

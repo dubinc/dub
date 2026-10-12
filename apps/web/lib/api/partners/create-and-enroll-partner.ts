@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { prisma } from "@/lib/prisma";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { isStored, storage } from "@/lib/storage";
@@ -8,12 +9,19 @@ import { CreatePartnerProps, ProgramProps, WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { nanoid } from "@dub/utils";
-import { Prisma, ProgramEnrollmentStatus } from "@prisma/client";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
+import { throwIfInvalidPartnerTags } from "../partner-tags/throw-if-invalid-partner-tags";
+import {
+  createOrGetProgramEnrollment,
+  partnerTagsFromEnrollment,
+  programPartnerTagsInclude,
+} from "./create-or-get-program-enrollment";
 import { createPartnerDefaultLinks } from "./create-partner-default-links";
-import { generatePartnerUsername } from "./generate-partner-username";
+import { getOrCreatePartner } from "./get-or-create-partner";
+import { queuePartnerSearchSync } from "./queue-partner-search-sync";
 import { throwIfExistingTenantEnrollmentExists } from "./throw-if-existing-tenant-id-exists";
 
 interface CreateAndEnrollPartnerInput {
@@ -64,6 +72,7 @@ export const createAndEnrollPartner = async ({
           },
         },
         links: true,
+        programPartnerTags: programPartnerTagsInclude(program.id),
       },
     });
 
@@ -80,6 +89,7 @@ export const createAndEnrollPartner = async ({
           ...programEnrollment,
           id: programEnrollment.partner.id,
           links: programEnrollment.links,
+          tags: partnerTagsFromEnrollment(programEnrollment.programPartnerTags),
           ...polyfillSocialMediaFields(programEnrollment.partner.platforms),
         });
         // else, if the passed tenantId is different from the existing enrollment...
@@ -104,6 +114,7 @@ export const createAndEnrollPartner = async ({
               },
             },
             links: true,
+            programPartnerTags: programPartnerTagsInclude(program.id),
           },
         });
 
@@ -112,6 +123,9 @@ export const createAndEnrollPartner = async ({
           ...updatedProgramEnrollment,
           id: updatedProgramEnrollment.partner.id,
           links: updatedProgramEnrollment.links,
+          tags: partnerTagsFromEnrollment(
+            updatedProgramEnrollment.programPartnerTags,
+          ),
           ...polyfillSocialMediaFields(
             updatedProgramEnrollment.partner.platforms,
           ),
@@ -136,59 +150,71 @@ export const createAndEnrollPartner = async ({
     });
   }
 
-  const group = await getGroupOrThrow({
-    programId: program.id,
-    groupId: finalGroupId,
-    includeExpandedFields: true,
-  });
+  const [group, partnerTags] = await Promise.all([
+    getGroupOrThrow({
+      programId: program.id,
+      groupId: finalGroupId,
+      includeExpandedFields: true,
+    }),
 
-  const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
-    programs: {
-      create: {
-        id: createId({ prefix: "pge_" }),
-        programId: program.id,
-        tenantId: partner.tenantId,
-        status,
-        groupId: group.id,
-        clickRewardId: group.clickRewardId,
-        leadRewardId: group.leadRewardId,
-        saleRewardId: group.saleRewardId,
-        referralRewardId: group.referralRewardId,
-        discountId: group.discountId,
-        ...(enrolledAt && {
-          createdAt: enrolledAt,
-        }),
-      },
-    },
-  };
+    throwIfInvalidPartnerTags({
+      programId: program.id,
+      partnerTagIds: partner.tagIds,
+      partnerTagNames: partner.tagNames,
+    }),
+  ]);
 
-  const upsertedPartner = await prisma.partner.upsert({
-    where: {
-      email: partner.email,
-    },
-    update: payload,
+  const { partner: existingOrNewPartner } = await getOrCreatePartner({
+    email: partner.email,
     create: {
-      ...payload,
       id: createId({ prefix: "pn_" }),
       name: partner.name || partner.email,
       email: partner.email,
-      username: await generatePartnerUsername({
-        email: partner.email,
-        name: partner.name,
-      }),
       image: partner.image && !isStored(partner.image) ? null : partner.image,
       country: partner.country,
       description: partner.description,
     },
-    include: {
-      platforms: true,
-      programs: {
-        where: {
-          programId: program.id,
-        },
-      },
-    },
   });
+
+  const { programEnrollment, created } = await createOrGetProgramEnrollment({
+    partnerId: existingOrNewPartner.id,
+    programId: program.id,
+    tenantId: partner.tenantId ?? null,
+    status,
+    groupId: group.id,
+    clickRewardId: group.clickRewardId,
+    leadRewardId: group.leadRewardId,
+    saleRewardId: group.saleRewardId,
+    referralRewardId: group.referralRewardId,
+    customRewardId: group.customRewardId,
+    discountId: group.discountId,
+    enrolledAt,
+  });
+
+  if (!created) {
+    return EnrolledPartnerSchema.parse({
+      ...programEnrollment.partner,
+      ...programEnrollment,
+      id: programEnrollment.partner.id,
+      links: programEnrollment.links,
+      tags: partnerTagsFromEnrollment(programEnrollment.programPartnerTags),
+      ...polyfillSocialMediaFields(programEnrollment.partner.platforms),
+    });
+  }
+
+  if (partnerTags.length > 0) {
+    await prisma.programPartnerTag.createMany({
+      skipDuplicates: true,
+      data: partnerTags.map(({ id: partnerTagId }) => ({
+        programId: program.id,
+        partnerId: existingOrNewPartner.id,
+        partnerTagId,
+      })),
+    });
+  }
+
+  // Queue an index update because a new enrollment was created.
+  waitUntil(queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }));
 
   // Create the partner links based on group defaults
   const links = await createPartnerDefaultLinks({
@@ -201,7 +227,7 @@ export const createAndEnrollPartner = async ({
       defaultFolderId: program.defaultFolderId,
     },
     partner: {
-      id: upsertedPartner.id,
+      id: existingOrNewPartner.id,
       name: partner.name,
       email: partner.email,
       username: partner.username,
@@ -216,11 +242,12 @@ export const createAndEnrollPartner = async ({
   });
 
   const enrolledPartner = EnrolledPartnerSchema.parse({
-    ...upsertedPartner,
-    ...upsertedPartner.programs[0],
-    id: upsertedPartner.id,
+    ...programEnrollment.partner,
+    ...programEnrollment,
+    id: programEnrollment.partner.id,
     links,
-    ...polyfillSocialMediaFields(upsertedPartner.platforms),
+    tags: partnerTags,
+    ...polyfillSocialMediaFields(programEnrollment.partner.platforms),
   });
 
   waitUntil(
@@ -242,13 +269,13 @@ export const createAndEnrollPartner = async ({
         !isStored(partner.image) &&
         storage
           .upload({
-            key: `partners/${upsertedPartner.id}/image_${nanoid(7)}`,
+            key: `partners/${existingOrNewPartner.id}/image_${nanoid(7)}`,
             body: partner.image,
           })
           .then(async ({ url }) => {
             await prisma.partner.update({
               where: {
-                id: upsertedPartner.id,
+                id: existingOrNewPartner.id,
               },
               data: {
                 image: url,
@@ -262,6 +289,12 @@ export const createAndEnrollPartner = async ({
           workspace,
           trigger: "partner.enrolled",
           data: enrolledPartner,
+        }),
+
+      status === "approved" &&
+        triggerDraftBountySubmissionCreation({
+          programId: program.id,
+          partnerIds: [existingOrNewPartner.id],
         }),
     ]),
   );

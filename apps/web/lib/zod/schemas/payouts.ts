@@ -1,6 +1,11 @@
 import { ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE } from "@/lib/constants/payouts";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
-import { PartnerPayoutMethod, PayoutMode, PayoutStatus } from "@prisma/client";
+import {
+  PartnerPayoutMethod,
+  PayoutMode,
+  PayoutStatus,
+  WorkspaceEnvironment,
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
@@ -125,6 +130,8 @@ export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
     logo: true,
     minPayoutAmount: true,
     payoutMode: true,
+  }).extend({
+    environment: z.enum(WorkspaceEnvironment),
   }),
 });
 

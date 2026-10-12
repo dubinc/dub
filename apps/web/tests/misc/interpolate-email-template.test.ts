@@ -1,4 +1,4 @@
-import { interpolateEmailTemplate } from "@/lib/api/workflows/interpolate-email-template";
+import { interpolateEmailTemplate } from "@/lib/api/campaigns/interpolate-email-template";
 import { describe, expect, it } from "vitest";
 
 describe("interpolateEmailTemplate", () => {
@@ -65,5 +65,32 @@ describe("interpolateEmailTemplate", () => {
         variables: { PartnerName: "<script>alert(1)</script>" },
       }),
     ).toBe("Hi &lt;script&gt;alert(1)&lt;/script&gt;");
+  });
+
+  it("replaces reward variables with their formatted values", () => {
+    expect(
+      interpolateEmailTemplate({
+        text: "Commission: {{SaleReward}}",
+        variables: { SaleReward: "30% per sale for 6 months" },
+      }),
+    ).toBe("Commission: 30% per sale for 6 months");
+  });
+
+  it("HTML-escapes reward variables to avoid injection", () => {
+    expect(
+      interpolateEmailTemplate({
+        text: "Reward: {{SaleReward}}",
+        variables: { SaleReward: "<b>30%</b>" },
+      }),
+    ).toBe("Reward: &lt;b&gt;30%&lt;/b&gt;");
+  });
+
+  it("uses fallback when a reward variable is missing", () => {
+    expect(
+      interpolateEmailTemplate({
+        text: "Reward: {{SaleReward | N/A}}",
+        variables: {},
+      }),
+    ).toBe("Reward: N/A");
   });
 });

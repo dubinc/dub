@@ -1,6 +1,6 @@
 "use server";
 
-import { TapfiliateApi } from "@/lib/tapfiliate/api";
+import { TapfiliateClient } from "@/lib/tapfiliate/client";
 import { tapfiliateImporter } from "@/lib/tapfiliate/importer";
 import { TapfiliateProgram } from "@/lib/tapfiliate/types";
 import * as z from "zod/v4";
@@ -23,7 +23,7 @@ export const setTapfiliateTokenAction = authActionClient
       requiredRoles: ["owner", "member"],
     });
 
-    const tapfiliateApi = new TapfiliateApi({
+    const tapfiliateApi = new TapfiliateClient({
       apiKey,
     });
 

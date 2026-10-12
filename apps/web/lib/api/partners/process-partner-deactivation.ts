@@ -1,10 +1,11 @@
 import { Session } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
+import { PRISMA_UPDATEMANY_LIMIT, qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Partner, ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { trackActivityLog } from "../activity-log/track-activity-log";
+import { queuePartnerSearchSync } from "./queue-partner-search-sync";
 
 interface ProcessPartnerDeactivationParams {
   workspaceId: string;
@@ -47,20 +48,8 @@ export async function processPartnerDeactivation({
     oldEnrollments.map((e) => [e.partnerId, e.status]),
   );
 
-  await prisma.$transaction([
-    prisma.link.updateMany({
-      where: {
-        programId,
-        partnerId: {
-          in: partnerIds,
-        },
-      },
-      data: {
-        expiresAt: new Date(),
-      },
-    }),
-
-    prisma.programEnrollment.updateMany({
+  const { count: deactivatedPartners } =
+    await prisma.programEnrollment.updateMany({
       where: {
         partnerId: {
           in: partnerIds,
@@ -73,15 +62,38 @@ export async function processPartnerDeactivation({
         leadRewardId: null,
         saleRewardId: null,
         referralRewardId: null,
+        customRewardId: null,
         discountId: null,
       },
-    }),
-  ]);
+    });
 
-  console.log("[processPartnerDeactivation] Deactivated partners in program.", {
-    programId,
-    partnerIds,
-  });
+  while (true) {
+    const { count } = await prisma.link.updateMany({
+      where: {
+        programId,
+        partnerId: {
+          in: partnerIds,
+        },
+        expiresAt: null,
+      },
+      data: {
+        expiresAt: new Date(),
+      },
+      limit: PRISMA_UPDATEMANY_LIMIT,
+    });
+    console.log(`Expired ${count} links`);
+    if (count < PRISMA_UPDATEMANY_LIMIT) break;
+  }
+
+  console.log(
+    `[processPartnerDeactivation] Deactivated ${deactivatedPartners} partners in program ${programId}.`,
+    {
+      partnerIds,
+    },
+  );
+
+  // Queue an index update because the enrollment statuses moved to deactivated.
+  waitUntil(queuePartnerSearchSync({ partnerIds, programId }));
 
   if (user) {
     waitUntil(

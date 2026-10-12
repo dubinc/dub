@@ -1,8 +1,8 @@
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
-import { deleteDiscountCodes } from "../../discounts/delete-discount-code";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
+import { queuePartnerSearchSync } from "./queue-partner-search-sync";
 
 const BATCH_SIZE = 250;
 
@@ -59,38 +59,7 @@ export async function bulkDeletePartners({
       console.log(`Deleted ${deletedCustomers.count} customers`);
     }
 
-    const discountCodesToDelete = await prisma.discountCode.findMany({
-      where: {
-        linkId: {
-          in: linksToDelete.map((link) => link.id),
-        },
-      },
-      select: {
-        id: true,
-        code: true,
-        programId: true,
-        discount: {
-          select: {
-            provider: true,
-          },
-        },
-      },
-    });
-
-    if (discountCodesToDelete.length > 0) {
-      await deleteDiscountCodes(discountCodesToDelete);
-    }
-
     await bulkDeleteLinks(linksToDelete);
-
-    const deletedLinks = await prisma.link.deleteMany({
-      where: {
-        id: {
-          in: linksToDelete.map((link) => link.id),
-        },
-      },
-    });
-    console.log(`Deleted ${deletedLinks.count} links`);
   }
 
   if (programEnrollmentIds.length > 0) {
@@ -192,6 +161,9 @@ export async function bulkDeletePartners({
       `Deleted ${deletedProgramEnrollments.count} program enrollments`,
     );
 
+    // Queue an index update because the ACME enrollments were deleted.
+    await queuePartnerSearchSync({ enrollmentIds: programEnrollmentIds });
+
     if (deletedProgramEnrollments.count > 0) {
       await prisma.project.updateMany({
         where: {
@@ -207,6 +179,20 @@ export async function bulkDeletePartners({
   }
 
   if (deletePartners) {
+    // The enrollment delete above is scoped to ACME, but this one is not, and
+    // ProgramEnrollment.partner is onDelete: Cascade. Read whatever is left in
+    // other programs first, since the rows are unrecoverable afterwards.
+    const cascadedEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        partnerId: {
+          in: partnerIds,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
     // using conn.execute here since Prisma is throwing a weird error
     const res = await conn.execute(
       `DELETE FROM Partner WHERE id IN (${partnerIds.map(() => "?").join(",")})`,
@@ -215,5 +201,11 @@ export async function bulkDeletePartners({
     console.log(JSON.stringify(res, null, 2));
 
     console.log(`Deleted ${partnerIds.length} partners`);
+
+    // Queue an index update because deleting the partners cascades to their
+    // remaining enrollments in other programs.
+    await queuePartnerSearchSync({
+      enrollmentIds: cascadedEnrollments.map(({ id }) => id),
+    });
   }
 }

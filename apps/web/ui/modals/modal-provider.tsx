@@ -24,11 +24,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useAddEditTagModal } from "./add-edit-tag-modal";
-import { useImportPartnerStackModal } from "./import-partnerstack-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
-import { useImportRewardfulModal } from "./import-rewardful-modal";
-import { useImportTapfiliateModal } from "./import-tapfiliate-modal";
-import { useImportToltModal } from "./import-tolt-modal";
 import { useLinkBuilder } from "./link-builder";
 import { useProgramWelcomeModal } from "./program-welcome-modal";
 import { useUpgradedModal } from "./upgraded-modal";
@@ -42,10 +38,6 @@ export const ModalContext = createContext<{
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
   setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportCsvModal: Dispatch<SetStateAction<boolean>>;
-  setShowImportPartnerStackModal: Dispatch<SetStateAction<boolean>>;
-  setShowImportRewardfulModal: Dispatch<SetStateAction<boolean>>;
-  setShowImportToltModal: Dispatch<SetStateAction<boolean>>;
-  setShowImportTapfiliateModal: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddWorkspaceModal: () => {},
   setShowAddEditDomainModal: () => {},
@@ -55,10 +47,6 @@ export const ModalContext = createContext<{
   setShowImportShortModal: () => {},
   setShowImportRebrandlyModal: () => {},
   setShowImportCsvModal: () => {},
-  setShowImportPartnerStackModal: () => {},
-  setShowImportRewardfulModal: () => {},
-  setShowImportToltModal: () => {},
-  setShowImportTapfiliateModal: () => {},
 });
 
 export function ModalProvider({ children }: { children: ReactNode }) {
@@ -107,13 +95,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
   const { setShowUpgradedModal, UpgradedModal } = useUpgradedModal();
   const { setShowProgramWelcomeModal, ProgramWelcomeModal } =
     useProgramWelcomeModal();
-  const { setShowImportPartnerStackModal, ImportPartnerStackModal } =
-    useImportPartnerStackModal();
-  const { setShowImportRewardfulModal, ImportRewardfulModal } =
-    useImportRewardfulModal();
-  const { setShowImportToltModal, ImportToltModal } = useImportToltModal();
-  const { setShowImportTapfiliateModal, ImportTapfiliateModal } =
-    useImportTapfiliateModal();
 
   useEffect(() => {
     setShowProgramWelcomeModal(searchParams.has("onboarded-program"));
@@ -196,10 +177,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
         setShowImportShortModal,
         setShowImportRebrandlyModal,
         setShowImportCsvModal,
-        setShowImportPartnerStackModal,
-        setShowImportRewardfulModal,
-        setShowImportToltModal,
-        setShowImportTapfiliateModal,
       }}
     >
       <AddWorkspaceModal />
@@ -210,10 +187,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <ImportShortModal />
       <ImportRebrandlyModal />
       <ImportCsvModal />
-      <ImportPartnerStackModal />
-      <ImportRewardfulModal />
-      <ImportToltModal />
-      <ImportTapfiliateModal />
       <UpgradedModal />
       <ProgramWelcomeModal />
       {children}

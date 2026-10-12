@@ -41,6 +41,11 @@ type ChartOptionalProps<T extends Datum = any> = {
   onHoverDateChange?: (date: Date | null) => void;
 
   /**
+   * Called when the user clicks the currently hovered x-value (date).
+   */
+  onXValueClick?: (datum: TimeSeriesDatum<T>) => void;
+
+  /**
    * Absolute pixel values for margins around the chart area.
    * Default values accommodate axis labels and other expected overflow.
    */
@@ -64,7 +69,7 @@ export type ChartProps<T extends Datum = any> = ChartRequiredProps<T> &
   ChartOptionalProps<T>;
 
 export type ChartContext<T extends Datum = any> = Required<
-  Omit<ChartProps<T>, "onHoverDateChange">
+  Omit<ChartProps<T>, "onHoverDateChange" | "onXValueClick">
 > & {
   width: number;
   height: number;

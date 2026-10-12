@@ -1,5 +1,5 @@
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
-import { isGenericEmail } from "@/lib/is-generic-email";
+import { isGenericEmail } from "@/lib/email/is-generic-email";
 import { prisma } from "@/lib/prisma";
 import { FraudEventContext } from "@/lib/types";
 import { CustomerEmailMatchType } from "@/lib/zod/schemas/fraud";

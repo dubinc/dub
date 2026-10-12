@@ -119,6 +119,7 @@ function DeleteDomainModal({
 
 export function useDeleteDomainModal({ props }: { props?: DomainProps }) {
   const [showDeleteDomainModal, setShowDeleteDomainModal] = useState(false);
+  const hasProps = Boolean(props);
 
   const DeleteDomainModalCallback = useCallback(() => {
     return props ? (
@@ -128,7 +129,7 @@ export function useDeleteDomainModal({ props }: { props?: DomainProps }) {
         props={props}
       />
     ) : null;
-  }, [showDeleteDomainModal, props]);
+  }, [showDeleteDomainModal, hasProps]);
 
   return useMemo(
     () => ({

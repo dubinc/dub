@@ -20,6 +20,7 @@ export * from "./stablecoin-supported-countries";
 export * from "./tremendous-supported-countries";
 
 // pricing copy & values
+export * from "./pricing/plan-period-utils";
 export * from "./pricing/pricing-plan-compare-features";
 export * from "./pricing/pricing-plan-main-features";
 export * from "./pricing/pricing-plan-taglines";

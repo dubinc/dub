@@ -30,6 +30,8 @@ export const validateAuthorizeRequest = async (params: any) => {
           website: true,
           logo: true,
           verified: true,
+          projectId: true,
+          userId: true,
         },
       },
     },

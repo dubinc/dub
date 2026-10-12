@@ -35,7 +35,6 @@ model Customer {
   submittedLeads    SubmittedLead[]
 
   @@unique([projectId, externalId])
-  @@unique([projectConnectId, externalId])
   @@index([projectId, email])
   @@index([projectId, createdAt])
   @@index([projectId, saleAmount])

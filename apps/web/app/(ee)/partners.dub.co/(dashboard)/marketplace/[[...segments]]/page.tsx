@@ -1,19 +1,27 @@
+import LayoutLoader from "@/ui/layout/layout-loader";
 import { MarketplaceRouter } from "@/ui/program-marketplace/marketplace-router";
-import {
-  generateMarketplaceProgramStaticParams,
-  revalidate,
-} from "@/ui/program-marketplace/pages/marketplace-program-page";
+import { Suspense } from "react";
 
-export { revalidate };
+export const dynamic = "force-dynamic";
 
-export async function generateStaticParams() {
-  return generateMarketplaceProgramStaticParams();
-}
-
-export default async function MarketplacePage(props: {
+export default function MarketplacePage({
+  params,
+}: {
   params: Promise<{ segments?: string[] }>;
 }) {
-  const { segments } = await props.params;
+  return (
+    <Suspense fallback={<LayoutLoader />}>
+      <MarketplaceSegments params={params} />
+    </Suspense>
+  );
+}
+
+async function MarketplaceSegments({
+  params,
+}: {
+  params: Promise<{ segments?: string[] }>;
+}) {
+  const { segments = [] } = await params;
 
   return <MarketplaceRouter segments={segments} />;
 }

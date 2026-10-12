@@ -52,13 +52,13 @@ export const createIntegrationSchema = z.object({
   description: z
     .string()
     .max(120, {
-      message: "must be less than 120 characters",
+      message: "must be 120 characters or fewer",
     })
     .nullish(),
   readme: z
     .string()
-    .max(1000, {
-      message: "must be less than 1000 characters",
+    .max(5000, {
+      message: "must be 5000 characters or fewer",
     })
     .nullish(),
   screenshots: z

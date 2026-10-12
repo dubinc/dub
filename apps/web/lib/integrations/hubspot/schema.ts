@@ -25,12 +25,21 @@ export const hubSpotSettingsSchema = z.object({
     ),
   leadLifecycleStageId: z
     .string()
+    .trim()
     .nullish()
     .describe(
       "The ID of the contact lifecycle stage that represents a lead. Applicable only if leadTrackingTrigger is 'lifecycleStageReached'.",
     ),
+  leadDealStageId: z
+    .string()
+    .trim()
+    .nullish()
+    .describe(
+      "The ID of the deal stage that represents a lead. Applicable only if leadTriggerEvent is 'dealStageReached'.",
+    ),
   closedWonDealStageId: z
     .string()
+    .trim()
     .nullish()
     .default("closedwon")
     .describe("The ID of the deal stage that represents a closed won deal."),
@@ -57,16 +66,18 @@ export const hubSpotDealSchema = z.object({
     amount: z.string().nullable(),
     dealstage: z.string(),
   }),
-  associations: z.object({
-    contacts: z.object({
-      results: z.array(
-        z.object({
-          id: z.string(),
-          type: z.string(),
-        }),
-      ),
-    }),
-  }),
+  associations: z
+    .object({
+      contacts: z.object({
+        results: z.array(
+          z.object({
+            id: z.string(),
+            type: z.string(),
+          }),
+        ),
+      }),
+    })
+    .optional(),
 });
 
 // Webhooks
@@ -80,6 +91,8 @@ export const hubSpotLeadEventSchema = z.object({
   objectId: z.number(),
   subscriptionType: z.enum(["object.propertyChange", "object.creation"]),
   objectTypeId: z.enum(HUBSPOT_OBJECT_TYPE_IDS),
+  propertyName: z.string().optional(),
+  propertyValue: z.string().optional(),
 });
 
 export const hubSpotSaleEventSchema = z.object({

@@ -10,6 +10,7 @@ export const integrationTestEnv = z.object({
     .string()
     .default("false")
     .transform((v) => v === "true"),
+  VERCEL_ENV: z.string().optional(),
 });
 
 export const env = integrationTestEnv.parse(process.env);

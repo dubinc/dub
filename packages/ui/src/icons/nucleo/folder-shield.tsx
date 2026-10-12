@@ -4,33 +4,27 @@ export function FolderShield(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="17"
-      height="16"
+      width="18"
+      height="18"
       fill="none"
-      viewBox="0 0 17 16"
+      viewBox="0 0 18 18"
       {...props}
     >
-      <g clipPath="url(#clip0_563_3026)">
-        <g
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.5"
-        >
-          <path d="M2.667 7.778V4.222c0-.982.795-1.778 1.777-1.778H6.18c.54 0 1.049.245 1.386.665l.536.669h4.788c.982 0 1.778.795 1.778 1.778v2.056"></path>
-          <path d="M14.65 7.612A1.77 1.77 0 0012.889 6H4.444c-.982 0-1.777.796-1.777 1.778v4c0 .981.795 1.778 1.777 1.778h4.477"></path>
-          <path d="M13.556 9.556L16 10.666v2.614c0 1.369-2.444 2.053-2.444 2.053s-2.445-.684-2.445-2.053v-2.613l2.444-1.111z"></path>
-        </g>
+      <g
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      >
+        <path d="M2.25 8.75V4.75C2.25 3.645 3.145 2.75 4.25 2.75H6.20099C6.80799 2.75 7.38099 3.02499 7.76099 3.49799L8.36401 4.25H13.75C14.855 4.25 15.75 5.145 15.75 6.25V8.56299"></path>
+        <path d="M15.731 8.56299C15.636 7.54699 14.791 6.75 13.75 6.75H4.25C3.145 6.75 2.25 7.646 2.25 8.75V13.25C2.25 14.354 3.145 15.25 4.25 15.25H8.26221"></path>
+        <path
+          d="M14 10.75L11.25 12V14.94C11.25 16.48 14 17.25 14 17.25V10.75Z"
+          fill="currentColor"
+          stroke="none"
+        ></path>
+        <path d="M14 10.75L16.75 12V14.94C16.75 16.48 14 17.25 14 17.25C14 17.25 11.25 16.48 11.25 14.94V12L14 10.75Z"></path>
       </g>
-      <defs>
-        <clipPath id="clip0_563_3026">
-          <path
-            fill="#fff"
-            d="M0 0H16V16H0z"
-            transform="translate(.667)"
-          ></path>
-        </clipPath>
-      </defs>
     </svg>
   );
 }

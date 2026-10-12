@@ -4,9 +4,10 @@ import {
 } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
+import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
-import { Invoice, PartnerPayoutMethod } from "@prisma/client";
+import { Invoice, PartnerPayoutMethod, Project } from "@prisma/client";
 import { stripeChargeMetadataSchema } from "./utils";
 
 const queue = qstash.queue({
@@ -14,15 +15,20 @@ const queue = qstash.queue({
 });
 
 export async function queueStripePayouts({
+  workspace,
   invoice,
   fundsAvailable,
 }: {
+  workspace: Pick<Project, "environment">;
   invoice: Pick<
     Invoice,
     "id" | "paymentMethod" | "stripeChargeMetadata" | "payoutMode"
   >;
   fundsAvailable: boolean;
 }) {
+  // Extra safety check to make sure we're not processing payouts for a non-production workspace
+  assertProductionWorkspace(workspace);
+
   if (invoice.payoutMode === "external") {
     console.log(
       `Invoice ${invoice.id} is paid externally, skipping Stripe payouts...`,

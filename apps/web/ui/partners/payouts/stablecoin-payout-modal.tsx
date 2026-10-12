@@ -1,8 +1,8 @@
 "use client";
 
+import { Callout } from "@/ui/shared/callout";
 import { MarkdownDescription } from "@/ui/shared/markdown-description";
 import { Badge, Button, CircleDollar3, Modal, ShimmerDots } from "@dub/ui";
-import { TriangleWarning } from "@dub/ui/icons";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
 function StablecoinPayoutModal({
@@ -94,18 +94,15 @@ function StablecoinPayoutModal({
             waiting up to 15 business days with your bank account.
           </MarkdownDescription>
 
-          <div className="mt-4 flex flex-col gap-2.5 rounded-lg border border-amber-200 bg-amber-50 p-3">
-            <TriangleWarning className="size-3.5 text-amber-500" />
-            <p className="text-sm leading-5 text-amber-900">
-              Make sure to triple-check that you’ve entered the{" "}
-              <strong className="underline underline-offset-2">
-                correct stablecoin wallet address and network
-              </strong>{" "}
-              when connecting your wallet. Since stablecoin payouts are
-              irreversible, incorrect details may result in payout failures and
-              lost funds.
-            </p>
-          </div>
+          <Callout variant="warn" size={2} className="mt-4">
+            Make sure to triple-check that you’ve entered the{" "}
+            <strong className="underline underline-offset-2">
+              correct stablecoin wallet address and network
+            </strong>{" "}
+            when connecting your wallet. Since stablecoin payouts are
+            irreversible, incorrect details may result in payout failures and
+            lost funds.
+          </Callout>
 
           <div className="mt-2">
             <label className="mb-4 flex cursor-pointer gap-3 rounded-lg border border-neutral-300 p-3">

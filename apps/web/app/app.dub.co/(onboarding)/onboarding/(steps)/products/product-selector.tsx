@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { MarkdownDescription } from "@/ui/shared/markdown-description";
 import { Button, DubProductIcon } from "@dub/ui";
 import { capitalize } from "@dub/utils";
@@ -103,6 +104,7 @@ function ProductOption({
           }}
           loading={isLoading || isSuccessful}
           text={cta}
+          data-testid={testIds.onboarding.productCta(product)}
         />
       </div>
     </div>

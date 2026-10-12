@@ -13,6 +13,7 @@ import {
   getGroupsQuerySchema,
   GroupSchema,
   GroupSchemaExtended,
+  sanitizeAdditionalLinks,
 } from "@/lib/zod/schemas/groups";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -35,14 +36,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["groups.read"],
-    requiredPlan: [
-      "business",
-      "business extra",
-      "business max",
-      "business plus",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -100,6 +94,7 @@ export const POST = withWorkspace(
           code: "exceeded_limit",
           message: exceededLimitError({
             plan: workspace.plan,
+            planPeriod: workspace.planPeriod,
             limit: workspace.groupsLimit,
             type: "groups",
           }),
@@ -119,6 +114,8 @@ export const POST = withWorkspace(
         landerData,
         holdingPeriodDays,
         autoApprovePartnersEnabledAt,
+        submittedLeadFormData,
+        submittedLeadsEnabledAt,
       } = program.groups[0];
 
       return await tx.partnerGroup.create({
@@ -133,11 +130,15 @@ export const POST = withWorkspace(
           brandColor,
           holdingPeriodDays,
           autoApprovePartnersEnabledAt,
-          ...(additionalLinks && { additionalLinks }),
+          submittedLeadsEnabledAt,
+          ...(additionalLinks && {
+            additionalLinks: sanitizeAdditionalLinks(additionalLinks),
+          }),
           ...(maxPartnerLinks && { maxPartnerLinks }),
           ...(linkStructure && { linkStructure }),
           ...(applicationFormData && { applicationFormData }),
           ...(landerData && { landerData }),
+          ...(submittedLeadFormData && { submittedLeadFormData }),
           partnerGroupDefaultLinks: {
             createMany: {
               data: partnerGroupDefaultLinks.map((link) => ({
@@ -154,6 +155,7 @@ export const POST = withWorkspace(
           leadReward: true,
           saleReward: true,
           referralReward: true,
+          customReward: true,
           discount: true,
         },
       });
@@ -182,13 +184,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["groups.write"],
-    requiredPlan: [
-      "business",
-      "business extra",
-      "business max",
-      "business plus",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

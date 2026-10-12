@@ -42,6 +42,7 @@ function getBountyIncrementalBonusDescription(
     bonusPerIncrement == null ||
     maxCount == null ||
     incrementCount < 1 ||
+    bonusPerIncrement <= 0 ||
     maxCount < 1
   ) {
     return null;

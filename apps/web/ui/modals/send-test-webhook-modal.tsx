@@ -1,8 +1,8 @@
 import { sendTestWebhookEvent } from "@/lib/actions/send-test-webhook";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps } from "@/lib/types";
-import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "@/lib/webhook/constants";
 import type { WebhookTrigger } from "@/lib/webhook/types";
+import { getAvailableWebhookTriggers } from "@/lib/webhook/utils";
 import { Button, Combobox, ComboboxOption, Modal } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -28,6 +28,16 @@ function SendTestWebhookModal({
     null,
   );
 
+  const availableTriggers = getAvailableWebhookTriggers({
+    defaultProgramId: workspace.defaultProgramId,
+    subscribedTriggers: webhook?.triggers,
+  });
+
+  const triggerOptions = availableTriggers.map((trigger) => ({
+    value: trigger,
+    label: trigger,
+  }));
+
   const { execute, isPending } = useAction(sendTestWebhookEvent, {
     onSuccess: () => {
       toast.success("Webhook event sent.");
@@ -37,13 +47,6 @@ function SendTestWebhookModal({
       toast.error(error.serverError);
     },
   });
-
-  const triggers = Object.entries(WEBHOOK_TRIGGER_DESCRIPTIONS).map(
-    ([key, value]) => ({
-      value: key,
-      label: value,
-    }),
-  );
 
   return (
     <Modal
@@ -77,12 +80,14 @@ function SendTestWebhookModal({
 
           <div className="mt-4">
             <Combobox
-              options={triggers}
+              options={triggerOptions}
               selected={selectedTrigger}
               setSelected={setSelectedTrigger}
               placeholder="Select a webhook event"
               matchTriggerWidth
               caret
+              labelProps={{ className: "font-mono text-sm text-neutral-800" }}
+              optionClassName="font-mono"
             />
           </div>
         </div>
@@ -122,7 +127,7 @@ export function useSendTestWebhookModal({
         webhook={webhook}
       />
     );
-  }, [showSendTestWebhookModal, setShowSendTestWebhookModal]);
+  }, [showSendTestWebhookModal, setShowSendTestWebhookModal, webhook]);
 
   return useMemo(
     () => ({

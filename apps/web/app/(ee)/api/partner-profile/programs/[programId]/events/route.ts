@@ -14,7 +14,7 @@ import {
   PartnerProfileLinkSchema,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { parseFilterValue, toCentsNumber } from "@dub/utils";
+import { parseFilterValue, serializeError, toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -97,17 +97,32 @@ export const GET = withPartnerProfile(
       };
     }
 
-    const events = await getEvents({
-      ...parsedParams,
-      workspaceId: program.workspaceId,
-      includeMetadata: false,
-      ...(parsedParams.linkId
-        ? { linkId: parsedParams.linkId }
-        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
-          ? { partnerId: partner.id }
-          : { linkId: parseFilterValue(links.map((link) => link.id)) }),
-      dataAvailableFrom: program.startedAt ?? program.createdAt,
-    });
+    let events: Awaited<ReturnType<typeof getEvents>> = [];
+
+    try {
+      events = await getEvents({
+        ...parsedParams,
+        workspaceId: program.workspaceId,
+        includeMetadata: false,
+        ...(parsedParams.linkId
+          ? { linkId: parsedParams.linkId }
+          : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
+            ? { partnerId: partner.id }
+            : { linkId: parseFilterValue(links.map((link) => link.id)) }),
+        dataAvailableFrom: program.startedAt ?? program.createdAt,
+      });
+    } catch (error) {
+      // Tinybird times out after 30s on heavy partner queries; return a 400
+      // instead of 500 so the UI can show a retry hint.
+      if (serializeError(error).includes("Timeout exceeded")) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "Failed to fetch events. Refresh the page and try again.",
+        });
+      }
+
+      throw error;
+    }
 
     const response = events.map((event) => {
       // don't return ip address for partner profile

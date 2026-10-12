@@ -1,9 +1,11 @@
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { getSession } from "@/lib/auth";
+import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { prisma } from "@/lib/prisma";
 import EmptyState from "@/ui/shared/empty-state";
 import { LoadingSpinner } from "@dub/ui";
 import { LinkBroken, Users6 } from "@dub/ui/icons";
+import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -79,6 +81,14 @@ async function VerifyInvite({ code }: { code: string }) {
 
   // check if user is already in the workspace
   if (workspace.users.length > 0) {
+    waitUntil(
+      syncStagingWorkspaceJob.dispatch({
+        action: "add-member",
+        workspaceId: workspace.id,
+        userId: session.user.id,
+      }),
+    );
+
     redirect(`/${workspace.slug}`);
   }
 
@@ -92,7 +102,7 @@ async function VerifyInvite({ code }: { code: string }) {
     );
   }
 
-  await prisma.projectUsers.create({
+  const workspaceUser = await prisma.projectUsers.create({
     data: {
       userId: session.user.id,
       projectId: workspace.id,
@@ -113,6 +123,14 @@ async function VerifyInvite({ code }: { code: string }) {
       },
     });
   }
+
+  waitUntil(
+    syncStagingWorkspaceJob.dispatch({
+      action: "add-member",
+      workspaceId: workspace.id,
+      userId: workspaceUser.userId,
+    }),
+  );
 
   // Complete onboarding just in case
   await onboardingStepCache.set({

@@ -1,8 +1,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { withCron } from "@/lib/cron/with-cron";
-import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { canDeletePartner } from "@/lib/partners/utils";
 import { prisma } from "@/lib/prisma";
@@ -41,15 +41,6 @@ export const POST = withCron(async ({ rawBody }) => {
       programPartnerTags: {
         include: {
           partnerTag: true,
-        },
-      },
-      discountCodes: {
-        include: {
-          discount: {
-            select: {
-              provider: true,
-            },
-          },
         },
       },
     },
@@ -96,7 +87,7 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const { partner, links, programPartnerTags, discountCodes, ...enrollment } =
+  const { partner, links, programPartnerTags, ...enrollment } =
     programEnrollment;
 
   // Clear rows that FK to Customer before detaching customers
@@ -126,8 +117,6 @@ export const POST = withCron(async ({ rawBody }) => {
     prisma.discoveredPartner.deleteMany({
       where: programEnrollmentWhere,
     }),
-
-    deleteDiscountCodes(discountCodes),
   ]);
 
   console.log(`Delete ${submittedLeads.count} submitted leads.`);
@@ -137,7 +126,6 @@ export const POST = withCron(async ({ rawBody }) => {
   console.log(
     `Delete ${discoveredPartners.count} discovered partners records.`,
   );
-  console.log(`Delete ${discountCodes.length} discount codes.`);
 
   if (links.length > 0) {
     await bulkDeleteLinks(
@@ -149,16 +137,6 @@ export const POST = withCron(async ({ rawBody }) => {
         },
       })),
     );
-
-    const deletedLinks = await prisma.link.deleteMany({
-      where: {
-        id: {
-          in: links.map((link) => link.id),
-        },
-      },
-    });
-
-    console.log(`Delete ${deletedLinks.count} links.`);
   }
 
   await prisma.$transaction([
@@ -179,6 +157,9 @@ export const POST = withCron(async ({ rawBody }) => {
       },
     }),
   ]);
+
+  // Queue an index update because the enrollment was deleted.
+  await queuePartnerSearchSync({ enrollmentIds: [enrollment.id] });
 
   await recordAuditLog({
     workspaceId,

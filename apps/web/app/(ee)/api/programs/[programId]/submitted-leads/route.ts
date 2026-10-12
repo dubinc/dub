@@ -67,13 +67,7 @@ export const GET = withWorkspace(
     );
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
+    featureFlag: "submittedLeads",
   },
 );

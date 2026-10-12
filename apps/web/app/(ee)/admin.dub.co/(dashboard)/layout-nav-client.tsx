@@ -1,5 +1,6 @@
 "use client";
 
+import { canAccessAdminPath } from "@/lib/auth/admin-access-guard";
 import {
   ClientOnly,
   MaxWidthWrapper,
@@ -7,9 +8,10 @@ import {
   Popover,
   useMediaQuery,
 } from "@dub/ui";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 const tabs = [
   {
@@ -50,10 +52,24 @@ export function AdminNav() {
   const [openPopover, setOpenPopover] = useState(false);
   const { isMobile } = useMediaQuery();
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+
+  const visibleTabs = useMemo(
+    () =>
+      status === "loading"
+        ? []
+        : tabs.filter((tab) =>
+            canAccessAdminPath({
+              userId: session?.user?.id,
+              pathname: tab.href,
+            }),
+          ),
+    [status, session?.user?.id],
+  );
 
   const NavContent = () => (
     <div className="flex w-full flex-col gap-1 p-2">
-      {tabs.map((tab) => {
+      {visibleTabs.map((tab) => {
         const isActive =
           pathname === tab.href || pathname?.startsWith(`${tab.href}/`);
         return (
@@ -112,7 +128,7 @@ export function AdminNav() {
               </div>
             ) : (
               <div className="flex items-center gap-4">
-                {tabs.map((tab) => {
+                {visibleTabs.map((tab) => {
                   const isActive =
                     pathname === tab.href ||
                     pathname?.startsWith(`${tab.href}/`);

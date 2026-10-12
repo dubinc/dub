@@ -1,6 +1,7 @@
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
-import { bulkDeleteLinks } from "../../lib/api/links/bulk-delete-links";
 
 const programId = "prog_xxx";
 
@@ -11,7 +12,7 @@ async function main() {
         programId,
         totalLeads: 0,
       },
-      take: 250,
+      take: PRISMA_UPDATEMANY_LIMIT,
       include: {
         links: true,
       },
@@ -36,16 +37,6 @@ async function main() {
     }
 
     await bulkDeleteLinks(linksToDelete);
-
-    const deleteLinkPrisma = await prisma.link.deleteMany({
-      where: {
-        id: {
-          in: linksToDelete.map(({ id }) => id),
-        },
-      },
-    });
-
-    console.log("deleteLinkPrisma", deleteLinkPrisma);
 
     const deleteProgramEnrollment = await prisma.programEnrollment.deleteMany({
       where: {

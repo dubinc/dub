@@ -1,6 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
+import { timingSafeCompare } from "@/lib/webhook/timing-safe-compare";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import crypto from "crypto";
 import { logAndRespond } from "../../cron/utils";
@@ -35,8 +36,8 @@ export const POST = withAxiom(async (req) => {
       .update(sourceString)
       .digest("hex");
 
-    // Compare with provided signature
-    if (signature !== expectedHash) {
+    // Compare with provided signature using constant-time comparison
+    if (!timingSafeCompare(signature, expectedHash)) {
       throw new DubApiError({
         code: "unauthorized",
         message: "Invalid webhook signature.",

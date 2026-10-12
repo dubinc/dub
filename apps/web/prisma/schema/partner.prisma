@@ -83,6 +83,7 @@ model Partner {
   invoiceSettings     Json?
   changeHistoryLog    Json?
   referredByPartnerId String?
+  usersLimit          Int     @default(10)
 
   programs                   ProgramEnrollment[]
   users                      PartnerUser[]
@@ -96,6 +97,7 @@ model Partner {
   messages                   Message[]
   sentMessages               Message[]                          @relation("SenderPartner")
   comments                   PartnerComment[]
+  submittedLeadComments      SubmittedLeadComment[]
   discountCodes              DiscountCode[]
   notificationEmails         NotificationEmail[]
   monthlyTraffic             MonthlyTraffic?
@@ -110,6 +112,7 @@ model Partner {
   partnerRewinds             PartnerRewind[]
   platforms                  PartnerPlatform[]
   referredApplications       ProgramApplicationEvent[]
+  programApplications        ProgramApplication[]
   submittedLeads             SubmittedLead[]
 
   @@index(country)

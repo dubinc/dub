@@ -1,4 +1,5 @@
 import { isValidDomain } from "@/lib/api/domains/is-valid-domain";
+import { testIds } from "@/lib/e2e/test-ids";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
@@ -120,12 +121,18 @@ export function AddEditDomainForm({
   enableDomainConfig = true,
   initialDomain,
   fixedDomainSuffix,
+  isOnboardingSubdomainFlow = false,
+  submitTestId,
+  domainInputTestId,
 }: {
   props?: DomainProps;
   onSuccess?: (data: DomainProps) => void;
   enableDomainConfig?: boolean;
   fixedDomainSuffix?: string;
   initialDomain?: string;
+  isOnboardingSubdomainFlow?: boolean;
+  submitTestId?: string;
+  domainInputTestId?: string;
 }) {
   const { id: workspaceId, plan } = useWorkspace();
   const [lockDomain, setLockDomain] = useState(true);
@@ -140,13 +147,15 @@ export function AddEditDomainForm({
     Record<string, boolean>
   >({});
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const {
     register,
     control,
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting, isSubmitSuccessful, isDirty },
+    formState: { isDirty },
   } = useForm<FormData>({
     defaultValues: {
       slug:
@@ -301,7 +310,9 @@ export function AddEditDomainForm({
   const { handleKeyDown } = useEnterSubmit(formRef);
 
   const onSubmit = async (formData: FormData) => {
+    if (isSubmitting) return;
     try {
+      setIsSubmitting(true);
       const res = await fetch(endpoint.url, {
         method: endpoint.method,
         headers: {
@@ -321,6 +332,7 @@ export function AddEditDomainForm({
           ...(formData.deepviewData !== undefined && {
             deepviewData: sanitizeJson(formData.deepviewData),
           }),
+          isOnboardingSubdomainFlow,
         }),
       });
 
@@ -333,6 +345,7 @@ export function AddEditDomainForm({
         toast.success(endpoint.successMessage);
         onSuccess?.(data);
       } else {
+        setIsSubmitting(false);
         const { error } = await res.json();
         if (res.status === 422) {
           setDomainStatus("conflict");
@@ -349,6 +362,7 @@ export function AddEditDomainForm({
         }
       }
     } catch (error) {
+      setIsSubmitting(false);
       toast.error(`Failed to ${props ? "update" : "add"} domain`);
     }
   };
@@ -453,6 +467,7 @@ export function AddEditDomainForm({
                       className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
                       placeholder="go.acme.com"
                       autoFocus={!isMobile}
+                      data-testid={domainInputTestId}
                     />
                   )}
                 </div>
@@ -462,7 +477,13 @@ export function AddEditDomainForm({
                   transition={{ ease: "easeInOut", duration: 0.1 }}
                 >
                   <div className="flex items-center justify-between gap-4 p-2 text-sm">
-                    <p>
+                    <p
+                      data-testid={
+                        domainStatus === "available"
+                          ? testIds.onboarding.domainAvailable
+                          : undefined
+                      }
+                    >
                       {domainStatus !== "idle" ? (
                         domainStatus === "invalid" ||
                         domainStatus === "error" ? (
@@ -733,7 +754,8 @@ export function AddEditDomainForm({
         <Button
           text={props ? "Save changes" : "Add domain"}
           disabled={saveDisabled}
-          loading={isSubmitting || isSubmitSuccessful}
+          loading={isSubmitting}
+          data-testid={submitTestId}
         />
       </div>
     </form>

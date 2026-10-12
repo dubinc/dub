@@ -147,10 +147,13 @@ export async function updatePartnerCommission({
       },
     });
 
-    const reward = determinePartnerReward({
+    const partnerReward = await determinePartnerReward({
       event: "sale",
       programEnrollment,
+      linkId: commission.linkId,
     });
+
+    const reward = partnerReward?.reward;
 
     if (!reward) {
       throw new DubApiError({
@@ -211,6 +214,11 @@ export async function updatePartnerCommission({
     include: {
       customer: true,
       partner: true,
+      payout: {
+        select: {
+          paidAt: true,
+        },
+      },
     },
   });
 

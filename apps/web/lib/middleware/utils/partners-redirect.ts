@@ -44,9 +44,23 @@ const PARTNERS_PROGRAM_REDIRECTS = {
   getviktor: "viktor",
   heynavii: "navii",
   galaxyai: "magica",
+  "voice-os": "voiceos",
+  "speechify-inc": "speechifyai",
+  "ggms-labs-ltd-ai": "mira",
+  missioncontrolhq: "squad-so",
+  nozomio: "folk",
+  base: "coinbasewallet",
+  oddshub: "outlier-as",
 };
 
 export const partnersProgramRedirects = (path: string) => {
+  const customersLeadsMatch = path.match(
+    /^\/programs\/([^/]+)\/customers\/leads$/,
+  );
+  if (customersLeadsMatch) {
+    return `/programs/${customersLeadsMatch[1]}/leads`;
+  }
+
   const programRedirect = Object.keys(PARTNERS_PROGRAM_REDIRECTS).find(
     (redirect) => path === `/${redirect}` || path.includes(`/${redirect}/`),
   );

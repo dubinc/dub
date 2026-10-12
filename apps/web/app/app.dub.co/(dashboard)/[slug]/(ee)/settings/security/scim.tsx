@@ -37,7 +37,7 @@ export function SCIM() {
           <img
             src={SAML_PROVIDERS.find((p) => p.scim === provider)!.logo}
             alt={`${provider} logo`}
-            className="h-8 w-8"
+            className="h-8 w-8 shrink-0"
           />
         ),
         title: `${SAML_PROVIDERS.find((p) => p.scim === provider)!.name} SCIM`,
@@ -46,7 +46,7 @@ export function SCIM() {
     } else
       return {
         logo: (
-          <div className="rounded-full border border-neutral-200 p-2">
+          <div className="shrink-0 rounded-full border border-neutral-200 p-2">
             <FolderSync className="h-4 w-4 text-neutral-600" />
           </div>
         ),
@@ -74,12 +74,12 @@ export function SCIM() {
           </div>
 
           <div className="rounded-xl border border-neutral-200 bg-white">
-            <div className="flex flex-col items-start justify-between space-y-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-              <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+            <div className="flex items-center justify-between gap-4 px-4 py-4">
+              <div className="flex min-w-0 items-center gap-4">
                 {data.logo || (
-                  <div className="h-8 w-8 animate-pulse rounded-full bg-neutral-100" />
+                  <div className="h-8 w-8 shrink-0 animate-pulse rounded-full bg-neutral-100" />
                 )}
-                <div className="flex flex-col">
+                <div className="flex min-w-0 flex-col">
                   {data.title ? (
                     <h3 className="font-medium">{data.title}</h3>
                   ) : (
@@ -94,7 +94,7 @@ export function SCIM() {
                   )}
                 </div>
               </div>
-              <div>
+              <div className="shrink-0">
                 {loading ? (
                   <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-100" />
                 ) : configured ? (

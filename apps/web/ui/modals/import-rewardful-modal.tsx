@@ -3,6 +3,7 @@ import { startRewardfulImportAction } from "@/lib/actions/partners/start-rewardf
 import { RewardfulCampaign } from "@/lib/rewardful/types";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   Button,
@@ -20,7 +21,7 @@ import { cn, currencyFormatter, fetcher } from "@dub/utils";
 import { Command } from "cmdk";
 import { ArrowRight, ServerOff, Users } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -33,6 +34,7 @@ import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
 import { useDebounce } from "use-debounce";
 import { MarkdownDescription } from "../shared/markdown-description";
+import { useImportModalParam } from "./use-import-modal-param";
 
 function ImportRewardfulModal({
   showImportRewardfulModal,
@@ -43,7 +45,6 @@ function ImportRewardfulModal({
 }) {
   const router = useRouter();
   const { program } = useProgram();
-  const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
   const [apiToken, setApiToken] = useState("");
@@ -98,14 +99,6 @@ function ImportRewardfulModal({
     fetcher,
   );
 
-  useEffect(() => {
-    if (searchParams?.get("import") === "rewardful") {
-      setShowImportRewardfulModal(true);
-    } else {
-      setShowImportRewardfulModal(false);
-    }
-  }, [searchParams]);
-
   // submit the api token to get the campaigns
   const handleTokenSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,6 +145,17 @@ function ImportRewardfulModal({
         })
       }
     >
+      <Button
+        variant="outline"
+        icon={<X className="size-5" />}
+        className="absolute right-4 top-4 h-auto w-fit p-1"
+        onClick={() => {
+          setShowImportRewardfulModal(false);
+          queryParams({
+            del: "import",
+          });
+        }}
+      />
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-8">
         <div className="flex items-center space-x-3">
           <img
@@ -529,7 +533,7 @@ function CampaignsStep({
 
 export function useImportRewardfulModal() {
   const [showImportRewardfulModal, setShowImportRewardfulModal] =
-    useState(false);
+    useImportModalParam("rewardful");
 
   const ImportRewardfulModalCallback = useCallback(() => {
     return (

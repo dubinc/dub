@@ -4,6 +4,7 @@ import { getBountiesForPartner } from "@/lib/bounty/api/get-bounties-for-partner
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
+import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-rewards";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { Reward } from "@prisma/client";
@@ -17,7 +18,6 @@ export const getReferralsEmbedData = async (token: string) => {
     notFound();
   }
 
-  const now = new Date();
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId,
     programId,
@@ -51,27 +51,32 @@ export const getReferralsEmbedData = async (token: string) => {
           termsUrl: true,
           embedData: true,
           resources: true,
-          _count: {
-            select: {
-              bounties: {
-                where: {
-                  startsAt: {
-                    lte: now,
-                  },
-                  OR: [{ endsAt: null }, { endsAt: { gte: now } }],
-                },
-              },
+        },
+      },
+      links: {
+        include: {
+          linkReward: {
+            include: {
+              clickReward: true,
+              leadReward: true,
+              saleReward: true,
+              discount: true,
             },
           },
         },
       },
-      links: true,
       partnerGroup: true,
       clickReward: true,
       leadReward: true,
       saleReward: true,
       referralReward: true,
+      customReward: true,
       discount: true,
+      programPartnerTags: {
+        select: {
+          partnerTagId: true,
+        },
+      },
     },
   });
 
@@ -88,6 +93,7 @@ export const getReferralsEmbedData = async (token: string) => {
     leadReward,
     saleReward,
     referralReward,
+    customReward,
     partnerGroup: group,
   } = programEnrollment;
 
@@ -112,9 +118,7 @@ export const getReferralsEmbedData = async (token: string) => {
       },
     }),
 
-    program._count.bounties > 0
-      ? getBountiesForPartner(programEnrollment)
-      : Promise.resolve([]),
+    getBountiesForPartner(programEnrollment),
   ]);
 
   return {
@@ -129,8 +133,22 @@ export const getReferralsEmbedData = async (token: string) => {
       defaultPayoutMethod: partner.defaultPayoutMethod,
     },
     partnerPlatforms: partner.platforms,
-    links: z.array(ReferralsEmbedLinkSchema).parse(links),
-    rewards: [clickReward, leadReward, saleReward, referralReward]
+    links: z.array(ReferralsEmbedLinkSchema).parse(
+      links.map((link) => ({
+        ...link,
+        ...getResolvedPartnerLinkRewards({
+          linkReward: link.linkReward,
+          enrollmentRewards: [
+            clickReward,
+            leadReward,
+            saleReward,
+            customReward,
+          ],
+          enrollmentDiscount: discount,
+        }),
+      })),
+    ),
+    rewards: [clickReward, leadReward, saleReward, referralReward, customReward]
       .filter((r): r is Reward => r !== null)
       .map((r) => serializeReward(r)),
     discount,
