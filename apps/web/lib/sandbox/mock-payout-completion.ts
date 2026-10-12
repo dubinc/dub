@@ -17,7 +17,8 @@ interface MockPayoutCompletionParams {
   workspace: Pick<Project, "id" | "environment">;
 }
 
-// Mark the all payouts and commissions in the invoice as paid
+// Mark internal payouts and their commissions as paid. External payouts stay
+// processing until the webhook callback. The invoice is marked completed either way.
 export async function mockPayoutCompletion({
   invoice,
   workspace,
@@ -30,6 +31,7 @@ export async function mockPayoutCompletion({
     where: {
       invoiceId: invoice.id,
       status: PayoutStatus.processing,
+      mode: "internal",
     },
     orderBy: {
       id: "asc",
@@ -53,6 +55,16 @@ export async function mockPayoutCompletion({
   });
 
   if (payouts.length === 0) {
+    await prisma.invoice.update({
+      where: {
+        id: invoice.id,
+      },
+      data: {
+        status: InvoiceStatus.completed,
+        paidAt: new Date(),
+      },
+    });
+
     return;
   }
 
