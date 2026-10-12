@@ -4,6 +4,7 @@ import { useDashboardBannerVisible } from "@/lib/hooks/use-dashboard-banner-visi
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { WorkspaceProps } from "@/lib/types";
+import { useWorkspaceTransition } from "@/ui/layout/workspace-transition";
 import { IsolatedCube } from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
 import { WorkspaceEnvironment } from "@prisma/client";
@@ -47,46 +48,54 @@ export function ProgramEnvironmentBanner({
 
 export function WorkspaceEnvironmentBanner() {
   const pathname = usePathname();
-  const { loading: loadingWorkspace, ...currentWorkspace } = useWorkspace();
-  const { workspaces, loading: loadingWorkspaces } = useWorkspaces();
+  const currentWorkspace = useWorkspace();
+  const { workspaces } = useWorkspaces();
   const { isEnvironmentBannerVisible } = useDashboardBannerVisible();
+  const { startWorkspaceTransition, isTransitioning } =
+    useWorkspaceTransition();
+
+  const workspaceFromList = currentWorkspace.slug
+    ? workspaces?.find((workspace) => workspace.slug === currentWorkspace.slug)
+    : undefined;
+  const environment =
+    currentWorkspace.environment ?? workspaceFromList?.environment;
+  const workspaceId = currentWorkspace.id ?? workspaceFromList?.id;
+  const slug = currentWorkspace.slug;
 
   if (
     !isEnvironmentBannerVisible ||
-    isProductionEnvironment(currentWorkspace.environment) ||
-    loadingWorkspace ||
-    loadingWorkspaces ||
-    !currentWorkspace.slug
+    isProductionEnvironment(environment) ||
+    !environment ||
+    !slug
   ) {
     return null;
   }
 
-  const liveWorkspace = currentWorkspace.id
+  const liveWorkspace = workspaceId
     ? workspaces?.find(
-        (workspace) => workspace.stagingWorkspaceId === currentWorkspace.id,
+        (workspace) => workspace.stagingWorkspaceId === workspaceId,
       )
     : undefined;
 
   return (
     <motion.div
-      initial={{ transform: "translateY(-100%)" }}
+      // Skip the slide-in when a full-shell transition already covered the mount.
+      initial={isTransitioning ? false : { transform: "translateY(-100%)" }}
       animate={{ transform: "translateY(0)" }}
       className={cn(
         "fixed left-0 right-0 top-0 z-30 flex h-12 items-center justify-between gap-4 overflow-hidden px-6 text-neutral-800",
-        isStagingEnvironment(currentWorkspace.environment)
-          ? "bg-amber-200"
-          : "bg-blue-200",
+        isStagingEnvironment(environment) ? "bg-amber-200" : "bg-blue-200",
       )}
     >
       <div className="flex min-w-0 shrink-0 items-center gap-2">
         <IsolatedCube className="size-4 shrink-0" />
         <span className="truncate text-sm font-semibold">
-          {capitalize(currentWorkspace.environment)} workspace
+          {capitalize(environment)} workspace
         </span>
       </div>
 
       <p className="hidden min-w-0 flex-1 text-center text-sm font-medium sm:block">
-        No real money or payouts in {currentWorkspace.environment}.{" "}
+        No real money or payouts in {environment}.{" "}
         <a
           href="https://dub.co/docs"
           target="_blank"
@@ -99,8 +108,9 @@ export function WorkspaceEnvironmentBanner() {
 
       {liveWorkspace ? (
         <Link
-          href={pathname.replace(currentWorkspace.slug, liveWorkspace.slug)}
+          href={pathname.replace(slug, liveWorkspace.slug)}
           className="bg-bg-inverted text-content-inverted shrink-0 rounded-md p-2 text-xs font-medium"
+          onClick={() => startWorkspaceTransition(liveWorkspace.slug)}
         >
           Exit staging
         </Link>
@@ -122,6 +132,7 @@ export function WorkspaceEnvironmentSwitcher({
   workspaces: WorkspaceProps[];
   selectedWorkspace: { slug?: string };
 }) {
+  const { startWorkspaceTransition } = useWorkspaceTransition();
   const currentWorkspace = workspaces.find(
     (workspace) => workspace.slug === selectedWorkspace.slug,
   );
@@ -163,12 +174,17 @@ export function WorkspaceEnvironmentSwitcher({
     return null;
   }
 
+  const targetSlug = targetWorkspace.slug;
+
   return (
     <Link
-      href={href(targetWorkspace.slug)}
+      href={href(targetSlug)}
       shallow={false}
       className={buttonClassName}
-      onClick={onNavigate}
+      onClick={() => {
+        startWorkspaceTransition(targetSlug);
+        onNavigate();
+      }}
     >
       <IsolatedCube className="text-content-emphasis size-4" />
       <span className="block truncate text-sm">{label}</span>

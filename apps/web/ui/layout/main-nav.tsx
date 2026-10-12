@@ -83,7 +83,7 @@ export function MainNav({
       {/* Side nav backdrop */}
       <div
         className={cn(
-          "fixed left-0 z-50 w-screen transition-[background-color,backdrop-filter] lg:sticky lg:z-auto lg:w-full lg:bg-transparent",
+          "fixed left-0 z-50 w-screen transition-[background-color,backdrop-filter,top,height] duration-200 lg:sticky lg:z-auto lg:w-full lg:bg-transparent",
           isOpen
             ? "bg-black/20 backdrop-blur-sm"
             : "bg-transparent max-lg:pointer-events-none",
@@ -108,7 +108,7 @@ export function MainNav({
       </div>
       <div
         className={cn(
-          "bg-neutral-200 pb-[var(--page-bottom-margin)] pt-[var(--page-top-margin)] [--page-bottom-margin:0px] [--page-top-margin:0px] lg:pb-2 lg:pr-2 lg:[--page-bottom-margin:0.5rem] lg:[--page-top-margin:0.5rem]",
+          "bg-neutral-200 pb-[var(--page-bottom-margin)] pt-[var(--page-top-margin)] transition-[margin,height] duration-200 [--page-bottom-margin:0px] [--page-top-margin:0px] lg:pb-2 lg:pr-2 lg:[--page-bottom-margin:0.5rem] lg:[--page-top-margin:0.5rem]",
           displayBanner ? "mt-12 h-[calc(100vh-48px)]" : "h-screen",
         )}
       >
