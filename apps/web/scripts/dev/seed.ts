@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
+import { ACME_PROGRAM_ID, ACME_WORKSPACE_ID } from "@dub/utils";
 import {
   Domain,
   EmailDomain,
@@ -136,7 +137,14 @@ type SeedData = {
 
 const parseJSON = (): SeedData => {
   const jsonPath = path.join(__dirname, "data.json");
-  const jsonData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+  const jsonData = JSON.parse(fs.readFileSync(jsonPath, "utf-8")) as SeedData;
+
+  // Keep the local Acme seed aligned with the canonical IDs used by e2e
+  // guards, cleanup jobs, and other Acme-specific helpers.
+  jsonData.workspace.id = ACME_WORKSPACE_ID;
+  jsonData.workspace.defaultProgramId = ACME_PROGRAM_ID;
+  jsonData.program.id = ACME_PROGRAM_ID;
+
   return jsonData;
 };
 
