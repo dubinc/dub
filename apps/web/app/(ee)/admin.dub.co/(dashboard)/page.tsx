@@ -1,5 +1,5 @@
-import { isAdminAccessRestricted } from "@/lib/auth/admin-access-guard";
 import { getSession } from "@/lib/auth";
+import { isAdminAccessRestricted } from "@/lib/auth/admin-access-guard";
 import { BanLink } from "./components/ban-link";
 import { DeletePartnerAccount } from "./components/delete-partner-account";
 import { DeleteProgram } from "./components/delete-program";
@@ -17,16 +17,19 @@ export default async function AdminPage() {
       <div className="flex flex-col space-y-4 px-5 py-10">
         <h2 className="text-xl font-semibold">Impersonate User</h2>
         <p className="text-sm text-neutral-500">
-          Get a login link by user/partner email, workspace slug, domain, or
-          Stripe customer ID. Workspace, domain, and Stripe lookups impersonate
-          the main owner.
+          Get a login link by user/partner email, workspace slug, domain, dub.sh
+          link, or Stripe customer ID. Lookups impersonate the main owner of a
+          given workspace
         </p>
         <ImpersonateUser />
       </div>
       {showModerationTools && (
         <div className="flex flex-col space-y-4 px-5 py-10">
           <h2 className="text-xl font-semibold">Ban Link</h2>
-          <p className="text-sm text-neutral-500">Ban a dub.sh link</p>
+          <p className="text-sm text-neutral-500">
+            Ban a dub.sh link. The destination shows up as you type, with the
+            creator's account below.
+          </p>
           <BanLink />
         </div>
       )}

@@ -70,6 +70,7 @@ Meta Description: ${description}`;
 export const GET = withAdmin(async () => {
   const programs = await prisma.program.findMany({
     where: {
+      environment: "production",
       addedToMarketplaceAt: {
         not: null,
       },
