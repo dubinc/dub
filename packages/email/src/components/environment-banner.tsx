@@ -24,7 +24,7 @@ export function EnvironmentBanner({
           <Row>
             <Column className="w-[20px]" valign="middle">
               <Img
-                src="https://assets.dub.co/icons/isolated-cube.png"
+                src="https://assets.dub.co/misc/icons/nucleo/isolated-cube.png"
                 width="16"
                 height="16"
                 alt=""
