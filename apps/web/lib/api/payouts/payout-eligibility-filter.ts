@@ -13,22 +13,12 @@ export function getPayoutEligibilityFilter({
     "id" | "minPayoutAmount" | "payoutMode" | "environment"
   >;
 }): Prisma.PayoutWhereInput {
-  const commonWhere: Prisma.PayoutWhereInput = {
+  let commonWhere: Prisma.PayoutWhereInput = {
     programId: program.id,
     status: "pending",
     invoiceId: null,
     amount: {
       gte: program.minPayoutAmount,
-    },
-    // Gift card payouts must be within the Tremendous allowed range
-    NOT: {
-      partner: {
-        defaultPayoutMethod: "tremendous",
-      },
-      OR: [
-        { amount: { lt: TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS } },
-        { amount: { gt: TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } },
-      ],
     },
   };
 
@@ -45,6 +35,20 @@ export function getPayoutEligibilityFilter({
   ) {
     return commonWhere;
   }
+
+  commonWhere = {
+    ...commonWhere,
+    // Gift card payouts must be within the Tremendous allowed range
+    NOT: {
+      partner: {
+        defaultPayoutMethod: "tremendous",
+      },
+      OR: [
+        { amount: { lt: TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS } },
+        { amount: { gt: TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } },
+      ],
+    },
+  };
 
   switch (program.payoutMode) {
     // Internal mode: all payouts are internal, require payoutsEnabledAt !== null
