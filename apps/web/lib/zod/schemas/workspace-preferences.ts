@@ -18,10 +18,6 @@ export const workspacePreferencesValueSchemas = {
   linksDisplay: linksDisplaySchema.nullish(),
 } as const;
 
-export const workspacePreferencesSchema = z.object(
-  workspacePreferencesValueSchemas,
-);
-
 export type WorkspacePreferencesKey =
   keyof typeof workspacePreferencesValueSchemas;
 

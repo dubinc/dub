@@ -7,7 +7,7 @@ import {
   RewardStructure,
 } from "@prisma/client";
 import * as z from "zod/v4";
-import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
+import { maxDurationSchema } from "./misc";
 import { centsSchema } from "./utils";
 
 export function isOneOffRewardEvent(
@@ -612,12 +612,6 @@ export const updateRewardSchema = createOrUpdateRewardSchema
   .extend({
     rewardId: z.string(),
   });
-
-export const rewardPartnersQuerySchema = z
-  .object({
-    rewardId: z.string(),
-  })
-  .extend(getPaginationQuerySchema({ pageSize: 25 }));
 
 export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   click: "clickRewardId",

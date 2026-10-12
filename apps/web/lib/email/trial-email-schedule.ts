@@ -6,11 +6,6 @@ export const TRIAL_EMAIL_TYPE = {
 export type TrialEmailType =
   (typeof TRIAL_EMAIL_TYPE)[keyof typeof TRIAL_EMAIL_TYPE];
 
-export const ALL_TRIAL_EMAIL_TYPES: TrialEmailType[] = [
-  TRIAL_EMAIL_TYPE.SEVEN_DAYS_REMAINING,
-  TRIAL_EMAIL_TYPE.THREE_DAYS_REMAINING,
-];
-
 function utcCalendarDate(d: Date): Date {
   return new Date(
     Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),

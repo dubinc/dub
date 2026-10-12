@@ -77,13 +77,6 @@ export const programLanderBlockSchema = z.discriminatedUnion("type", [
   programLanderEarningsCalculatorBlockSchema,
 ]);
 
-export const programLanderRewardsSchema = z.object({
-  saleRewardId: z.string().or(z.literal("none")).optional(),
-  leadRewardId: z.string().or(z.literal("none")).optional(),
-  clickRewardId: z.string().or(z.literal("none")).optional(),
-  discountId: z.string().or(z.literal("none")).optional(),
-});
-
 export const programLanderSchema = z.object({
   label: z.string().optional(),
   title: z.string().optional(),

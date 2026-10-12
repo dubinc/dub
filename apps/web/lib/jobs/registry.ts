@@ -154,5 +154,3 @@ export async function loadJob(
   jobCache.set(name, job);
   return job;
 }
-
-export const registeredJobNames = Object.keys(jobLoaders);

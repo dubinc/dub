@@ -4,29 +4,6 @@ import * as z from "zod/v4";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema, partnerPlatformSchema } from "./partners";
 
-export const PARTNER_CONVERSION_SCORES = [
-  "unknown",
-  "low",
-  "average",
-  "good",
-  "high",
-  "excellent",
-] as const;
-
-export const PARTNER_CONVERSION_SCORE_RATES: Record<
-  (typeof PARTNER_CONVERSION_SCORES)[number],
-  number
-> = {
-  unknown: 0,
-  low: 0,
-  average: 0.005,
-  good: 0.01,
-  high: 0.03,
-  excellent: 0.05,
-};
-
-export const PartnerConversionScoreSchema = z.enum(PARTNER_CONVERSION_SCORES);
-
 export const PARTNER_NETWORK_MAX_PAGE_SIZE = 100;
 
 export const NetworkPartnersStatusSchema = z.enum([

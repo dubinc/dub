@@ -41,29 +41,6 @@ export const randomSaleAmount = () => {
   return randomValue([400, 900, 1900]);
 };
 
-export async function retry<T>(
-  fn: () => Promise<T>,
-  {
-    retries = 10,
-    interval = 300,
-  }: { retries?: number; interval?: number } = {},
-): Promise<T> {
-  let lastError;
-
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await fn();
-    } catch (err) {
-      lastError = err;
-      if (i < retries - 1) {
-        await new Promise((res) => setTimeout(res, interval));
-      }
-    }
-  }
-
-  throw lastError;
-}
-
 export function expectSortedById(
   items: { id: string }[],
   order: "asc" | "desc",
@@ -85,16 +62,6 @@ export function expectSortedByCreatedAt<T extends { createdAt: string | Date }>(
     const a = new Date(items[i].createdAt).getTime();
     const b = new Date(items[i + 1].createdAt).getTime();
     expect(a).toBeGreaterThanOrEqual(b);
-  }
-}
-
-export function expectSortedByCreatedAtAsc<
-  T extends { createdAt: string | Date },
->(items: T[]) {
-  for (let i = 0; i < items.length - 1; i++) {
-    const a = new Date(items[i].createdAt).getTime();
-    const b = new Date(items[i + 1].createdAt).getTime();
-    expect(a).toBeLessThanOrEqual(b);
   }
 }
 

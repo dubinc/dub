@@ -170,11 +170,6 @@ export const programApplicationFormSchema = z.object({
   fields: programApplicationFormFieldsSchema,
 });
 
-export const programApplicationFormDataSchema =
-  programApplicationFormSchema.extend({
-    fields: programApplicationFormFieldsWithValuesSchema,
-  });
-
 export const programApplicationFormDataWithValuesSchema = z.object({
   fields: programApplicationFormFieldsWithValuesSchema,
 });

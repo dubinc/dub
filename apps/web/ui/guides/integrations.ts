@@ -32,31 +32,6 @@ export type IntegrationGuide = {
   stepLabel?: string;
 };
 
-export const sections: {
-  type: IntegrationType;
-  title: string;
-  description: string;
-}[] = [
-  {
-    type: "client-sdk",
-    title: "Install client-side script",
-    description:
-      "First, you need to install Dub's client-side script, which enables Dub to track click events and store them as a first-party cookie on your site.",
-  },
-  {
-    type: "track-lead",
-    title: "Track lead events",
-    description:
-      "Then, you'll track a lead event (e.g. when a user signs up for an account on your application) using our server-side SDKs or REST API.",
-  },
-  {
-    type: "track-sale",
-    title: "Track sale events",
-    description:
-      "Finally, you can use our Stripe integration or server-side SDKs to track sale events (e.g. when a user purchases a product on your application).",
-  },
-];
-
 export type StackItem = {
   id: string;
   title: string;

@@ -246,13 +246,6 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
   shopifyStoreId: z.string().nullable(),
 });
 
-export const OnboardingUsageSchema = z.object({
-  links: z.number(),
-  clicks: z.number(),
-  conversions: z.boolean(),
-  partners: z.boolean(),
-});
-
 export const workspaceStoreKeys = z.enum([
   "onboardingUsage", // json
   "programOnboarding", // json

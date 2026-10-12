@@ -171,24 +171,6 @@ export const RESOURCE_SCOPES: {
   },
 ];
 
-export const SCOPES_BY_RESOURCE = RESOURCE_SCOPES.reduce((acc, scope) => {
-  if (!scope.resource || !scope.type) {
-    return acc;
-  }
-
-  if (!acc[scope.resource]) {
-    acc[scope.resource] = [];
-  }
-
-  acc[scope.resource].push({
-    scope: scope.scope,
-    type: scope.type,
-    roles: scope.roles,
-  });
-
-  return acc;
-}, {});
-
 // Scope to permissions mapping
 export const SCOPE_PERMISSIONS_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   acc[scope.scope] = scope.permissions;

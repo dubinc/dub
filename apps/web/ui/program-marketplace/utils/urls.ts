@@ -1,8 +1,6 @@
 import { Category } from "@prisma/client";
 import { MarketplaceRewardType } from "./constants";
 
-const MARKETPLACE_BASE = "/marketplace";
-
 export const MARKETPLACE_RESERVED_SLUGS = new Set(["all", "c"]);
 
 export function slugToCategory(slug: string): Category | null {

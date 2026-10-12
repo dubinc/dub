@@ -14,8 +14,6 @@ import {
   VALID_ANALYTICS_ENDPOINTS,
 } from "./constants";
 
-type Override<T, U> = Omit<T, keyof U> & U;
-
 export type IntervalOptions = (typeof DATE_RANGE_INTERVAL_PRESETS)[number];
 
 export type AnalyticsGroupByOptions =

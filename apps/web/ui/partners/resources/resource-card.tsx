@@ -18,18 +18,6 @@ import { cn } from "@dub/utils";
 import { ReactNode, useState } from "react";
 import { toast } from "sonner";
 
-export function ResourceCardSkeleton() {
-  return (
-    <div className="border-border-subtle flex w-full items-center gap-4 rounded-lg border p-4">
-      <div className="bg-bg-emphasis flex size-10 shrink-0 animate-pulse items-center justify-center rounded-md" />
-      <div className="flex min-w-0 animate-pulse flex-col gap-1">
-        <div className="bg-bg-emphasis h-4 w-32 max-w-full rounded-md" />
-        <div className="bg-bg-emphasis h-4 w-16 max-w-full rounded-md" />
-      </div>
-    </div>
-  );
-}
-
 export function ResourceCard({
   resourceType,
   title,
