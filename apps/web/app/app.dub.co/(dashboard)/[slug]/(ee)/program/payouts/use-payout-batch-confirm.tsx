@@ -13,7 +13,7 @@ import {
   PayoutStatus,
   ProgramPayoutMode,
 } from "@prisma/client";
-import { useMemo } from "react";
+import { ReactNode, useMemo } from "react";
 
 type BatchConfirmBlocker =
   | "belowMinimum"
@@ -101,43 +101,61 @@ function isPayoutEligibleForBatchConfirm(
   return getBatchConfirmBlockers(payout, eligibility).length === 0;
 }
 
+const BATCH_CONFIRM_REASONS: {
+  id: BatchConfirmBlocker;
+  label: ReactNode;
+}[] = [
+  {
+    id: "belowMinimum",
+    label: (
+      <>
+        Below the{" "}
+        <a
+          href="https://dub.co/help/article/partner-payouts#minimum-payout-amount"
+          target="_blank"
+          className="cursor-help underline decoration-dotted underline-offset-2"
+        >
+          minimum payout amount
+        </a>
+      </>
+    ),
+  },
+  {
+    id: "notConnected",
+    label: "Partner has not connected payouts",
+  },
+  {
+    id: "missingTenantId",
+    label:
+      "Partner does not have a tenant ID, which is required for external payouts.",
+  },
+  {
+    id: "giftCardRange",
+    label: `Not within the gift card payout amount range of ${MIN_GIFT_CARD_PAYOUT_AMOUNT} – ${MAX_GIFT_CARD_PAYOUT_AMOUNT}`,
+  },
+];
+
 function BatchConfirmTooltip({
   blockers,
 }: {
   blockers: Set<BatchConfirmBlocker>;
 }) {
+  const reasons = BATCH_CONFIRM_REASONS.filter((reason) =>
+    blockers.has(reason.id),
+  );
+
+  const items =
+    reasons.length > 0
+      ? reasons
+      : [{ id: "notPending", label: "Payout is not pending" }];
+
   return (
     <div className="max-w-xs space-y-2 px-4 py-3 text-left text-sm">
       <p>Your selection includes payouts that are ineligible for payment:</p>
       <ul className="list-disc space-y-1 pl-4 marker:text-neutral-500">
-        {blockers.has("belowMinimum") && (
-          <li>
-            Below the{" "}
-            <a
-              href="https://dub.co/help/article/partner-payouts#minimum-payout-amount"
-              target="_blank"
-              className="cursor-help underline decoration-dotted underline-offset-2"
-            >
-              minimum payout amount
-            </a>
-          </li>
-        )}
-        {blockers.has("notConnected") && (
-          <li>Partner has not connected payouts</li>
-        )}
-        {blockers.has("missingTenantId") && (
-          <li>
-            Partner does not have a tenant ID, which is required for external
-            payouts.
-          </li>
-        )}
-        {blockers.has("giftCardRange") && (
-          <li>
-            Not within the gift card payout amount range of{" "}
-            {MIN_GIFT_CARD_PAYOUT_AMOUNT} – {MAX_GIFT_CARD_PAYOUT_AMOUNT}
-          </li>
-        )}
-        {blockers.size === 0 && <li>Payout is not pending</li>}
+        {items.map((item) => (
+          <li key={item.id}>{item.label}</li>
+        ))}
       </ul>
     </div>
   );
