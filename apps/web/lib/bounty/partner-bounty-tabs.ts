@@ -11,11 +11,19 @@ function isPartnerBountyCompleted(
     "type" | "submissions" | "performanceCondition" | "maxSubmissions"
   >,
 ) {
-  return bounty.type === "performance"
-    ? (bounty.submissions?.[0]?.performanceCount ?? 0) >=
-        (bounty.performanceCondition?.value ?? 0)
-    : (bounty.submissions?.filter((s) => s.status !== "draft").length ?? 0) >=
-        (bounty.maxSubmissions ?? 1);
+  if (bounty.type === "performance") {
+    // a performance bounty without a condition has no target to reach, but a target of 0 is valid
+    return (
+      bounty.performanceCondition != null &&
+      (bounty.submissions?.[0]?.performanceCount ?? 0) >=
+        bounty.performanceCondition.value
+    );
+  }
+
+  return (
+    (bounty.submissions?.filter((s) => s.status !== "draft").length ?? 0) >=
+    (bounty.maxSubmissions ?? 1)
+  );
 }
 
 export function isPartnerBountyExpired(

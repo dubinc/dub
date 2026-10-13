@@ -62,6 +62,35 @@ describe("getPartnerBountyTab", () => {
     expect(getPartnerBountyTab(performanceBounty(100_000))).toBe("completed");
   });
 
+  it("keeps a performance bounty without a condition out of Completed", () => {
+    expect(
+      getPartnerBountyTab(
+        bounty({
+          type: "performance",
+          submissionStatuses: ["draft"],
+          performanceCount: 0,
+        }),
+      ),
+    ).toBe("active");
+  });
+
+  it("puts a performance bounty with a zero target in Completed", () => {
+    expect(
+      getPartnerBountyTab(
+        bounty({
+          type: "performance",
+          performanceCondition: {
+            attribute: "totalLeads",
+            operator: "gte",
+            value: 0,
+          },
+          submissionStatuses: ["draft"],
+          performanceCount: 0,
+        }),
+      ),
+    ).toBe("completed");
+  });
+
   it("keeps a completed bounty in Completed after it ends", () => {
     expect(
       getPartnerBountyTab(
