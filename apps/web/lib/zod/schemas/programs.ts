@@ -11,6 +11,7 @@ import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   ProgramPayoutMode,
+  WorkspaceEnvironment,
 } from "@prisma/client";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
@@ -66,6 +67,7 @@ export const ProgramSchema = z.object({
   messagingEnabledAt: z.date().nullish(),
   partnerNetworkEnabledAt: z.date().nullish(),
   payoutMode: z.enum(ProgramPayoutMode).default("internal"),
+  environment: z.enum(WorkspaceEnvironment),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   categories: z.array(z.enum(Category)).nullish(),
