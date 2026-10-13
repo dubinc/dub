@@ -236,32 +236,31 @@ function ProgramsEmptyState({
   search?: string;
 }) {
   return (
-    <div className="py-10">
-      <SimpleEmptyState
-        title={search ? "No programs found" : tab.emptyState.title}
-        description={
-          search
-            ? `No ${tab.resourceName}s match "${search}". Try a different search.`
-            : tab.emptyState.description
-        }
-        graphic={
-          <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-3 shadow-[0_4px_12px_#0001]">
-            <HexadecagonStar className="text-content-default size-6" />
-            <div className="flex flex-col gap-2">
-              <div className="bg-bg-emphasis h-2.5 w-8 rounded" />
-              <div className="bg-bg-emphasis h-2.5 w-16 rounded" />
-            </div>
-            <div className="bg-bg-subtle border-subtle grid w-40 max-w-full grid-cols-2 items-center gap-5 rounded-lg border p-2">
-              <div className="flex flex-col gap-2">
-                <div className="bg-bg-emphasis h-2.5 w-9 rounded" />
-                <div className="bg-bg-inverted h-2.5 w-12 rounded" />
-              </div>
-              <EmptyStateChart />
-            </div>
+    <SimpleEmptyState
+      className="md:min-h-0"
+      title={search ? "No programs found" : tab.emptyState.title}
+      description={
+        search
+          ? `No ${tab.resourceName}s match "${search}". Try a different search.`
+          : tab.emptyState.description
+      }
+      graphic={
+        <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-3 shadow-[0_4px_12px_#0001]">
+          <HexadecagonStar className="text-content-default size-6" />
+          <div className="flex flex-col gap-2">
+            <div className="bg-bg-emphasis h-2.5 w-8 rounded" />
+            <div className="bg-bg-emphasis h-2.5 w-16 rounded" />
           </div>
-        }
-      />
-    </div>
+          <div className="bg-bg-subtle border-subtle grid w-40 max-w-full grid-cols-2 items-center gap-5 rounded-lg border p-2">
+            <div className="flex flex-col gap-2">
+              <div className="bg-bg-emphasis h-2.5 w-9 rounded" />
+              <div className="bg-bg-inverted h-2.5 w-12 rounded" />
+            </div>
+            <EmptyStateChart />
+          </div>
+        </div>
+      }
+    />
   );
 }
 
