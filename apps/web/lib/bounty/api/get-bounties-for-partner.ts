@@ -24,39 +24,52 @@ type GetBountiesForPartnerParams = Pick<
   programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
 };
 
-export async function getBountiesForPartner({
-  program,
-  links,
-  programPartnerTags,
-  ...programEnrollment
-}: GetBountiesForPartnerParams) {
-  const { groupId, partnerId, totalCommissions, createdAt } = programEnrollment;
+export async function getBountiesForPartner(
+  programEnrollment: GetBountiesForPartnerParams,
+) {
+  const bounties = await getBountiesForPartnerEnrollments([programEnrollment]);
 
-  const partnerGroupId = groupId || program.defaultGroupId;
-  const partnerTagIds = pluck(programPartnerTags, "partnerTagId");
+  return z.array(PartnerBountySchema).parse(bounties);
+}
+
+// the bounties a partner can see across their program enrollments, in one query.
+// Each bounty keeps its programId, so callers can match it to its program
+export async function getBountiesForPartnerEnrollments(
+  programEnrollments: GetBountiesForPartnerParams[],
+) {
+  if (programEnrollments.length === 0) {
+    return [];
+  }
+
+  // all enrollments belong to the same partner
+  const { partnerId } = programEnrollments[0];
 
   const bounties = await prisma.bounty.findMany({
     where: {
-      programId: program.id,
       archivedAt: null,
-      OR: [
-        {
-          submissions: {
-            some: {
-              partnerId,
+      OR: programEnrollments.map(
+        ({ program, groupId, programPartnerTags }) => ({
+          programId: program.id,
+          OR: [
+            {
+              submissions: {
+                some: {
+                  partnerId,
+                },
+              },
             },
-          },
-        },
-        {
-          AND: [
-            buildBountyEligibilityWhere({
-              groupId: partnerGroupId,
-              partnerTagIds,
-            }),
-            buildBountyActivePeriodWhere(),
+            {
+              AND: [
+                buildBountyEligibilityWhere({
+                  groupId: groupId || program.defaultGroupId,
+                  partnerTagIds: pluck(programPartnerTags, "partnerTagId"),
+                }),
+                buildBountyActivePeriodWhere(),
+              ],
+            },
           ],
-        },
-      ],
+        }),
+      ),
     },
     include: {
       ...bountyEligibilityIncludes,
@@ -86,41 +99,52 @@ export async function getBountiesForPartner({
     },
   });
 
-  const partnerLinkStats = aggregatePartnerLinksStats(links);
-
-  const visibleBounties = bounties.filter((bounty) =>
-    canPartnerSeeBounty({
-      program,
-      bounty,
-      programEnrollment: {
-        ...programEnrollment,
-        programPartnerTags,
+  const enrollmentsByProgramId = new Map(
+    programEnrollments.map(({ program, links, ...programEnrollment }) => [
+      program.id,
+      {
+        program,
+        programEnrollment,
+        partnerLinkStats: aggregatePartnerLinksStats(links),
       },
-    }),
+    ]),
   );
 
-  return z.array(PartnerBountySchema).parse(
-    visibleBounties.map((bounty) => {
-      const performanceCondition =
-        bounty.workflow?.triggerConditions?.[0] || null;
+  return bounties.flatMap((bounty) => {
+    const enrollment = enrollmentsByProgramId.get(bounty.programId);
 
-      const { startsAt, endsAt } = getEffectiveBountyPeriod({
-        programEnrollment: {
-          createdAt,
-        },
+    if (
+      !enrollment ||
+      !canPartnerSeeBounty({
+        program: enrollment.program,
         bounty,
-      });
+        programEnrollment: enrollment.programEnrollment,
+      })
+    ) {
+      return [];
+    }
 
-      return {
+    const { programEnrollment, partnerLinkStats } = enrollment;
+
+    const performanceCondition =
+      bounty.workflow?.triggerConditions?.[0] || null;
+
+    const { startsAt, endsAt } = getEffectiveBountyPeriod({
+      programEnrollment,
+      bounty,
+    });
+
+    return [
+      {
         ...bounty,
         startsAt,
         endsAt,
         performanceCondition,
         partner: {
           ...partnerLinkStats,
-          totalCommissions,
+          totalCommissions: programEnrollment.totalCommissions,
         },
-      };
-    }),
-  );
+      },
+    ];
+  });
 }
