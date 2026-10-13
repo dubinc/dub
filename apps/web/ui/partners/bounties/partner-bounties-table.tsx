@@ -96,12 +96,12 @@ const COLUMNS: ColumnDef<PartnerBountyRow>[] = [
     minSize: 240,
     cell: ({ row }) =>
       row.original.type === "performance" ? (
-        <PerformanceBountyProgress bounty={row.original} hideBar />
+        <PerformanceBountyProgress bounty={row.original} variant="circle" />
       ) : (
         <SubmissionBountyProgress
           bounty={row.original}
           className="flex-row"
-          hideBar
+          variant="circle"
         />
       ),
   },
