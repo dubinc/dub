@@ -1,6 +1,7 @@
 import { isPartnerBountyExpired } from "@/lib/bounty/partner-bounty-tabs";
-import { PartnerBountyProps } from "@/lib/types";
+import { PartnerBountyProps, ProgramProps } from "@/lib/types";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
+import { ProgramLogo } from "@/ui/partners/program-logo";
 import { buttonVariants, Table, TimestampTooltip, useTable } from "@dub/ui";
 import { Calendar6 } from "@dub/ui/icons";
 import {
@@ -26,6 +27,7 @@ export function PartnerBountyCard({
   showRewards = false,
   href,
   onClick,
+  program,
 }: {
   bounty: PartnerBountyProps;
   showFullTitle?: boolean;
@@ -33,6 +35,8 @@ export function PartnerBountyCard({
   showRewards?: boolean;
   href?: string;
   onClick?: () => void;
+  // shown under the reward on the bounties of all programs
+  program?: Pick<ProgramProps, "name" | "logo">;
 }) {
   const { programSlug } = useParams();
   const As = href ? Link : "div";
@@ -73,6 +77,13 @@ export function PartnerBountyCard({
           onTooltipClick={(e) => e.stopPropagation()}
           className="font-medium"
         />
+
+        {program && (
+          <div className="text-content-subtle mt-1 flex min-w-0 items-center gap-1.5 text-xs font-medium">
+            <ProgramLogo program={program} className="size-4" />
+            <span className="truncate">{program.name}</span>
+          </div>
+        )}
       </div>
 
       {!hideFooter && (

@@ -113,6 +113,7 @@ export function PartnerBountiesView<T extends PartnerBountyRow>({
                     key={bounty.id}
                     bounty={bounty}
                     href={getHref(bounty)}
+                    program={showProgram ? bounty.program : undefined}
                   />
                 ))
               : Array.from({ length: 3 }, (_, index) => (
