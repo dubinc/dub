@@ -59,10 +59,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
 
   const { pagination, setPagination } = usePagination(limit);
 
-  const { data: earningsCount } = usePartnerProfileEarningsCount({
-    ...filters,
-    enabled: programEnrollment ? true : false,
-  });
+  const { data: earningsCount } = usePartnerProfileEarningsCount(filters);
 
   const {
     data: earnings,
@@ -74,7 +71,6 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
     pageSize: pagination.pageSize,
     sortBy,
     sortOrder,
-    enabled: programEnrollment ? true : false,
   });
 
   const { table, ...tableProps } = useTable({
