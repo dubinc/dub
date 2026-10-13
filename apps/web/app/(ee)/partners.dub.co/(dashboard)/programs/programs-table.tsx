@@ -54,6 +54,7 @@ export function ProgramsTable({
 
   const { programEnrollments, isLoading, error } = useProgramEnrollments({
     includeRewardsDiscounts: tab.id === "invitations",
+    includeInactiveDates: tab.id === "inactive",
     status,
     search,
     ...(sortBy && { sortBy }),
