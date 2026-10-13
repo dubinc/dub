@@ -1,12 +1,5 @@
 import { isPartnerBountyExpired } from "@/lib/bounty/partner-bounty-tabs";
 import { PartnerBountyProps } from "@/lib/types";
-import {
-  PerformanceBountyProgress,
-  SubmissionBountyProgress,
-} from "@/ui/partners/bounties/bounty-performance";
-import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
-import { BountyStatusBadge } from "@/ui/partners/bounties/bounty-status-badge";
-import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { buttonVariants, Table, TimestampTooltip, useTable } from "@dub/ui";
 import { Calendar6 } from "@dub/ui/icons";
@@ -18,6 +11,13 @@ import {
 } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import {
+  PerformanceBountyProgress,
+  SubmissionBountyProgress,
+} from "./bounty-performance";
+import { BountyRewardDescription } from "./bounty-reward-description";
+import { BountyStatusBadge } from "./bounty-status-badge";
+import { BountyThumbnailImage } from "./bounty-thumbnail-image";
 
 export function PartnerBountyCard({
   bounty,

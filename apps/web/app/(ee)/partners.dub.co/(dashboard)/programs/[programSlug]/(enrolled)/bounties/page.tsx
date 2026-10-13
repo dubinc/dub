@@ -9,13 +9,16 @@ import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bountie
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { PartnerBountiesTable } from "@/ui/partners/bounties/partner-bounties-table";
+import {
+  PartnerBountyCard,
+  PartnerBountyCardSkeleton,
+} from "@/ui/partners/bounties/partner-bounty-card";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { formatTabBadgeCount, SheetTabs } from "@/ui/shared/sheet-tabs";
 import { ToggleGroup, useLocalStorage, useRouterStuff } from "@dub/ui";
 import { GridIcon, Heart, TableRows2, Trophy } from "@dub/ui/icons";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
-import { PartnerBountyCard, PartnerBountyCardSkeleton } from "./bounty-card";
 import { PARTNER_BOUNTY_TAB_CONFIG } from "./bounty-tabs";
 
 type BountiesView = "grid" | "table";
