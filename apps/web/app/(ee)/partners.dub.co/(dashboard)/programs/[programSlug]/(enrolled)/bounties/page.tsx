@@ -60,9 +60,7 @@ export default function PartnerProgramBountiesPage() {
               };
             })}
             currentTabId={tab}
-            setCurrentTabId={(id) =>
-              queryParams({ set: { tab: id }, del: ["page"] })
-            }
+            setCurrentTabId={(id) => queryParams({ set: { tab: id } })}
             right={
               <ToggleGroup
                 className="bg-bg-muted shrink-0 gap-0 rounded-lg p-0"
