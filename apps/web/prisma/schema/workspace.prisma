@@ -45,7 +45,7 @@ model Project {
   environment        WorkspaceEnvironment @default(production)
   stagingWorkspaceId String?              @unique
 
-  stripeConnectId   String?            @unique // for Stripe Integration
+  stripeConnectId   String? // for Stripe Integration
   stripeConnectMode StripeConnectMode? // Stripe mode the account is connected in
   shopifyStoreId    String?            @unique // for Shopify Integration
 
@@ -116,6 +116,7 @@ model Project {
   utmTemplates          UtmTemplate[]
   yearInReviews         YearInReview[]
 
+  @@unique([stripeConnectId, stripeConnectMode])
   @@index(usageLastChecked(sort: Asc))
   @@index(trialEndsAt)
 }
