@@ -3,7 +3,10 @@
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { usePartnerProgramActivity } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
-import { ProgramEnrollmentProps } from "@/lib/types";
+import {
+  PartnerProfileProgramEnrollmentProps,
+  ProgramEnrollmentProps,
+} from "@/lib/types";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramInviteActions } from "@/ui/partners/program-invite-actions";
 import { ProgramLogo } from "@/ui/partners/program-logo";
@@ -26,7 +29,7 @@ import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { PROGRAMS_TABLE_PAGE_SIZE, ProgramTab } from "./program-tabs";
 
-type ProgramColumn = ColumnDef<ProgramEnrollmentProps>;
+type ProgramColumn = ColumnDef<PartnerProfileProgramEnrollmentProps>;
 
 export function ProgramsTable({
   tab,
@@ -206,12 +209,20 @@ function getColumns(tab: ProgramTab): ProgramColumn[] {
       return [
         programColumn,
         {
-          id: "status",
-          header: "Status",
+          id: "reason",
+          header: "Reason",
           size: 160,
-          cell: ({ row }) => (
-            <EnrollmentStatusBadge status={row.original.status} />
-          ),
+          cell: ({ row }) => PartnerStatusBadges[row.original.status].label,
+        },
+        {
+          id: "inactiveAt",
+          header: "Inactive date",
+          size: 160,
+          // older deactivations and archives have no date
+          cell: ({ row }) =>
+            row.original.inactiveAt
+              ? formatDate(row.original.inactiveAt, { month: "short" })
+              : "-",
         },
         earningsColumn,
       ];
