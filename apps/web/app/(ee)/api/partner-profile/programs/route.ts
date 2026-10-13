@@ -109,6 +109,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const inactiveDates = await getProgramEnrollmentInactiveDates({
     partnerId: partner.id,
     programEnrollments,
+    // only the Inactive tab shows these dates, and most callers (like the sidebar) ask for every status
+    includeStatusLogs:
+      status?.some((s) => s === "deactivated" || s === "archived") ?? false,
   });
 
   const response = programEnrollments.map((enrollment) => {

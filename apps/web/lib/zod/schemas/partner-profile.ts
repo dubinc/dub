@@ -243,7 +243,7 @@ export const PartnerProfileProgramEnrollmentSchema =
       .date()
       .nullish()
       .describe(
-        "When the program banned, deactivated or archived the partner. Null for other statuses, and when the date is not known.",
+        "When the program banned, deactivated or archived the partner. For deactivated and archived enrollments, only set when `status` includes that status. Null for other statuses, and when the date is not known.",
       ),
   });
 

@@ -9,11 +9,14 @@ const STATUS_LOG_ACTIONS = {
 // When each enrollment became inactive, by program ID.
 // A ban has bannedAt. Deactivations and archives have no date column, so the date comes from the
 // latest activity log of that status, which exists only for changes made since activity logs were added.
+// The log lookup is a query, so callers turn it on only when they show these dates.
 export async function getProgramEnrollmentInactiveDates({
   partnerId,
   programEnrollments,
+  includeStatusLogs,
 }: {
   partnerId: string;
+  includeStatusLogs: boolean;
   programEnrollments: {
     programId: string;
     status: ProgramEnrollmentStatus;
@@ -36,7 +39,7 @@ export async function getProgramEnrollmentInactiveDates({
     } => enrollment.status in STATUS_LOG_ACTIONS,
   );
 
-  if (loggedEnrollments.length === 0) {
+  if (!includeStatusLogs || loggedEnrollments.length === 0) {
     return inactiveDates;
   }
 
