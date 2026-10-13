@@ -59,7 +59,7 @@ export function OverviewCardList<T>({
 }: {
   items?: T[];
   rowCount: number;
-  renderItem: (item: T) => ReactNode;
+  renderItem: (item: T, index: number) => ReactNode;
   getKey: (item: T) => string;
   error?: unknown;
   emptyState: { icon: ReactNode; title: string };
@@ -95,7 +95,7 @@ export function OverviewCardList<T>({
               <div className="h-px bg-neutral-100" />
             </div>
           )}
-          {renderItem(item)}
+          {renderItem(item, idx)}
         </Fragment>
       ))}
     </div>

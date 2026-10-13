@@ -1,4 +1,4 @@
-import { ResourceKey, RESOURCES } from "@/lib/api/rbac/resources";
+import { RESOURCES } from "@/lib/api/rbac/resources";
 import {
   getScopesByResourceForRole,
   Scope,
@@ -146,7 +146,7 @@ function AddEditTokenModal({
 
   const scopesByResources = transformScopesForUI(
     getScopesByResourceForRole(role),
-  ).filter(({ name }) => name);
+  );
 
   return (
     <>
@@ -273,10 +273,10 @@ function AddEditTokenModal({
               </span>
             </div>
             {preset === "restricted" && (
-              <div className="flex flex-col divide-y text-sm">
+              <div className="-mx-1 flex max-h-[max(160px,calc(100dvh-500px))] flex-col divide-y overflow-y-auto px-1 text-sm">
                 {scopesByResources.map((resource) => (
                   <div
-                    className="flex items-center justify-between py-4"
+                    className="flex items-center justify-between py-2.5"
                     key={resource.key}
                   >
                     <div className="flex items-center gap-1.5">
@@ -406,10 +406,13 @@ export function useAddEditTokenModal({
 }
 
 const transformScopesForUI = (scopedResources) => {
-  return Object.keys(scopedResources).map((resourceKey: ResourceKey) => {
-    return {
-      ...RESOURCES.find((r) => r.key === resourceKey)!,
-      scopes: scopedResources[resourceKey],
-    };
+  return RESOURCES.flatMap((resource) => {
+    const scopes = scopedResources[resource.key];
+
+    if (!scopes) {
+      return [];
+    }
+
+    return [{ ...resource, scopes }];
   });
 };

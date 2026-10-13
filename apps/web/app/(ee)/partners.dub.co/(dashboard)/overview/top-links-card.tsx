@@ -13,7 +13,7 @@ import {
   OverviewCardList,
 } from "./overview-card";
 
-export function TopLinksCard() {
+export function TopLinksCard({ className }: { className?: string }) {
   const { start, end, interval } = usePartnerDateRange();
 
   const { data: links, error } = usePartnerProfileEarningsAnalytics({
@@ -27,7 +27,7 @@ export function TopLinksCard() {
   return (
     <OverviewCard
       title="Top links by earnings"
-      className="rounded-2xl"
+      className={cn("rounded-2xl", className)}
       testId={testIds.partnerOverview.topLinks}
     >
       <OverviewCardList
