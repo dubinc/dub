@@ -7,7 +7,6 @@ import {
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
 import { TestPayoutBadge } from "@/lib/sandbox/components/test-payout-badge";
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { usePartnerProfileEarnings } from "@/lib/swr/use-partner-profile-earnings";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
@@ -63,8 +62,6 @@ const failureTooltips: Record<PartnerPayoutMethod, string> = {
 };
 
 function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
-  const { partner } = usePartnerProfile();
-
   const {
     data: earnings,
     isLoading,
@@ -74,7 +71,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
     payoutId: payout.id,
     interval: "all",
     pageSize: PAYOUTS_SHEET_ITEMS_LIMIT,
-    enabled: partner && payout.program.id !== NETWORK_PROGRAM_ID ? true : false,
+    enabled: payout.program.id !== NETWORK_PROGRAM_ID,
     keepPreviousData: false,
   });
 
