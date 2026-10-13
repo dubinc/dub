@@ -1,5 +1,6 @@
 import {
   grantLegacyScopePermissions,
+  hasLegacyScopeGrant,
   LEGACY_SCOPE_GRANTS,
   PARTNER_SCOPES_ENFORCED_AT,
 } from "@/lib/api/tokens/scopes";
@@ -150,5 +151,55 @@ describe("grantLegacyScopePermissions", () => {
         }),
       ).not.toContain("links.write");
     });
+  });
+});
+
+describe("hasLegacyScopeGrant", () => {
+  const before = new Date(ENFORCED_AT.getTime() - 1);
+
+  test("is true for restricted and read-only keys made before the cutoff", () => {
+    expect(
+      hasLegacyScopeGrant({ scopes: ["links.read"], createdAt: before }),
+    ).toBe(true);
+
+    expect(
+      hasLegacyScopeGrant({ scopes: ["apis.read"], createdAt: before }),
+    ).toBe(true);
+  });
+
+  test("is false for all access keys", () => {
+    expect(
+      hasLegacyScopeGrant({ scopes: ["apis.all"], createdAt: before }),
+    ).toBe(false);
+  });
+
+  test("is false when the scopes already cover every legacy permission", () => {
+    expect(
+      hasLegacyScopeGrant({
+        scopes: [
+          "partners.write",
+          "program_applications.write",
+          "customers.write",
+          "discount_codes.write",
+          "commissions.write",
+          "bounties.write",
+          "payouts.read",
+        ],
+        createdAt: before,
+      }),
+    ).toBe(false);
+  });
+
+  test("is false for keys made at or after the cutoff", () => {
+    expect(
+      hasLegacyScopeGrant({ scopes: ["links.read"], createdAt: ENFORCED_AT }),
+    ).toBe(false);
+
+    expect(
+      hasLegacyScopeGrant({
+        scopes: ["apis.read"],
+        createdAt: ENFORCED_AT.toISOString(),
+      }),
+    ).toBe(false);
   });
 });
