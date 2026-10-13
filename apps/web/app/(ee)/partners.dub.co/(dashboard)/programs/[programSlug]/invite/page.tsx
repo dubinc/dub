@@ -56,11 +56,10 @@ export default async function ProgramInvitePage(props: {
   }
 
   if (invitedEmail && invitedEmail !== user.email?.toLowerCase()) {
-    const invitedEnrollment = partnerId
+    const enrollment = partnerId
       ? await prisma.programEnrollment.findFirst({
           where: {
             partnerId,
-            status: "invited",
             program: {
               slug: programSlug,
             },
@@ -71,7 +70,7 @@ export default async function ProgramInvitePage(props: {
         })
       : null;
 
-    if (!invitedEnrollment) {
+    if (!enrollment) {
       return (
         <PageContent>
           <div className="flex w-full flex-col items-center justify-center px-4 py-16">
