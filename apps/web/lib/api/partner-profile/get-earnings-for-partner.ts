@@ -7,7 +7,7 @@ import {
   getPartnerEarningsQuerySchema,
   PartnerProfileEarningsSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { CommissionType, Partner } from "@prisma/client";
+import { CommissionType, Partner, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { getEarningsProgramFilter } from "./get-earnings-program-id";
 import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
@@ -58,49 +58,49 @@ export async function getEarningsForPartner(
     sortOrder,
   });
 
-  // the cursor must be one of the partner's earnings in the requested program(s)
+  const where: Prisma.CommissionWhereInput = {
+    earnings: {
+      not: 0,
+    },
+    programId: getEarningsProgramFilter(programId),
+    partnerId,
+    status,
+    type,
+    linkId,
+    customerId,
+    payoutId,
+    createdAt: {
+      gte: startDate,
+      lte: endDate,
+    },
+  };
+
+  // the cursor must match the same filters, because Prisma skips the first row after the cursor position
+  // and would drop a valid earning when the cursor itself is not in the results
   const cursorId = startingAfter || endingBefore;
 
   if (cursorId) {
-    const commission = await prisma.commission.findUnique({
+    const cursor = await prisma.commission.findFirst({
       where: {
+        ...where,
         id: cursorId,
       },
       select: {
-        partnerId: true,
-        programId: true,
+        id: true,
       },
     });
 
-    if (
-      !commission ||
-      commission.partnerId !== partnerId ||
-      (programId && commission.programId !== programId)
-    ) {
+    if (!cursor) {
       throw new DubApiError({
         code: "unprocessable_entity",
-        message: "Invalid cursor: the provided ID does not exist.",
+        message:
+          "Invalid cursor: the provided ID does not exist or does not match the filters.",
       });
     }
   }
 
   const earnings = await prisma.commission.findMany({
-    where: {
-      earnings: {
-        not: 0,
-      },
-      programId: getEarningsProgramFilter(programId),
-      partnerId,
-      status,
-      type,
-      linkId,
-      customerId,
-      payoutId,
-      createdAt: {
-        gte: startDate,
-        lte: endDate,
-      },
-    },
+    where,
     // the response schema drops these fields, so don't load them
     omit: {
       metadata: true,
