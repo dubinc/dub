@@ -21,13 +21,16 @@ export default function PartnerOverviewPage() {
           align="start"
           defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
         />
-        <div className="rounded-2xl bg-neutral-50 p-4">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_397px]">
-            <EarningsChart />
-            <div className="flex h-full flex-col gap-3">
+        {/* below lg, the wrappers are `contents`, so that `order` can move Recent payouts and Top links below Recent earnings */}
+        <div className="contents lg:block lg:rounded-2xl lg:bg-neutral-50 lg:p-4">
+          <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_397px] lg:gap-4">
+            <div className="rounded-2xl bg-neutral-50 p-4 lg:contents">
+              <EarningsChart />
+            </div>
+            <div className="contents lg:flex lg:h-full lg:flex-col lg:gap-3">
               <div
                 data-testid={testIds.partnerOverview.recentPayouts}
-                className="flex min-h-0 flex-1 flex-col"
+                className="flex min-h-0 flex-1 flex-col max-lg:order-1"
               >
                 <PayoutsCard className="h-full min-h-0 flex-1" />
               </div>
@@ -35,10 +38,10 @@ export default function PartnerOverviewPage() {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="contents lg:grid lg:grid-cols-3 lg:gap-4">
           <TopProgramsCard />
           <RecentEarningsCard />
-          <TopLinksCard />
+          <TopLinksCard className="max-lg:order-2" />
         </div>
       </PageWidthWrapper>
     </PageContent>
