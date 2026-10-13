@@ -304,7 +304,7 @@ export const LEGACY_SCOPE_GRANTS: {
   permissions: readonly PermissionAction[];
 }[] = [
   {
-    enforcedAt: new Date("2026-10-09T00:00:00.000Z"),
+    enforcedAt: new Date("2026-10-15T00:00:00.000Z"),
     permissions: [
       "partners.read",
       "partners.write",

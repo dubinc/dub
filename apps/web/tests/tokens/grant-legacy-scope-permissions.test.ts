@@ -1,7 +1,10 @@
-import { grantLegacyScopePermissions } from "@/lib/api/tokens/scopes";
+import {
+  grantLegacyScopePermissions,
+  LEGACY_SCOPE_GRANTS,
+} from "@/lib/api/tokens/scopes";
 import { describe, expect, test } from "vitest";
 
-const ENFORCED_AT = new Date("2026-10-09T00:00:00.000Z");
+const ENFORCED_AT = LEGACY_SCOPE_GRANTS[0].enforcedAt;
 
 const LEGACY_PERMISSIONS = [
   "partners.read",
