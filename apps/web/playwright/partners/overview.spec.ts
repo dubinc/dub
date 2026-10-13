@@ -112,6 +112,17 @@ test.describe("Partner All programs Overview", () => {
       await page.setViewportSize(MOBILE_VIEWPORT);
       await expect(tasks).toBeVisible();
 
+      // on mobile, Tasks comes after Recent payouts and before Top links
+      const getTop = async (testId: string) =>
+        (await page.getByTestId(testId).boundingBox())!.y;
+      const tasksTop = (await tasks.boundingBox())!.y;
+      expect(tasksTop).toBeGreaterThan(
+        await getTop(testIds.partnerOverview.recentPayouts),
+      );
+      expect(tasksTop).toBeLessThan(
+        await getTop(testIds.partnerOverview.topLinks),
+      );
+
       await prisma.programEnrollment.update({
         where: { id: enrollment.id },
         data: { status: "approved" },
