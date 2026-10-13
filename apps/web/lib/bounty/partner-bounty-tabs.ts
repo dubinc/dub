@@ -5,7 +5,12 @@ export const PARTNER_BOUNTY_TABS = ["active", "completed", "expired"] as const;
 export type PartnerBountyTab = (typeof PARTNER_BOUNTY_TABS)[number];
 
 // the partner reached the goal: the performance target, or the maximum number of submissions (drafts do not count)
-export function isPartnerBountyCompleted(bounty: PartnerBountyProps) {
+export function isPartnerBountyCompleted(
+  bounty: Pick<
+    PartnerBountyProps,
+    "type" | "submissions" | "performanceCondition" | "maxSubmissions"
+  >,
+) {
   return bounty.type === "performance"
     ? (bounty.submissions?.[0]?.performanceCount ?? 0) >=
         (bounty.performanceCondition?.value ?? 0)
@@ -13,7 +18,9 @@ export function isPartnerBountyCompleted(bounty: PartnerBountyProps) {
         (bounty.maxSubmissions ?? 1);
 }
 
-export function isPartnerBountyExpired(bounty: PartnerBountyProps) {
+export function isPartnerBountyExpired(
+  bounty: Pick<PartnerBountyProps, "endsAt">,
+) {
   return !!bounty.endsAt && new Date(bounty.endsAt) < new Date();
 }
 
