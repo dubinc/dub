@@ -15,7 +15,10 @@ export async function splitPayouts({
   selectedPayoutIds,
   excludedPayoutIds,
 }: {
-  program: Pick<Program, "id" | "name" | "minPayoutAmount" | "payoutMode">;
+  program: Pick<
+    Program,
+    "id" | "name" | "minPayoutAmount" | "payoutMode" | "environment"
+  >;
   cutoffPeriod: CUTOFF_PERIOD_TYPES;
   selectedPayoutIds?: string[];
   excludedPayoutIds?: string[];

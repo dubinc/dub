@@ -22,6 +22,7 @@ import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { mockPaymentProvider } from "@/lib/sandbox/mock-payment-provider";
 import { stripe } from "@/lib/stripe";
 import { checkPaymentMethodMandate } from "@/lib/stripe/check-payment-method-mandate";
+import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -141,7 +142,7 @@ export const confirmPayoutsAction = authActionClient
 
         getWebhooks({
           workspaceId: workspace.id,
-          triggers: ["payout.confirmed"],
+          triggers: [EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER],
           disabled: false,
           installationId: null,
         }),
@@ -154,7 +155,7 @@ export const confirmPayoutsAction = authActionClient
 
       if (hasExternalPayouts && payoutWebhooks.length === 0) {
         throw new Error(
-          `EXTERNAL_WEBHOOK_REQUIRED: This invoice includes at least one external payout, which requires an active webhook subscribed to the "payout.confirmed" event. Please set one up before proceeding.`,
+          `EXTERNAL_WEBHOOK_REQUIRED: This invoice includes at least one external payout, which requires an active webhook subscribed to the "${EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER}" event. Please set one up before proceeding.`,
         );
       }
     }

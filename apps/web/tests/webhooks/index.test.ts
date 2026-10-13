@@ -1,5 +1,8 @@
 import { qstash } from "@/lib/cron";
-import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
+import {
+  EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER,
+  WEBHOOK_TRIGGERS,
+} from "@/lib/webhook/constants";
 import { sendWebhooks } from "@/lib/webhook/qstash";
 import { samplePayload } from "@/lib/webhook/sample-events/payload";
 import {
@@ -130,7 +133,7 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "commission.created": commissionWebhookEventSchemaExtended,
   "bounty.created": bountyWebhookEventSchemaExtended,
   "bounty.updated": bountyWebhookEventSchemaExtended,
-  "payout.confirmed": payoutWebhookEventSchemaExtended,
+  [EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER]: payoutWebhookEventSchemaExtended,
   "discount_code.created": DiscountCodeWebhookSchema,
   "discount_code.deleted": DiscountCodeWebhookSchema,
 };
