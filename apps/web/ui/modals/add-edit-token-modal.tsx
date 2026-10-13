@@ -273,7 +273,7 @@ function AddEditTokenModal({
               </span>
             </div>
             {preset === "restricted" && (
-              <div className="flex flex-col divide-y text-sm">
+              <div className="-mx-1 flex max-h-[max(160px,calc(100dvh-500px))] flex-col divide-y overflow-y-auto px-1 text-sm">
                 {scopesByResources.map((resource) => (
                   <div
                     className="flex items-center justify-between py-2.5"
