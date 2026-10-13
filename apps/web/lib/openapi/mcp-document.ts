@@ -4,7 +4,8 @@ import { OAUTH_SCOPE_DESCRIPTIONS, OAUTH_SCOPES } from "../api/oauth/constants";
 // OpenAPI document served at `api.dub.co/?mcp` for MCP clients.
 // Copies the public spec, adds an OAuth 2.0 (authorization code) security scheme
 // with the scopes from OAUTH_SCOPES, and accepts either the API key (`token`) or
-// OAuth at the document level. Operation-level security is left unchanged.
+// OAuth at the document level. Token-only operation security is removed so those
+// operations inherit that rule. Operations with no security stay public.
 //
 // Example (truncated):
 // {
@@ -56,6 +57,33 @@ export function getMcpDocument(): typeof document {
   };
 
   mcpDocument.security = [{ token: [] }, { oauth: [] }];
+
+  for (const pathItem of Object.values(mcpDocument.paths ?? {})) {
+    for (const method of [
+      "get",
+      "put",
+      "post",
+      "delete",
+      "options",
+      "head",
+      "patch",
+      "trace",
+    ] as const) {
+      const operation = pathItem?.[method];
+      if (!operation) continue;
+
+      if (operation.security === undefined) {
+        operation.security = [];
+        continue;
+      }
+
+      if (
+        JSON.stringify(operation.security) === JSON.stringify([{ token: [] }])
+      ) {
+        delete operation.security;
+      }
+    }
+  }
 
   return mcpDocument;
 }

@@ -33,11 +33,29 @@ describe("getMcpDocument", () => {
     expect(getMcpDocument().security).toEqual([{ token: [] }, { oauth: [] }]);
   });
 
-  test("leaves paths and the default document unchanged", () => {
-    const mcpDocument = getMcpDocument();
+  test("lets authenticated operations inherit the document security rule", () => {
+    const operations = Object.values(getMcpDocument().paths ?? {}).flatMap(
+      (pathItem) =>
+        (["get", "put", "post", "delete", "patch"] as const).flatMap(
+          (method) => pathItem?.[method] ?? [],
+        ),
+    );
 
-    expect(mcpDocument.paths).toEqual(document.paths);
-    expect(document.security).toBeUndefined();
-    expect(document.components?.securitySchemes).not.toHaveProperty("oauth");
+    for (const operation of operations) {
+      if (["trackOpen", "getQRCode"].includes(operation.operationId ?? "")) {
+        expect(operation.security).toEqual([]);
+        continue;
+      }
+
+      expect(operation.security).toBeUndefined();
+    }
+  });
+
+  test("does not mutate the default document", () => {
+    const snapshot = structuredClone(document);
+
+    getMcpDocument();
+
+    expect(document).toEqual(snapshot);
   });
 });
