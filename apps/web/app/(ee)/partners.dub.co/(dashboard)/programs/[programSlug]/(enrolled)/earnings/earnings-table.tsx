@@ -59,7 +59,11 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
 
   const { pagination, setPagination } = usePagination(limit);
 
-  const { data: earningsCount } = usePartnerProfileEarningsCount(filters);
+  // the table only shows the count with pagination, and a limit turns pagination off
+  const { data: earningsCount } = usePartnerProfileEarningsCount({
+    ...filters,
+    enabled: !limit,
+  });
 
   const {
     data: earnings,
