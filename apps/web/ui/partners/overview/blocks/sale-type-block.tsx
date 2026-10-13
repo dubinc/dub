@@ -3,7 +3,7 @@ import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
-import { cn, fetcher, nFormatter } from "@dub/utils";
+import { cn, fetcher, formatPercentage, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useContext, useMemo, useState } from "react";
 import useSWR from "swr";
@@ -173,9 +173,3 @@ export function SaleTypeBlock() {
     </ProgramOverviewBlock>
   );
 }
-
-const formatPercentage = (value: number) => {
-  return value > 0 && value < 0.01
-    ? "< 0.01"
-    : nFormatter(value, { digits: 2 });
-};

@@ -248,6 +248,7 @@ export const POST = withWorkspace(
     return NextResponse.json({});
   },
   {
+    requiredPermissions: ["bounties.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
