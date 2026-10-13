@@ -16,8 +16,8 @@ const bonusBounty = {
   rewardDescription: null,
   submissionRequirements: {
     socialMetrics: {
-      platform: "youtube",
-      metric: "views",
+      platform: "youtube" as const,
+      metric: "views" as const,
       minCount: 1000,
       incrementalBonus: {
         incrementCount: 1000,
