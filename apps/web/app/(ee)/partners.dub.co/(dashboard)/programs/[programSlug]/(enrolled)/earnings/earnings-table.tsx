@@ -1,11 +1,14 @@
 "use client";
 
 import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
-import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import {
+  usePartnerProfileEarnings,
+  usePartnerProfileEarningsCount,
+} from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { PartnerEarningsResponse } from "@/lib/types";
+import { PartnerProfileEarningsResponse } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
@@ -28,7 +31,6 @@ import {
   cn,
   COUNTRIES,
   currencyFormatter,
-  fetcher,
   formatDateTimeSmart,
   getApexDomain,
   getPrettyUrl,
@@ -36,11 +38,11 @@ import {
 import { CommissionType } from "@prisma/client";
 import { Cell } from "@tanstack/react-table";
 import { useParams } from "next/navigation";
-import useSWR from "swr";
+import { useProgramEarningsFilters } from "./use-program-earnings-filters";
 
 type ColumnMeta = {
   filterParams?: (
-    args: Pick<Cell<PartnerEarningsResponse, any>, "getValue">,
+    args: Pick<Cell<PartnerProfileEarningsResponse, any>, "getValue">,
   ) => Record<string, any>;
 };
 
@@ -48,32 +50,34 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
   const { programSlug } = useParams();
   const { partner } = usePartnerProfile();
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
-  const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
+  const { queryParams, searchParamsObj } = useRouterStuff();
   const { displayProperties } = usePartnerLinksDisplay();
+  const filters = useProgramEarningsFilters();
 
   const { sortBy = "createdAt", sortOrder = "desc" } = searchParamsObj as {
-    sortBy?: "createdAt";
+    sortBy?: "createdAt" | "amount" | "earnings";
     sortOrder?: "asc" | "desc";
   };
 
-  const { earningsCount } = usePartnerEarningsCount<{ count: number }>({
-    enabled: programEnrollment ? true : false,
+  const { pagination, setPagination } = usePagination(limit);
+
+  // the table only shows the count with pagination, and a limit turns pagination off
+  const { data: earningsCount } = usePartnerProfileEarningsCount({
+    ...filters,
+    enabled: !limit,
   });
 
   const {
     data: earnings,
     isLoading,
     error,
-  } = useSWR<PartnerEarningsResponse[]>(
-    programEnrollment &&
-      `/api/partner-profile/programs/${programEnrollment.programId}/earnings${getQueryString(
-        limit ? { pageSize: limit } : {},
-      )}`,
-    fetcher,
-    { keepPreviousData: true },
-  );
-
-  const { pagination, setPagination } = usePagination(limit);
+  } = usePartnerProfileEarnings({
+    ...filters,
+    page: pagination.pageIndex,
+    pageSize: pagination.pageSize,
+    sortBy,
+    sortOrder,
+  });
 
   const { table, ...tableProps } = useTable({
     data: earnings || [],

@@ -1,11 +1,13 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { DubApiError } from "@/lib/api/errors";
+import { buildPaginationQuery } from "@/lib/api/pagination";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
 import {
   getPartnerEarningsQuerySchema,
   PartnerProfileEarningsSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { CommissionType, Partner } from "@prisma/client";
+import { CommissionType, Partner, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { getEarningsProgramFilter } from "./get-earnings-program-id";
 import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
@@ -20,8 +22,10 @@ export async function getEarningsForPartner(
   params: GetEarningsForPartnerParams,
 ) {
   const {
-    page = 1,
+    page,
     pageSize,
+    startingAfter,
+    endingBefore,
     type,
     status,
     sortBy,
@@ -44,23 +48,59 @@ export async function getEarningsForPartner(
     timezone,
   });
 
-  const earnings = await prisma.commission.findMany({
-    where: {
-      earnings: {
-        not: 0,
-      },
-      programId: getEarningsProgramFilter(programId),
-      partnerId,
-      status,
-      type,
-      linkId,
-      customerId,
-      payoutId,
-      createdAt: {
-        gte: startDate,
-        lte: endDate,
-      },
+  // the helper sorts cursor pages by ID only, so the sort below replaces its orderBy
+  const { orderBy: _, ...paginationQuery } = buildPaginationQuery({
+    page,
+    pageSize,
+    startingAfter,
+    endingBefore,
+    sortBy,
+    sortOrder,
+  });
+
+  const where: Prisma.CommissionWhereInput = {
+    earnings: {
+      not: 0,
     },
+    programId: getEarningsProgramFilter(programId),
+    partnerId,
+    status,
+    type,
+    linkId,
+    customerId,
+    payoutId,
+    createdAt: {
+      gte: startDate,
+      lte: endDate,
+    },
+  };
+
+  // the cursor must match the same filters, because Prisma skips the first row after the cursor position
+  // and would drop a valid earning when the cursor itself is not in the results
+  const cursorId = startingAfter || endingBefore;
+
+  if (cursorId) {
+    const cursor = await prisma.commission.findFirst({
+      where: {
+        ...where,
+        id: cursorId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!cursor) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message:
+          "Invalid cursor: the provided ID does not exist or does not match the filters.",
+      });
+    }
+  }
+
+  const earnings = await prisma.commission.findMany({
+    where,
     // the response schema drops these fields, so don't load them
     omit: {
       metadata: true,
@@ -102,11 +142,9 @@ export async function getEarningsForPartner(
         },
       },
     },
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
+    ...paginationQuery,
+    // offset and cursor pages use the same sort, and the commission ID breaks ties, so that no earning repeats or goes missing between pages
+    orderBy: [{ [sortBy]: sortOrder }, { id: sortOrder }],
   });
 
   // TODO: Once we migrate to add sourcePartner relation on Commission table, we can simplify this logic

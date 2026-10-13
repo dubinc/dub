@@ -1,12 +1,12 @@
 "use client";
 
-import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
-import { IntervalOptions } from "@/lib/analytics/types";
-import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
-import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
 import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
+import {
+  usePartnerProfileEarningsCount,
+  usePartnerProfileEarningsTimeseries,
+} from "@/lib/swr/use-partner-profile-earnings";
 import { LinkIcon } from "@/ui/links/link-icon";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
@@ -30,8 +30,8 @@ import {
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { CommissionType } from "@prisma/client";
-import { endOfDay, startOfDay } from "date-fns";
 import { Fragment, useMemo, useState } from "react";
+import { useProgramEarningsFilters } from "./use-program-earnings-filters";
 
 const LINE_COLORS = [
   "text-teal-500",
@@ -55,26 +55,19 @@ const MAX_LINES = LINE_COLORS.length;
 export function EarningsCompositeChart() {
   const { queryParams, searchParamsObj } = useRouterStuff();
 
-  const {
-    start,
-    end,
-    interval = DUB_PARTNERS_ANALYTICS_INTERVAL,
-    groupBy = "type",
-  } = searchParamsObj as {
-    start?: string;
-    end?: string;
-    interval?: IntervalOptions;
+  const filters = useProgramEarningsFilters();
+  const { start, end, interval } = filters;
+
+  const { groupBy = "type" } = searchParamsObj as {
     groupBy?: "linkId" | "type";
   };
 
   const { links } = usePartnerLinks();
   const { displayProperties } = usePartnerLinksDisplay();
 
-  const { data } = usePartnerEarningsTimeseries({
-    interval,
+  const { data } = usePartnerProfileEarningsTimeseries({
+    ...filters,
     groupBy,
-    start: start ? startOfDay(new Date(start)) : undefined,
-    end: end ? endOfDay(new Date(end)) : undefined,
   });
 
   const total = useMemo(
@@ -263,10 +256,11 @@ export function EarningsCompositeChart() {
 
 function EarningsTableControls() {
   const { queryParams, searchParamsObj } = useRouterStuff();
+  const earningsFilters = useProgramEarningsFilters();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const { displayProperties } = usePartnerLinksDisplay();
 
-  const { earningsCount: links } = usePartnerEarningsCount<
+  const { data: links } = usePartnerProfileEarningsCount<
     {
       id: string;
       domain: string;
@@ -276,14 +270,16 @@ function EarningsTableControls() {
       _count: number;
     }[]
   >({
+    ...earningsFilters,
     groupBy: "linkId",
     enabled:
       selectedFilter === "linkId" || searchParamsObj.linkId ? true : false,
   });
 
-  const { earningsCount: customers } = usePartnerEarningsCount<
+  const { data: customers } = usePartnerProfileEarningsCount<
     { id: string; email: string; _count: number }[]
   >({
+    ...earningsFilters,
     groupBy: "customerId",
     enabled:
       selectedFilter === "customerId" || searchParamsObj.customerId
@@ -291,9 +287,10 @@ function EarningsTableControls() {
         : false,
   });
 
-  const { earningsCount: statuses } = usePartnerEarningsCount<
+  const { data: statuses } = usePartnerProfileEarningsCount<
     { status: string; _count: number }[]
   >({
+    ...earningsFilters,
     groupBy: "status",
     enabled:
       selectedFilter === "status" || searchParamsObj.status ? true : false,
@@ -346,22 +343,23 @@ function EarningsTableControls() {
         key: "status",
         icon: CircleDotted,
         label: "Status",
-        options: statuses?.map(({ status, _count }) => {
-          const Icon = CommissionStatusBadges[status].icon;
-          return {
-            value: status,
-            label: CommissionStatusBadges[status].label,
-            icon: (
-              <Icon
-                className={cn(
-                  CommissionStatusBadges[status].className,
-                  "size-4 bg-transparent",
-                )}
-              />
-            ),
-            right: nFormatter(_count, { full: true }),
-          };
-        }),
+        options:
+          statuses?.map(({ status, _count }) => {
+            const Icon = CommissionStatusBadges[status].icon;
+            return {
+              value: status,
+              label: CommissionStatusBadges[status].label,
+              icon: (
+                <Icon
+                  className={cn(
+                    CommissionStatusBadges[status].className,
+                    "size-4 bg-transparent",
+                  )}
+                />
+              ),
+              right: nFormatter(_count, { full: true }),
+            };
+          }) ?? null,
       },
     ],
     [links, customers, statuses, displayProperties],
