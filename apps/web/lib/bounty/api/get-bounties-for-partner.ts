@@ -67,6 +67,10 @@ export async function getBountiesForPartnerEnrollments({
 
   const bounties = await prisma.bounty.findMany({
     where: {
+      // limits the query to the programId index range before the per-program filters
+      programId: {
+        in: programEnrollments.map(({ program }) => program.id),
+      },
       archivedAt: null,
       OR: programEnrollments.map(
         ({ program, groupId, programPartnerTags }) => ({
