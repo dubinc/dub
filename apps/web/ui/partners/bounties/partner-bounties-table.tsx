@@ -1,9 +1,12 @@
 "use client";
 
-import { getBountyRewardAmount } from "@/lib/bounty/rewards";
+import {
+  formatBountyRewardAmount,
+  getBountyRewardAmount,
+} from "@/lib/bounty/rewards";
 import { PartnerBountyProps } from "@/lib/types";
 import { Table, useTable, useTablePagination } from "@dub/ui";
-import { currencyFormatter, formatDate } from "@dub/utils";
+import { formatDate } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -158,9 +161,7 @@ function BountyEarnings({ bounty }: { bounty: PartnerBountyProps }) {
   const reward = getBountyRewardAmount(bounty);
 
   const label = reward
-    ? `${reward.isMaximum ? "Up to " : ""}${currencyFormatter(reward.amount, {
-        trailingZeroDisplay: "stripIfInteger",
-      })}`
+    ? formatBountyRewardAmount(reward)
     : bounty.rewardDescription || "-";
 
   return (
