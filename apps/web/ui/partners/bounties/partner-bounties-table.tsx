@@ -4,12 +4,13 @@ import {
   formatBountyRewardAmount,
   getBountyRewardAmount,
 } from "@/lib/bounty/rewards";
-import { PartnerBountyProps } from "@/lib/types";
+import { PartnerBountyProps, ProgramProps } from "@/lib/types";
 import { Table, useTable, useTablePagination } from "@dub/ui";
 import { formatDate } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { ProgramLogo } from "../program-logo";
 import { BountyIncrementalBonusTooltip } from "./bounty-incremental-bonus-tooltip";
 import {
   PerformanceBountyProgress,
@@ -19,16 +20,52 @@ import { BountyThumbnailImage } from "./bounty-thumbnail-image";
 
 const PAGE_SIZE = 10;
 
-type SortBy = "endsAt" | "rewardAmount";
+// the program is only set on the bounties of all programs
+export type PartnerBountyRow = PartnerBountyProps & {
+  program?: Pick<ProgramProps, "name" | "logo">;
+};
+
+type SortBy = "program" | "endsAt" | "rewardAmount";
 
 // sort values: bounties without an end date expire last, and bounties without an amount earn least
-const SORT_VALUES: Record<SortBy, (bounty: PartnerBountyProps) => number> = {
+const SORT_VALUES: Record<
+  SortBy,
+  (bounty: PartnerBountyRow) => number | string
+> = {
+  program: (bounty) => bounty.program?.name ?? "",
   endsAt: (bounty) =>
     bounty.endsAt ? new Date(bounty.endsAt).getTime() : Infinity,
   rewardAmount: (bounty) => getBountyRewardAmount(bounty)?.amount ?? 0,
 };
 
-const COLUMNS: ColumnDef<PartnerBountyProps>[] = [
+function compareSortValues(a: number | string, b: number | string) {
+  if (typeof a === "string" || typeof b === "string") {
+    return String(a).localeCompare(String(b));
+  }
+
+  const diff = a - b;
+  // two bounties without an end date give Infinity - Infinity
+  return Number.isNaN(diff) ? 0 : diff;
+}
+
+const PROGRAM_COLUMN: ColumnDef<PartnerBountyRow> = {
+  id: "program",
+  header: "Program",
+  minSize: 160,
+  cell: ({ row }) =>
+    row.original.program ? (
+      <div className="flex min-w-0 items-center gap-2">
+        <ProgramLogo program={row.original.program} />
+        <span className="truncate font-medium text-neutral-800">
+          {row.original.program.name}
+        </span>
+      </div>
+    ) : (
+      "-"
+    ),
+};
+
+const COLUMNS: ColumnDef<PartnerBountyRow>[] = [
   {
     id: "name",
     header: "Bounty",
@@ -77,16 +114,18 @@ const COLUMNS: ColumnDef<PartnerBountyProps>[] = [
 ];
 
 // the compact list view of the partner bounties. The page loads every bounty, so the table sorts and pages them here
-export function PartnerBountiesTable({
+export function PartnerBountiesTable<T extends PartnerBountyRow>({
   bounties,
   isLoading,
   getHref,
   resourceName,
+  showProgram = false,
 }: {
-  bounties?: PartnerBountyProps[];
+  bounties?: T[];
   isLoading?: boolean;
-  getHref: (bounty: PartnerBountyProps) => string;
+  getHref: (bounty: T) => string;
   resourceName: (plural: boolean) => string;
+  showProgram?: boolean;
 }) {
   const router = useRouter();
 
@@ -107,11 +146,7 @@ export function PartnerBountiesTable({
 
     return (bounties ?? [])
       .map((bounty) => ({ bounty, value: getValue(bounty) }))
-      .sort((a, b) => {
-        const diff = a.value - b.value;
-        // two bounties without an end date give Infinity - Infinity
-        return (Number.isNaN(diff) ? 0 : diff) * direction;
-      })
+      .sort((a, b) => compareSortValues(a.value, b.value) * direction)
       .map(({ bounty }) => bounty);
   }, [bounties, sort]);
 
@@ -124,9 +159,15 @@ export function PartnerBountiesTable({
     [sortedBounties, pagination],
   );
 
+  const columns = useMemo(
+    () =>
+      (showProgram ? [PROGRAM_COLUMN, ...COLUMNS] : COLUMNS) as ColumnDef<T>[],
+    [showProgram],
+  );
+
   const { table, ...tableProps } = useTable({
     data: pageBounties,
-    columns: COLUMNS,
+    columns,
     onRowClick: (row, e) => {
       const href = getHref(row.original);
 
@@ -136,14 +177,26 @@ export function PartnerBountiesTable({
     onRowAuxClick: (row) => window.open(getHref(row.original)),
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["endsAt", "rewardAmount"],
+    sortableColumns: [
+      ...(showProgram ? ["program"] : []),
+      "endsAt",
+      "rewardAmount",
+    ],
     sortBy: sort.sortBy,
     sortOrder: sort.sortOrder,
     onSortChange: ({ sortBy, sortOrder }) => {
-      setSort((current) => ({
-        sortBy: (sortBy as SortBy | undefined) ?? current.sortBy,
-        sortOrder: sortOrder ?? current.sortOrder,
-      }));
+      setSort((current) => {
+        const newSortBy = (sortBy as SortBy | undefined) ?? current.sortBy;
+
+        return {
+          sortBy: newSortBy,
+          // the table starts a new column at desc, but names read better A to Z on the first click
+          sortOrder:
+            newSortBy === "program" && current.sortBy !== "program"
+              ? "asc"
+              : sortOrder ?? current.sortOrder,
+        };
+      });
       setPagination((current) => ({ ...current, pageIndex: 1 }));
     },
     containerClassName: "border-none",

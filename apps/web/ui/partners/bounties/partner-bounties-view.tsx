@@ -5,13 +5,15 @@ import {
   PARTNER_BOUNTY_TABS,
   PartnerBountyTab,
 } from "@/lib/bounty/partner-bounty-tabs";
-import { PartnerBountyProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { formatTabBadgeCount, SheetTabs } from "@/ui/shared/sheet-tabs";
 import { ToggleGroup, useLocalStorage, useRouterStuff } from "@dub/ui";
 import { GridIcon, Heart, TableRows2, Trophy } from "@dub/ui/icons";
 import { useMemo } from "react";
-import { PartnerBountiesTable } from "./partner-bounties-table";
+import {
+  PartnerBountiesTable,
+  PartnerBountyRow,
+} from "./partner-bounties-table";
 import {
   PartnerBountyCard,
   PartnerBountyCardSkeleton,
@@ -21,16 +23,18 @@ import { PARTNER_BOUNTY_TAB_CONFIG } from "./partner-bounty-tab-config";
 type BountiesView = "grid" | "table";
 
 // the bounty tabs with the grid and list views, for one program or for all programs
-export function PartnerBountiesView<T extends PartnerBountyProps>({
+export function PartnerBountiesView<T extends PartnerBountyRow>({
   bounties,
   bountiesCount,
   isLoading,
   getHref,
+  showProgram = false,
 }: {
   bounties?: T[];
   bountiesCount: Record<PartnerBountyTab, number>;
   isLoading?: boolean;
   getHref: (bounty: T) => string;
+  showProgram?: boolean;
 }) {
   const { searchParams, queryParams } = useRouterStuff();
 
@@ -94,6 +98,7 @@ export function PartnerBountiesView<T extends PartnerBountyProps>({
             bounties={tabBounties}
             isLoading={isLoading}
             getHref={getHref}
+            showProgram={showProgram}
             resourceName={(plural) =>
               PARTNER_BOUNTY_TAB_CONFIG[tab].resourceName[
                 plural ? "plural" : "singular"
