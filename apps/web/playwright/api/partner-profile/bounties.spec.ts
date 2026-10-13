@@ -34,6 +34,7 @@ test.describe("GET /partner-profile/bounties", () => {
     status: program.status as ProgramEnrollmentStatus,
     id: createId({ prefix: "prog_" }),
     workspaceId: createId({ prefix: "ws_" }),
+    defaultGroupId: createId({ prefix: "grp_" }),
     slug: `pw-bounties-${suffix}-${i}`,
   }));
 
@@ -46,6 +47,9 @@ test.describe("GET /partner-profile/bounties", () => {
     // an ended bounty stays visible because the partner has a submission on it
     endedWithSubmission: bountyId(),
     archivedEnrollment: bountyId(),
+    // limited to the partner's group, and to another group of the same program
+    partnerGroup: bountyId(),
+    otherGroup: bountyId(),
     banned: bountyId(),
     deactivated: bountyId(),
   };
@@ -94,7 +98,7 @@ test.describe("GET /partner-profile/bounties", () => {
           name: program.name,
           slug: program.slug,
           defaultFolderId: createId({ prefix: "fold_" }),
-          defaultGroupId: createId({ prefix: "grp_" }),
+          defaultGroupId: program.defaultGroupId,
           deactivatedAt: program.deactivatedAt,
         },
       });
@@ -129,8 +133,21 @@ test.describe("GET /partner-profile/bounties", () => {
           endsAt: new Date(Date.now() - day),
         },
         activeBounty(bounties.archivedEnrollment, archived.id),
+        activeBounty(bounties.partnerGroup, approved.id),
+        activeBounty(bounties.otherGroup, approved.id),
         activeBounty(bounties.banned, banned.id),
         activeBounty(bounties.deactivated, deactivated.id),
+      ],
+    });
+
+    // the partner has no groupId, so they are in the program's default group
+    await prisma.bountyGroup.createMany({
+      data: [
+        { bountyId: bounties.partnerGroup, groupId: approved.defaultGroupId },
+        {
+          bountyId: bounties.otherGroup,
+          groupId: createId({ prefix: "grp_" }),
+        },
       ],
     });
 
@@ -173,6 +190,7 @@ test.describe("GET /partner-profile/bounties", () => {
     // Prisma's emulated relations break these deletes, so use raw SQL like deletePartner
     for (const program of programs) {
       await prisma.$executeRaw`DELETE FROM BountySubmission WHERE programId = ${program.id}`;
+      await prisma.$executeRaw`DELETE FROM BountyGroup WHERE bountyId IN (SELECT id FROM Bounty WHERE programId = ${program.id})`;
       await prisma.$executeRaw`DELETE FROM Bounty WHERE programId = ${program.id}`;
       await prisma.$executeRaw`DELETE FROM Program WHERE id = ${program.id}`;
       await prisma.$executeRaw`DELETE FROM Project WHERE id = ${program.workspaceId}`;
@@ -209,7 +227,7 @@ test.describe("GET /partner-profile/bounties", () => {
       );
 
       expect(status).toEqual(200);
-      // no archived bounty, and no bounty of a banned enrollment or a deactivated program
+      // no archived bounty, no bounty of another group, and no bounty of a banned enrollment or a deactivated program
       expect(
         testBounties(data)
           .map(({ id }) => id)
@@ -219,6 +237,7 @@ test.describe("GET /partner-profile/bounties", () => {
           bounties.approved,
           bounties.endedWithSubmission,
           bounties.archivedEnrollment,
+          bounties.partnerGroup,
         ].sort(),
       );
     });
