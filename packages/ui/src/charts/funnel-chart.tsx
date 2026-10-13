@@ -1,4 +1,9 @@
-import { cn, currencyFormatter, nFormatter } from "@dub/utils";
+import {
+  cn,
+  currencyFormatter,
+  formatPercentage,
+  nFormatter,
+} from "@dub/utils";
 import { curveBasis } from "@visx/curve";
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear } from "@visx/scale";
@@ -267,12 +272,6 @@ function PersistentPercentage({
     </g>
   );
 }
-
-const formatPercentage = (value: number) => {
-  return value > 0 && value < 0.01
-    ? "< 0.01"
-    : nFormatter(value, { digits: 2 });
-};
 
 const interpolate = (from: number, to: number) => [
   { x: 0, y: from },
