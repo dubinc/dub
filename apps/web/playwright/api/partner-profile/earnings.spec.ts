@@ -334,7 +334,7 @@ test.describe("GET /partner-profile/earnings", () => {
       );
 
       const byLink = await partnerApi.get<TimeseriesPoint[]>(
-        `/api/partner-profile/programs/${program.id}/earnings/timeseries?groupBy=linkId&timezone=UTC`,
+        `/api/partner-profile/earnings/timeseries?programIdOrSlug=${program.id}&groupBy=linkId&timezone=UTC`,
       );
       expect(byLink.status).toEqual(200);
       expect(byLink.data.reduce((sum, d) => sum + d.earnings, 0)).toEqual(3500);
@@ -492,7 +492,7 @@ test.describe("GET /partner-profile/earnings", () => {
     await withPartnerApi(playwright, async (partnerApi) => {
       expect(
         await partnerApi.get(
-          "/api/partner-profile/programs/prog_doesnotexist/earnings/timeseries",
+          "/api/partner-profile/earnings/timeseries?programIdOrSlug=prog_doesnotexist",
         ),
       ).toMatchObject({ status: 404 });
 
