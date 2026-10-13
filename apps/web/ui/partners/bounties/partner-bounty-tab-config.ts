@@ -5,7 +5,13 @@ interface PartnerBountyTabConfig {
   showCount: boolean;
   badgeClassName?: string;
   resourceName: { singular: string; plural: string };
-  emptyState: { title: string; description: string; showLearnMore: boolean };
+  emptyState: {
+    title: string;
+    description: string;
+    // the description on the bounties page of all programs, when it differs
+    allProgramsDescription?: string;
+    showLearnMore: boolean;
+  };
 }
 
 export const PARTNER_BOUNTY_TAB_CONFIG: Record<
@@ -19,6 +25,8 @@ export const PARTNER_BOUNTY_TAB_CONFIG: Record<
     emptyState: {
       title: "No bounties to collect",
       description: "This program isn't offering any bounties at the moment.",
+      allProgramsDescription:
+        "Your programs aren't offering any bounties at the moment.",
       showLearnMore: true,
     },
   },

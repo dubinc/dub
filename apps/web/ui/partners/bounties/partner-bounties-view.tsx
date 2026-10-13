@@ -91,7 +91,7 @@ export function PartnerBountiesView<T extends PartnerBountyRow>({
       />
       <div className="border-border-subtle -mx-px -mb-px overflow-clip rounded-xl border bg-white">
         {tabBounties?.length === 0 ? (
-          <BountiesEmptyState tab={tab} />
+          <BountiesEmptyState tab={tab} allPrograms={showProgram} />
         ) : view === "table" ? (
           <PartnerBountiesTable
             key={tab}
@@ -126,9 +126,19 @@ export function PartnerBountiesView<T extends PartnerBountyRow>({
   );
 }
 
-function BountiesEmptyState({ tab }: { tab: PartnerBountyTab }) {
-  const { title, description, showLearnMore } =
+function BountiesEmptyState({
+  tab,
+  allPrograms,
+}: {
+  tab: PartnerBountyTab;
+  allPrograms: boolean;
+}) {
+  const { title, showLearnMore, ...emptyState } =
     PARTNER_BOUNTY_TAB_CONFIG[tab].emptyState;
+
+  const description =
+    (allPrograms && emptyState.allProgramsDescription) ||
+    emptyState.description;
 
   return (
     <div className="py-10">
