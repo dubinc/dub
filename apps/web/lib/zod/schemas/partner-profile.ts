@@ -243,12 +243,14 @@ export const PartnerProfileProgramEnrollmentSchema =
       .date()
       .nullish()
       .describe(
-        "When the program banned, deactivated or archived the partner. For deactivated and archived enrollments, only set when `status` includes that status. Null for other statuses, and when the date is not known.",
+        "When the program banned, deactivated or archived the partner. For deactivated and archived enrollments, only set when `includeInactiveDates=true`. Null for other statuses, and when the date is not known.",
       ),
   });
 
 export const partnerProfileProgramsQuerySchema = z.object({
   includeRewardsDiscounts: booleanQuerySchema.optional(),
+  // looks up when deactivated and archived enrollments became inactive
+  includeInactiveDates: booleanQuerySchema.optional(),
   // one status or a comma-separated list, for example "pending,rejected"
   status: z
     .string()
