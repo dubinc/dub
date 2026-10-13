@@ -3,10 +3,7 @@
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { usePartnerProgramActivity } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
-import {
-  PartnerProfileProgramEnrollmentProps,
-  ProgramEnrollmentProps,
-} from "@/lib/types";
+import { PartnerProfileProgramEnrollmentProps } from "@/lib/types";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramInviteActions } from "@/ui/partners/program-invite-actions";
 import { ProgramLogo } from "@/ui/partners/program-logo";
@@ -105,7 +102,10 @@ export function ProgramsTable({
   return <Table {...tableProps} table={table} />;
 }
 
-function getProgramUrl(tab: ProgramTab, { program }: ProgramEnrollmentProps) {
+function getProgramUrl(
+  tab: ProgramTab,
+  { program }: PartnerProfileProgramEnrollmentProps,
+) {
   return tab.id === "invitations"
     ? `/programs/${program.slug}/invite`
     : `/programs/${program.slug}`;
@@ -233,7 +233,7 @@ function getColumns(tab: ProgramTab): ProgramColumn[] {
 function ProgramName({
   program,
 }: {
-  program: ProgramEnrollmentProps["program"];
+  program: PartnerProfileProgramEnrollmentProps["program"];
 }) {
   return (
     <div className="flex min-w-0 items-center gap-2">
@@ -248,7 +248,7 @@ function ProgramName({
 function EnrollmentStatusBadge({
   status,
 }: {
-  status: ProgramEnrollmentProps["status"];
+  status: PartnerProfileProgramEnrollmentProps["status"];
 }) {
   const badge = PartnerStatusBadges[status];
 
@@ -262,7 +262,7 @@ function EnrollmentStatusBadge({
 function ProgramLinkChip({
   programEnrollment,
 }: {
-  programEnrollment: ProgramEnrollmentProps;
+  programEnrollment: PartnerProfileProgramEnrollmentProps;
 }) {
   const { group } = programEnrollment;
   const link = programEnrollment.links?.[0];
@@ -303,7 +303,7 @@ function ProgramLinkChip({
 function ProgramActivity({
   programEnrollment,
 }: {
-  programEnrollment: ProgramEnrollmentProps;
+  programEnrollment: PartnerProfileProgramEnrollmentProps;
 }) {
   const data = usePartnerProgramActivity(programEnrollment.programId);
 
