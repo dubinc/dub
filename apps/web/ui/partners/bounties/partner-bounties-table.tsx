@@ -97,21 +97,29 @@ export function PartnerBountiesTable({
     page: 1,
   });
 
-  const pageBounties = useMemo(() => {
+  // compute each sort value once per bounty, not once per comparison
+  const sortedBounties = useMemo(() => {
     const getValue = SORT_VALUES[sort.sortBy];
     const direction = sort.sortOrder === "asc" ? 1 : -1;
 
-    return [...(bounties ?? [])]
+    return (bounties ?? [])
+      .map((bounty) => ({ bounty, value: getValue(bounty) }))
       .sort((a, b) => {
-        const diff = getValue(a) - getValue(b);
+        const diff = a.value - b.value;
         // two bounties without an end date give Infinity - Infinity
         return (Number.isNaN(diff) ? 0 : diff) * direction;
       })
-      .slice(
+      .map(({ bounty }) => bounty);
+  }, [bounties, sort]);
+
+  const pageBounties = useMemo(
+    () =>
+      sortedBounties.slice(
         (pagination.pageIndex - 1) * pagination.pageSize,
         pagination.pageIndex * pagination.pageSize,
-      );
-  }, [bounties, sort, pagination]);
+      ),
+    [sortedBounties, pagination],
+  );
 
   const { table, ...tableProps } = useTable({
     data: pageBounties,
