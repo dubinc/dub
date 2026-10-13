@@ -34,14 +34,14 @@ export default function PartnerOverviewPage() {
               >
                 <PayoutsCard className="h-full min-h-0 flex-1" />
               </div>
-              <TasksCard className="max-lg:order-2" />
+              <TasksCard className="max-lg:order-1" />
             </div>
           </div>
         </div>
         <div className="contents lg:grid lg:grid-cols-3 lg:gap-4">
           <TopProgramsCard />
           <RecentEarningsCard />
-          <TopLinksCard className="max-lg:order-3" />
+          <TopLinksCard className="max-lg:order-1" />
         </div>
       </PageWidthWrapper>
     </PageContent>
