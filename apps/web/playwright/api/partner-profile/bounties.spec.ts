@@ -260,7 +260,41 @@ test.describe("GET /partner-profile/bounties", () => {
     });
   });
 
-  test("sums the partner's link stats like the program bounties route", async ({
+  test("filters by program ID or slug", async ({ playwright }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      for (const programIdOrSlug of [approved.id, approved.slug]) {
+        const { status, data } = await partnerApi.get<PartnerProfileBounty[]>(
+          `/api/partner-profile/bounties?programIdOrSlug=${programIdOrSlug}`,
+        );
+
+        expect(status).toEqual(200);
+        expect(data.every(({ program }) => program.id === approved.id)).toBe(
+          true,
+        );
+        expect(data.map(({ id }) => id).sort()).toEqual(
+          [
+            bounties.approved,
+            bounties.endedWithSubmission,
+            bounties.partnerGroup,
+          ].sort(),
+        );
+      }
+    });
+  });
+
+  test("returns 404 for a program the partner is not in", async ({
+    playwright,
+  }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      const { status } = await partnerApi.get(
+        `/api/partner-profile/bounties?programIdOrSlug=pw-bounties-${suffix}-missing`,
+      );
+
+      expect(status).toEqual(404);
+    });
+  });
+
+  test("sums the partner's link stats for each program", async ({
     playwright,
   }) => {
     await withPartnerApi(playwright, async (partnerApi) => {
@@ -268,7 +302,7 @@ test.describe("GET /partner-profile/bounties", () => {
         PartnerProfileBounty[]
       >("/api/partner-profile/bounties");
       const { data: oneProgram } = await partnerApi.get<PartnerProfileBounty[]>(
-        `/api/partner-profile/programs/${approved.id}/bounties`,
+        `/api/partner-profile/bounties?programIdOrSlug=${approved.id}`,
       );
 
       const stats = (data: PartnerProfileBounty[]) =>
