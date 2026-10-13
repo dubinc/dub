@@ -4,6 +4,7 @@ import { getBountyRewardAmount } from "@/lib/bounty/rewards";
 import { PartnerBountyProps } from "@/lib/types";
 import { Table, useTable, useTablePagination } from "@dub/ui";
 import { currencyFormatter, formatDate } from "@dub/utils";
+import { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { BountyIncrementalBonusTooltip } from "./bounty-incremental-bonus-tooltip";
@@ -23,6 +24,54 @@ const SORT_VALUES: Record<SortBy, (bounty: PartnerBountyProps) => number> = {
     bounty.endsAt ? new Date(bounty.endsAt).getTime() : Infinity,
   rewardAmount: (bounty) => getBountyRewardAmount(bounty)?.amount ?? 0,
 };
+
+const COLUMNS: ColumnDef<PartnerBountyProps>[] = [
+  {
+    id: "name",
+    header: "Bounty",
+    minSize: 240,
+    cell: ({ row }) => (
+      <div className="flex min-w-0 items-center gap-2">
+        <div className="bg-bg-subtle flex size-6 shrink-0 items-center justify-center rounded-md p-1">
+          <BountyThumbnailImage bounty={row.original} />
+        </div>
+        <span className="truncate font-medium text-neutral-800">
+          {row.original.name}
+        </span>
+      </div>
+    ),
+  },
+  {
+    id: "endsAt",
+    header: "Expires",
+    size: 140,
+    cell: ({ row }) =>
+      row.original.endsAt
+        ? formatDate(row.original.endsAt, { month: "short" })
+        : "-",
+  },
+  {
+    id: "progress",
+    header: "Progress",
+    minSize: 240,
+    cell: ({ row }) =>
+      row.original.type === "performance" ? (
+        <PerformanceBountyProgress bounty={row.original} hideBar />
+      ) : (
+        <SubmissionBountyProgress
+          bounty={row.original}
+          className="flex-row"
+          hideBar
+        />
+      ),
+  },
+  {
+    id: "rewardAmount",
+    header: "Earnings",
+    size: 160,
+    cell: ({ row }) => <BountyEarnings bounty={row.original} />,
+  },
+];
 
 // the compact list view of the partner bounties. The page loads every bounty, so the table sorts and pages them here
 export function PartnerBountiesTable({
@@ -66,53 +115,7 @@ export function PartnerBountiesTable({
 
   const { table, ...tableProps } = useTable({
     data: pageBounties,
-    columns: [
-      {
-        id: "name",
-        header: "Bounty",
-        minSize: 240,
-        cell: ({ row }) => (
-          <div className="flex min-w-0 items-center gap-2">
-            <div className="bg-bg-subtle flex size-6 shrink-0 items-center justify-center rounded-md p-1">
-              <BountyThumbnailImage bounty={row.original} />
-            </div>
-            <span className="truncate font-medium text-neutral-800">
-              {row.original.name}
-            </span>
-          </div>
-        ),
-      },
-      {
-        id: "endsAt",
-        header: "Expires",
-        size: 140,
-        cell: ({ row }) =>
-          row.original.endsAt
-            ? formatDate(row.original.endsAt, { month: "short" })
-            : "-",
-      },
-      {
-        id: "progress",
-        header: "Progress",
-        minSize: 240,
-        cell: ({ row }) =>
-          row.original.type === "performance" ? (
-            <PerformanceBountyProgress bounty={row.original} hideBar />
-          ) : (
-            <SubmissionBountyProgress
-              bounty={row.original}
-              className="flex-row"
-              hideBar
-            />
-          ),
-      },
-      {
-        id: "rewardAmount",
-        header: "Earnings",
-        size: 160,
-        cell: ({ row }) => <BountyEarnings bounty={row.original} />,
-      },
-    ],
+    columns: COLUMNS,
     onRowClick: (row, e) => {
       const href = getHref(row.original);
 
