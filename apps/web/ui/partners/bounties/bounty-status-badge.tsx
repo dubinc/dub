@@ -1,4 +1,4 @@
-import { isPartnerBountyCompleted } from "@/lib/bounty/partner-bounty-tabs";
+import { getPartnerBountyTab } from "@/lib/bounty/partner-bounty-tabs";
 import { PartnerBountyProps } from "@/lib/types";
 import { StatusBadge } from "@dub/ui";
 import { formatDate } from "@dub/utils";
@@ -25,8 +25,9 @@ function getBountyBadgeState(
     ? formatDate(bounty.endsAt, { month: "short" })
     : null;
 
-  // completed comes first, so that a completed bounty shows the same state as its tab, even after it ends
-  if (isPartnerBountyCompleted(bounty)) {
+  const tab = getPartnerBountyTab(bounty);
+
+  if (tab === "completed") {
     const lastSubmission = bounty.submissions?.[0];
     const isPendingReview =
       bounty.type === "performance" && lastSubmission?.status === "submitted";
@@ -41,9 +42,7 @@ function getBountyBadgeState(
     };
   }
 
-  const isExpired = endsAt !== null && endsAt < now;
-
-  if (isExpired) {
+  if (tab === "expired") {
     return {
       status: "expired",
       endsAtFormatted,
