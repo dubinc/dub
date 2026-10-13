@@ -1,4 +1,7 @@
-import { getPartnerBountyTab } from "@/lib/bounty/partner-bounty-tabs";
+import {
+  countPartnerBountiesByTab,
+  getPartnerBountyTab,
+} from "@/lib/bounty/partner-bounty-tabs";
 import { PartnerBountyProps } from "@/lib/types";
 import { describe, expect, it } from "vitest";
 
@@ -74,5 +77,25 @@ describe("getPartnerBountyTab", () => {
     expect(
       getPartnerBountyTab(bounty({ endsAt: new Date(Date.now() - day) })),
     ).toBe("expired");
+  });
+});
+
+describe("countPartnerBountiesByTab", () => {
+  it("counts every tab, with 0 for an empty or missing list", () => {
+    const empty = { active: 0, completed: 0, expired: 0 };
+
+    expect(countPartnerBountiesByTab(undefined)).toEqual(empty);
+    expect(countPartnerBountiesByTab([])).toEqual(empty);
+  });
+
+  it("counts each bounty in its tab", () => {
+    expect(
+      countPartnerBountiesByTab([
+        bounty(),
+        bounty({ maxSubmissions: 2, submissionStatuses: ["submitted"] }),
+        bounty({ submissionStatuses: ["approved"] }),
+        bounty({ endsAt: new Date(Date.now() - day) }),
+      ]),
+    ).toEqual({ active: 2, completed: 1, expired: 1 });
   });
 });

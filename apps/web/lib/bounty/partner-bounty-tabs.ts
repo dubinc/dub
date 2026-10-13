@@ -34,3 +34,19 @@ export function getPartnerBountyTab(
 
   return isPartnerBountyExpired(bounty) ? "expired" : "active";
 }
+
+export function countPartnerBountiesByTab(
+  bounties: PartnerBountyProps[] | undefined,
+) {
+  const counts: Record<PartnerBountyTab, number> = {
+    active: 0,
+    completed: 0,
+    expired: 0,
+  };
+
+  for (const bounty of bounties ?? []) {
+    counts[getPartnerBountyTab(bounty)]++;
+  }
+
+  return counts;
+}
