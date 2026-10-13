@@ -11,10 +11,12 @@ export function PerformanceBountyProgress({
   bounty,
   labelClassName,
   wrapperClassName,
+  hideBar,
 }: {
   bounty: PartnerBountyProps;
   labelClassName?: string;
   wrapperClassName?: string;
+  hideBar?: boolean;
 }) {
   const performanceCondition = bounty.performanceCondition;
 
@@ -47,6 +49,7 @@ export function PerformanceBountyProgress({
       progress={percent}
       labelClassName={labelClassName}
       wrapperClassName={wrapperClassName}
+      hideBar={hideBar}
     >
       <EmphasisNumber>{formattedValue}</EmphasisNumber> of{" "}
       <EmphasisNumber>{formattedTarget}</EmphasisNumber> {metricLabel} generated
@@ -59,11 +62,13 @@ export function SubmissionBountyProgress({
   labelClassName,
   wrapperClassName,
   className,
+  hideBar,
 }: {
   bounty: PartnerBountyProps;
   labelClassName?: string;
   wrapperClassName?: string;
   className?: string;
+  hideBar?: boolean;
 }) {
   const submittedCount = bounty.submissions.filter(
     ({ status }) => status !== "draft",
@@ -83,6 +88,7 @@ export function SubmissionBountyProgress({
         progress={submittedPercent}
         labelClassName={labelClassName}
         wrapperClassName={wrapperClassName}
+        hideBar={hideBar}
       >
         <EmphasisNumber>{submittedCount}</EmphasisNumber> of{" "}
         <EmphasisNumber>{maxSubmissions}</EmphasisNumber> submitted
@@ -91,6 +97,7 @@ export function SubmissionBountyProgress({
         progress={approvedPercent}
         labelClassName={labelClassName}
         wrapperClassName={wrapperClassName}
+        hideBar={hideBar}
       >
         <EmphasisNumber>{approvedCount}</EmphasisNumber> approved
       </BountyProgressBarRow>
