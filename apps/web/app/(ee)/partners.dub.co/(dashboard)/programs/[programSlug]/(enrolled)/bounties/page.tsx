@@ -16,26 +16,7 @@ import { GridIcon, Heart, TableRows2, Trophy } from "@dub/ui/icons";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import { PartnerBountyCard, PartnerBountyCardSkeleton } from "./bounty-card";
-
-const TAB_LABELS: Record<PartnerBountyTab, string> = {
-  active: "Active",
-  completed: "Completed",
-  expired: "Expired",
-};
-
-const EMPTY_STATES: Record<
-  Exclude<PartnerBountyTab, "active">,
-  { title: string; description: string }
-> = {
-  completed: {
-    title: "No completed bounties",
-    description: "Bounties you complete appear here.",
-  },
-  expired: {
-    title: "No expired bounties",
-    description: "Bounties that ended before you completed them appear here.",
-  },
-};
+import { PARTNER_BOUNTY_TAB_CONFIG } from "./bounty-tabs";
 
 type BountiesView = "grid" | "list";
 
@@ -66,16 +47,18 @@ export default function PartnerProgramBountiesPage() {
       <PageWidthWrapper className="pb-10">
         <div className="border-border-subtle overflow-clip rounded-xl border bg-neutral-100">
           <SheetTabs
-            tabs={PARTNER_BOUNTY_TABS.map((id) => ({
-              id,
-              label: TAB_LABELS[id],
-              // no count for Expired, as in the design
-              badge:
-                id === "expired"
-                  ? undefined
-                  : formatTabBadgeCount(bountiesCount[id]),
-              badgeClassName: id === "completed" ? "bg-green-600" : undefined,
-            }))}
+            tabs={PARTNER_BOUNTY_TABS.map((id) => {
+              const config = PARTNER_BOUNTY_TAB_CONFIG[id];
+
+              return {
+                id,
+                label: config.label,
+                badge: config.showCount
+                  ? formatTabBadgeCount(bountiesCount[id])
+                  : undefined,
+                badgeClassName: config.badgeClassName,
+              };
+            })}
             currentTabId={tab}
             setCurrentTabId={(id) =>
               queryParams({ set: { tab: id }, del: ["page"] })
@@ -110,7 +93,9 @@ export default function PartnerProgramBountiesPage() {
                 isLoading={isLoading}
                 getHref={getHref}
                 resourceName={(plural) =>
-                  `${tab} ${plural ? "bounties" : "bounty"}`
+                  PARTNER_BOUNTY_TAB_CONFIG[tab].resourceName[
+                    plural ? "plural" : "singular"
+                  ]
                 }
               />
             ) : (
@@ -136,16 +121,17 @@ export default function PartnerProgramBountiesPage() {
 }
 
 function BountiesEmptyState({ tab }: { tab: PartnerBountyTab }) {
+  const { title, description, showLearnMore } =
+    PARTNER_BOUNTY_TAB_CONFIG[tab].emptyState;
+
   return (
     <div className="py-10">
       <AnimatedEmptyState
-        title={
-          tab === "active" ? "No bounties to collect" : EMPTY_STATES[tab].title
-        }
+        title={title}
         description={
-          tab === "active" ? (
+          showLearnMore ? (
             <>
-              This program isn't offering any bounties at the moment.{" "}
+              {description}{" "}
               <a
                 href="https://dub.co/help/article/program-bounties"
                 target="_blank"
@@ -157,7 +143,7 @@ function BountiesEmptyState({ tab }: { tab: PartnerBountyTab }) {
               .
             </>
           ) : (
-            EMPTY_STATES[tab].description
+            description
           )
         }
         cardContent={(idx) => {
