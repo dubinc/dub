@@ -18,7 +18,7 @@ import { useMemo } from "react";
 import { PartnerBountyCard, PartnerBountyCardSkeleton } from "./bounty-card";
 import { PARTNER_BOUNTY_TAB_CONFIG } from "./bounty-tabs";
 
-type BountiesView = "grid" | "list";
+type BountiesView = "grid" | "table";
 
 export default function PartnerProgramBountiesPage() {
   const { programSlug } = useParams();
@@ -72,7 +72,7 @@ export default function PartnerProgramBountiesPage() {
                     label: <GridIcon className="size-4" />,
                   },
                   {
-                    value: "list",
+                    value: "table",
                     label: <TableRows2 className="size-4" />,
                   },
                 ]}
@@ -84,7 +84,7 @@ export default function PartnerProgramBountiesPage() {
           <div className="border-border-subtle -mx-px -mb-px overflow-clip rounded-xl border bg-white">
             {tabBounties?.length === 0 ? (
               <BountiesEmptyState tab={tab} />
-            ) : view === "list" ? (
+            ) : view === "table" ? (
               <PartnerBountiesTable
                 key={tab}
                 bounties={tabBounties}
