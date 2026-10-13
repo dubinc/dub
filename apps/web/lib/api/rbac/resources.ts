@@ -25,14 +25,14 @@ export const RESOURCES: {
   description: string;
 }[] = [
   {
-    name: "Partner Groups",
-    key: "groups",
-    description: "Create, read, update, and delete partner groups",
-  },
-  {
     name: "Partners",
     key: "partners",
     description: "Create, read, update, and delete partners",
+  },
+  {
+    name: "Partner Groups",
+    key: "groups",
+    description: "Create, read, update, and delete partner groups",
   },
   {
     name: "Program Applications",
