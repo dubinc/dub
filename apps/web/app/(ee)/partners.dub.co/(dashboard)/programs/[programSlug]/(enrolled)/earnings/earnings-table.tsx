@@ -7,7 +7,7 @@ import {
   usePartnerProfileEarningsCount,
 } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { PartnerEarningsResponse } from "@/lib/types";
+import { PartnerProfileEarningsResponse } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
@@ -41,7 +41,7 @@ import { useProgramEarningsFilters } from "./use-program-earnings-filters";
 
 type ColumnMeta = {
   filterParams?: (
-    args: Pick<Cell<PartnerEarningsResponse, any>, "getValue">,
+    args: Pick<Cell<PartnerProfileEarningsResponse, any>, "getValue">,
   ) => Record<string, any>;
 };
 
