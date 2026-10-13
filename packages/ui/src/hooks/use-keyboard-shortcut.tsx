@@ -43,7 +43,7 @@ export function KeyboardShortcutProvider({
 
 export function useKeyboardShortcut(
   key: KeyboardShortcutListener["key"],
-  callback: (e: KeyboardEvent) => void,
+  callback: (e: KeyboardEvent, pressedKey: string) => void,
   options: Pick<
     KeyboardShortcutListener,
     "enabled" | "priority" | "modal" | "sheet"
@@ -112,7 +112,7 @@ export function useKeyboardShortcut(
       if (topListener.id !== id) return;
 
       e.preventDefault();
-      callback(e);
+      callback(e, pressedKey);
     },
     [
       key,

@@ -56,9 +56,9 @@ export function PartnerLinkControls({
 
   useKeyboardShortcut(
     ["e", "q", "d", "x"],
-    (e) => {
+    (_, key) => {
       setOpenPopover(false);
-      switch (e.key) {
+      switch (key) {
         case "e":
           setShowPartnerLinkModal(true);
           break;
