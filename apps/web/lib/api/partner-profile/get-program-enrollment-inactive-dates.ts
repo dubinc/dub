@@ -31,6 +31,10 @@ export async function getProgramEnrollmentInactiveDates({
     }
   }
 
+  if (!includeStatusLogs) {
+    return inactiveDates;
+  }
+
   const loggedEnrollments = programEnrollments.filter(
     (
       enrollment,
@@ -39,7 +43,7 @@ export async function getProgramEnrollmentInactiveDates({
     } => enrollment.status in STATUS_LOG_ACTIONS,
   );
 
-  if (!includeStatusLogs || loggedEnrollments.length === 0) {
+  if (loggedEnrollments.length === 0) {
     return inactiveDates;
   }
 
@@ -64,16 +68,24 @@ export async function getProgramEnrollmentInactiveDates({
     },
   });
 
+  // the logs are newest first, so the first log per program and action is the latest change
+  const latestLogDates = new Map<string, Date>();
+
+  for (const { programId, action, createdAt } of statusLogs) {
+    const key = `${programId}:${action}`;
+
+    if (!latestLogDates.has(key)) {
+      latestLogDates.set(key, createdAt);
+    }
+  }
+
   for (const { programId, status } of loggedEnrollments) {
-    // the logs are newest first, so this is the latest change to the current status
-    const statusLog = statusLogs.find(
-      (log) =>
-        log.programId === programId &&
-        log.action === STATUS_LOG_ACTIONS[status],
+    const loggedAt = latestLogDates.get(
+      `${programId}:${STATUS_LOG_ACTIONS[status]}`,
     );
 
-    if (statusLog) {
-      inactiveDates.set(programId, statusLog.createdAt);
+    if (loggedAt) {
+      inactiveDates.set(programId, loggedAt);
     }
   }
 
