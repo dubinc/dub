@@ -84,7 +84,6 @@ export const GET = withWorkspace(
     });
   },
   {
-    requiredPermissions: ["program_applications.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

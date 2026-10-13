@@ -71,7 +71,6 @@ export const GET = withWorkspace(
     );
   },
   {
-    requiredPermissions: ["partners.read"],
     requiredPlan: ["advanced", "enterprise"],
   },
 );

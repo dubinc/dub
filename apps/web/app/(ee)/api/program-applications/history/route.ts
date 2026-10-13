@@ -10,42 +10,59 @@ const querySchema = z.object({
 });
 
 // GET /api/program-applications/history?partnerId= — historical applications for this partner
-export const GET = withWorkspace(
-  async ({ workspace, searchParams }) => {
-    const programId = getDefaultProgramIdOrThrow(workspace);
-    const { partnerId } = querySchema.parse(searchParams);
+export const GET = withWorkspace(async ({ workspace, searchParams }) => {
+  const programId = getDefaultProgramIdOrThrow(workspace);
+  const { partnerId } = querySchema.parse(searchParams);
 
-    const programEnrollment = await prisma.programEnrollment.findUnique({
-      where: {
-        partnerId_programId: {
-          partnerId,
-          programId,
-        },
-      },
-      select: {
-        applicationId: true,
-        partner: {
-          select: {
-            email: true,
-          },
-        },
-      },
-    });
-
-    if (!programEnrollment?.partner?.email) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Partner not found in this program.",
-      });
-    }
-
-    const applicationsByEmail = await prisma.programApplication.findMany({
-      where: {
+  const programEnrollment = await prisma.programEnrollment.findUnique({
+    where: {
+      partnerId_programId: {
+        partnerId,
         programId,
-        email: programEnrollment.partner.email,
       },
-      orderBy: {
-        createdAt: "desc",
+    },
+    select: {
+      applicationId: true,
+      partner: {
+        select: {
+          email: true,
+        },
+      },
+    },
+  });
+
+  if (!programEnrollment?.partner?.email) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Partner not found in this program.",
+    });
+  }
+
+  const applicationsByEmail = await prisma.programApplication.findMany({
+    where: {
+      programId,
+      email: programEnrollment.partner.email,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: {
+      id: true,
+      createdAt: true,
+      reviewedAt: true,
+    },
+  });
+
+  let applications = applicationsByEmail;
+
+  if (
+    programEnrollment?.applicationId &&
+    !applications.some((a) => a.id === programEnrollment.applicationId)
+  ) {
+    const fromEnrollment = await prisma.programApplication.findFirst({
+      where: {
+        id: programEnrollment.applicationId,
+        programId,
       },
       select: {
         id: true,
@@ -54,34 +71,12 @@ export const GET = withWorkspace(
       },
     });
 
-    let applications = applicationsByEmail;
-
-    if (
-      programEnrollment?.applicationId &&
-      !applications.some((a) => a.id === programEnrollment.applicationId)
-    ) {
-      const fromEnrollment = await prisma.programApplication.findFirst({
-        where: {
-          id: programEnrollment.applicationId,
-          programId,
-        },
-        select: {
-          id: true,
-          createdAt: true,
-          reviewedAt: true,
-        },
-      });
-
-      if (fromEnrollment) {
-        applications = [...applications, fromEnrollment].sort(
-          (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
-        );
-      }
+    if (fromEnrollment) {
+      applications = [...applications, fromEnrollment].sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+      );
     }
+  }
 
-    return NextResponse.json({ applications });
-  },
-  {
-    requiredPermissions: ["program_applications.read"],
-  },
-);
+  return NextResponse.json({ applications });
+});

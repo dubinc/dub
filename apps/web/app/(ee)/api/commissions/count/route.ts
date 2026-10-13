@@ -6,24 +6,19 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 // GET /api/commissions/count
-export const GET = withWorkspace(
-  async ({ workspace, searchParams }) => {
-    const programId = getDefaultProgramIdOrThrow(workspace);
+export const GET = withWorkspace(async ({ workspace, searchParams }) => {
+  const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const parsedParams = getCommissionsCountQuerySchema
-      .extend({
-        fraudEventGroupId: z.string().optional(),
-      })
-      .parse(searchParams);
+  const parsedParams = getCommissionsCountQuerySchema
+    .extend({
+      fraudEventGroupId: z.string().optional(),
+    })
+    .parse(searchParams);
 
-    const counts = await getCommissionsCount({
-      ...parsedParams,
-      programId,
-    });
+  const counts = await getCommissionsCount({
+    ...parsedParams,
+    programId,
+  });
 
-    return NextResponse.json(counts);
-  },
-  {
-    requiredPermissions: ["commissions.read"],
-  },
-);
+  return NextResponse.json(counts);
+});

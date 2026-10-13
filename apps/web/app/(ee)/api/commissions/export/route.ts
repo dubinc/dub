@@ -60,7 +60,4 @@ export const GET = withWorkspace(
       },
     });
   },
-  {
-    requiredPermissions: ["commissions.read"],
-  },
 );

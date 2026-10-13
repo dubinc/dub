@@ -67,7 +67,6 @@ export const GET = withWorkspace(
     });
   },
   {
-    requiredPermissions: ["customers.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

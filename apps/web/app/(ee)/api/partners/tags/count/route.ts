@@ -25,7 +25,6 @@ export const GET = withWorkspace(
     return NextResponse.json(count, { headers });
   },
   {
-    requiredPermissions: ["partners.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

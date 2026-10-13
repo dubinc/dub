@@ -7,55 +7,50 @@ import { customerActivityResponseSchema } from "@/lib/zod/schemas/customer-activ
 import { NextResponse } from "next/server";
 
 // GET /api/customers/[id]/activity - get a customer's activity
-export const GET = withWorkspace(
-  async ({ workspace, params }) => {
-    const { id: customerId } = params;
+export const GET = withWorkspace(async ({ workspace, params }) => {
+  const { id: customerId } = params;
 
-    const customer = await getCustomerOrThrow({
-      workspaceId: workspace.id,
-      id: customerId,
+  const customer = await getCustomerOrThrow({
+    workspaceId: workspace.id,
+    id: customerId,
+  });
+
+  const events = await getCustomerEvents({
+    customerId: customer.id,
+  });
+
+  // get the first partner link that this customer interacted with
+  const firstLinkId =
+    events.length > 0 ? events[events.length - 1].link_id : customer.linkId;
+
+  let link: {
+    id: string;
+    domain: string;
+    key: string;
+    shortLink: string;
+  } | null = null;
+
+  if (firstLinkId) {
+    link = await prisma.link.findUniqueOrThrow({
+      where: {
+        id: firstLinkId,
+      },
+      select: {
+        id: true,
+        domain: true,
+        key: true,
+        shortLink: true,
+      },
     });
 
-    const events = await getCustomerEvents({
-      customerId: customer.id,
-    });
+    link = decodeLinkIfCaseSensitive(link);
+  }
 
-    // get the first partner link that this customer interacted with
-    const firstLinkId =
-      events.length > 0 ? events[events.length - 1].link_id : customer.linkId;
-
-    let link: {
-      id: string;
-      domain: string;
-      key: string;
-      shortLink: string;
-    } | null = null;
-
-    if (firstLinkId) {
-      link = await prisma.link.findUniqueOrThrow({
-        where: {
-          id: firstLinkId,
-        },
-        select: {
-          id: true,
-          domain: true,
-          key: true,
-          shortLink: true,
-        },
-      });
-
-      link = decodeLinkIfCaseSensitive(link);
-    }
-
-    return NextResponse.json(
-      customerActivityResponseSchema.parse({
-        ...customer,
-        events,
-        link,
-      }),
-    );
-  },
-  {
-    requiredPermissions: ["customers.read"],
-  },
-);
+  return NextResponse.json(
+    customerActivityResponseSchema.parse({
+      ...customer,
+      events,
+      link,
+    }),
+  );
+});

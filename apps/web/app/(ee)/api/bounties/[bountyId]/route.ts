@@ -52,7 +52,6 @@ export const GET = withWorkspace(
     return NextResponse.json(BountySchema.parse(bounty));
   },
   {
-    requiredPermissions: ["bounties.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
@@ -403,8 +402,8 @@ export const PATCH = withWorkspace(
     return NextResponse.json(updatedBounty);
   },
   {
-    requiredPermissions: ["bounties.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
   },
 );
 
@@ -478,7 +477,7 @@ export const DELETE = withWorkspace(
     return NextResponse.json({ id: bountyId });
   },
   {
-    requiredPermissions: ["bounties.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
   },
 );
