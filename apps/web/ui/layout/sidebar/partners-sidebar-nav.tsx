@@ -10,6 +10,7 @@ import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count"
 import { MarketplaceSidebarFilters } from "@/ui/program-marketplace/marketplace-sidebar-filters";
 import { ProgramMarketplaceCard } from "@/ui/program-marketplace/program-marketplace-card";
 import { isMarketplaceFilterSidebarPath } from "@/ui/program-marketplace/utils/urls";
+import { formatTabBadgeCount } from "@/ui/shared/sheet-tabs";
 import { type Icon, useMediaQuery, useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -107,9 +108,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   },
 ];
 
-const formatBountiesBadge = (count?: number) =>
-  count && count > 99 ? "99+" : count || undefined;
-
 const PROGRAMS_CONTENT = ({
   invitationsCount,
   allBountiesCount,
@@ -146,7 +144,7 @@ const PROGRAMS_CONTENT = ({
         name: "Bounties",
         icon: Trophy,
         href: "/bounties",
-        badge: formatBountiesBadge(allBountiesCount),
+        badge: formatTabBadgeCount(allBountiesCount),
       },
     ],
   },
@@ -290,7 +288,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Bounties",
             icon: Trophy,
             href: `/programs/${programSlug}/bounties` as `/${string}`,
-            badge: formatBountiesBadge(programBountiesCount),
+            badge: formatTabBadgeCount(programBountiesCount),
             locked: isUnapproved,
           },
           ...(submittedLeadsEnabled
