@@ -1,5 +1,6 @@
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
+import { useMemo } from "react";
 import useSWR from "swr";
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "../analytics/constants";
 import { IntervalOptions } from "../analytics/types";
@@ -43,6 +44,24 @@ export function usePartnerProfileEarningsTimeseries({
     "/timeseries",
     { ...(groupBy && { groupBy }) },
     dateRange,
+  );
+}
+
+// the activity chart of one program: its earnings in the last year, from one
+// request for all programs (SWR dedupes it across the cards and table rows)
+export function usePartnerProgramActivity(programId: string) {
+  const { data: timeseries } = usePartnerProfileEarningsTimeseries({
+    groupBy: "programId",
+    interval: "1y",
+  });
+
+  return useMemo(
+    () =>
+      timeseries?.map(({ start, data }) => ({
+        date: new Date(start),
+        value: data?.[programId] ?? 0,
+      })),
+    [timeseries, programId],
   );
 }
 

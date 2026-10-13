@@ -4,6 +4,8 @@ import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { testIds } from "@/lib/e2e/test-ids";
 import { usePartnerProfileEarningsTimeseries } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
+import { ProgramLogo } from "@/ui/partners/program-logo";
+import { useIsTouchDevice } from "@dub/ui";
 import {
   Areas,
   ChartContext,
@@ -17,7 +19,6 @@ import NumberFlow from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { useRouter } from "next/navigation";
 import { useId, useMemo } from "react";
-import { ProgramLogo } from "./overview-card";
 import { useOverviewDateRange } from "./use-overview-date-range";
 import { useTopProgramEarnings } from "./use-top-program-earnings";
 
@@ -27,6 +28,10 @@ export function EarningsChart() {
   const id = useId();
   const router = useRouter();
   const { start, end, interval } = useOverviewDateRange();
+
+  // on touch devices, the chart opens /programs at the end of each drag, which
+  // stops partners from reading the tooltip
+  const isTouchDevice = useIsTouchDevice();
 
   const { data: timeseries, error } = usePartnerProfileEarningsTimeseries({
     groupBy: "programId",
@@ -86,7 +91,7 @@ export function EarningsChart() {
             }}
           />
         ) : (
-          <div className="mt-0.5 h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
+          <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
         )}
       </div>
       <div className="relative h-72 w-full px-5 pb-3 lg:h-auto lg:min-h-0 lg:flex-1">
@@ -117,8 +122,11 @@ export function EarningsChart() {
                 isActive: true,
               },
             ]}
-            onXValueClick={() => router.push("/programs")}
+            onXValueClick={
+              isTouchDevice ? undefined : () => router.push("/programs")
+            }
             tooltipClassName="w-[240px] overflow-hidden p-0 shadow-md"
+            tooltipBounds="clamp"
             tooltipContent={(d) => {
               const programEarnings = Object.entries(
                 d.values.programs as Record<string, number>,

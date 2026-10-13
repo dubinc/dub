@@ -1,7 +1,10 @@
 "use client";
 
+import { useCopyDiscountToLiveModal } from "@/lib/sandbox/components/copy-discount-to-live-modal";
+import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import { useDiscounts } from "@/lib/swr/use-discounts";
 import useGroup from "@/lib/swr/use-group";
+import useWorkspace from "@/lib/swr/use-workspace";
 import type { DiscountProps, GroupProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
@@ -76,11 +79,18 @@ const DiscountItem = ({
   group: GroupProps;
 }) => {
   const { slug } = useParams();
+  const { environment } = useWorkspace();
   const { queryParams } = useRouterStuff();
+  const { openCopyDiscountToLiveModal, CopyDiscountToLiveModal } =
+    useCopyDiscountToLiveModal();
+
   const As = discount ? Link : "div";
 
   return (
     <div>
+      {discount && isStagingEnvironment(environment) && (
+        <CopyDiscountToLiveModal />
+      )}
       <As
         href={
           discount
@@ -94,6 +104,7 @@ const DiscountItem = ({
           !discount && "bg-neutral-50 hover:bg-neutral-100",
         )}
         onClick={(e) => {
+          e.preventDefault();
           if (isClickOnInteractiveChild(e)) return;
           queryParams({
             set: {
@@ -122,6 +133,20 @@ const DiscountItem = ({
             {!discount && group.slug !== DEFAULT_PARTNER_GROUP.slug && (
               <CopyDefaultDiscountButton />
             )}
+
+            {discount && isStagingEnvironment(environment) && (
+              <Button
+                text="Copy to live"
+                variant="secondary"
+                className="h-9 w-full rounded-lg md:w-fit"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openCopyDiscountToLiveModal(discount);
+                }}
+              />
+            )}
+
             <Button
               text={discount ? "Edit" : "Create"}
               variant={discount ? "secondary" : "primary"}

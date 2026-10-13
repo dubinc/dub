@@ -48,6 +48,7 @@ import {
   sleep,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
+import { WorkspaceEnvironment } from "@prisma/client";
 import Link from "next/link";
 import { ComponentProps, CSSProperties, ReactNode, useMemo } from "react";
 import { toast } from "sonner";
@@ -84,6 +85,7 @@ export default function PlanUsage() {
     trialEndsAt,
     subscriptionCanceledAt,
     billingCycleEndsAt,
+    environment,
     defaultProgramId,
     loading,
     mutate,
@@ -93,6 +95,22 @@ export default function PlanUsage() {
     action: "billing.write",
     role,
   }).error;
+
+  const { error: managePlanStagingError } = clientAccessCheck({
+    action: "billing.write",
+    role,
+    environment,
+    restrictedEnvironments: [
+      WorkspaceEnvironment.staging,
+      WorkspaceEnvironment.sandbox,
+    ],
+    restrictedEnvironmentMessage:
+      environment === WorkspaceEnvironment.staging
+        ? "Plans can only be managed from your production workspace (your staging workspace inherits your production plan)."
+        : "You cannot manage your subscription in a sandbox workspace.",
+  });
+
+  const managePlanError = permissionsError || managePlanStagingError;
 
   const { StartPaidPlanModal, setShowStartPaidPlanModal } =
     useStartPaidPlanModal();
@@ -130,7 +148,10 @@ export default function PlanUsage() {
   }, [billingCycleStart, planPeriod, billingCycleEndsAt]);
 
   const usageTabs = useMemo(() => {
-    const tabs: ComponentProps<typeof UsageTabCard>[] = [
+    const tabs: Omit<
+      ComponentProps<typeof UsageTabCard>,
+      "managePlanError"
+    >[] = [
       {
         resource: "events",
         icon: CursorRays,
@@ -340,14 +361,14 @@ export default function PlanUsage() {
               ) : isWorkspaceBillingTrialActive(trialEndsAt) ? (
                 <DynamicTooltipWrapper
                   tooltipProps={
-                    permissionsError ? { content: permissionsError } : undefined
+                    managePlanError ? { content: managePlanError } : undefined
                   }
                 >
                   <Button
                     text="Start paid plan"
                     variant="primary"
                     className="h-9"
-                    disabled={Boolean(permissionsError)}
+                    disabled={Boolean(managePlanError)}
                     onClick={() => setShowStartPaidPlanModal(true)}
                     data-testid={testIds.billing.startPaidPlan}
                   />
@@ -355,25 +376,40 @@ export default function PlanUsage() {
               ) : showPendingCancellation ? (
                 <DynamicTooltipWrapper
                   tooltipProps={
-                    permissionsError ? { content: permissionsError } : undefined
+                    managePlanError ? { content: managePlanError } : undefined
                   }
                 >
                   <Button
                     text="Resume subscription"
                     variant="primary"
                     className="h-9"
-                    disabled={Boolean(permissionsError)}
+                    disabled={Boolean(managePlanError)}
                     onClick={() => setShowResubscribeModal(true)}
                   />
                 </DynamicTooltipWrapper>
               ) : (
-                <Link href={`/${slug}/settings/billing/upgrade`}>
-                  <Button
-                    text="Manage plan"
-                    variant="primary"
-                    className="h-9"
-                  />
-                </Link>
+                <DynamicTooltipWrapper
+                  tooltipProps={
+                    managePlanError ? { content: managePlanError } : undefined
+                  }
+                >
+                  {managePlanError ? (
+                    <Button
+                      text="Manage plan"
+                      variant="primary"
+                      className="h-9"
+                      disabled
+                    />
+                  ) : (
+                    <Link href={`/${slug}/settings/billing/upgrade`}>
+                      <Button
+                        text="Manage plan"
+                        variant="primary"
+                        className="h-9"
+                      />
+                    </Link>
+                  )}
+                </DynamicTooltipWrapper>
               ))}
 
             <Link
@@ -411,7 +447,11 @@ export default function PlanUsage() {
               )}
             >
               {usageTabs.map((tab) => (
-                <UsageTabCard key={tab.resource} {...tab} />
+                <UsageTabCard
+                  key={tab.resource}
+                  {...tab}
+                  managePlanError={managePlanError}
+                />
               ))}
             </div>
             <div className="w-full px-2 pb-8 md:px-8">
@@ -497,6 +537,7 @@ function UsageTabCard({
   limit: limitProp,
   unit,
   requiresUpgrade,
+  managePlanError,
 }: {
   resource: UsageResource;
   icon: Icon;
@@ -505,6 +546,7 @@ function UsageTabCard({
   limit?: number;
   unit?: string;
   requiresUpgrade?: boolean;
+  managePlanError: string | boolean;
 }) {
   const { queryParams, searchParamsObj } = useRouterStuff();
   const { slug, plan } = useWorkspace();
@@ -655,7 +697,11 @@ function UsageTabCard({
         </AnimatedSizeContainer>
       </button>
       {resource !== "payouts" && plan !== "enterprise" && (
-        <ManageUsageButton type={resource} warning={warning} />
+        <ManageUsageButton
+          type={resource}
+          warning={warning}
+          managePlanError={managePlanError}
+        />
       )}
     </div>
   );
@@ -664,9 +710,11 @@ function UsageTabCard({
 function ManageUsageButton({
   type,
   warning,
+  managePlanError,
 }: {
   type: "links" | "events";
   warning: boolean;
+  managePlanError: string | boolean;
 }) {
   const { ManageUsageModal, setShowManageUsageModal } = useManageUsageModal({
     type,
@@ -676,12 +724,21 @@ function ManageUsageButton({
     <>
       <ManageUsageModal />
       <div className="absolute right-3 top-3">
-        <Button
-          onClick={() => setShowManageUsageModal(true)}
-          text={warning ? "Upgrade" : "Manage"}
-          variant={warning ? "primary" : "secondary"}
-          className="h-6 px-1.5 text-xs"
-        />
+        <DynamicTooltipWrapper
+          tooltipProps={
+            managePlanError ? { content: managePlanError } : undefined
+          }
+        >
+          <span className="inline-flex">
+            <Button
+              onClick={() => setShowManageUsageModal(true)}
+              text={warning ? "Upgrade" : "Manage"}
+              variant={warning ? "primary" : "secondary"}
+              className="h-6 px-1.5 text-xs"
+              disabled={Boolean(managePlanError)}
+            />
+          </span>
+        </DynamicTooltipWrapper>
       </div>
     </>
   );

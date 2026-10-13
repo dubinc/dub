@@ -3,7 +3,10 @@ import {
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
 import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
-import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/constants/partner-profile";
+import {
+  PARTNER_CUSTOMERS_MAX_PAGE_SIZE,
+  PARTNER_PROGRAMS_MAX_PAGE_SIZE,
+} from "@/lib/constants/partner-profile";
 import {
   CommissionType,
   PartnerNetworkStatus,
@@ -11,6 +14,7 @@ import {
   PartnerProfileType,
   PartnerRole,
   ProgramEnrollmentStatus,
+  ReapplicationTimeframe,
   SubmittedLeadStatus,
 } from "@prisma/client";
 import * as z from "zod/v4";
@@ -25,9 +29,9 @@ import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
-import { getPaginationQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
-import { ProgramSchema } from "./programs";
+import { ProgramEnrollmentSchema, ProgramSchema } from "./programs";
 import { RewardSchema } from "./rewards";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
 import { centsSchema, parseUrlSchema } from "./utils";
@@ -289,13 +293,48 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
   folderId: true,
 });
 
+// GET /api/partner-profile/programs adds the reapplication timeframe, so that
+// a rejected program can say when the partner can apply again
+export const PartnerProfileProgramEnrollmentSchema =
+  ProgramEnrollmentSchema.extend({
+    reapplicationTimeframe: z.enum(ReapplicationTimeframe).nullish(),
+    inactiveAt: z
+      .date()
+      .nullish()
+      .describe(
+        "When the program banned, deactivated or archived the partner. For deactivated and archived enrollments, only set when `includeInactiveDates=true`. Null for other statuses, and when the date is not known.",
+      ),
+  });
+
 export const partnerProfileProgramsQuerySchema = z.object({
-  includeRewardsDiscounts: z.coerce.boolean().optional(),
-  status: z.enum(ProgramEnrollmentStatus).optional(),
+  includeRewardsDiscounts: booleanQuerySchema.optional(),
+  // looks up when deactivated and archived enrollments became inactive
+  includeInactiveDates: booleanQuerySchema.optional(),
+  // one status or a comma-separated list, for example "pending,rejected"
+  status: z
+    .string()
+    .transform((v) =>
+      v
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    )
+    .pipe(z.array(z.enum(ProgramEnrollmentStatus)).min(1))
+    .optional(),
+  search: z.string().trim().optional(),
+  sortBy: z.enum(["totalCommissions", "name"]).default("totalCommissions"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  // the list is paginated only when `page` is set, because most callers
+  // need every enrollment of the partner
+  ...getPaginationQuerySchema({ pageSize: PARTNER_PROGRAMS_MAX_PAGE_SIZE }),
 });
 
 export const partnerProfileProgramsCountQuerySchema =
-  partnerProfileProgramsQuerySchema.pick({ status: true });
+  partnerProfileProgramsQuerySchema
+    .pick({ status: true, search: true })
+    .extend({
+      groupBy: z.enum(["status"]).optional(),
+    });
 
 export const partnerNotificationTypes = z.enum([
   "commissionCreated",

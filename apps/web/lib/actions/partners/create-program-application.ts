@@ -20,6 +20,7 @@ import {
   formatWebsiteAndSocialsFields,
 } from "@/lib/partners/format-application-form-data";
 import { prisma } from "@/lib/prisma";
+import { throwIfApplicationBlocked } from "@/lib/program-applications/throw-if-application-blocked";
 import {
   ProgramApplicationFormData,
   ProgramApplicationFormDataWithValues,
@@ -42,6 +43,7 @@ import {
   ProgramEnrollment,
   ProgramEnrollmentStatus,
   Project,
+  ReapplicationTimeframe,
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { addDays } from "date-fns";
@@ -247,34 +249,6 @@ export const createProgramApplicationAction = actionClient
     return application;
   });
 
-function throwIfCannotApply({
-  enrollment,
-  groupId,
-}: {
-  enrollment: Pick<ProgramEnrollment, "status" | "groupId"> | null | undefined;
-  groupId: string;
-}) {
-  if (!enrollment) {
-    return;
-  }
-
-  if (enrollment.status === ProgramEnrollmentStatus.pending) {
-    throw new Error(
-      "You have an existing application for this program. Please wait for it to be reviewed.",
-    );
-  }
-
-  if (enrollment.status !== ProgramEnrollmentStatus.approved) {
-    throw new Error(
-      "You have already applied to this program. You cannot apply to this program again.",
-    );
-  }
-
-  if (enrollment.groupId === groupId) {
-    throw new Error("You're already in this group.");
-  }
-}
-
 async function createApplicationAndEnrollment({
   workspace,
   program,
@@ -293,7 +267,7 @@ async function createApplicationAndEnrollment({
   data: z.infer<typeof createProgramApplicationSchema>;
   inAppApplication?: boolean;
 }) {
-  throwIfCannotApply({
+  throwIfApplicationBlocked({
     enrollment: partner.programs.find((p) => p.programId === program.id),
     groupId: group.id,
   });
@@ -334,12 +308,56 @@ async function createApplicationAndEnrollment({
         select: {
           status: true,
           groupId: true,
+          createdAt: true,
+          reapplicationTimeframe: true,
         },
       });
 
-      throwIfCannotApply({
+      // If the partner is approved for another group and is applying to a new group,
+      // we need to check if they are within the reapplication window.
+      const shouldCheckReapplicationWindow =
+        enrollment?.status === ProgramEnrollmentStatus.approved &&
+        enrollment.groupId !== group.id &&
+        enrollment.reapplicationTimeframe !== ReapplicationTimeframe.instant;
+
+      let rejectedAt: Date | null = null;
+
+      // The stored timeframe belongs to the latest application reviewed since the
+      // enrollment was created, and only applies if that review was a rejection.
+      // Earlier rejections, or a rejection approved later, do not block.
+      if (shouldCheckReapplicationWindow) {
+        const latestReview = await tx.programApplication.findFirst({
+          where: {
+            programId: program.id,
+            partnerId: partner.id,
+            status: {
+              in: [
+                ProgramApplicationStatus.rejected,
+                ProgramApplicationStatus.approved,
+              ],
+            },
+            reviewedAt: {
+              gte: enrollment.createdAt,
+            },
+          },
+          orderBy: {
+            reviewedAt: "desc",
+          },
+          select: {
+            status: true,
+            reviewedAt: true,
+          },
+        });
+
+        if (latestReview?.status === ProgramApplicationStatus.rejected) {
+          rejectedAt = latestReview.reviewedAt;
+        }
+      }
+
+      throwIfApplicationBlocked({
         enrollment,
         groupId: group.id,
+        rejectedAt,
       });
 
       const pendingApplication = await tx.programApplication.findFirst({

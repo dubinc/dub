@@ -9,6 +9,7 @@ import {
   syncNameAndImageToPartner,
 } from "@/lib/partners/sync-partner-identity";
 import { prisma } from "@/lib/prisma";
+import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import { storage } from "@/lib/storage";
 import { uploadedImageSchema } from "@/lib/zod/schemas/images";
 import {
@@ -123,6 +124,13 @@ export const PATCH = withSession(async ({ req, session }) => {
           slug: defaultWorkspace,
         },
       },
+      select: {
+        project: {
+          select: {
+            environment: true,
+          },
+        },
+      },
     });
 
     if (!workspaceUser) {
@@ -131,6 +139,11 @@ export const PATCH = withSession(async ({ req, session }) => {
         message: `You don't have access to the workspace ${defaultWorkspace}.`,
       });
     }
+
+    assertProductionWorkspace(workspaceUser.project, {
+      message:
+        "You can only set your default workspace to a production workspace.",
+    });
   }
 
   // Verify email ownership if the email is being changed

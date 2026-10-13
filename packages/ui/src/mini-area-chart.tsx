@@ -14,6 +14,10 @@ export type MiniAreaChartProps = {
   curve?: boolean;
   color?: string;
   padding?: Partial<typeof defaultPadding>;
+  /** Fades the line and the area in from the left edge */
+  fadeIn?: boolean;
+  /** Draws a dot on the last data point */
+  showEndDot?: boolean;
 };
 
 export function MiniAreaChart(props: MiniAreaChartProps) {
@@ -36,6 +40,8 @@ function MiniAreaChartInner({
   curve = true,
   color,
   padding: paddingProp,
+  fadeIn = false,
+  showEndDot = false,
 }: MiniAreaChartProps & { width: number; height: number }) {
   const padding = { ...defaultPadding, ...paddingProp };
 
@@ -98,8 +104,32 @@ function MiniAreaChartInner({
         <mask id={`${id}-mask`} maskContentUnits="objectBoundingBox">
           <rect width="1" height="1" fill={`url(#${id}-mask-gradient)`} />
         </mask>
+        {fadeIn && (
+          <>
+            <LinearGradient
+              id={`${id}-fade-gradient`}
+              from="white"
+              to="white"
+              fromOpacity={0}
+              toOpacity={1}
+              fromOffset="0%"
+              toOffset="20%"
+              x1={0}
+              x2={1}
+              y1={0}
+              y2={0}
+            />
+            <mask id={`${id}-fade-mask`} maskContentUnits="objectBoundingBox">
+              <rect width="1" height="1" fill={`url(#${id}-fade-gradient)`} />
+            </mask>
+          </>
+        )}
       </defs>
-      <Group left={padding.left} top={padding.top}>
+      <Group
+        left={padding.left}
+        top={padding.top}
+        mask={fadeIn ? `url(#${id}-fade-mask)` : undefined}
+      >
         <Area
           data={data}
           x={({ date }) => xScale(date)}
@@ -136,6 +166,17 @@ function MiniAreaChartInner({
             );
           }}
         </AreaClosed>
+
+        {showEndDot && data.length > 0 && (
+          <motion.circle
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            cx={xScale(data[data.length - 1].date)}
+            cy={yScale(data[data.length - 1].value) ?? 0}
+            r={2.5}
+            fill={color || "#DA2778"}
+          />
+        )}
       </Group>
     </svg>
   );

@@ -17,7 +17,7 @@ export async function customerSubscriptionCreated({
   workspace,
 }: WebhookHandlerInput<Stripe.CustomerSubscriptionCreatedEvent>): Promise<WebhookHandlerResponse> {
   const createdSubscription = event.data.object;
-  const stripeAccountId = event.account as string;
+  const stripeAccountId = workspace.stripeConnectId!;
   const stripeCustomerId = createdSubscription.customer as string;
 
   // Non-trial subscription created — clear any prior cancellation timestamp

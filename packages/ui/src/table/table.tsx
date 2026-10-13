@@ -154,30 +154,37 @@ export function useTable<T extends any>(
               minSize: SELECT_COLUMN_WIDTH,
               size: SELECT_COLUMN_WIDTH,
               maxSize: SELECT_COLUMN_WIDTH,
-              header: ({ table }: { table: TableType<T> }) => (
-                <button
-                  type="button"
-                  className="flex size-full items-center justify-center"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    table.toggleAllRowsSelected();
-                  }}
-                  title="Select all"
-                >
-                  <Checkbox
-                    className="border-border-default pointer-events-none size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
-                    checked={
-                      table.getIsAllRowsSelected()
-                        ? true
-                        : table.getIsSomeRowsSelected()
-                          ? "indeterminate"
-                          : false
-                    }
-                  />
-                </button>
-              ),
+              header: ({ table }: { table: TableType<T> }) => {
+                const onSelectAll = (e: MouseEvent<HTMLElement>) => {
+                  e.stopPropagation();
+                  table.toggleAllRowsSelected();
+                };
+
+                // The checkbox is the control, the wrapper only widens the
+                // click area (a <button> wrapper would nest two buttons)
+                return (
+                  <div
+                    className="flex size-full cursor-pointer items-center justify-center"
+                    onClick={onSelectAll}
+                    title="Select all"
+                  >
+                    <Checkbox
+                      className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+                      checked={
+                        table.getIsAllRowsSelected()
+                          ? true
+                          : table.getIsSomeRowsSelected()
+                            ? "indeterminate"
+                            : false
+                      }
+                      onClick={onSelectAll}
+                      aria-label="Select all"
+                    />
+                  </div>
+                );
+              },
               cell: ({ row, table }: { row: Row<T>; table: TableType<T> }) => {
-                const onSelectRow = (e: MouseEvent<HTMLButtonElement>) => {
+                const onSelectRow = (e: MouseEvent<HTMLElement>) => {
                   e.stopPropagation();
                   const currentId = getRowId?.(row.original);
                   const rows = table.getRowModel().rows;
@@ -239,17 +246,18 @@ export function useTable<T extends any>(
                 };
 
                 return (
-                  <button
-                    type="button"
-                    className="flex size-full items-center justify-center"
+                  <div
+                    className="flex size-full cursor-pointer items-center justify-center"
                     onClick={onSelectRow}
                     title="Select"
                   >
                     <Checkbox
-                      className="border-border-default pointer-events-none size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+                      className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
                       checked={row.getIsSelected()}
+                      onClick={onSelectRow}
+                      aria-label="Select"
                     />
-                  </button>
+                  </div>
                 );
               },
             },

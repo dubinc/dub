@@ -5,7 +5,7 @@ describe("scrapedCountSchema", () => {
   it("rounds abbreviated-count float artifacts to the nearest integer", () => {
     expect(scrapedCountSchema.parse(16.1 * 1000)).toBe(16100);
     expect(scrapedCountSchema.parse(16099.999999999998)).toBe(16100);
-    expect(BigInt(scrapedCountSchema.parse(16.1 * 1000))).toBe(16100n);
+    expect(BigInt(scrapedCountSchema.parse(16.1 * 1000))).toBe(BigInt(16100));
   });
 
   it("passes integers through unchanged", () => {
