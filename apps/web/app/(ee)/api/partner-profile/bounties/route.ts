@@ -1,37 +1,55 @@
 import { getProgramEnrollmentsWhere } from "@/lib/api/partner-profile/get-program-enrollments-where";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { programEnrollmentEligibilityIncludes } from "@/lib/bounty/api/bounty-availability";
 import { getBountiesForPartnerEnrollments } from "@/lib/bounty/api/get-bounties-for-partner";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { getPartnerLinksStatsByProgram } from "@/lib/partners/get-partner-links-stats-by-program";
 import { prisma } from "@/lib/prisma";
-import { PartnerProfileBountySchema } from "@/lib/zod/schemas/partner-profile";
+import {
+  partnerProfileBountiesQuerySchema,
+  PartnerProfileBountySchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-// GET /api/partner-profile/bounties – get available bounties for all active program enrollments
-export const GET = withPartnerProfile(async ({ partner }) => {
+const programEnrollmentInclude = {
+  program: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      logo: true,
+      defaultGroupId: true,
+    },
+  },
+  ...programEnrollmentEligibilityIncludes,
+} satisfies Prisma.ProgramEnrollmentInclude;
+
+// GET /api/partner-profile/bounties – get available bounties for all active program enrollments (or a single program)
+export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
+  const { programIdOrSlug } =
+    partnerProfileBountiesQuerySchema.parse(searchParams);
+
   const [programEnrollments, linksStatsByProgram] = await Promise.all([
-    prisma.programEnrollment.findMany({
-      where: getProgramEnrollmentsWhere({
-        partnerId: partner.id,
-        // archived partners can still submit bounties
-        status: ACTIVE_ENROLLMENT_STATUSES,
-      }),
-      include: {
-        program: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            logo: true,
-            defaultGroupId: true,
-          },
-        },
-        ...programEnrollmentEligibilityIncludes,
-      },
-    }),
+    // one program accepts any enrollment status, as its program page does.
+    // The partner sidebar locks the page for unapproved enrollments
+    programIdOrSlug
+      ? getProgramEnrollmentOrThrow({
+          partnerId: partner.id,
+          programId: programIdOrSlug,
+          include: programEnrollmentInclude,
+        }).then((programEnrollment) => [programEnrollment])
+      : prisma.programEnrollment.findMany({
+          where: getProgramEnrollmentsWhere({
+            partnerId: partner.id,
+            // archived partners can still submit bounties
+            status: ACTIVE_ENROLLMENT_STATUSES,
+          }),
+          include: programEnrollmentInclude,
+        }),
     // summed in the database, because a partner can have many links in each program
     getPartnerLinksStatsByProgram({ partnerId: partner.id }),
   ]);

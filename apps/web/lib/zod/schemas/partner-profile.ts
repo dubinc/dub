@@ -319,9 +319,18 @@ export const PartnerBountySchema = BountySchema.omit({
   }),
 });
 
-// used in GET /partner-profile/bounties, which lists the bounties of all programs
+// used in GET /partner-profile/bounties, for all programs or for one program
 export const PartnerProfileBountySchema = PartnerBountySchema.extend({
   program: PartnerProfileEarningsProgramSchema,
+});
+
+export const partnerProfileBountiesQuerySchema = z.object({
+  programIdOrSlug: z
+    .string()
+    .optional()
+    .describe(
+      "The ID or slug of the program to filter bounties by. If not provided, bounties across all active programs are returned.",
+    ),
 });
 
 export const invitePartnerUserSchema = z.object({
