@@ -332,6 +332,67 @@ test.describe("GET /partner-profile/earnings", () => {
     }
   });
 
+  test("pages through earnings with the same createdAt without repeating or skipping one", async ({
+    playwright,
+    program,
+  }) => {
+    // two extra earnings with the same createdAt, so that only the ID tie-breaker orders them
+    const tiedIds = [createId({ prefix: "cm_" }), createId({ prefix: "cm_" })];
+    const createdAt = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+
+    await prisma.commission.createMany({
+      data: tiedIds.map((id) => ({
+        id,
+        createdAt,
+        programId: program.id,
+        partnerId: partnerId!,
+        type: "custom",
+        status: "pending",
+        amount: 0,
+        quantity: 1,
+        earnings: 100,
+      })),
+    });
+
+    try {
+      await withPartnerApi(playwright, async (partnerApi) => {
+        const list = `/api/partner-profile/earnings?programIdOrSlug=${programSlug}`;
+
+        const { data: all } =
+          await partnerApi.get<PartnerProfileEarning[]>(list);
+        const ids = all.map((e) => e.id);
+        expect(ids).toHaveLength(4);
+
+        // the tied earnings are next to each other, higher ID first (sortOrder desc)
+        const [higherId, lowerId] = [...tiedIds].sort().reverse();
+        expect(ids.indexOf(lowerId)).toEqual(ids.indexOf(higherId) + 1);
+
+        // one earning per page, with offset pages and with the cursor
+        const offsetIds: string[] = [];
+        const cursorIds: string[] = [];
+        for (let page = 1; page <= ids.length; page++) {
+          const { data } = await partnerApi.get<PartnerProfileEarning[]>(
+            `${list}&pageSize=1&page=${page}`,
+          );
+          offsetIds.push(...data.map((e) => e.id));
+
+          const cursor = cursorIds.at(-1);
+          const { data: cursorPage } = await partnerApi.get<
+            PartnerProfileEarning[]
+          >(`${list}&pageSize=1${cursor ? `&startingAfter=${cursor}` : ""}`);
+          cursorIds.push(...cursorPage.map((e) => e.id));
+        }
+
+        expect(offsetIds).toEqual(ids);
+        expect(cursorIds).toEqual(ids);
+      });
+    } finally {
+      await prisma.commission.deleteMany({
+        where: { id: { in: tiedIds } },
+      });
+    }
+  });
+
   test("returns 404 for a program the partner is not enrolled in", async ({
     playwright,
   }) => {
