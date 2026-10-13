@@ -36,7 +36,6 @@ export function TasksCard({ className }: { className?: string }) {
   ];
 
   // only on mobile: hide the card when no action is needed
-  // so that Recent payouts fills the column
   const incompleteTasks = tasks.filter(
     (task): task is typeof task & { count: number } => !!task.count,
   );
