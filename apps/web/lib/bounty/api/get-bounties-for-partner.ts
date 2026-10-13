@@ -65,36 +65,38 @@ export async function getBountiesForPartnerEnrollments({
     return [];
   }
 
+  // one filter for all enrollments, so the query size does not grow with the number of programs.
+  // Groups and tags belong to one program, so the union matches almost the same bounties, and
+  // canPartnerSeeBounty below checks each bounty against its own enrollment
   const bounties = await prisma.bounty.findMany({
     where: {
-      // limits the query to the programId index range before the per-program filters
       programId: {
         in: programEnrollments.map(({ program }) => program.id),
       },
       archivedAt: null,
-      OR: programEnrollments.map(
-        ({ program, groupId, programPartnerTags }) => ({
-          programId: program.id,
-          OR: [
-            {
-              submissions: {
-                some: {
-                  partnerId,
-                },
-              },
+      OR: [
+        {
+          submissions: {
+            some: {
+              partnerId,
             },
-            {
-              AND: [
-                buildBountyEligibilityWhere({
-                  groupId: groupId || program.defaultGroupId,
-                  partnerTagIds: pluck(programPartnerTags, "partnerTagId"),
-                }),
-                buildBountyActivePeriodWhere(),
-              ],
-            },
+          },
+        },
+        {
+          AND: [
+            buildBountyEligibilityWhere({
+              groupId: programEnrollments.map(
+                ({ program, groupId }) => groupId || program.defaultGroupId,
+              ),
+              partnerTagIds: programEnrollments.flatMap(
+                ({ programPartnerTags }) =>
+                  pluck(programPartnerTags, "partnerTagId"),
+              ),
+            }),
+            buildBountyActivePeriodWhere(),
           ],
-        }),
-      ),
+        },
+      ],
     },
     include: {
       ...bountyEligibilityIncludes,
