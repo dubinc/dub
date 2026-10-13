@@ -314,6 +314,11 @@ test.describe("GET /partner-profile/earnings", () => {
           (e) => e.program.id === programB.id,
         )!.id;
 
+        // a cursor that does not match the filters (every test earning is pending)
+        expect(
+          await partnerApi.get(`${list}&status=paid&startingAfter=${ids[0]}`),
+        ).toMatchObject({ status: 422 });
+
         for (const cursor of [programBEarningId, "cm_doesnotexist"]) {
           expect(
             await partnerApi.get(`${list}&startingAfter=${cursor}`),
