@@ -3,7 +3,7 @@
 import { testIds } from "@/lib/e2e/test-ids";
 import { ProgramLogo } from "@/ui/partners/program-logo";
 import { GridIcon } from "@dub/ui/icons";
-import { cn, currencyFormatter } from "@dub/utils";
+import { cn, currencyFormatter, formatPercentage } from "@dub/utils";
 import Link from "next/link";
 import {
   OVERVIEW_CARD_ROW_CLASSNAME,
@@ -14,15 +14,6 @@ import { useOverviewEarningsTimeseries } from "./use-overview-earnings-timeserie
 import { useTopProgramEarnings } from "./use-top-program-earnings";
 
 const ROW_COUNT = 6;
-
-const shareFormatter = new Intl.NumberFormat("en-US", {
-  style: "percent",
-  maximumFractionDigits: 1,
-});
-
-function formatShare(share: number) {
-  return share > 0 && share < 0.001 ? "<0.1%" : shareFormatter.format(share);
-}
 
 export function TopProgramsCard() {
   const { data, error } = useTopProgramEarnings();
@@ -81,7 +72,7 @@ export function TopProgramsCard() {
             <span className="w-10 shrink-0 text-right text-xs font-medium text-neutral-600">
               {/* clawbacks can make earnings or the total negative, and other programs' clawbacks can make one share exceed the total */}
               {total && total > 0 && program.earnings > 0
-                ? formatShare(Math.min(program.earnings / total, 1))
+                ? `${formatPercentage(Math.min(program.earnings / total, 1) * 100, { digits: 1 })}%`
                 : null}
             </span>
           </Link>
