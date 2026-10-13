@@ -17,14 +17,22 @@ type DateRange = {
   end?: Date;
 };
 
+// the only keys that go into the query string, in this order
+const PARTNER_PROFILE_EARNINGS_FILTER_KEYS = [
+  "programIdOrSlug",
+  "type",
+  "linkId",
+  "customerId",
+  "status",
+  "payoutId",
+] as const;
+
 // without programIdOrSlug, the routes return the earnings of all programs
-export type PartnerProfileEarningsFilters = {
-  programIdOrSlug?: string;
+export type PartnerProfileEarningsFilters = Partial<
+  Record<(typeof PARTNER_PROFILE_EARNINGS_FILTER_KEYS)[number], string>
+> & {
   type?: CommissionType;
-  linkId?: string;
-  customerId?: string;
   status?: CommissionStatus;
-  payoutId?: string;
 };
 
 type PartnerProfileEarningsQuery = DateRange &
@@ -153,9 +161,10 @@ function usePartnerProfileEarningsSWR<T>(
       `/api/partner-profile/earnings${path}?${new URLSearchParams({
         ...params,
         ...Object.fromEntries(
-          Object.entries(filters).filter(
-            (entry): entry is [string, string] => !!entry[1],
-          ),
+          PARTNER_PROFILE_EARNINGS_FILTER_KEYS.map((key) => [
+            key,
+            filters[key],
+          ]).filter(([, value]) => value),
         ),
         ...(start && end
           ? { start: start.toISOString(), end: end.toISOString() }
