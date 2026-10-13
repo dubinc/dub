@@ -17,24 +17,24 @@ export async function accountApplicationDeauthorized({
     };
   }
 
-  await prisma.project.update({
-    where: {
-      stripeConnectId: stripeAccountId,
-    },
-    data: {
-      stripeConnectId: null,
-    },
-    select: {
-      id: true,
-    },
-  });
+  await prisma.$transaction([
+    prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        stripeConnectId: null,
+        stripeConnectMode: null,
+      },
+    }),
 
-  await prisma.installedIntegration.deleteMany({
-    where: {
-      projectId: workspace.id,
-      integrationId: STRIPE_INTEGRATION_ID,
-    },
-  });
+    prisma.installedIntegration.deleteMany({
+      where: {
+        projectId: workspace.id,
+        integrationId: STRIPE_INTEGRATION_ID,
+      },
+    }),
+  ]);
 
   return {
     response: `Stripe Connect account ${stripeAccountId} deauthorized for workspace ${workspace.id}`,
