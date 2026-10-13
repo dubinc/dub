@@ -4,7 +4,6 @@ import { useProgramMessagesCount } from "@/lib/messages/hooks/use-program-messag
 import { getGroupSubmittedLeadForm } from "@/lib/submitted-leads/get-group-submitted-lead-form";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { usePartnerProfileBounties } from "@/lib/swr/use-partner-profile-bounties";
-import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { MarketplaceSidebarFilters } from "@/ui/program-marketplace/marketplace-sidebar-filters";
@@ -394,7 +393,8 @@ export function PartnersSidebarNav({
     [programEnrollment],
   );
 
-  const { bountiesCount } = usePartnerProgramBounties({
+  const { bountiesCount } = usePartnerProfileBounties({
+    programIdOrSlug: programSlug,
     enabled:
       isEnrolledProgramPage && programEnrollment && !isUnapproved
         ? true

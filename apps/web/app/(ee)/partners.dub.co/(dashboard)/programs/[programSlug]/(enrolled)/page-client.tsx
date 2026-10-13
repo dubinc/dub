@@ -3,6 +3,7 @@
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
+import { usePartnerDateRange } from "@/lib/analytics/use-partner-date-range";
 import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
 import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
@@ -10,9 +11,9 @@ import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
 import { getPartnerLinkDisplayRewards } from "@/lib/rewards/resolve-partner-link-rewards";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
-import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { usePartnerProfileEarningsTimeseries } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { GroupProps, PartnerProfileLinkProps } from "@/lib/types";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -63,7 +64,6 @@ import {
 } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
-import { endOfDay, startOfDay } from "date-fns";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
@@ -91,8 +91,9 @@ const ProgramOverviewContext = createContext<{
 });
 
 export function PartnerProgramOverviewPageClient() {
-  const { getQueryString, searchParamsObj } = useRouterStuff();
+  const { getQueryString } = useRouterStuff();
   const { programSlug } = useParams();
+  const { start, end, interval } = usePartnerDateRange();
 
   const [hideDetails, _setHideDetails] = useSyncedLocalStorage(
     `hide-program-details:${programSlug}`,
@@ -100,16 +101,6 @@ export function PartnerProgramOverviewPageClient() {
   );
 
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
-
-  const {
-    start,
-    end,
-    interval = DUB_PARTNERS_ANALYTICS_INTERVAL,
-  } = searchParamsObj as {
-    start?: string;
-    end?: string;
-    interval?: IntervalOptions;
-  };
 
   const program = programEnrollment?.program;
 
@@ -143,8 +134,8 @@ export function PartnerProgramOverviewPageClient() {
       )}
       <ProgramOverviewContext.Provider
         value={{
-          start: start ? startOfDay(new Date(start)) : undefined,
-          end: end ? endOfDay(new Date(end)) : undefined,
+          start,
+          end,
           interval,
           color: programEnrollment.group?.brandColor ?? undefined,
         }}
@@ -205,7 +196,8 @@ function EarningsChart() {
 
   const { programEnrollment } = useProgramEnrollment();
 
-  const { data: timeseries, error } = usePartnerEarningsTimeseries({
+  const { data: timeseries, error } = usePartnerProfileEarningsTimeseries({
+    programIdOrSlug: programSlug as string,
     interval,
     start,
     end,

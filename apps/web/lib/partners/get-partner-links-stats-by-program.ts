@@ -5,18 +5,20 @@ import {
   partnerLinkStatsSelect,
 } from "./aggregate-partner-links-stats";
 
-// the link stats of a partner in each of their programs, summed in the database
-// instead of loading every link. Programs without links are not in the map
+// the link stats of a partner in each of their programs, or in one program, summed in
+// the database instead of loading every link. Programs without links are not in the map
 export async function getPartnerLinksStatsByProgram({
   partnerId,
+  programId,
 }: {
   partnerId: string;
+  programId?: string;
 }) {
   const stats = await prisma.link.groupBy({
     by: ["programId"],
     where: {
       partnerId,
-      programId: {
+      programId: programId ?? {
         not: null,
       },
     },

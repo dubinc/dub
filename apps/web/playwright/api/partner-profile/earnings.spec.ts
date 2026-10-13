@@ -251,6 +251,148 @@ test.describe("GET /partner-profile/earnings", () => {
     });
   });
 
+  test("continues an offset page with startingAfter and endingBefore, and rejects a cursor from another program", async ({
+    playwright,
+    program,
+  }) => {
+    // two extra earnings whose createdAt order is the reverse of their ID order
+    const [olderId, newerId] = [
+      createId({ prefix: "cm_" }),
+      createId({ prefix: "cm_" }),
+    ].sort();
+    const day = 24 * 60 * 60 * 1000;
+
+    await prisma.commission.createMany({
+      data: [
+        { id: olderId, createdAt: new Date(Date.now() - day) },
+        { id: newerId, createdAt: new Date(Date.now() - 2 * day) },
+      ].map(({ id, createdAt }) => ({
+        id,
+        createdAt,
+        programId: program.id,
+        partnerId: partnerId!,
+        type: "custom",
+        status: "pending",
+        amount: 0,
+        quantity: 1,
+        earnings: 100,
+      })),
+    });
+
+    try {
+      await withPartnerApi(playwright, async (partnerApi) => {
+        const list = `/api/partner-profile/earnings?programIdOrSlug=${programSlug}`;
+
+        const { data: all } =
+          await partnerApi.get<PartnerProfileEarning[]>(list);
+        const ids = all.map((e) => e.id);
+        expect(ids).toHaveLength(4);
+        // sorted by createdAt first, so the lower ID comes first here
+        expect(ids.indexOf(olderId)).toBeLessThan(ids.indexOf(newerId));
+
+        const firstPage = await partnerApi.get<PartnerProfileEarning[]>(
+          `${list}&pageSize=2`,
+        );
+        expect(firstPage.data.map((e) => e.id)).toEqual(ids.slice(0, 2));
+
+        const after = await partnerApi.get<PartnerProfileEarning[]>(
+          `${list}&pageSize=2&startingAfter=${ids[1]}`,
+        );
+        expect(after.status).toEqual(200);
+        expect(after.data.map((e) => e.id)).toEqual(ids.slice(2, 4));
+
+        const before = await partnerApi.get<PartnerProfileEarning[]>(
+          `${list}&pageSize=2&endingBefore=${ids[3]}`,
+        );
+        expect(before.status).toEqual(200);
+        expect(before.data.map((e) => e.id)).toEqual(ids.slice(1, 3));
+
+        const { data: allPrograms } = await partnerApi.get<
+          PartnerProfileEarning[]
+        >("/api/partner-profile/earnings");
+        const programBEarningId = allPrograms.find(
+          (e) => e.program.id === programB.id,
+        )!.id;
+
+        // a cursor that does not match the filters (every test earning is pending)
+        expect(
+          await partnerApi.get(`${list}&status=paid&startingAfter=${ids[0]}`),
+        ).toMatchObject({ status: 422 });
+
+        for (const cursor of [programBEarningId, "cm_doesnotexist"]) {
+          expect(
+            await partnerApi.get(`${list}&startingAfter=${cursor}`),
+          ).toMatchObject({ status: 422 });
+        }
+      });
+    } finally {
+      await prisma.commission.deleteMany({
+        where: { id: { in: [olderId, newerId] } },
+      });
+    }
+  });
+
+  test("pages through earnings with the same createdAt without repeating or skipping one", async ({
+    playwright,
+    program,
+  }) => {
+    // two extra earnings with the same createdAt, so that only the ID tie-breaker orders them
+    const tiedIds = [createId({ prefix: "cm_" }), createId({ prefix: "cm_" })];
+    const createdAt = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+
+    await prisma.commission.createMany({
+      data: tiedIds.map((id) => ({
+        id,
+        createdAt,
+        programId: program.id,
+        partnerId: partnerId!,
+        type: "custom",
+        status: "pending",
+        amount: 0,
+        quantity: 1,
+        earnings: 100,
+      })),
+    });
+
+    try {
+      await withPartnerApi(playwright, async (partnerApi) => {
+        const list = `/api/partner-profile/earnings?programIdOrSlug=${programSlug}`;
+
+        const { data: all } =
+          await partnerApi.get<PartnerProfileEarning[]>(list);
+        const ids = all.map((e) => e.id);
+        expect(ids).toHaveLength(4);
+
+        // the tied earnings are next to each other, higher ID first (sortOrder desc)
+        const [higherId, lowerId] = [...tiedIds].sort().reverse();
+        expect(ids.indexOf(lowerId)).toEqual(ids.indexOf(higherId) + 1);
+
+        // one earning per page, with offset pages and with the cursor
+        const offsetIds: string[] = [];
+        const cursorIds: string[] = [];
+        for (let page = 1; page <= ids.length; page++) {
+          const { data } = await partnerApi.get<PartnerProfileEarning[]>(
+            `${list}&pageSize=1&page=${page}`,
+          );
+          offsetIds.push(...data.map((e) => e.id));
+
+          const cursor = cursorIds.at(-1);
+          const { data: cursorPage } = await partnerApi.get<
+            PartnerProfileEarning[]
+          >(`${list}&pageSize=1${cursor ? `&startingAfter=${cursor}` : ""}`);
+          cursorIds.push(...cursorPage.map((e) => e.id));
+        }
+
+        expect(offsetIds).toEqual(ids);
+        expect(cursorIds).toEqual(ids);
+      });
+    } finally {
+      await prisma.commission.deleteMany({
+        where: { id: { in: tiedIds } },
+      });
+    }
+  });
+
   test("returns 404 for a program the partner is not enrolled in", async ({
     playwright,
   }) => {
@@ -334,7 +476,7 @@ test.describe("GET /partner-profile/earnings", () => {
       );
 
       const byLink = await partnerApi.get<TimeseriesPoint[]>(
-        `/api/partner-profile/programs/${program.id}/earnings/timeseries?groupBy=linkId&timezone=UTC`,
+        `/api/partner-profile/earnings/timeseries?programIdOrSlug=${program.id}&groupBy=linkId&timezone=UTC`,
       );
       expect(byLink.status).toEqual(200);
       expect(byLink.data.reduce((sum, d) => sum + d.earnings, 0)).toEqual(3500);
@@ -492,7 +634,7 @@ test.describe("GET /partner-profile/earnings", () => {
     await withPartnerApi(playwright, async (partnerApi) => {
       expect(
         await partnerApi.get(
-          "/api/partner-profile/programs/prog_doesnotexist/earnings/timeseries",
+          "/api/partner-profile/earnings/timeseries?programIdOrSlug=prog_doesnotexist",
         ),
       ).toMatchObject({ status: 404 });
 
