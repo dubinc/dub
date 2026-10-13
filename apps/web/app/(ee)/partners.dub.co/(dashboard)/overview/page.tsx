@@ -21,7 +21,7 @@ export default function PartnerOverviewPage() {
           align="start"
           defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
         />
-        {/* below lg, the wrappers are `contents`, so that `order` can move Recent payouts and Top links below Recent earnings */}
+        {/* below lg, the wrappers are `contents`, so that `order` can move Recent payouts, Tasks and Top links below Recent earnings */}
         <div className="contents lg:block lg:rounded-2xl lg:bg-neutral-50 lg:p-4">
           <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_397px] lg:gap-4">
             <div className="rounded-2xl bg-neutral-50 p-4 lg:contents">
@@ -34,14 +34,14 @@ export default function PartnerOverviewPage() {
               >
                 <PayoutsCard className="h-full min-h-0 flex-1" />
               </div>
-              <TasksCard />
+              <TasksCard className="max-lg:order-2" />
             </div>
           </div>
         </div>
         <div className="contents lg:grid lg:grid-cols-3 lg:gap-4">
           <TopProgramsCard />
           <RecentEarningsCard />
-          <TopLinksCard className="max-lg:order-2" />
+          <TopLinksCard className="max-lg:order-3" />
         </div>
       </PageWidthWrapper>
     </PageContent>
