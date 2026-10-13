@@ -17,7 +17,8 @@ test.use({
   },
 });
 
-const DESKTOP_VIEWPORT = { width: 1280, height: 720 };
+// wide enough for the desktop Overview layout, which needs a 64rem page next to the sidebar
+const DESKTOP_VIEWPORT = { width: 1440, height: 900 };
 const MOBILE_VIEWPORT = { width: 390, height: 844 };
 
 // reads every card position at once, so that a card that is still loading cannot move between two reads
