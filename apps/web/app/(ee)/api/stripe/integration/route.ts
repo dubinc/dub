@@ -15,16 +15,17 @@ const CORS_HEADERS = new Headers({
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 });
 
+const updateStripeIntegrationSchema = z.object({
+  stripeAccountId: z.string().nullable(), // null on disconnect
+  stripeMode: stripeIntegrationSettingsSchema.shape.stripeMode,
+});
+
 // PATCH /api/stripe/integration - update a workspace with a stripe connect account id
 export const PATCH = withWorkspace(
   async ({ req, workspace, token }) => {
     const body = await parseRequestBody(req);
-    const { stripeAccountId, stripeMode } = z
-      .object({
-        stripeAccountId: z.string().nullable(),
-        stripeMode: stripeIntegrationSettingsSchema.shape.stripeMode,
-      })
-      .parse(body);
+    const { stripeAccountId, stripeMode } =
+      updateStripeIntegrationSchema.parse(body);
 
     if (!token?.installationId) {
       throw new DubApiError({
@@ -63,6 +64,8 @@ export const PATCH = withWorkspace(
         },
         data: {
           stripeConnectId: stripeAccountId,
+          // stripeMode always defaults to "live", so clear it explicitly on disconnect
+          stripeConnectMode: stripeAccountId ? stripeMode : null,
         },
         select: {
           stripeConnectId: true,
