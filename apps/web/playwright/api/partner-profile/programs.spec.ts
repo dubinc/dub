@@ -214,7 +214,7 @@ test.describe("GET /partner-profile/programs", () => {
     });
   });
 
-  test("returns the inactive date from bannedAt and from the latest status log", async ({
+  test("returns the inactive date from bannedAt, and from the latest status log for inactive status filters", async ({
     playwright,
   }) => {
     const bannedAt = new Date("2026-09-01T12:00:00.000Z");
@@ -268,6 +268,19 @@ test.describe("GET /partner-profile/programs", () => {
           [beta.id]: deactivatedAt.toISOString(),
           [gamma.id]: null,
         });
+
+        // without an inactive status filter, the route skips the activity log lookup
+        const { data: all } = await partnerApi.get<
+          (PartnerProfileProgram & { inactiveAt: string | null })[]
+        >("/api/partner-profile/programs");
+        const allInactiveAt = Object.fromEntries(
+          all.map((enrollment) => [
+            enrollment.program.id,
+            enrollment.inactiveAt,
+          ]),
+        );
+        expect(allInactiveAt[alpha.id]).toEqual(bannedAt.toISOString());
+        expect(allInactiveAt[beta.id]).toBeNull();
       });
     } finally {
       await prisma.activityLog.delete({ where: { id: activityLog.id } });
