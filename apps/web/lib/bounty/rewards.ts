@@ -50,17 +50,27 @@ export function getBountyRewardAmount(
   return null;
 }
 
+// "$50" or "Up to $300", and with a prefix, "Earn $50" or "Earn up to $300"
+export function formatBountyRewardAmount(
+  reward: { amount: number; isMaximum: boolean },
+  { prefix }: { prefix?: string } = {},
+) {
+  const formattedAmount = currencyFormatter(reward.amount, {
+    trailingZeroDisplay: "stripIfInteger",
+  });
+
+  const text = [prefix, reward.isMaximum && "up to", formattedAmount]
+    .filter(Boolean)
+    .join(" ");
+
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 export function getBountyRewardDescription(bounty: BountyRewardFields) {
   const reward = getBountyRewardAmount(bounty);
 
   if (reward) {
-    const formattedAmount = currencyFormatter(reward.amount, {
-      trailingZeroDisplay: "stripIfInteger",
-    });
-
-    return reward.isMaximum
-      ? `Earn up to ${formattedAmount}`
-      : `Earn ${formattedAmount}`;
+    return formatBountyRewardAmount(reward, { prefix: "Earn" });
   }
 
   if (bounty.rewardDescription) {

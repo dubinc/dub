@@ -1,4 +1,5 @@
 import {
+  formatBountyRewardAmount,
   getBountyRewardAmount,
   getBountyRewardDescription,
 } from "@/lib/bounty/rewards";
@@ -51,6 +52,29 @@ describe("getBountyRewardAmount", () => {
 
   it("returns null for a bounty without an amount", () => {
     expect(getBountyRewardAmount(customBounty)).toBeNull();
+  });
+});
+
+describe("formatBountyRewardAmount", () => {
+  it("formats a fixed amount", () => {
+    expect(formatBountyRewardAmount({ amount: 5_000, isMaximum: false })).toBe(
+      "$50",
+    );
+  });
+
+  it("formats a maximum amount", () => {
+    expect(formatBountyRewardAmount({ amount: 30_000, isMaximum: true })).toBe(
+      "Up to $300",
+    );
+  });
+
+  it("adds the prefix", () => {
+    expect(
+      formatBountyRewardAmount(
+        { amount: 30_000, isMaximum: true },
+        { prefix: "Earn" },
+      ),
+    ).toBe("Earn up to $300");
   });
 });
 
