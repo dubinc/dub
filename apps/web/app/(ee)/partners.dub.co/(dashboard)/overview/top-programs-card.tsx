@@ -10,15 +10,20 @@ import {
   OverviewCard,
   OverviewCardList,
 } from "./overview-card";
-import { useOverviewEarningsTimeseries } from "./use-overview-earnings-timeseries";
 import { useTopProgramEarnings } from "./use-top-program-earnings";
 
 const ROW_COUNT = 6;
 
 export function TopProgramsCard() {
   const { data, error } = useTopProgramEarnings();
-  const { total } = useOverviewEarningsTimeseries();
   const programs = data?.slice(0, ROW_COUNT);
+
+  // the share of positive earnings, so that the shares add up to 100%.
+  // A net total can be lower than one program's earnings when other programs have clawbacks
+  const positiveTotal = data?.reduce(
+    (sum, program) => sum + Math.max(program.earnings, 0),
+    0,
+  );
 
   // the bars are relative to the top program, so its bar fills the name column.
   // the rows are sorted by earnings, so no other bar is wider.
@@ -70,9 +75,9 @@ export function TopProgramsCard() {
               {currencyFormatter(program.earnings)}
             </span>
             <span className="w-10 shrink-0 text-right text-xs font-medium text-neutral-600">
-              {/* clawbacks can make earnings or the total negative, and other programs' clawbacks can make one share exceed the total */}
-              {total && total > 0 && program.earnings > 0
-                ? `${formatPercentage(Math.min(program.earnings / total, 1) * 100, { digits: 1 })}%`
+              {/* clawbacks can make a program's earnings negative, so it has no share */}
+              {positiveTotal && program.earnings > 0
+                ? `${formatPercentage((program.earnings / positiveTotal) * 100, { digits: 1 })}%`
                 : null}
             </span>
           </Link>

@@ -2,6 +2,7 @@
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { testIds } from "@/lib/e2e/test-ids";
+import { usePartnerProfileEarningsTimeseries } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { ProgramLogo } from "@/ui/partners/program-logo";
 import { useIsTouchDevice } from "@dub/ui";
@@ -19,7 +20,6 @@ import { LinearGradient } from "@visx/gradient";
 import { useRouter } from "next/navigation";
 import { useId, useMemo } from "react";
 import { useOverviewDateRange } from "./use-overview-date-range";
-import { useOverviewEarningsTimeseries } from "./use-overview-earnings-timeseries";
 import { useTopProgramEarnings } from "./use-top-program-earnings";
 
 const MAX_TOOLTIP_PROGRAMS = 5;
@@ -33,7 +33,12 @@ export function EarningsChart() {
   // stops partners from reading the tooltip
   const isTouchDevice = useIsTouchDevice();
 
-  const { data: timeseries, error, total } = useOverviewEarningsTimeseries();
+  const { data: timeseries, error } = usePartnerProfileEarningsTimeseries({
+    groupBy: "programId",
+    interval,
+    start,
+    end,
+  });
 
   const { programEnrollments } = useProgramEnrollments();
   const { data: topPrograms } = useTopProgramEarnings();
@@ -49,6 +54,11 @@ export function EarningsChart() {
           []),
       ]),
     [programEnrollments, topPrograms],
+  );
+
+  const total = useMemo(
+    () => timeseries?.reduce((acc, { earnings }) => acc + earnings, 0),
+    [timeseries],
   );
 
   const data = useMemo(
