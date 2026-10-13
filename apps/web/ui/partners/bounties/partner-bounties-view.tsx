@@ -22,6 +22,10 @@ import { PARTNER_BOUNTY_TAB_CONFIG } from "./partner-bounty-tab-config";
 
 type BountiesView = "grid" | "table";
 
+// without a saved view, the page starts on the table for partners with more
+// active bounties than this, the same rule as the Programs page
+const BOUNTIES_TABLE_VIEW_THRESHOLD = 6;
+
 // the bounty tabs with the grid and list views, for one program or for all programs
 export function PartnerBountiesView<T extends PartnerBountyRow>({
   bounties,
@@ -38,10 +42,15 @@ export function PartnerBountiesView<T extends PartnerBountyRow>({
 }) {
   const { searchParams, queryParams } = useRouterStuff();
 
-  const [view, setView] = useLocalStorage<BountiesView>(
+  // null until the partner chooses a view with the toggle
+  const [savedView, setView] = useLocalStorage<BountiesView | null>(
     "partner-bounties-view",
-    "grid",
+    null,
   );
+
+  const view: BountiesView =
+    savedView ??
+    (bountiesCount.active > BOUNTIES_TABLE_VIEW_THRESHOLD ? "table" : "grid");
 
   const tab =
     PARTNER_BOUNTY_TABS.find((id) => id === searchParams.get("tab")) ??
