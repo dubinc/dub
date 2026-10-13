@@ -1,5 +1,6 @@
 import { getProgramEnrollmentsWhere } from "@/lib/api/partner-profile/get-program-enrollments-where";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { programEnrollmentEligibilityIncludes } from "@/lib/bounty/api/bounty-availability";
 import { getBountiesForPartnerEnrollments } from "@/lib/bounty/api/get-bounties-for-partner";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { getPartnerLinksStatsByProgram } from "@/lib/partners/get-partner-links-stats-by-program";
@@ -28,11 +29,7 @@ export const GET = withPartnerProfile(async ({ partner }) => {
             defaultGroupId: true,
           },
         },
-        programPartnerTags: {
-          select: {
-            partnerTagId: true,
-          },
-        },
+        ...programEnrollmentEligibilityIncludes,
       },
     }),
     // summed in the database, because a partner can have many links in each program

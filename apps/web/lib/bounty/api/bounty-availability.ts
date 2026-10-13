@@ -141,6 +141,15 @@ export const bountyEligibilityIncludes = {
   },
 } satisfies Prisma.BountyInclude;
 
+// the program enrollment relations that the bounty eligibility checks need
+export const programEnrollmentEligibilityIncludes = {
+  programPartnerTags: {
+    select: {
+      partnerTagId: true,
+    },
+  },
+} satisfies Prisma.ProgramEnrollmentInclude;
+
 export function getEffectiveBountyPeriod({
   programEnrollment,
   bounty,
