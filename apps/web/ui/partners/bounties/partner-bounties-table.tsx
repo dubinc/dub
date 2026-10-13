@@ -18,8 +18,6 @@ import {
 } from "./bounty-performance";
 import { BountyThumbnailImage } from "./bounty-thumbnail-image";
 
-const PAGE_SIZE = 10;
-
 // the program is only set on the bounties of all programs
 export type PartnerBountyRow = PartnerBountyProps & {
   program?: Pick<ProgramProps, "name" | "logo">;
@@ -135,7 +133,7 @@ export function PartnerBountiesTable<T extends PartnerBountyRow>({
   }>({ sortBy: "endsAt", sortOrder: "asc" });
 
   const { pagination, setPagination } = useTablePagination({
-    pageSize: PAGE_SIZE,
+    pageSize: 50,
     page: 1,
   });
 
