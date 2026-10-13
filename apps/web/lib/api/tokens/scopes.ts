@@ -302,7 +302,7 @@ export type LegacyScopeGrant = {
 
 // Keys and OAuth installations created before this date were made before the
 // partner program scopes existed.
-export const PARTNER_SCOPES_ENFORCED_AT = new Date("2026-10-15T00:00:00.000Z");
+export const PARTNER_SCOPES_ENFORCED_AT = new Date("2026-10-13T18:35:00.000Z");
 
 // Scopes introduced after API keys already existed. A key or OAuth installation
 // created before `enforcedAt` keeps these permissions without selecting the scope.
