@@ -158,27 +158,17 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
   const { data: earningsTimeseries, error: earningsError } =
     usePartnerProfileEarningsTimeseries({
       programIdOrSlug: programSlug,
-      interval: "30d",
-      ...(startDate && endDate && { start: startDate, end: endDate }),
+      start: startDate,
+      end: endDate,
       enabled: isCommissions,
     });
 
   const data = useMemo(() => {
     if (isCommissions) {
-      if (!earningsTimeseries) {
-        return undefined;
-      }
-
-      if (!Array.isArray(earningsTimeseries)) {
-        return [];
-      }
-
-      return earningsTimeseries.map(
-        ({ start, earnings }: { start: string; earnings: number }) => ({
-          date: new Date(start),
-          values: { main: earnings },
-        }),
-      );
+      return earningsTimeseries?.map(({ start, earnings }) => ({
+        date: new Date(start),
+        values: { main: earnings },
+      }));
     }
 
     if (!attribute) {
