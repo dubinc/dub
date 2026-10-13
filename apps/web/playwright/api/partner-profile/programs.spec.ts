@@ -214,6 +214,77 @@ test.describe("GET /partner-profile/programs", () => {
     });
   });
 
+  test("returns the inactive date from bannedAt and from the latest status log", async ({
+    playwright,
+  }) => {
+    const bannedAt = new Date("2026-09-01T12:00:00.000Z");
+    const deactivatedAt = new Date("2026-09-14T12:00:00.000Z");
+
+    // alpha is banned, beta is deactivated with a log, and gamma is archived without a log
+    await prisma.programEnrollment.update({
+      where: {
+        partnerId_programId: { partnerId: partnerId!, programId: alpha.id },
+      },
+      data: { status: "banned", bannedAt },
+    });
+    await prisma.programEnrollment.update({
+      where: {
+        partnerId_programId: { partnerId: partnerId!, programId: beta.id },
+      },
+      data: { status: "deactivated" },
+    });
+    await prisma.programEnrollment.update({
+      where: {
+        partnerId_programId: { partnerId: partnerId!, programId: gamma.id },
+      },
+      data: { status: "archived" },
+    });
+    const activityLog = await prisma.activityLog.create({
+      data: {
+        workspaceId: beta.workspaceId,
+        programId: beta.id,
+        resourceType: "partner",
+        resourceId: partnerId!,
+        action: "partner.deactivated",
+        createdAt: deactivatedAt,
+      },
+    });
+
+    try {
+      await withPartnerApi(playwright, async (partnerApi) => {
+        const { status, data } = await partnerApi.get<
+          (PartnerProfileProgram & { inactiveAt: string | null })[]
+        >("/api/partner-profile/programs?status=banned,deactivated,archived");
+
+        expect(status).toEqual(200);
+        const inactiveAt = Object.fromEntries(
+          data.map((enrollment) => [
+            enrollment.program.id,
+            enrollment.inactiveAt,
+          ]),
+        );
+        expect(inactiveAt).toEqual({
+          [alpha.id]: bannedAt.toISOString(),
+          [beta.id]: deactivatedAt.toISOString(),
+          [gamma.id]: null,
+        });
+      });
+    } finally {
+      await prisma.activityLog.delete({ where: { id: activityLog.id } });
+      for (const program of [alpha, beta, gamma]) {
+        await prisma.programEnrollment.update({
+          where: {
+            partnerId_programId: {
+              partnerId: partnerId!,
+              programId: program.id,
+            },
+          },
+          data: { status: program.status, bannedAt: null },
+        });
+      }
+    }
+  });
+
   test("rejects an unknown status", async ({ playwright }) => {
     await withPartnerApi(playwright, async (partnerApi) => {
       const { status } = await partnerApi.get(
