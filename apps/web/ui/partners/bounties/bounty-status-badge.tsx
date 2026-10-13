@@ -25,6 +25,22 @@ function getBountyBadgeState(
     ? formatDate(bounty.endsAt, { month: "short" })
     : null;
 
+  // completed comes first, so that a completed bounty shows the same state as its tab, even after it ends
+  if (isPartnerBountyCompleted(bounty)) {
+    const lastSubmission = bounty.submissions?.[0];
+    const isPendingReview =
+      bounty.type === "performance" && lastSubmission?.status === "submitted";
+
+    return {
+      status: "completed",
+      endsAtFormatted,
+      completedAtFormatted: formatDate(lastSubmission?.completedAt ?? now, {
+        month: "short",
+      }),
+      isPendingReview,
+    };
+  }
+
   const isExpired = endsAt !== null && endsAt < now;
 
   if (isExpired) {
@@ -47,21 +63,6 @@ function getBountyBadgeState(
       status: "expiring_soon",
       endsAtFormatted,
       completedAtFormatted: null,
-    };
-  }
-
-  if (isPartnerBountyCompleted(bounty)) {
-    const lastSubmission = bounty.submissions?.[0];
-    const isPendingReview =
-      bounty.type === "performance" && lastSubmission?.status === "submitted";
-
-    return {
-      status: "completed",
-      endsAtFormatted,
-      completedAtFormatted: formatDate(lastSubmission?.completedAt ?? now, {
-        month: "short",
-      }),
-      isPendingReview,
     };
   }
 
