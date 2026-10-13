@@ -88,6 +88,12 @@ function BountySubmissionDetailsSheetContent({
     customPermissionDescription: "review bounty submissions",
   }).error;
 
+  const refreshPermissionsError = clientAccessCheck({
+    action: "bounties.write",
+    role,
+    customPermissionDescription: "refresh bounty stats",
+  }).error;
+
   const { setShowRejectModal, RejectBountySubmissionModal } =
     useRejectBountySubmissionModal(submission, onNext);
 
@@ -462,6 +468,7 @@ function BountySubmissionDetailsSheetContent({
                         text="Refresh"
                         loading={isRefreshingSocialMetrics}
                         onClick={refreshSubmissionSocialMetrics}
+                        disabledTooltip={refreshPermissionsError}
                         className="h-8 rounded-lg px-3"
                       />
                     </div>

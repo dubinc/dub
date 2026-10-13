@@ -40,7 +40,7 @@ export const POST = withWorkspace(
     return NextResponse.json(rejectedSubmission);
   },
   {
+    requiredPermissions: ["bounties.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );
