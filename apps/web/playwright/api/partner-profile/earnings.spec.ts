@@ -251,6 +251,42 @@ test.describe("GET /partner-profile/earnings", () => {
     });
   });
 
+  test("pages with startingAfter and endingBefore, and rejects a cursor from another program", async ({
+    playwright,
+  }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      const { data: all } = await partnerApi.get<PartnerProfileEarning[]>(
+        "/api/partner-profile/earnings",
+      );
+      // cursor pages are sorted by commission ID, newest first
+      const ids = all.map((e) => e.id).sort((a, b) => (a < b ? 1 : -1));
+      expect(ids).toHaveLength(3);
+
+      const after = await partnerApi.get<PartnerProfileEarning[]>(
+        `/api/partner-profile/earnings?startingAfter=${ids[0]}&pageSize=2`,
+      );
+      expect(after.status).toEqual(200);
+      expect(after.data.map((e) => e.id)).toEqual([ids[1], ids[2]]);
+
+      const before = await partnerApi.get<PartnerProfileEarning[]>(
+        `/api/partner-profile/earnings?endingBefore=${ids[2]}&pageSize=1`,
+      );
+      expect(before.status).toEqual(200);
+      expect(before.data.map((e) => e.id)).toEqual([ids[1]]);
+
+      const programBEarningId = all.find(
+        (e) => e.program.id === programB.id,
+      )!.id;
+      for (const cursor of [programBEarningId, "cm_doesnotexist"]) {
+        expect(
+          await partnerApi.get(
+            `/api/partner-profile/earnings?programIdOrSlug=${programSlug}&startingAfter=${cursor}`,
+          ),
+        ).toMatchObject({ status: 422 });
+      }
+    });
+  });
+
   test("returns 404 for a program the partner is not enrolled in", async ({
     playwright,
   }) => {
