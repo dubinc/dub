@@ -1,3 +1,4 @@
+import { isPartnerBountyCompleted } from "@/lib/bounty/partner-bounty-tabs";
 import { PartnerBountyProps } from "@/lib/types";
 import { StatusBadge } from "@dub/ui";
 import { formatDate } from "@dub/utils";
@@ -49,14 +50,7 @@ function getBountyBadgeState(
     };
   }
 
-  const isCompleted =
-    bounty.type === "performance"
-      ? (bounty.submissions?.[0]?.performanceCount ?? 0) >=
-        (bounty.performanceCondition?.value ?? 0)
-      : (bounty.submissions?.filter((s) => s.status !== "draft").length ?? 0) >=
-        (bounty.maxSubmissions ?? 1);
-
-  if (isCompleted) {
+  if (isPartnerBountyCompleted(bounty)) {
     const lastSubmission = bounty.submissions?.[0];
     const isPendingReview =
       bounty.type === "performance" && lastSubmission?.status === "submitted";
