@@ -1,4 +1,5 @@
 import { fetcher } from "@dub/utils";
+import { CommissionStatus, CommissionType } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 import useSWR from "swr";
@@ -16,15 +17,57 @@ type DateRange = {
   end?: Date;
 };
 
+// without programIdOrSlug, the routes return the earnings of all programs
+export type PartnerProfileEarningsFilters = {
+  programIdOrSlug?: string;
+  type?: CommissionType;
+  linkId?: string;
+  customerId?: string;
+  status?: CommissionStatus;
+  payoutId?: string;
+};
+
+type PartnerProfileEarningsQuery = DateRange &
+  PartnerProfileEarningsFilters & {
+    enabled?: boolean;
+  };
+
 // GET /api/partner-profile/earnings
 export function usePartnerProfileEarnings({
   pageSize,
-  ...dateRange
-}: DateRange & { pageSize: number }) {
+  page,
+  sortBy,
+  sortOrder,
+  ...query
+}: PartnerProfileEarningsQuery & {
+  pageSize: number;
+  page?: number;
+  sortBy?: "createdAt" | "amount" | "earnings";
+  sortOrder?: "asc" | "desc";
+}) {
   return usePartnerProfileEarningsSWR<PartnerProfileEarningsResponse[]>(
     "",
-    { pageSize: String(pageSize) },
-    dateRange,
+    {
+      pageSize: String(pageSize),
+      ...(page !== undefined && { page: String(page) }),
+      ...(sortBy && { sortBy }),
+      ...(sortOrder && { sortOrder }),
+    },
+    query,
+  );
+}
+
+// GET /api/partner-profile/earnings/count
+export function usePartnerProfileEarningsCount<T = { count: number }>({
+  groupBy,
+  ...query
+}: PartnerProfileEarningsQuery & {
+  groupBy?: "linkId" | "customerId" | "status" | "type";
+}) {
+  return usePartnerProfileEarningsSWR<T>(
+    "/count",
+    { ...(groupBy && { groupBy }) },
+    query,
   );
 }
 
@@ -38,12 +81,14 @@ type PartnerProfileEarningsTimeseries = {
 // GET /api/partner-profile/earnings/timeseries
 export function usePartnerProfileEarningsTimeseries({
   groupBy,
-  ...dateRange
-}: DateRange & { groupBy?: "type" | "linkId" | "programId" }) {
+  ...query
+}: PartnerProfileEarningsQuery & {
+  groupBy?: "type" | "linkId" | "programId";
+}) {
   return usePartnerProfileEarningsSWR<PartnerProfileEarningsTimeseries>(
     "/timeseries",
     { ...(groupBy && { groupBy }) },
-    dateRange,
+    query,
   );
 }
 
@@ -73,7 +118,9 @@ export function usePartnerProfileEarningsAnalytics<
   limit,
   ...dateRange
 }: DateRange & { groupBy: G; limit?: number }) {
-  return usePartnerProfileEarningsSWR<PartnerProfileEarningsAnalyticsByGroup[G]>(
+  return usePartnerProfileEarningsSWR<
+    PartnerProfileEarningsAnalyticsByGroup[G]
+  >(
     "/analytics",
     {
       groupBy,
@@ -86,15 +133,27 @@ export function usePartnerProfileEarningsAnalytics<
 function usePartnerProfileEarningsSWR<T>(
   path: string,
   params: Record<string, string>,
-  { interval, start, end }: DateRange,
+  {
+    interval,
+    start,
+    end,
+    enabled = true,
+    ...filters
+  }: PartnerProfileEarningsQuery,
 ) {
   const { data: session } = useSession();
   const partnerId = session?.user?.["defaultPartnerId"];
 
-  const { data, error } = useSWR<T>(
-    partnerId &&
+  const { data, error, isLoading } = useSWR<T>(
+    enabled &&
+      partnerId &&
       `/api/partner-profile/earnings${path}?${new URLSearchParams({
         ...params,
+        ...Object.fromEntries(
+          Object.entries(filters).filter(
+            (entry): entry is [string, string] => !!entry[1],
+          ),
+        ),
         ...(start && end
           ? { start: start.toISOString(), end: end.toISOString() }
           : { interval: interval ?? DUB_PARTNERS_ANALYTICS_INTERVAL }),
@@ -107,5 +166,5 @@ function usePartnerProfileEarningsSWR<T>(
     },
   );
 
-  return { data, error };
+  return { data, error, isLoading };
 }
