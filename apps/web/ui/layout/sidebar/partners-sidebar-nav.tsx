@@ -3,12 +3,14 @@
 import { useProgramMessagesCount } from "@/lib/messages/hooks/use-program-messages-count";
 import { getGroupSubmittedLeadForm } from "@/lib/submitted-leads/get-group-submitted-lead-form";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { usePartnerProfileBounties } from "@/lib/swr/use-partner-profile-bounties";
 import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { MarketplaceSidebarFilters } from "@/ui/program-marketplace/marketplace-sidebar-filters";
 import { ProgramMarketplaceCard } from "@/ui/program-marketplace/program-marketplace-card";
 import { isMarketplaceFilterSidebarPath } from "@/ui/program-marketplace/utils/urls";
+import { formatTabBadgeCount } from "@/ui/shared/sheet-tabs";
 import { type Icon, useMediaQuery, useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -57,6 +59,7 @@ type SidebarNavData = {
   invitationsCount?: number;
   unreadMessagesCount?: number;
   programBountiesCount?: number;
+  allBountiesCount?: number;
   showDetailedAnalytics?: boolean;
   postbacksEnabled?: boolean;
   hasReferralReward?: boolean;
@@ -75,7 +78,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     icon: GridIcon,
     // the middleware sends "/" to /overview or /programs, depending on the partner's programs
     href: "/",
-    active: ["/overview", "/programs", "/marketplace"].some((p) =>
+    active: ["/overview", "/programs", "/marketplace", "/bounties"].some((p) =>
       pathname.startsWith(p),
     ),
   },
@@ -107,9 +110,11 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
 
 const PROGRAMS_CONTENT = ({
   invitationsCount,
+  allBountiesCount,
 }: {
   invitationsCount?: number;
-}): { items: NavItemType[] }[] => [
+  allBountiesCount?: number;
+}): { name?: string; items: NavItemType[] }[] => [
   {
     items: [
       {
@@ -132,21 +137,34 @@ const PROGRAMS_CONTENT = ({
       },
     ],
   },
+  {
+    name: "Engage",
+    items: [
+      {
+        name: "Bounties",
+        icon: Trophy,
+        href: "/bounties",
+        badge: formatTabBadgeCount(allBountiesCount),
+      },
+    ],
+  },
 ];
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
-  programs: ({ invitationsCount }) => ({
+  programs: ({ invitationsCount, allBountiesCount }) => ({
     title: <PartnerProgramDropdown />,
-    content: PROGRAMS_CONTENT({ invitationsCount }),
+    content: PROGRAMS_CONTENT({ invitationsCount, allBountiesCount }),
     direction: "left",
   }),
 
-  marketplace: ({ isMobile, invitationsCount }) => ({
+  marketplace: ({ isMobile, invitationsCount, allBountiesCount }) => ({
     title: <PartnerProgramDropdown />,
-    content: isMobile
-      ? PROGRAMS_CONTENT({ invitationsCount })
-      : <MarketplaceSidebarFilters />,
+    content: isMobile ? (
+      PROGRAMS_CONTENT({ invitationsCount, allBountiesCount })
+    ) : (
+      <MarketplaceSidebarFilters />
+    ),
     direction: "right",
   }),
 
@@ -270,10 +288,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Bounties",
             icon: Trophy,
             href: `/programs/${programSlug}/bounties` as `/${string}`,
-            badge:
-              programBountiesCount && programBountiesCount > 99
-                ? "99+"
-                : programBountiesCount || undefined,
+            badge: formatTabBadgeCount(programBountiesCount),
             locked: isUnapproved,
           },
           ...(submittedLeadsEnabled
@@ -399,6 +414,12 @@ export function PartnersSidebarNav({
 
   const { isMobile } = useMediaQuery();
 
+  // only load the bounties of all programs where the sidebar shows them
+  const { bountiesCount: allBountiesCount } = usePartnerProfileBounties({
+    enabled:
+      currentArea === "programs" || (currentArea === "marketplace" && isMobile),
+  });
+
   const { partner } = usePartnerProfile();
 
   const referralsActive =
@@ -441,6 +462,7 @@ export function PartnersSidebarNav({
         invitationsCount,
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
+        allBountiesCount: allBountiesCount.active,
         showDetailedAnalytics,
         postbacksEnabled: partner?.featureFlags?.postbacks,
         hasReferralReward: !!programEnrollment?.referralRewardId,

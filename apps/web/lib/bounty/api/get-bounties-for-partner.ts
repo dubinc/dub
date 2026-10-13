@@ -1,11 +1,17 @@
 import {
   aggregatePartnerLinksStats,
   PartnerLink,
+  PartnerLinksStats,
 } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { pluck } from "@dub/utils";
-import { Program, ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
+import {
+  Program,
+  ProgramEnrollment,
+  ProgramPartnerTag,
+  Workflow,
+} from "@prisma/client";
 import * as z from "zod/v4";
 import {
   bountyEligibilityIncludes,
@@ -15,29 +21,58 @@ import {
   getEffectiveBountyPeriod,
 } from "./bounty-availability";
 
-type GetBountiesForPartnerParams = Pick<
+type PartnerBountyEnrollment = Pick<
   ProgramEnrollment,
-  "groupId" | "partnerId" | "totalCommissions" | "createdAt" | "status"
+  "groupId" | "totalCommissions" | "createdAt" | "status"
 > & {
-  links: PartnerLink[];
   program: Pick<Program, "id" | "defaultGroupId">;
   programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
 };
 
 export async function getBountiesForPartner({
-  program,
   links,
-  programPartnerTags,
+  partnerId,
   ...programEnrollment
-}: GetBountiesForPartnerParams) {
-  const { groupId, partnerId, totalCommissions, createdAt } = programEnrollment;
+}: PartnerBountyEnrollment &
+  Pick<ProgramEnrollment, "partnerId"> & {
+    links: PartnerLink[];
+  }) {
+  const bounties = await getBountiesForPartnerEnrollments({
+    partnerId,
+    programEnrollments: [
+      {
+        ...programEnrollment,
+        partnerLinksStats: aggregatePartnerLinksStats(links),
+      },
+    ],
+  });
 
-  const partnerGroupId = groupId || program.defaultGroupId;
-  const partnerTagIds = pluck(programPartnerTags, "partnerTagId");
+  return z.array(PartnerBountySchema).parse(bounties);
+}
 
+// the bounties a partner can see across their program enrollments, in one query.
+// Each bounty keeps its programId, so callers can match it to its program
+export async function getBountiesForPartnerEnrollments({
+  partnerId,
+  programEnrollments,
+}: {
+  partnerId: string;
+  programEnrollments: (PartnerBountyEnrollment & {
+    partnerLinksStats: PartnerLinksStats;
+  })[];
+}) {
+  if (programEnrollments.length === 0) {
+    return [];
+  }
+
+  // one filter for all enrollments, so the query size does not grow with the number of programs.
+  // Groups and tags belong to one program, so the union matches almost the same bounties, and
+  // canPartnerSeeBounty below checks each bounty against its own enrollment
   const bounties = await prisma.bounty.findMany({
     where: {
-      programId: program.id,
+      programId: {
+        in: programEnrollments.map(({ program }) => program.id),
+      },
       archivedAt: null,
       OR: [
         {
@@ -50,8 +85,13 @@ export async function getBountiesForPartner({
         {
           AND: [
             buildBountyEligibilityWhere({
-              groupId: partnerGroupId,
-              partnerTagIds,
+              groupId: programEnrollments.map(
+                ({ program, groupId }) => groupId || program.defaultGroupId,
+              ),
+              partnerTagIds: programEnrollments.flatMap(
+                ({ programPartnerTags }) =>
+                  pluck(programPartnerTags, "partnerTagId"),
+              ),
             }),
             buildBountyActivePeriodWhere(),
           ],
@@ -86,41 +126,64 @@ export async function getBountiesForPartner({
     },
   });
 
-  const partnerLinkStats = aggregatePartnerLinksStats(links);
-
-  const visibleBounties = bounties.filter((bounty) =>
-    canPartnerSeeBounty({
-      program,
-      bounty,
-      programEnrollment: {
-        ...programEnrollment,
-        programPartnerTags,
-      },
-    }),
+  const enrollmentsByProgramId = new Map(
+    programEnrollments.map((programEnrollment) => [
+      programEnrollment.program.id,
+      programEnrollment,
+    ]),
   );
 
-  return z.array(PartnerBountySchema).parse(
-    visibleBounties.map((bounty) => {
-      const performanceCondition =
-        bounty.workflow?.triggerConditions?.[0] || null;
+  return bounties.flatMap((bounty) => {
+    const programEnrollment = enrollmentsByProgramId.get(bounty.programId);
 
-      const { startsAt, endsAt } = getEffectiveBountyPeriod({
-        programEnrollment: {
-          createdAt,
-        },
+    if (
+      !programEnrollment ||
+      !canPartnerSeeBounty({
+        program: programEnrollment.program,
         bounty,
-      });
+        programEnrollment,
+      })
+    ) {
+      return [];
+    }
 
-      return {
-        ...bounty,
-        startsAt,
-        endsAt,
-        performanceCondition,
-        partner: {
-          ...partnerLinkStats,
-          totalCommissions,
-        },
-      };
-    }),
-  );
+    return [
+      toPartnerBounty({
+        bounty,
+        programEnrollment,
+        partnerLinksStats: programEnrollment.partnerLinksStats,
+      }),
+    ];
+  });
+}
+
+// adds the partner's bounty period, performance condition and stats to a bounty
+export function toPartnerBounty<
+  T extends Parameters<typeof getEffectiveBountyPeriod>[0]["bounty"] & {
+    workflow: Pick<Workflow, "triggerConditions"> | null;
+  },
+>({
+  bounty,
+  programEnrollment,
+  partnerLinksStats,
+}: {
+  bounty: T;
+  programEnrollment: Pick<ProgramEnrollment, "createdAt" | "totalCommissions">;
+  partnerLinksStats: PartnerLinksStats;
+}) {
+  const { startsAt, endsAt } = getEffectiveBountyPeriod({
+    programEnrollment,
+    bounty,
+  });
+
+  return {
+    ...bounty,
+    startsAt,
+    endsAt,
+    performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
+    partner: {
+      ...partnerLinksStats,
+      totalCommissions: programEnrollment.totalCommissions,
+    },
+  };
 }
