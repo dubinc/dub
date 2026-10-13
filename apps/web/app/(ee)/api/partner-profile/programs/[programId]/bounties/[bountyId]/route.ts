@@ -4,8 +4,8 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   bountyEligibilityIncludes,
   canPartnerSeeBounty,
-  getEffectiveBountyPeriod,
 } from "@/lib/bounty/api/bounty-availability";
+import { toPartnerBounty } from "@/lib/bounty/api/get-bounties-for-partner";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
@@ -88,23 +88,13 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
-  const { startsAt, endsAt } = getEffectiveBountyPeriod({
-    programEnrollment,
-    bounty,
-  });
-
-  const { groups, partnerTags, ...bountyWithoutGroups } = bounty;
-
   return NextResponse.json(
-    PartnerBountySchema.parse({
-      ...bountyWithoutGroups,
-      startsAt,
-      endsAt,
-      performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
-      partner: {
-        ...aggregatePartnerLinksStats(links),
-        totalCommissions: programEnrollment.totalCommissions,
-      },
-    }),
+    PartnerBountySchema.parse(
+      toPartnerBounty({
+        bounty,
+        programEnrollment,
+        partnerLinksStats: aggregatePartnerLinksStats(links),
+      }),
+    ),
   );
 });
