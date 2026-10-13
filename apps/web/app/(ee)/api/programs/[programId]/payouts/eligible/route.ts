@@ -16,20 +16,25 @@ import { NextResponse } from "next/server";
  * - option to set a cutoff period to include commissions up to that date
  */
 
-export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const programId = getDefaultProgramIdOrThrow(workspace);
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const query = eligiblePayoutsQuerySchema.parse(searchParams);
+    const query = eligiblePayoutsQuerySchema.parse(searchParams);
 
-  const program = await getProgramOrThrow({
-    workspaceId: workspace.id,
-    programId,
-  });
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
+      programId,
+    });
 
-  const eligiblePayouts = await getEligiblePayouts({
-    ...query,
-    program,
-  });
+    const eligiblePayouts = await getEligiblePayouts({
+      ...query,
+      program,
+    });
 
-  return NextResponse.json(eligiblePayouts);
-});
+    return NextResponse.json(eligiblePayouts);
+  },
+  {
+    requiredPermissions: ["payouts.read"],
+  },
+);

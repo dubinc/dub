@@ -48,126 +48,131 @@ const STAGE_SORT_COLUMN: Record<
 };
 
 // GET /api/program-applications/analytics
-export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const programId = getDefaultProgramIdOrThrow(workspace);
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const parsedFilters =
-    applicationEventAnalyticsQuerySchema.parse(searchParams);
+    const parsedFilters =
+      applicationEventAnalyticsQuerySchema.parse(searchParams);
 
-  const {
-    event,
-    groupBy,
-    partnerId,
-    country,
-    referralSource,
-    start,
-    end,
-    interval,
-    timezone: timezoneParam,
-  } = parsedFilters;
-
-  // Align with CONVERT_TZ in raw SQL and analyticsQuerySchema default (UTC when omitted).
-  const timezone = timezoneParam ?? "UTC";
-
-  const { startDate, endDate } = getStartEndDates({
-    interval,
-    start,
-    end,
-    timezone,
-  });
-
-  const partnerFilter = parseFilterValue(partnerId);
-  const countryFilter = parseFilterValue(country);
-  const referralSourceFilter = parseFilterValue(referralSource);
-
-  const where: Prisma.ProgramApplicationEventWhereInput = {
-    programId,
-    ...(partnerFilter && {
-      referredByPartnerId:
-        partnerFilter.sqlOperator === "NOT IN"
-          ? { notIn: partnerFilter.values }
-          : { in: partnerFilter.values },
-    }),
-    ...(referralSourceFilter && {
-      referralSource:
-        referralSourceFilter.sqlOperator === "NOT IN"
-          ? { notIn: referralSourceFilter.values }
-          : { in: referralSourceFilter.values },
-    }),
-    ...(countryFilter && {
-      country:
-        countryFilter.sqlOperator === "NOT IN"
-          ? { notIn: countryFilter.values }
-          : { in: countryFilter.values },
-    }),
-    visitedAt: {
-      gte: startDate,
-      lt: endDate,
-    },
-  };
-
-  const responseSchema = applicationEventAnalyticsSchema[groupBy];
-
-  // Get the absolute counts
-  if (groupBy === "count") {
-    const { _count } = await prisma.programApplicationEvent.aggregate({
-      where,
-      ...aggregations,
-    });
-
-    return NextResponse.json(responseSchema.parse(formatCounts(_count)));
-  }
-
-  // Get the counts grouped by the specified column
-  if (["referralSource", "country"].includes(groupBy)) {
-    const groupByColumnMap = {
-      referralSource: "referralSource",
-      country: "country",
-    };
-
-    const groupByColumn = groupByColumnMap[groupBy];
-
-    const events = await prisma.programApplicationEvent.groupBy({
-      by: [groupByColumn],
-      where,
-      ...aggregations,
-      orderBy: {
-        _count: {
-          [groupBy]: "desc",
-        },
-      },
-    });
-
-    const results = events
-      .filter((row) => row[groupByColumn] !== null)
-      .map((row) => ({
-        [groupBy]: row[groupByColumn],
-        ...formatCounts(row._count),
-      }));
-
-    return NextResponse.json(z.array(responseSchema).parse(results));
-  }
-
-  // Get the counts grouped by the partner
-  if (groupBy === "partnerId") {
-    return byPartnerId({
-      where,
-      programId,
+    const {
       event,
-    });
-  }
+      groupBy,
+      partnerId,
+      country,
+      referralSource,
+      start,
+      end,
+      interval,
+      timezone: timezoneParam,
+    } = parsedFilters;
 
-  // Get the timeseries
-  if (groupBy === "timeseries") {
-    return byTimeseries({
-      ...parsedFilters,
-      programId,
+    // Align with CONVERT_TZ in raw SQL and analyticsQuerySchema default (UTC when omitted).
+    const timezone = timezoneParam ?? "UTC";
+
+    const { startDate, endDate } = getStartEndDates({
+      interval,
+      start,
+      end,
       timezone,
     });
-  }
 
-  return NextResponse.json(null);
-});
+    const partnerFilter = parseFilterValue(partnerId);
+    const countryFilter = parseFilterValue(country);
+    const referralSourceFilter = parseFilterValue(referralSource);
+
+    const where: Prisma.ProgramApplicationEventWhereInput = {
+      programId,
+      ...(partnerFilter && {
+        referredByPartnerId:
+          partnerFilter.sqlOperator === "NOT IN"
+            ? { notIn: partnerFilter.values }
+            : { in: partnerFilter.values },
+      }),
+      ...(referralSourceFilter && {
+        referralSource:
+          referralSourceFilter.sqlOperator === "NOT IN"
+            ? { notIn: referralSourceFilter.values }
+            : { in: referralSourceFilter.values },
+      }),
+      ...(countryFilter && {
+        country:
+          countryFilter.sqlOperator === "NOT IN"
+            ? { notIn: countryFilter.values }
+            : { in: countryFilter.values },
+      }),
+      visitedAt: {
+        gte: startDate,
+        lt: endDate,
+      },
+    };
+
+    const responseSchema = applicationEventAnalyticsSchema[groupBy];
+
+    // Get the absolute counts
+    if (groupBy === "count") {
+      const { _count } = await prisma.programApplicationEvent.aggregate({
+        where,
+        ...aggregations,
+      });
+
+      return NextResponse.json(responseSchema.parse(formatCounts(_count)));
+    }
+
+    // Get the counts grouped by the specified column
+    if (["referralSource", "country"].includes(groupBy)) {
+      const groupByColumnMap = {
+        referralSource: "referralSource",
+        country: "country",
+      };
+
+      const groupByColumn = groupByColumnMap[groupBy];
+
+      const events = await prisma.programApplicationEvent.groupBy({
+        by: [groupByColumn],
+        where,
+        ...aggregations,
+        orderBy: {
+          _count: {
+            [groupBy]: "desc",
+          },
+        },
+      });
+
+      const results = events
+        .filter((row) => row[groupByColumn] !== null)
+        .map((row) => ({
+          [groupBy]: row[groupByColumn],
+          ...formatCounts(row._count),
+        }));
+
+      return NextResponse.json(z.array(responseSchema).parse(results));
+    }
+
+    // Get the counts grouped by the partner
+    if (groupBy === "partnerId") {
+      return byPartnerId({
+        where,
+        programId,
+        event,
+      });
+    }
+
+    // Get the timeseries
+    if (groupBy === "timeseries") {
+      return byTimeseries({
+        ...parsedFilters,
+        programId,
+        timezone,
+      });
+    }
+
+    return NextResponse.json(null);
+  },
+  {
+    requiredPermissions: ["program_applications.read"],
+  },
+);
 
 async function byPartnerId({
   where,

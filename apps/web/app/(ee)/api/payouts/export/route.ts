@@ -56,4 +56,7 @@ export const GET = withWorkspace(
       },
     });
   },
+  {
+    requiredPermissions: ["payouts.read"],
+  },
 );

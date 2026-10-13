@@ -26,6 +26,7 @@ export const GET = withWorkspace(
     return NextResponse.json(EnrolledPartnerSchemaExtended.parse(partner));
   },
   {
+    requiredPermissions: ["partners.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

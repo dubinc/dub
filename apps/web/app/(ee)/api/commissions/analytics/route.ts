@@ -130,41 +130,46 @@ function commissionSqlConditions({
 }
 
 // GET /api/commissions/analytics
-export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const programId = getDefaultProgramIdOrThrow(workspace);
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const parsed = commissionAnalyticsQuerySchema.parse(searchParams);
-  const { groupBy } = parsed;
+    const parsed = commissionAnalyticsQuerySchema.parse(searchParams);
+    const { groupBy } = parsed;
 
-  if (groupBy === "timeseries") {
-    return byTimeseries({ workspace, programId, parsed });
-  }
+    if (groupBy === "timeseries") {
+      return byTimeseries({ workspace, programId, parsed });
+    }
 
-  const { startDate, endDate } = getStartEndDates({
-    interval: parsed.interval,
-    start: parsed.start,
-    end: parsed.end,
-    timezone: parsed.timezone,
-  });
+    const { startDate, endDate } = getStartEndDates({
+      interval: parsed.interval,
+      start: parsed.start,
+      end: parsed.end,
+      timezone: parsed.timezone,
+    });
 
-  if (groupBy === "type") {
-    return byType({ programId, parsed, startDate, endDate });
-  }
+    if (groupBy === "type") {
+      return byType({ programId, parsed, startDate, endDate });
+    }
 
-  if (groupBy === "groupId") {
-    return byGroupId({ programId, parsed, startDate, endDate });
-  }
+    if (groupBy === "groupId") {
+      return byGroupId({ programId, parsed, startDate, endDate });
+    }
 
-  if (groupBy === "partnerTagId") {
-    return byPartnerTagIdId({ programId, parsed, startDate, endDate });
-  }
+    if (groupBy === "partnerTagId") {
+      return byPartnerTagIdId({ programId, parsed, startDate, endDate });
+    }
 
-  if (groupBy === "partnerId") {
-    return byPartnerId({ programId, parsed, startDate, endDate });
-  }
+    if (groupBy === "partnerId") {
+      return byPartnerId({ programId, parsed, startDate, endDate });
+    }
 
-  return NextResponse.json(null);
-});
+    return NextResponse.json(null);
+  },
+  {
+    requiredPermissions: ["commissions.read"],
+  },
+);
 
 async function byType({
   programId,

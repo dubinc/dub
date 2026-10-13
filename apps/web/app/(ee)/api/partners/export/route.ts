@@ -58,6 +58,7 @@ export const GET = withWorkspace(
     });
   },
   {
+    requiredPermissions: ["partners.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

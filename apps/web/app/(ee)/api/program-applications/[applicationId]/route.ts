@@ -5,24 +5,29 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/program-applications/[applicationId] – get a partner application
-export const GET = withWorkspace(async ({ workspace, params }) => {
-  const programId = getDefaultProgramIdOrThrow(workspace);
+export const GET = withWorkspace(
+  async ({ workspace, params }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const application = await prisma.programApplication.findUnique({
-    where: {
-      id: params.applicationId,
-    },
-    include: {
-      partnerGroup: true,
-    },
-  });
-
-  if (!application || application.programId !== programId) {
-    throw new DubApiError({
-      code: "not_found",
-      message: `Application ${params.applicationId} not found.`,
+    const application = await prisma.programApplication.findUnique({
+      where: {
+        id: params.applicationId,
+      },
+      include: {
+        partnerGroup: true,
+      },
     });
-  }
 
-  return NextResponse.json(application);
-});
+    if (!application || application.programId !== programId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Application ${params.applicationId} not found.`,
+      });
+    }
+
+    return NextResponse.json(application);
+  },
+  {
+    requiredPermissions: ["program_applications.read"],
+  },
+);

@@ -169,6 +169,7 @@ export const GET = withWorkspace(
     return NextResponse.json(data);
   },
   {
+    requiredPermissions: ["bounties.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
@@ -389,7 +390,7 @@ export const POST = withWorkspace(
     return NextResponse.json(createdBounty);
   },
   {
+    requiredPermissions: ["bounties.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );

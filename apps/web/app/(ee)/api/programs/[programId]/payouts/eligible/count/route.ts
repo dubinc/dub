@@ -12,51 +12,56 @@ import { NextResponse } from "next/server";
 /*
  * GET /api/programs/[programId]/payouts/eligible/count - get count of eligible payouts
  */
-export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const programId = getDefaultProgramIdOrThrow(workspace);
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const { cutoffPeriod, selectedPayoutIds, excludedPayoutIds } =
-    eligiblePayoutsCountQuerySchema.parse(searchParams);
+    const { cutoffPeriod, selectedPayoutIds, excludedPayoutIds } =
+      eligiblePayoutsCountQuerySchema.parse(searchParams);
 
-  const program = await getProgramOrThrow({
-    workspaceId: workspace.id,
-    programId,
-  });
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
+      programId,
+    });
 
-  const cutoffPeriodValue = CUTOFF_PERIOD.find(
-    (c) => c.id === cutoffPeriod,
-  )?.value;
+    const cutoffPeriodValue = CUTOFF_PERIOD.find(
+      (c) => c.id === cutoffPeriod,
+    )?.value;
 
-  // Requires special re-computing and filtering of payouts, so we just have to fetch all of them
-  if (cutoffPeriodValue) {
-    const eligiblePayouts = await getEligiblePayouts({
-      program,
-      cutoffPeriod,
-      selectedPayoutIds,
-      excludedPayoutIds,
-      pageSize: Infinity,
-      page: 1,
+    // Requires special re-computing and filtering of payouts, so we just have to fetch all of them
+    if (cutoffPeriodValue) {
+      const eligiblePayouts = await getEligiblePayouts({
+        program,
+        cutoffPeriod,
+        selectedPayoutIds,
+        excludedPayoutIds,
+        pageSize: Infinity,
+        page: 1,
+      });
+
+      return NextResponse.json({
+        count: eligiblePayouts.length ?? 0,
+        amount: eligiblePayouts.reduce((acc, payout) => acc + payout.amount, 0),
+      });
+    }
+
+    const data = await prisma.payout.aggregate({
+      where: {
+        ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
+        ...getPayoutEligibilityFilter({ program }),
+      },
+      _count: true,
+      _sum: {
+        amount: true,
+      },
     });
 
     return NextResponse.json({
-      count: eligiblePayouts.length ?? 0,
-      amount: eligiblePayouts.reduce((acc, payout) => acc + payout.amount, 0),
+      count: data._count ?? 0,
+      amount: data._sum?.amount ?? 0,
     });
-  }
-
-  const data = await prisma.payout.aggregate({
-    where: {
-      ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
-      ...getPayoutEligibilityFilter({ program }),
-    },
-    _count: true,
-    _sum: {
-      amount: true,
-    },
-  });
-
-  return NextResponse.json({
-    count: data._count ?? 0,
-    amount: data._sum?.amount ?? 0,
-  });
-});
+  },
+  {
+    requiredPermissions: ["payouts.read"],
+  },
+);

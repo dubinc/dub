@@ -27,6 +27,7 @@ export const GET = withWorkspace(
     return NextResponse.json(z.array(PartnerCommentSchema).parse(comments));
   },
   {
+    requiredPermissions: ["partners.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
