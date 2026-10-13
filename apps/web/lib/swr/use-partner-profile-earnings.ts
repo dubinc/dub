@@ -30,6 +30,8 @@ export type PartnerProfileEarningsFilters = {
 type PartnerProfileEarningsQuery = DateRange &
   PartnerProfileEarningsFilters & {
     enabled?: boolean;
+    // turn off when the same component shows the earnings of another payout or customer next
+    keepPreviousData?: boolean;
   };
 
 // GET /api/partner-profile/earnings
@@ -138,6 +140,7 @@ function usePartnerProfileEarningsSWR<T>(
     start,
     end,
     enabled = true,
+    keepPreviousData = true,
     ...filters
   }: PartnerProfileEarningsQuery,
 ) {
@@ -162,7 +165,7 @@ function usePartnerProfileEarningsSWR<T>(
     fetcher,
     {
       dedupingInterval: 60000,
-      keepPreviousData: true,
+      keepPreviousData,
     },
   );
 
