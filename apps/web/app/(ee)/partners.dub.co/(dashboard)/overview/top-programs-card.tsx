@@ -29,7 +29,8 @@ export function TopProgramsCard() {
   const { total } = useOverviewEarningsTimeseries();
   const programs = data?.slice(0, ROW_COUNT);
 
-  // the bars are relative to the top program, so its bar fills the name column
+  // the bars are relative to the top program, so its bar fills the name column.
+  // the rows are sorted by earnings, so no other bar is wider.
   const topEarnings = programs?.[0]?.earnings ?? 0;
 
   return (
@@ -48,7 +49,7 @@ export function TopProgramsCard() {
           icon: <GridIcon className="size-4" />,
           title: "No earnings in this date range",
         }}
-        renderItem={(program) => (
+        renderItem={(program, index) => (
           <Link
             href={`/programs/${program.slug}`}
             className={cn(
@@ -61,11 +62,11 @@ export function TopProgramsCard() {
                 <div
                   className={cn(
                     "absolute -left-3 top-1/2 h-8 -translate-y-1/2 rounded-lg bg-neutral-100",
-                    program.id === programs?.[0]?.id &&
+                    index === 0 &&
                       "bg-gradient-to-r from-[#ededed] to-neutral-100",
                   )}
                   style={{
-                    width: `calc(${Math.min(Math.max(program.earnings / topEarnings, 0), 1) * 100}% + 12px)`,
+                    width: `calc(${(Math.max(program.earnings, 0) / topEarnings) * 100}% + 12px)`,
                   }}
                 />
               )}
