@@ -5,7 +5,7 @@ export const PARTNER_BOUNTY_TABS = ["active", "completed", "expired"] as const;
 export type PartnerBountyTab = (typeof PARTNER_BOUNTY_TABS)[number];
 
 // the partner reached the goal: the performance target, or the maximum number of submissions (drafts do not count)
-export function isPartnerBountyCompleted(
+function isPartnerBountyCompleted(
   bounty: Pick<
     PartnerBountyProps,
     "type" | "submissions" | "performanceCondition" | "maxSubmissions"
