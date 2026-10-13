@@ -1,3 +1,4 @@
+import { isPartnerBountyExpired } from "@/lib/bounty/partner-bounty-tabs";
 import { PartnerBountyProps } from "@/lib/types";
 import {
   PerformanceBountyProgress,
@@ -86,13 +87,13 @@ export function PartnerBountyCard({
 
       {showRewards &&
         bounty.submissions.some((s) => s.commissions.length > 0) && (
-        <div className="@3xl/page:block border-border-subtle hidden border-t p-4">
-          <BountyRewardsTable
-            bounty={bounty}
-            programSlug={programSlug as string}
-          />
-        </div>
-      )}
+          <div className="@3xl/page:block border-border-subtle hidden border-t p-4">
+            <BountyRewardsTable
+              bounty={bounty}
+              programSlug={programSlug as string}
+            />
+          </div>
+        )}
     </As>
   );
 }
@@ -172,8 +173,7 @@ export function BountyRewardsTable({
 }
 
 export function BountyEndDate({ bounty }: { bounty: PartnerBountyProps }) {
-  const isExpired =
-    bounty.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
+  const isExpired = isPartnerBountyExpired(bounty);
 
   return (
     <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
