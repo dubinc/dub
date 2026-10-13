@@ -551,7 +551,7 @@ function BountyPerformanceCommissionsTable({
     bounty.performanceScope === "new" || programEnrollment != null;
 
   const dateRange = useMemo(() => {
-    if (!programSlug || !dateRangeStable) {
+    if (!dateRangeStable) {
       return null;
     }
 
@@ -563,7 +563,6 @@ function BountyPerformanceCommissionsTable({
       end: bounty.endsAt ? new Date(bounty.endsAt) : new Date(),
     };
   }, [
-    programSlug,
     dateRangeStable,
     bounty.performanceScope,
     bounty.startsAt,
