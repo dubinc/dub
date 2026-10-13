@@ -78,7 +78,10 @@ export function TopProgramsCard() {
               {currencyFormatter(program.earnings)}
             </span>
             <span className="w-10 shrink-0 text-right text-xs font-medium text-neutral-600">
-              {total ? formatShare(program.earnings / total) : null}
+              {/* clawbacks can make earnings or the total negative, and other programs' clawbacks can make one share exceed the total */}
+              {total && total > 0 && program.earnings > 0
+                ? formatShare(Math.min(program.earnings / total, 1))
+                : null}
             </span>
           </Link>
         )}
