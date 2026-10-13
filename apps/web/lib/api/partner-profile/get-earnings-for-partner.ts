@@ -1,11 +1,13 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { DubApiError } from "@/lib/api/errors";
+import { buildPaginationQuery } from "@/lib/api/pagination";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
 import {
   getPartnerEarningsQuerySchema,
   PartnerProfileEarningsSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { CommissionType, Partner } from "@prisma/client";
+import { CommissionType, Partner, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { getEarningsProgramFilter } from "./get-earnings-program-id";
 import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
@@ -20,8 +22,10 @@ export async function getEarningsForPartner(
   params: GetEarningsForPartnerParams,
 ) {
   const {
-    page = 1,
+    page,
     pageSize,
+    startingAfter,
+    endingBefore,
     type,
     status,
     sortBy,
@@ -43,6 +47,41 @@ export async function getEarningsForPartner(
     end,
     timezone,
   });
+
+  const { orderBy, ...paginationQuery } = buildPaginationQuery({
+    page,
+    pageSize,
+    startingAfter,
+    endingBefore,
+    sortBy,
+    sortOrder,
+  });
+
+  // the cursor must be one of the partner's earnings in the requested program(s)
+  const cursorId = startingAfter || endingBefore;
+
+  if (cursorId) {
+    const commission = await prisma.commission.findUnique({
+      where: {
+        id: cursorId,
+      },
+      select: {
+        partnerId: true,
+        programId: true,
+      },
+    });
+
+    if (
+      !commission ||
+      commission.partnerId !== partnerId ||
+      (programId && commission.programId !== programId)
+    ) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: "Invalid cursor: the provided ID does not exist.",
+      });
+    }
+  }
 
   const earnings = await prisma.commission.findMany({
     where: {
@@ -97,11 +136,11 @@ export async function getEarningsForPartner(
         },
       },
     },
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
+    ...paginationQuery,
+    // with offset pages, the commission ID breaks ties so that no earning repeats or goes missing between pages
+    orderBy: cursorId
+      ? orderBy
+      : [orderBy as Record<string, Prisma.SortOrder>, { id: sortOrder }],
   });
 
   // TODO: Once we migrate to add sourcePartner relation on Commission table, we can simplify this logic
