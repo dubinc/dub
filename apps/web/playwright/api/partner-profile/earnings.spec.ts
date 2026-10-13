@@ -251,40 +251,80 @@ test.describe("GET /partner-profile/earnings", () => {
     });
   });
 
-  test("pages with startingAfter and endingBefore, and rejects a cursor from another program", async ({
+  test("continues an offset page with startingAfter and endingBefore, and rejects a cursor from another program", async ({
     playwright,
+    program,
   }) => {
-    await withPartnerApi(playwright, async (partnerApi) => {
-      const { data: all } = await partnerApi.get<PartnerProfileEarning[]>(
-        "/api/partner-profile/earnings",
-      );
-      // cursor pages are sorted by commission ID, newest first
-      const ids = all.map((e) => e.id).sort((a, b) => (a < b ? 1 : -1));
-      expect(ids).toHaveLength(3);
+    // two extra earnings whose createdAt order is the reverse of their ID order
+    const [olderId, newerId] = [
+      createId({ prefix: "cm_" }),
+      createId({ prefix: "cm_" }),
+    ].sort();
+    const day = 24 * 60 * 60 * 1000;
 
-      const after = await partnerApi.get<PartnerProfileEarning[]>(
-        `/api/partner-profile/earnings?startingAfter=${ids[0]}&pageSize=2`,
-      );
-      expect(after.status).toEqual(200);
-      expect(after.data.map((e) => e.id)).toEqual([ids[1], ids[2]]);
-
-      const before = await partnerApi.get<PartnerProfileEarning[]>(
-        `/api/partner-profile/earnings?endingBefore=${ids[2]}&pageSize=1`,
-      );
-      expect(before.status).toEqual(200);
-      expect(before.data.map((e) => e.id)).toEqual([ids[1]]);
-
-      const programBEarningId = all.find(
-        (e) => e.program.id === programB.id,
-      )!.id;
-      for (const cursor of [programBEarningId, "cm_doesnotexist"]) {
-        expect(
-          await partnerApi.get(
-            `/api/partner-profile/earnings?programIdOrSlug=${programSlug}&startingAfter=${cursor}`,
-          ),
-        ).toMatchObject({ status: 422 });
-      }
+    await prisma.commission.createMany({
+      data: [
+        { id: olderId, createdAt: new Date(Date.now() - day) },
+        { id: newerId, createdAt: new Date(Date.now() - 2 * day) },
+      ].map(({ id, createdAt }) => ({
+        id,
+        createdAt,
+        programId: program.id,
+        partnerId: partnerId!,
+        type: "custom",
+        status: "pending",
+        amount: 0,
+        quantity: 1,
+        earnings: 100,
+      })),
     });
+
+    try {
+      await withPartnerApi(playwright, async (partnerApi) => {
+        const list = `/api/partner-profile/earnings?programIdOrSlug=${programSlug}`;
+
+        const { data: all } =
+          await partnerApi.get<PartnerProfileEarning[]>(list);
+        const ids = all.map((e) => e.id);
+        expect(ids).toHaveLength(4);
+        // sorted by createdAt first, so the lower ID comes first here
+        expect(ids.indexOf(olderId)).toBeLessThan(ids.indexOf(newerId));
+
+        const firstPage = await partnerApi.get<PartnerProfileEarning[]>(
+          `${list}&pageSize=2`,
+        );
+        expect(firstPage.data.map((e) => e.id)).toEqual(ids.slice(0, 2));
+
+        const after = await partnerApi.get<PartnerProfileEarning[]>(
+          `${list}&pageSize=2&startingAfter=${ids[1]}`,
+        );
+        expect(after.status).toEqual(200);
+        expect(after.data.map((e) => e.id)).toEqual(ids.slice(2, 4));
+
+        const before = await partnerApi.get<PartnerProfileEarning[]>(
+          `${list}&pageSize=2&endingBefore=${ids[3]}`,
+        );
+        expect(before.status).toEqual(200);
+        expect(before.data.map((e) => e.id)).toEqual(ids.slice(1, 3));
+
+        const { data: allPrograms } = await partnerApi.get<
+          PartnerProfileEarning[]
+        >("/api/partner-profile/earnings");
+        const programBEarningId = allPrograms.find(
+          (e) => e.program.id === programB.id,
+        )!.id;
+
+        for (const cursor of [programBEarningId, "cm_doesnotexist"]) {
+          expect(
+            await partnerApi.get(`${list}&startingAfter=${cursor}`),
+          ).toMatchObject({ status: 422 });
+        }
+      });
+    } finally {
+      await prisma.commission.deleteMany({
+        where: { id: { in: [olderId, newerId] } },
+      });
+    }
   });
 
   test("returns 404 for a program the partner is not enrolled in", async ({
