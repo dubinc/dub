@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { testIds } from "@/lib/e2e/test-ids";
 import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
-import { expect, test } from "@playwright/test";
+import { expect, Page, test } from "@playwright/test";
 import { deletePartner } from "../api/partners/helpers";
 import { TEST_WORKSPACE } from "../api/setup-test-workspace";
 import { env } from "../env";
@@ -19,6 +19,25 @@ test.use({
 
 const DESKTOP_VIEWPORT = { width: 1280, height: 720 };
 const MOBILE_VIEWPORT = { width: 390, height: 844 };
+
+// reads every card position at once, so that a card that is still loading cannot move between two reads
+async function getCardPositions(page: Page, cardTestIds: string[]) {
+  for (const testId of cardTestIds) {
+    await expect(page.getByTestId(testId)).toBeVisible();
+  }
+  await page.waitForLoadState("networkidle");
+
+  return page.evaluate(
+    (ids) =>
+      ids.map((id) => {
+        const { top, left } = document
+          .querySelector(`[data-testid="${id}"]`)!
+          .getBoundingClientRect();
+        return { top, left };
+      }),
+    cardTestIds,
+  );
+}
 
 test.describe("Partner All programs Overview", () => {
   test("renders every Overview card", async ({ page }) => {
@@ -43,29 +62,24 @@ test.describe("Partner All programs Overview", () => {
     const { earnings, topPrograms, recentEarnings, recentPayouts, topLinks } =
       testIds.partnerOverview;
 
-    const getBox = async (testId: string) => {
-      const card = page.getByTestId(testId);
-      await expect(card).toBeVisible();
-      return (await card.boundingBox())!;
-    };
-
-    const mobileTops: number[] = [];
-    for (const testId of [
-      earnings,
-      topPrograms,
-      recentEarnings,
-      recentPayouts,
-      topLinks,
-    ]) {
-      mobileTops.push((await getBox(testId)).y);
-    }
+    const mobileTops = (
+      await getCardPositions(page, [
+        earnings,
+        topPrograms,
+        recentEarnings,
+        recentPayouts,
+        topLinks,
+      ])
+    ).map(({ top }) => top);
     expect(mobileTops).toEqual([...mobileTops].sort((a, b) => a - b));
 
     await page.setViewportSize(DESKTOP_VIEWPORT);
-    const earningsBox = await getBox(earnings);
-    const payoutsBox = await getBox(recentPayouts);
-    expect(payoutsBox.y).toBe(earningsBox.y);
-    expect(payoutsBox.x).toBeGreaterThan(earningsBox.x);
+    const [earningsBox, payoutsBox] = await getCardPositions(page, [
+      earnings,
+      recentPayouts,
+    ]);
+    expect(payoutsBox.top).toBe(earningsBox.top);
+    expect(payoutsBox.left).toBeGreaterThan(earningsBox.left);
   });
 
   test("always shows Tasks on desktop, and on mobile only when an action is needed", async ({
@@ -113,15 +127,15 @@ test.describe("Partner All programs Overview", () => {
       await expect(tasks).toBeVisible();
 
       // on mobile, Tasks comes after Recent payouts and before Top links
-      const getTop = async (testId: string) =>
-        (await page.getByTestId(testId).boundingBox())!.y;
-      const tasksTop = (await tasks.boundingBox())!.y;
-      expect(tasksTop).toBeGreaterThan(
-        await getTop(testIds.partnerOverview.recentPayouts),
-      );
-      expect(tasksTop).toBeLessThan(
-        await getTop(testIds.partnerOverview.topLinks),
-      );
+      const [payoutsTop, tasksTop, topLinksTop] = (
+        await getCardPositions(page, [
+          testIds.partnerOverview.recentPayouts,
+          testIds.partnerOverview.tasks,
+          testIds.partnerOverview.topLinks,
+        ])
+      ).map(({ top }) => top);
+      expect(tasksTop).toBeGreaterThan(payoutsTop);
+      expect(tasksTop).toBeLessThan(topLinksTop);
 
       await prisma.programEnrollment.update({
         where: { id: enrollment.id },
