@@ -16,15 +16,18 @@ import {
 import { qstash } from "@/lib/cron";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { createTremendousCampaignJob } from "@/lib/jobs/handlers/create-tremendous-campaign-job";
+import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { prisma } from "@/lib/prisma";
 import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { mockPaymentProvider } from "@/lib/sandbox/mock-payment-provider";
 import { stripe } from "@/lib/stripe";
 import { checkPaymentMethodMandate } from "@/lib/stripe/check-payment-method-mandate";
+import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, currencyFormatter } from "@dub/utils";
+import { PayoutMode, ProgramPayoutMode } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -106,12 +109,6 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
-    if (amount < INVOICE_MIN_PAYOUT_AMOUNT_CENTS) {
-      throw new Error(
-        "Your payout total is less than the minimum invoice amount of $10.",
-      );
-    }
-
     // TODO: Remove this once we can support cutoff periods for invoices with > 1,000 payouts
     if (cutoffPeriod) {
       const totalEligiblePayouts = await prisma.payout.aggregate({
@@ -129,28 +126,30 @@ export const confirmPayoutsAction = authActionClient
       }
     }
 
-    if (program.payoutMode !== "internal") {
-      const [eligiblePayouts, payoutWebhooks] = await Promise.all([
-        getEligiblePayouts({
-          program,
-          cutoffPeriod,
-          selectedPayoutIds,
-          excludedPayoutIds,
-          page: 1,
-          pageSize: Infinity,
-        }),
+    const [eligiblePayouts, payoutWebhooks] = await Promise.all([
+      getEligiblePayouts({
+        program,
+        cutoffPeriod,
+        selectedPayoutIds,
+        excludedPayoutIds,
+        page: 1,
+        pageSize: Infinity,
+      }),
 
-        getWebhooks({
-          workspaceId: workspace.id,
-          triggers: [EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER],
-          disabled: false,
-          installationId: null,
-        }),
-      ]);
+      program.payoutMode === ProgramPayoutMode.internal
+        ? Promise.resolve([])
+        : getWebhooks({
+            workspaceId: workspace.id,
+            triggers: [EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER],
+            disabled: false,
+            installationId: null,
+          }),
+    ]);
 
+    if (program.payoutMode !== ProgramPayoutMode.internal) {
       // Check if the invoice includes any external payouts
       const hasExternalPayouts = eligiblePayouts.find(
-        (payout) => payout.mode === "external",
+        (payout) => payout.mode === PayoutMode.external,
       );
 
       if (hasExternalPayouts && payoutWebhooks.length === 0) {
@@ -181,6 +180,45 @@ export const confirmPayoutsAction = authActionClient
 
     if (fastSettlement && paymentMethod.type !== "us_bank_account") {
       throw new Error("Fast settlement is only supported for ACH payment.");
+    }
+
+    const payoutAmount = eligiblePayouts.reduce(
+      (sum, payout) => sum + payout.amount,
+      0,
+    );
+
+    const externalPayoutAmount = eligiblePayouts.reduce(
+      (sum, payout) =>
+        payout.mode === PayoutMode.external ? sum + payout.amount : sum,
+      0,
+    );
+
+    const payoutFee = calculatePayoutFeeForMethod({
+      paymentMethod: paymentMethod.type,
+      payoutFee: workspace.payoutFee,
+    });
+
+    if (payoutFee == null) {
+      throw new Error("Failed to calculate payout fee.");
+    }
+
+    const { fee: chargeFee } = calculatePayoutFeeWithWaiver({
+      payoutAmount,
+      payoutFee,
+      payoutFeeWaiverLimit: workspace.payoutFeeWaiverLimit,
+      payoutFeeWaiverUsage: workspace.payoutFeeWaiverUsage,
+      paymentMethod: fastSettlement
+        ? "ach_fast"
+        : STRIPE_PAYMENT_METHOD_NORMALIZATION[paymentMethod.type],
+    });
+
+    // External payouts are paid outside Dub, so Stripe is only charged the internal amount plus the fee.
+    const chargeableTotal = payoutAmount - externalPayoutAmount + chargeFee;
+
+    if (chargeableTotal < INVOICE_MIN_PAYOUT_AMOUNT_CENTS) {
+      throw new Error(
+        `Your payout total is less than the minimum invoice amount of ${currencyFormatter(INVOICE_MIN_PAYOUT_AMOUNT_CENTS, { trailingZeroDisplay: "stripIfInteger" })}.`,
+      );
     }
 
     // if it's a direct debit payment method, we need to check to make sure mandate is valid
