@@ -7,7 +7,7 @@ import {
   getPartnerEarningsQuerySchema,
   PartnerProfileEarningsSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { CommissionType, Partner, Prisma } from "@prisma/client";
+import { CommissionType, Partner } from "@prisma/client";
 import * as z from "zod/v4";
 import { getEarningsProgramFilter } from "./get-earnings-program-id";
 import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
@@ -48,7 +48,8 @@ export async function getEarningsForPartner(
     timezone,
   });
 
-  const { orderBy, ...paginationQuery } = buildPaginationQuery({
+  // the helper sorts cursor pages by ID only, so the sort below replaces its orderBy
+  const { orderBy: _, ...paginationQuery } = buildPaginationQuery({
     page,
     pageSize,
     startingAfter,
@@ -137,10 +138,8 @@ export async function getEarningsForPartner(
       },
     },
     ...paginationQuery,
-    // with offset pages, the commission ID breaks ties so that no earning repeats or goes missing between pages
-    orderBy: cursorId
-      ? orderBy
-      : [orderBy as Record<string, Prisma.SortOrder>, { id: sortOrder }],
+    // offset and cursor pages use the same sort, and the commission ID breaks ties, so that no earning repeats or goes missing between pages
+    orderBy: [{ [sortBy]: sortOrder }, { id: sortOrder }],
   });
 
   // TODO: Once we migrate to add sourcePartner relation on Commission table, we can simplify this logic
