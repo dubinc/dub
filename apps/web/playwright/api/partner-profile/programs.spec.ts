@@ -11,6 +11,7 @@ type PartnerProfileProgram = {
   status: ProgramEnrollmentStatus;
   totalCommissions: number;
   program: { id: string; name: string };
+  inactiveAt?: string | null;
 };
 
 type StatusCount = { status: ProgramEnrollmentStatus; _count: number };
@@ -134,6 +135,11 @@ test.describe("GET /partner-profile/programs", () => {
   const programIds = (data: PartnerProfileProgram[]) =>
     data.map((enrollment) => enrollment.program.id);
 
+  const inactiveDates = (data: PartnerProfileProgram[]) =>
+    Object.fromEntries(
+      data.map((enrollment) => [enrollment.program.id, enrollment.inactiveAt]),
+    );
+
   test("returns every enrollment by default, without deactivated programs", async ({
     playwright,
     program,
@@ -214,7 +220,7 @@ test.describe("GET /partner-profile/programs", () => {
     });
   });
 
-  test("returns the inactive date from bannedAt, and from the latest status log for inactive status filters", async ({
+  test("returns the inactive date from bannedAt, and from the latest status log only with includeInactiveDates", async ({
     playwright,
   }) => {
     const bannedAt = new Date("2026-09-01T12:00:00.000Z");
@@ -252,35 +258,27 @@ test.describe("GET /partner-profile/programs", () => {
 
     try {
       await withPartnerApi(playwright, async (partnerApi) => {
-        const { status, data } = await partnerApi.get<
-          (PartnerProfileProgram & { inactiveAt: string | null })[]
-        >("/api/partner-profile/programs?status=banned,deactivated,archived");
+        const path =
+          "/api/partner-profile/programs?status=banned,deactivated,archived";
+
+        const { status, data } = await partnerApi.get<PartnerProfileProgram[]>(
+          `${path}&includeInactiveDates=true`,
+        );
 
         expect(status).toEqual(200);
-        const inactiveAt = Object.fromEntries(
-          data.map((enrollment) => [
-            enrollment.program.id,
-            enrollment.inactiveAt,
-          ]),
-        );
-        expect(inactiveAt).toEqual({
+        expect(inactiveDates(data)).toEqual({
           [alpha.id]: bannedAt.toISOString(),
           [beta.id]: deactivatedAt.toISOString(),
           [gamma.id]: null,
         });
 
-        // without an inactive status filter, the route skips the activity log lookup
-        const { data: all } = await partnerApi.get<
-          (PartnerProfileProgram & { inactiveAt: string | null })[]
-        >("/api/partner-profile/programs");
-        const allInactiveAt = Object.fromEntries(
-          all.map((enrollment) => [
-            enrollment.program.id,
-            enrollment.inactiveAt,
-          ]),
-        );
-        expect(allInactiveAt[alpha.id]).toEqual(bannedAt.toISOString());
-        expect(allInactiveAt[beta.id]).toBeNull();
+        // without includeInactiveDates, the route skips the activity log lookup
+        const { data: withoutLogs } =
+          await partnerApi.get<PartnerProfileProgram[]>(path);
+        const withoutLogsInactiveAt = inactiveDates(withoutLogs);
+
+        expect(withoutLogsInactiveAt[alpha.id]).toEqual(bannedAt.toISOString());
+        expect(withoutLogsInactiveAt[beta.id]).toBeNull();
       });
     } finally {
       await prisma.activityLog.delete({ where: { id: activityLog.id } });
