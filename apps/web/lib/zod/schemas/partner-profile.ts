@@ -319,6 +319,11 @@ export const PartnerBountySchema = BountySchema.omit({
   }),
 });
 
+// used in GET /partner-profile/bounties, which lists the bounties of all programs
+export const PartnerProfileBountySchema = PartnerBountySchema.extend({
+  program: PartnerProfileEarningsProgramSchema,
+});
+
 export const invitePartnerUserSchema = z.object({
   email: z.email({ error: "Please enter a valid email." }),
   role: z.enum(PartnerRole),

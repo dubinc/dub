@@ -2,6 +2,7 @@ import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getSession } from "@/lib/auth";
 import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
 import { prisma } from "@/lib/prisma";
+import { emailSchema } from "@/lib/zod/schemas/auth";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -14,17 +15,89 @@ import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { Reward } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { AcceptProgramInviteButton } from "./accept-program-invite-button";
+import { ContinueAsInvitedButton } from "./continue-as-invited-button";
 import { DeclineProgramInviteButton } from "./decline-program-invite-button";
 import { ProgramInviteConfetti } from "./program-invite-confetti";
 
 export default async function ProgramInvitePage(props: {
   params: Promise<{ programSlug: string }>;
+  searchParams: Promise<{ email?: string | string[] }>;
 }) {
   const params = await props.params;
+  const searchParams = await props.searchParams;
   const { programSlug } = params;
 
-  const { user } = await getSession();
+  const session = await getSession();
+  const user = session?.user;
   if (!user) redirect(`/login?next=/programs/${programSlug}/invite`);
+
+  const invitedEmailResult = emailSchema.safeParse(
+    Array.isArray(searchParams.email)
+      ? searchParams.email[0]
+      : searchParams.email,
+  );
+  const invitedEmail = invitedEmailResult.success
+    ? invitedEmailResult.data
+    : undefined;
+
+  let partnerId = user.defaultPartnerId;
+
+  // The session can still say there is no partner after the account was linked.
+  if (!partnerId) {
+    const refreshedUser = await prisma.user.findUnique({
+      where: {
+        id: user.id,
+      },
+      select: {
+        defaultPartnerId: true,
+      },
+    });
+    partnerId = refreshedUser?.defaultPartnerId ?? undefined;
+  }
+
+  if (invitedEmail && invitedEmail !== user.email?.toLowerCase()) {
+    const enrollment = partnerId
+      ? await prisma.programEnrollment.findFirst({
+          where: {
+            partnerId,
+            program: {
+              slug: programSlug,
+            },
+          },
+          select: {
+            id: true,
+          },
+        })
+      : null;
+
+    if (!enrollment) {
+      return (
+        <PageContent>
+          <div className="flex w-full flex-col items-center justify-center px-4 py-16">
+            <div className="flex w-full max-w-[400px] flex-col items-center text-center">
+              <h2 className="text-content-default text-pretty text-lg font-semibold">
+                This invitation is for {invitedEmail}
+              </h2>
+              <p className="text-content-subtle mt-2 text-pretty text-base font-medium">
+                You&apos;re signed in as {user.email}. Sign in with the invited
+                email to view this program invitation.
+              </p>
+              <ContinueAsInvitedButton
+                programSlug={programSlug}
+                invitedEmail={invitedEmail}
+              />
+            </div>
+          </div>
+        </PageContent>
+      );
+    }
+  }
+
+  if (!partnerId) {
+    redirect(
+      `/onboarding?next=${encodeURIComponent(`/programs/${programSlug}/invite`)}`,
+    );
+  }
 
   const program = await prisma.program.findUnique({
     where: {
@@ -33,7 +106,7 @@ export default async function ProgramInvitePage(props: {
     include: {
       partners: {
         where: {
-          partnerId: user.defaultPartnerId,
+          partnerId,
         },
         include: {
           partnerGroup: true,
