@@ -14,6 +14,7 @@ const AUTHENTICATED_PATHS = [
   "/overview",
   "/programs",
   "/marketplace",
+  "/bounties",
   "/onboarding",
   "/settings",
   "/profile",
