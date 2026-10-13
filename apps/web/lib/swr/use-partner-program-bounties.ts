@@ -2,6 +2,10 @@ import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
+import {
+  getPartnerBountyTab,
+  PartnerBountyTab,
+} from "../bounty/partner-bounty-tabs";
 import { PartnerBountyProps } from "../types";
 
 export function usePartnerProgramBounties({
@@ -27,15 +31,17 @@ export function usePartnerProgramBounties({
   );
 
   const bountiesCount = useMemo(() => {
-    if (!bounties) return { active: 0, expired: 0 };
-    return bounties.reduce(
-      (counts, bounty) => {
-        const isExpired = bounty.endsAt && new Date(bounty.endsAt) < new Date();
-        counts[isExpired ? "expired" : "active"]++;
-        return counts;
-      },
-      { active: 0, expired: 0 },
-    );
+    const counts: Record<PartnerBountyTab, number> = {
+      active: 0,
+      completed: 0,
+      expired: 0,
+    };
+
+    for (const bounty of bounties ?? []) {
+      counts[getPartnerBountyTab(bounty)]++;
+    }
+
+    return counts;
   }, [bounties]);
 
   return {
