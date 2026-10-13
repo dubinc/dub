@@ -81,7 +81,8 @@ export function useKeyboardShortcut(
         ...(e.metaKey ? ["meta"] : []),
         ...(e.ctrlKey ? ["ctrl"] : []),
         ...(e.altKey ? ["alt"] : []),
-        e.key,
+        // Normalize single characters so shortcuts work with Caps Lock on
+        e.key.length === 1 ? e.key.toLowerCase() : e.key,
       ].join("+");
 
       // Ignore shortcut if it doesn't match this listener
