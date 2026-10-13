@@ -96,19 +96,6 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
-    // if workspace's payouts usage + the current invoice amount
-    // is greater than the workspace's payouts limit, throw an error
-    if (workspace.payoutsUsage + amount > workspace.payoutsLimit) {
-      throw new Error(
-        exceededLimitError({
-          plan: workspace.plan,
-          planPeriod: workspace.planPeriod,
-          limit: workspace.payoutsLimit,
-          type: "payouts",
-        }),
-      );
-    }
-
     // TODO: Remove this once we can support cutoff periods for invoices with > 1,000 payouts
     if (cutoffPeriod) {
       const totalEligiblePayouts = await prisma.payout.aggregate({
@@ -146,6 +133,28 @@ export const confirmPayoutsAction = authActionClient
           }),
     ]);
 
+    const payoutAmount = eligiblePayouts.reduce(
+      (sum, payout) => sum + payout.amount,
+      0,
+    );
+
+    if (eligiblePayouts.length === 0 || payoutAmount <= 0) {
+      throw new Error("There are no eligible payouts to confirm.");
+    }
+
+    // if workspace's payouts usage + the current invoice amount
+    // is greater than the workspace's payouts limit, throw an error
+    if (workspace.payoutsUsage + payoutAmount > workspace.payoutsLimit) {
+      throw new Error(
+        exceededLimitError({
+          plan: workspace.plan,
+          planPeriod: workspace.planPeriod,
+          limit: workspace.payoutsLimit,
+          type: "payouts",
+        }),
+      );
+    }
+
     if (program.payoutMode !== ProgramPayoutMode.internal) {
       // Check if the invoice includes any external payouts
       const hasExternalPayouts = eligiblePayouts.find(
@@ -181,11 +190,6 @@ export const confirmPayoutsAction = authActionClient
     if (fastSettlement && paymentMethod.type !== "us_bank_account") {
       throw new Error("Fast settlement is only supported for ACH payment.");
     }
-
-    const payoutAmount = eligiblePayouts.reduce(
-      (sum, payout) => sum + payout.amount,
-      0,
-    );
 
     const externalPayoutAmount = eligiblePayouts.reduce(
       (sum, payout) =>
