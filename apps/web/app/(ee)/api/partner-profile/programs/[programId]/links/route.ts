@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-rewards";
 import {
   createPartnerProfileLinkSchema,
+  mapPartnerLinkDetails,
   PartnerProfileLinkSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
@@ -37,6 +38,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       discount: true,
       links: {
         include: {
+          partnerLinkDetails: true,
           linkReward: {
             include: {
               clickReward: true,
@@ -66,7 +68,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
 
     return {
-      ...link,
+      ...mapPartnerLinkDetails(link),
       ...resolvedRewards,
       discountCode: discountCode?.code,
       discountCodeDisabledAt: discountCode?.disabledAt ?? null,
@@ -180,8 +182,15 @@ export const POST = withPartnerProfile(
 
     const partnerLink = await createLink(linkWithUtm);
 
-    return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink), {
-      status: 201,
-    });
+    return NextResponse.json(
+      PartnerProfileLinkSchema.parse({
+        ...partnerLink,
+        partnerLinkTitle: partnerLinkTitle ?? null,
+        partnerLinkComments: partnerLinkComments ?? null,
+      }),
+      {
+        status: 201,
+      },
+    );
   },
 );

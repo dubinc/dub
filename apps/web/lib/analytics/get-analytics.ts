@@ -218,7 +218,9 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         key: true,
         url: true,
         title: true,
-        ...(includePartnerLinkTitle ? { partnerLinkTitle: true as const } : {}),
+        ...(includePartnerLinkTitle
+          ? { partnerLinkDetails: { select: { title: true } } }
+          : {}),
         comments: true,
         folderId: true,
         partnerId: true,
@@ -250,10 +252,10 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
           ...item,
         });
 
-        if (includePartnerLinkTitle && "partnerLinkTitle" in link) {
+        if (includePartnerLinkTitle) {
           return {
             ...parsed,
-            partnerLinkTitle: link.partnerLinkTitle,
+            partnerLinkTitle: link.partnerLinkDetails?.title ?? null,
           };
         }
 

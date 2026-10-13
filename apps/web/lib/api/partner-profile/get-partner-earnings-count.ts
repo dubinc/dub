@@ -163,7 +163,11 @@ export async function getPartnerEarningsCount({
         domain: true,
         key: true,
         url: true,
-        partnerLinkTitle: true,
+        partnerLinkDetails: {
+          select: {
+            title: true,
+          },
+        },
       },
     });
 
@@ -176,7 +180,7 @@ export async function getPartnerEarningsCount({
         domain: link?.domain,
         key: link?.key,
         url: link?.url,
-        partnerLinkTitle: link?.partnerLinkTitle,
+        partnerLinkTitle: link?.partnerLinkDetails?.title ?? null,
         _count,
       };
     });

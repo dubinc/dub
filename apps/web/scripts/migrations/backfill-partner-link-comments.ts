@@ -12,7 +12,7 @@ async function main() {
         programId: { not: null },
         partnerId: { not: null },
         comments: { not: null },
-        partnerLinkComments: null,
+        partnerLinkDetails: null,
         NOT: {
           comments: "",
         },
@@ -31,14 +31,12 @@ async function main() {
       break;
     }
 
-    await Promise.all(
-      links.map(({ id, comments }) =>
-        prisma.link.updateMany({
-          where: { id, partnerLinkComments: null },
-          data: { partnerLinkComments: comments },
-        }),
-      ),
-    );
+    await prisma.partnerLinkDetails.createMany({
+      data: links.map(({ id, comments }) => ({
+        linkId: id,
+        comments,
+      })),
+    });
 
     totalProcessed += links.length;
 

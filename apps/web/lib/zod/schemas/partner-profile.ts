@@ -233,20 +233,39 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   discountCodeDisabledAt: z.coerce.date().nullable().default(null),
 });
 
+export function mapPartnerLinkDetails<
+  T extends {
+    partnerLinkDetails?: {
+      title: string | null;
+      comments: string | null;
+    } | null;
+  },
+>(link: T) {
+  const { partnerLinkDetails, ...rest } = link;
+
+  return {
+    ...rest,
+    partnerLinkTitle: partnerLinkDetails?.title ?? null,
+    partnerLinkComments: partnerLinkDetails?.comments ?? null,
+  };
+}
+
 export function parsePartnerProfileEventLink<T extends { id: string }>(
   eventLink: T,
   links: {
     id: string;
-    partnerLinkTitle?: string | null;
-    partnerLinkComments?: string | null;
+    partnerLinkDetails?: {
+      title: string | null;
+      comments: string | null;
+    } | null;
   }[],
 ) {
   const source = links.find((link) => link.id === eventLink.id);
 
   return PartnerProfileLinkSchema.parse({
     ...eventLink,
-    partnerLinkTitle: source?.partnerLinkTitle ?? null,
-    partnerLinkComments: source?.partnerLinkComments ?? null,
+    partnerLinkTitle: source?.partnerLinkDetails?.title ?? null,
+    partnerLinkComments: source?.partnerLinkDetails?.comments ?? null,
   });
 }
 

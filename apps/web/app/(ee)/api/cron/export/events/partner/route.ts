@@ -71,7 +71,11 @@ export async function POST(req: Request) {
         programId,
         include: {
           program: true,
-          links: true,
+          links: {
+            include: {
+              partnerLinkDetails: true,
+            },
+          },
         },
       });
 

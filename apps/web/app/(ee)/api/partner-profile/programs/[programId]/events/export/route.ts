@@ -41,7 +41,11 @@ export const GET = withPartnerProfile(
         programId: params.programId,
         include: {
           program: true,
-          links: true,
+          links: {
+            include: {
+              partnerLinkDetails: true,
+            },
+          },
         },
       });
 

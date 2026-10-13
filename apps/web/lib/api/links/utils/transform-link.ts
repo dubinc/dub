@@ -29,6 +29,10 @@ export type ExpandedLink = Link & {
         programPartnerTags?: { partnerTagId: string }[] | null;
       })
     | null;
+  partnerLinkDetails?: {
+    title: string | null;
+    comments: string | null;
+  } | null;
 };
 
 // Transform link with additional properties
@@ -52,9 +56,8 @@ export const transformLink = (
     lastLeadAt,
     lastConversionAt,
     programEnrollment,
-    // partner-private; returned only by partner-profile link schemas
-    partnerLinkTitle,
-    partnerLinkComments,
+    // partner-private relation; returned only by partner-profile link schemas
+    partnerLinkDetails,
     ...rest
   } = link;
 

@@ -32,7 +32,11 @@ export const PATCH = withPartnerProfile(
       programId,
       include: {
         program: true,
-        links: true,
+        links: {
+          include: {
+            partnerLinkDetails: true,
+          },
+        },
         partnerGroup: true,
       },
     });
@@ -97,6 +101,15 @@ export const PATCH = withPartnerProfile(
     // if domain and key are the same, we don't need to check if the key exists
     const skipKeyChecks = link.key.toLowerCase() === nextKey.toLowerCase();
 
+    const nextPartnerLinkTitle =
+      partnerLinkTitle !== undefined
+        ? partnerLinkTitle
+        : link.partnerLinkDetails?.title;
+    const nextPartnerLinkComments =
+      partnerLinkComments !== undefined
+        ? partnerLinkComments
+        : link.partnerLinkDetails?.comments;
+
     const {
       link: processedLink,
       error,
@@ -122,14 +135,8 @@ export const PATCH = withPartnerProfile(
 
         key: nextKey,
         url: nextUrl,
-        partnerLinkTitle:
-          partnerLinkTitle !== undefined
-            ? partnerLinkTitle
-            : link.partnerLinkTitle,
-        partnerLinkComments:
-          partnerLinkComments !== undefined
-            ? partnerLinkComments
-            : link.partnerLinkComments,
+        partnerLinkTitle: nextPartnerLinkTitle,
+        partnerLinkComments: nextPartnerLinkComments,
       },
       workspace: {
         id: program.workspaceId,
@@ -167,7 +174,13 @@ export const PATCH = withPartnerProfile(
       updatedLink: linkWithUtm,
     });
 
-    return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink));
+    return NextResponse.json(
+      PartnerProfileLinkSchema.parse({
+        ...partnerLink,
+        partnerLinkTitle: nextPartnerLinkTitle,
+        partnerLinkComments: nextPartnerLinkComments,
+      }),
+    );
   },
 );
 
