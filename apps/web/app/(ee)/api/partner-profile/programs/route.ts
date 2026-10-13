@@ -1,3 +1,4 @@
+import { getProgramEnrollmentInactiveDates } from "@/lib/api/partner-profile/get-program-enrollment-inactive-dates";
 import { getProgramEnrollmentsWhere } from "@/lib/api/partner-profile/get-program-enrollments-where";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
@@ -105,9 +106,15 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     }),
   });
 
+  const inactiveDates = await getProgramEnrollmentInactiveDates({
+    partnerId: partner.id,
+    programEnrollments,
+  });
+
   const response = programEnrollments.map((enrollment) => {
     return {
       ...enrollment,
+      inactiveAt: inactiveDates.get(enrollment.programId) ?? null,
       rewards: includeRewardsDiscounts
         ? [
             enrollment.clickReward,

@@ -239,6 +239,12 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
 export const PartnerProfileProgramEnrollmentSchema =
   ProgramEnrollmentSchema.extend({
     reapplicationTimeframe: z.enum(ReapplicationTimeframe).nullish(),
+    inactiveAt: z
+      .date()
+      .nullish()
+      .describe(
+        "When the program banned, deactivated or archived the partner. Null for other statuses, and when the date is not known.",
+      ),
   });
 
 export const partnerProfileProgramsQuerySchema = z.object({
