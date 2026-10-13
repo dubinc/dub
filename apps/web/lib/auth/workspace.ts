@@ -14,6 +14,8 @@ import {
   getPermissionsByRole,
 } from "../api/rbac/permissions";
 import {
+  LEGACY_SCOPE_GRANTS,
+  LegacyScopeGrant,
   Scope,
   grantLegacyScopePermissions,
   mapScopesToPermissions,
@@ -67,11 +69,13 @@ export const withWorkspace = (
     requiredPlan = ["free", "pro", "business", "advanced", "enterprise"], // if the action needs a specific plan
     requiredPermissions = [],
     requiredRoles = [],
+    legacyScopeGrants = [], // permissions that older restricted tokens keep on this route only
     featureFlag, // if the action needs a specific feature flag
   }: {
     requiredPlan?: Array<PlanProps>;
     requiredPermissions?: PermissionAction[];
     requiredRoles?: WorkspaceRole[];
+    legacyScopeGrants?: LegacyScopeGrant[];
     featureFlag?: BetaFeatures;
   } = {},
 ) => {
@@ -448,6 +452,7 @@ export const withWorkspace = (
           permissions = grantLegacyScopePermissions({
             permissions,
             createdAt: scopeEffectiveSince,
+            grants: [...LEGACY_SCOPE_GRANTS, ...legacyScopeGrants],
           }).filter((p) => rolePermissions.includes(p));
         }
 

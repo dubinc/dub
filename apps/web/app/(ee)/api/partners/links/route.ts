@@ -9,6 +9,7 @@ import {
   toPartnerLinkRewardIdFields,
 } from "@/lib/api/rewards/reward-overrides";
 import { throwIfInvalidRewards } from "@/lib/api/rewards/throw-if-invalid-rewards";
+import { PARTNER_SCOPES_ENFORCED_AT } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withWorkspace } from "@/lib/auth";
@@ -86,6 +87,10 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["links.read"],
+    // This route only checked roles before, so older keys keep access
+    legacyScopeGrants: [
+      { enforcedAt: PARTNER_SCOPES_ENFORCED_AT, permissions: ["links.read"] },
+    ],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
@@ -264,6 +269,10 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["links.write"],
+    // This route only checked roles before, so older keys keep access
+    legacyScopeGrants: [
+      { enforcedAt: PARTNER_SCOPES_ENFORCED_AT, permissions: ["links.write"] },
+    ],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

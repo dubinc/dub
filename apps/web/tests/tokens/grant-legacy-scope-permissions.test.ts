@@ -1,10 +1,11 @@
 import {
   grantLegacyScopePermissions,
   LEGACY_SCOPE_GRANTS,
+  PARTNER_SCOPES_ENFORCED_AT,
 } from "@/lib/api/tokens/scopes";
 import { describe, expect, test } from "vitest";
 
-const ENFORCED_AT = LEGACY_SCOPE_GRANTS[0].enforcedAt;
+const ENFORCED_AT = PARTNER_SCOPES_ENFORCED_AT;
 
 const LEGACY_PERMISSIONS = [
   "partners.read",
@@ -103,5 +104,51 @@ describe("grantLegacyScopePermissions", () => {
       "bounties.write",
       "payouts.read",
     ]);
+  });
+
+  describe("route grants", () => {
+    const grants = [
+      ...LEGACY_SCOPE_GRANTS,
+      { enforcedAt: ENFORCED_AT, permissions: ["links.write"] as const },
+    ];
+
+    test("grants route permissions when created before the cutoff", () => {
+      expect(
+        grantLegacyScopePermissions({
+          permissions: [],
+          createdAt: new Date(ENFORCED_AT.getTime() - 1),
+          grants,
+        }),
+      ).toEqual([...LEGACY_PERMISSIONS, "links.write"]);
+    });
+
+    test("grants route permissions when createdAt is missing", () => {
+      expect(
+        grantLegacyScopePermissions({
+          permissions: [],
+          createdAt: null,
+          grants,
+        }),
+      ).toEqual([...LEGACY_PERMISSIONS, "links.write"]);
+    });
+
+    test("does not grant route permissions at or after the cutoff", () => {
+      expect(
+        grantLegacyScopePermissions({
+          permissions: ["links.read"],
+          createdAt: ENFORCED_AT,
+          grants,
+        }),
+      ).toEqual(["links.read"]);
+    });
+
+    test("route permissions do not leak into the default grants", () => {
+      expect(
+        grantLegacyScopePermissions({
+          permissions: [],
+          createdAt: null,
+        }),
+      ).not.toContain("links.write");
+    });
   });
 });

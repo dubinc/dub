@@ -295,16 +295,22 @@ const RESOURCE_SCOPES: {
   },
 ];
 
+export type LegacyScopeGrant = {
+  enforcedAt: Date;
+  permissions: readonly PermissionAction[];
+};
+
+// Keys and OAuth installations created before this date were made before the
+// partner program scopes existed.
+export const PARTNER_SCOPES_ENFORCED_AT = new Date("2026-10-15T00:00:00.000Z");
+
 // Scopes introduced after API keys already existed. A key or OAuth installation
 // created before `enforcedAt` keeps these permissions without selecting the scope.
 // Keep permissions that share a cutoff in one entry. Add a new entry when a
 // scope needs a different cutoff.
-export const LEGACY_SCOPE_GRANTS: {
-  enforcedAt: Date;
-  permissions: readonly PermissionAction[];
-}[] = [
+export const LEGACY_SCOPE_GRANTS: LegacyScopeGrant[] = [
   {
-    enforcedAt: new Date("2026-10-15T00:00:00.000Z"),
+    enforcedAt: PARTNER_SCOPES_ENFORCED_AT,
     permissions: [
       "partners.read",
       "partners.write",
@@ -355,19 +361,22 @@ export const mapScopesToPermissions = (scopes: Scope[]) => {
   return permissions;
 };
 
-// Grants scopes from LEGACY_SCOPE_GRANTS when the key or installation predates
-// that scope. A missing date is treated as legacy so cached tokens from before
-// this field existed keep working.
+// Grants permissions from `grants` when the key or installation predates the
+// grant's cutoff. A missing date is treated as legacy so cached tokens from
+// before this field existed keep working. Routes can pass extra grants that
+// apply only to that route.
 export const grantLegacyScopePermissions = ({
   permissions,
   createdAt,
+  grants = LEGACY_SCOPE_GRANTS,
 }: {
   permissions: PermissionAction[];
   createdAt?: Date | string | null;
+  grants?: readonly LegacyScopeGrant[];
 }): PermissionAction[] => {
   const createdAtMs = createdAt == null ? null : new Date(createdAt).getTime();
 
-  const legacyPermissions = LEGACY_SCOPE_GRANTS.flatMap((grant) =>
+  const legacyPermissions = grants.flatMap((grant) =>
     createdAtMs != null && createdAtMs >= grant.enforcedAt.getTime()
       ? []
       : grant.permissions,
