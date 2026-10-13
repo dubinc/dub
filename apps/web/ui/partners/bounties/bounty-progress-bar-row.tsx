@@ -14,11 +14,13 @@ export function BountyProgressBarRow({
   children,
   labelClassName,
   wrapperClassName,
+  hideBar = false,
 }: {
   progress: number;
   children: ReactNode;
   labelClassName?: string;
   wrapperClassName?: string;
+  hideBar?: boolean;
 }) {
   const percent = Math.min(Math.max(progress, 0), 100);
   const isComplete = percent >= 100;
@@ -30,15 +32,17 @@ export function BountyProgressBarRow({
         wrapperClassName ?? "gap-2",
       )}
     >
-      <div className="bg-bg-emphasis h-1 w-full overflow-hidden rounded-full">
-        <div
-          className={cn(
-            "h-full rounded-full",
-            isComplete ? "bg-green-600" : "bg-amber-600",
-          )}
-          style={{ width: `${percent}%` }}
-        />
-      </div>
+      {!hideBar && (
+        <div className="bg-bg-emphasis h-1 w-full overflow-hidden rounded-full">
+          <div
+            className={cn(
+              "h-full rounded-full",
+              isComplete ? "bg-green-600" : "bg-amber-600",
+            )}
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+      )}
       <p
         className={cn(
           "text-content-subtle text-xs font-medium",
