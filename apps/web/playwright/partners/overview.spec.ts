@@ -33,6 +33,41 @@ test.describe("Partner All programs Overview", () => {
     }
   });
 
+  test("stacks Recent payouts after Recent earnings on mobile, and next to the chart on desktop", async ({
+    page,
+  }) => {
+    await logIn(page, env.E2E_PARTNER_EMAIL, env.E2E_PARTNER_PASSWORD);
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    await page.goto("/overview");
+
+    const { earnings, topPrograms, recentEarnings, recentPayouts, topLinks } =
+      testIds.partnerOverview;
+
+    const getBox = async (testId: string) => {
+      const card = page.getByTestId(testId);
+      await expect(card).toBeVisible();
+      return (await card.boundingBox())!;
+    };
+
+    const mobileTops: number[] = [];
+    for (const testId of [
+      earnings,
+      topPrograms,
+      recentEarnings,
+      recentPayouts,
+      topLinks,
+    ]) {
+      mobileTops.push((await getBox(testId)).y);
+    }
+    expect(mobileTops).toEqual([...mobileTops].sort((a, b) => a - b));
+
+    await page.setViewportSize(DESKTOP_VIEWPORT);
+    const earningsBox = await getBox(earnings);
+    const payoutsBox = await getBox(recentPayouts);
+    expect(payoutsBox.y).toBe(earningsBox.y);
+    expect(payoutsBox.x).toBeGreaterThan(earningsBox.x);
+  });
+
   test("always shows Tasks on desktop, and on mobile only when an action is needed", async ({
     page,
   }) => {
