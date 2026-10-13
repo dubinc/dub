@@ -10,6 +10,9 @@ export const WEBHOOK_EVENT_ID_PREFIX = "evt_";
 
 export const LINK_CLICK_WEBHOOK_TRIGGER = "link.clicked" as const;
 
+export const EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER =
+  "external_payout.confirmed" as const;
+
 export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
   "link.created",
   "link.updated",
@@ -27,7 +30,7 @@ export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
   "commission.created",
   "bounty.created",
   "bounty.updated",
-  "payout.confirmed",
+  EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER,
   "discount_code.created",
   "discount_code.deleted",
 ] as const;
@@ -61,7 +64,8 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
     "Occurs whenever a commission is created for a partner (clawbacks will also trigger this event with a negative amount)",
   "bounty.created": "Occurs whenever a bounty is created in your program",
   "bounty.updated": "Occurs whenever a bounty in your program is updated",
-  "payout.confirmed": "Occurs whenever a payout in your program is confirmed",
+  [EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER]:
+    "Occurs whenever an external payout in your program is confirmed",
   "discount_code.created":
     "Occurs whenever a discount code is created for a partner",
   "discount_code.deleted":

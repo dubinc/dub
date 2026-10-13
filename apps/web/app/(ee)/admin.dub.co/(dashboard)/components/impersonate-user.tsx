@@ -7,9 +7,59 @@ import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import UserInfo, { UserInfoProps, UserInfoSkeleton } from "./user-info";
 
+export function ImpersonateResult({ data }: { data: UserInfoProps }) {
+  const [blockEmailDomain, setBlockEmailDomain] = useState(false);
+
+  return (
+    <form
+      action={async () => {
+        const emailDomain = data.email.split("@")[1];
+        const blockDomainMessage = blockEmailDomain
+          ? ` and block signups from @${emailDomain}`
+          : "";
+
+        if (
+          !confirm(
+            `This will ban the user ${data.email} and delete all their workspaces and links${blockDomainMessage}. Are you sure?`,
+          )
+        ) {
+          return;
+        }
+        await fetch("/api/admin/ban", {
+          method: "POST",
+          body: JSON.stringify({
+            email: data.email,
+            blockEmailDomain,
+          }),
+        }).then(async (res) => {
+          if (res.ok) {
+            toast.success("User has been banned");
+          } else {
+            const error = await res.text();
+            toast.error(error);
+          }
+        });
+      }}
+    >
+      <UserInfo data={data} />
+      <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-neutral-600">
+        <input
+          type="checkbox"
+          checked={blockEmailDomain}
+          onChange={(e) => setBlockEmailDomain(e.target.checked)}
+          className="rounded border-neutral-300 text-neutral-900 focus:ring-neutral-500"
+        />
+        Also block signups from @{data.email.split("@")[1]}
+      </label>
+      <div className="mt-4">
+        <BanButton />
+      </div>
+    </form>
+  );
+}
+
 export function ImpersonateUser() {
   const [data, setData] = useState<UserInfoProps | null>(null);
-  const [blockEmailDomain, setBlockEmailDomain] = useState(false);
 
   return (
     <div className="flex flex-col space-y-5">
@@ -22,7 +72,6 @@ export function ImpersonateUser() {
             }),
           }).then(async (res) => {
             if (res.ok) {
-              setBlockEmailDomain(false);
               setData(await res.json());
             } else {
               const error = await res.text();
@@ -34,50 +83,7 @@ export function ImpersonateUser() {
         <Form />
       </form>
       {data ? (
-        <form
-          action={async () => {
-            const emailDomain = data.email.split("@")[1];
-            const blockDomainMessage = blockEmailDomain
-              ? ` and block signups from @${emailDomain}`
-              : "";
-
-            if (
-              !confirm(
-                `This will ban the user ${data.email} and delete all their workspaces and links${blockDomainMessage}. Are you sure?`,
-              )
-            ) {
-              return;
-            }
-            await fetch("/api/admin/ban", {
-              method: "POST",
-              body: JSON.stringify({
-                email: data.email,
-                blockEmailDomain,
-              }),
-            }).then(async (res) => {
-              if (res.ok) {
-                toast.success("User has been banned");
-              } else {
-                const error = await res.text();
-                toast.error(error);
-              }
-            });
-          }}
-        >
-          <UserInfo data={data} />
-          <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-neutral-600">
-            <input
-              type="checkbox"
-              checked={blockEmailDomain}
-              onChange={(e) => setBlockEmailDomain(e.target.checked)}
-              className="rounded border-neutral-300 text-neutral-900 focus:ring-neutral-500"
-            />
-            Also block signups from @{data.email.split("@")[1]}
-          </label>
-          <div className="mt-4">
-            <BanButton />
-          </div>
-        </form>
+        <ImpersonateResult key={data.impersonateUrl.app} data={data} />
       ) : (
         <UserInfoSkeleton />
       )}
@@ -116,7 +122,7 @@ const Form = () => {
           }
           e.currentTarget.value = text;
         }}
-        placeholder="panic@thedis.co, acme, acme.com, or cus_"
+        placeholder="panic@thedis.co, acme, acme.com, dub.sh/abc, or cus_"
         aria-invalid="true"
       />
       {pending && (

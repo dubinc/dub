@@ -47,7 +47,13 @@ interface ProcessPayoutsProps {
   >;
   program: Pick<
     Program,
-    "id" | "name" | "logo" | "url" | "minPayoutAmount" | "supportEmail"
+    | "id"
+    | "name"
+    | "logo"
+    | "url"
+    | "minPayoutAmount"
+    | "supportEmail"
+    | "environment"
   > & {
     payoutMode: ProgramPayoutMode;
   };

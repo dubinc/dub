@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
-import { currencyFormatter } from "@dub/utils";
+import { chunk, currencyFormatter, log } from "@dub/utils";
 import {
   CommissionStatus,
   Invoice,
@@ -17,7 +17,8 @@ interface MockPayoutCompletionParams {
   workspace: Pick<Project, "id" | "environment">;
 }
 
-// Mark the all payouts and commissions in the invoice as paid
+// Mark internal payouts and their commissions as paid. External payouts stay
+// processing until the webhook callback. The invoice is marked completed either way.
 export async function mockPayoutCompletion({
   invoice,
   workspace,
@@ -30,6 +31,7 @@ export async function mockPayoutCompletion({
     where: {
       invoiceId: invoice.id,
       status: PayoutStatus.processing,
+      mode: "internal",
     },
     orderBy: {
       id: "asc",
@@ -52,11 +54,41 @@ export async function mockPayoutCompletion({
     },
   });
 
-  if (payouts.length === 0) {
+  const payoutIds = payouts.map((p) => p.id);
+
+  await prisma.$transaction([
+    prisma.invoice.update({
+      where: {
+        id: invoice.id,
+      },
+      data: {
+        status: InvoiceStatus.completed,
+        paidAt: new Date(),
+      },
+    }),
+    ...(payoutIds.length > 0
+      ? [
+          prisma.payout.updateMany({
+            where: {
+              id: {
+                in: payoutIds,
+              },
+            },
+            data: {
+              status: PayoutStatus.completed,
+              paidAt: new Date(),
+            },
+          }),
+        ]
+      : []),
+  ]);
+
+  if (payoutIds.length === 0) {
+    console.log(
+      `[mockPayoutCompletion] No internal payouts found for invoice ${invoice.id}, skipping commission updates...`,
+    );
     return;
   }
-
-  const payoutIds = payouts.map((p) => p.id);
 
   const commissions = await prisma.commission.findMany({
     where: {
@@ -73,40 +105,36 @@ export async function mockPayoutCompletion({
     },
   });
 
-  await prisma.$transaction([
-    prisma.commission.updateMany({
-      where: {
-        payoutId: {
-          in: payoutIds,
-        },
-      },
-      data: {
-        status: CommissionStatus.paid,
-      },
-    }),
+  const commissionIds = commissions.map((c) => c.id);
 
-    prisma.payout.updateMany({
-      where: {
-        id: {
-          in: payoutIds,
+  let totalUpdatedCommissions = 0;
+  for (const commissionIdsBatch of chunk(commissionIds, 250)) {
+    try {
+      const { count } = await prisma.commission.updateMany({
+        where: {
+          id: {
+            in: commissionIdsBatch,
+          },
         },
-      },
-      data: {
-        status: PayoutStatus.completed,
-        paidAt: new Date(),
-      },
-    }),
+        data: {
+          status: CommissionStatus.paid,
+        },
+      });
 
-    prisma.invoice.update({
-      where: {
-        id: invoice.id,
-      },
-      data: {
-        status: InvoiceStatus.completed,
-        paidAt: new Date(),
-      },
-    }),
-  ]);
+      totalUpdatedCommissions += count;
+      console.log(
+        `Marked ${totalUpdatedCommissions}/${commissionIds.length} commissions as paid`,
+      );
+    } catch (error) {
+      await log({
+        message: `[mockPayoutCompletion] Failed to mark commissions as paid for payouts ${payoutIds.join(
+          ", ",
+        )}: ${error.message}`,
+        type: "errors",
+        mention: true,
+      });
+    }
+  }
 
   // Group partner -> payouts so we send only one email per partner when there are multiple payouts
   const partnerPayouts = payouts.reduce(
