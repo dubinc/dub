@@ -11,6 +11,7 @@ type PartnerProfileProgram = {
   status: ProgramEnrollmentStatus;
   totalCommissions: number;
   program: { id: string; name: string };
+  inactiveAt?: string | null;
 };
 
 type StatusCount = { status: ProgramEnrollmentStatus; _count: number };
@@ -134,6 +135,11 @@ test.describe("GET /partner-profile/programs", () => {
   const programIds = (data: PartnerProfileProgram[]) =>
     data.map((enrollment) => enrollment.program.id);
 
+  const inactiveDates = (data: PartnerProfileProgram[]) =>
+    Object.fromEntries(
+      data.map((enrollment) => [enrollment.program.id, enrollment.inactiveAt]),
+    );
+
   test("returns every enrollment by default, without deactivated programs", async ({
     playwright,
     program,
@@ -212,6 +218,82 @@ test.describe("GET /partner-profile/programs", () => {
       expect(withoutRewards.some((e) => "discount" in e)).toBe(false);
       expect(status).toEqual(422);
     });
+  });
+
+  test("returns the inactive date from bannedAt, and from the latest status log only with includeInactiveDates", async ({
+    playwright,
+  }) => {
+    const bannedAt = new Date("2026-09-01T12:00:00.000Z");
+    const deactivatedAt = new Date("2026-09-14T12:00:00.000Z");
+
+    // alpha is banned, beta is deactivated with a log, and gamma is archived without a log
+    await prisma.programEnrollment.update({
+      where: {
+        partnerId_programId: { partnerId: partnerId!, programId: alpha.id },
+      },
+      data: { status: "banned", bannedAt },
+    });
+    await prisma.programEnrollment.update({
+      where: {
+        partnerId_programId: { partnerId: partnerId!, programId: beta.id },
+      },
+      data: { status: "deactivated" },
+    });
+    await prisma.programEnrollment.update({
+      where: {
+        partnerId_programId: { partnerId: partnerId!, programId: gamma.id },
+      },
+      data: { status: "archived" },
+    });
+    const activityLog = await prisma.activityLog.create({
+      data: {
+        workspaceId: beta.workspaceId,
+        programId: beta.id,
+        resourceType: "partner",
+        resourceId: partnerId!,
+        action: "partner.deactivated",
+        createdAt: deactivatedAt,
+      },
+    });
+
+    try {
+      await withPartnerApi(playwright, async (partnerApi) => {
+        const path =
+          "/api/partner-profile/programs?status=banned,deactivated,archived";
+
+        const { status, data } = await partnerApi.get<PartnerProfileProgram[]>(
+          `${path}&includeInactiveDates=true`,
+        );
+
+        expect(status).toEqual(200);
+        expect(inactiveDates(data)).toEqual({
+          [alpha.id]: bannedAt.toISOString(),
+          [beta.id]: deactivatedAt.toISOString(),
+          [gamma.id]: null,
+        });
+
+        // without includeInactiveDates, the route skips the activity log lookup
+        const { data: withoutLogs } =
+          await partnerApi.get<PartnerProfileProgram[]>(path);
+        const withoutLogsInactiveAt = inactiveDates(withoutLogs);
+
+        expect(withoutLogsInactiveAt[alpha.id]).toEqual(bannedAt.toISOString());
+        expect(withoutLogsInactiveAt[beta.id]).toBeNull();
+      });
+    } finally {
+      await prisma.activityLog.delete({ where: { id: activityLog.id } });
+      for (const program of [alpha, beta, gamma]) {
+        await prisma.programEnrollment.update({
+          where: {
+            partnerId_programId: {
+              partnerId: partnerId!,
+              programId: program.id,
+            },
+          },
+          data: { status: program.status, bannedAt: null },
+        });
+      }
+    }
   });
 
   test("rejects an unknown status", async ({ playwright }) => {

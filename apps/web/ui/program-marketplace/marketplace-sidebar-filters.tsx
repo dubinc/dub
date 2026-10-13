@@ -3,9 +3,14 @@
 import { ChevronLeft, Filter, useKeyboardShortcut } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useProgramNetworkFilters } from "./use-program-network-filters";
+import { isMarketplaceFilterSidebarPath } from "./utils/urls";
 
 export function MarketplaceSidebarFilters() {
+  const pathname = usePathname();
+
+  // the sidebar keeps these filters mounted on every page, so only load the counts where they show
   const {
     filters,
     activeFilters,
@@ -13,7 +18,9 @@ export function MarketplaceSidebarFilters() {
     onRemove,
     onRemoveAll,
     isFiltered,
-  } = useProgramNetworkFilters();
+  } = useProgramNetworkFilters({
+    enabled: isMarketplaceFilterSidebarPath(pathname),
+  });
 
   useKeyboardShortcut("Escape", onRemoveAll, {
     enabled: isFiltered,
