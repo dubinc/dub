@@ -4,7 +4,7 @@ import useSWR from "swr";
 import { countPartnerBountiesByTab } from "../bounty/partner-bounty-tabs";
 import { PartnerProfileBountyProps } from "../types";
 
-// the partner bounties of all approved programs
+// the partner bounties of all active programs
 export function usePartnerProfileBounties({
   enabled = true,
 }: {

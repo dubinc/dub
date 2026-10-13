@@ -3,15 +3,17 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import { getBountiesForPartnerEnrollments } from "@/lib/bounty/api/get-bounties-for-partner";
 import { prisma } from "@/lib/prisma";
 import { PartnerProfileBountySchema } from "@/lib/zod/schemas/partner-profile";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-// GET /api/partner-profile/bounties – get available bounties for all approved program enrollments
+// GET /api/partner-profile/bounties – get available bounties for all active program enrollments
 export const GET = withPartnerProfile(async ({ partner }) => {
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: getProgramEnrollmentsWhere({
       partnerId: partner.id,
-      status: ["approved"],
+      // archived partners can still submit bounties
+      status: ACTIVE_ENROLLMENT_STATUSES,
     }),
     include: {
       program: {
