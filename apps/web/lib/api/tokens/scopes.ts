@@ -389,6 +389,25 @@ export const grantLegacyScopePermissions = ({
   return [...new Set<PermissionAction>([...permissions, ...legacyPermissions])];
 };
 
+// True when the legacy grant gives a key permissions that its own scopes do
+// not include, so the key has more access than the dashboard shows. "All
+// access" keys already have every permission and return false.
+export const hasLegacyScopeGrant = ({
+  scopes,
+  createdAt,
+}: {
+  scopes: string[];
+  createdAt: Date | string;
+}) => {
+  const permissions = new Set(mapScopesToPermissions(scopes as Scope[]));
+
+  return (
+    new Set(
+      grantLegacyScopePermissions({ permissions: [...permissions], createdAt }),
+    ).size > permissions.size
+  );
+};
+
 // Get SCOPES_BY_RESOURCE based on user role in a workspace
 export const getScopesByResourceForRole = (role: WorkspaceRole) => {
   const groupedByResource = {};
