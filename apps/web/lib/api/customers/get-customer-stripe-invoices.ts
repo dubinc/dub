@@ -22,18 +22,18 @@ type ExpandedStripeInvoice = Stripe.Invoice & {
 export async function getCustomerStripeInvoices({
   stripeCustomerId,
   stripeConnectId,
+  workspaceId,
   programId,
 }: {
   stripeCustomerId: string;
   stripeConnectId: string;
+  workspaceId: string;
   programId: string;
 }) {
   const installedStripeIntegration =
     await prisma.installedIntegration.findFirst({
       where: {
-        project: {
-          stripeConnectId,
-        },
+        projectId: workspaceId,
         integrationId: STRIPE_INTEGRATION_ID,
       },
       select: {

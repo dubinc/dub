@@ -562,6 +562,7 @@ async function recordEvents(args: RecordEventsArgs) {
     stripeCustomerInvoices = await getCustomerStripeInvoices({
       stripeCustomerId: targetCustomer.stripeCustomerId!,
       stripeConnectId: workspace.stripeConnectId!,
+      workspaceId: workspace.id,
       programId,
     });
 

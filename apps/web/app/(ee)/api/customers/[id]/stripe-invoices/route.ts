@@ -32,6 +32,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   const stripeCustomerInvoices = await getCustomerStripeInvoices({
     stripeCustomerId: customer.stripeCustomerId,
     stripeConnectId: workspace.stripeConnectId,
+    workspaceId: workspace.id,
     programId: getDefaultProgramIdOrThrow(workspace),
   });
 
