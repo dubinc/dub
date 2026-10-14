@@ -9,7 +9,8 @@
 import dns from "node:dns";
 import type { LookupFunction } from "node:net";
 import { Agent, fetch as undiciFetch } from "undici";
-import { createSafeFetch, isPrivateIp } from "./safe-fetch";
+import { isPrivateIp } from "./is-private-ip";
+import { createSafeFetch } from "./safe-fetch";
 
 type AllAddressesCallback = (
   err: NodeJS.ErrnoException | null,

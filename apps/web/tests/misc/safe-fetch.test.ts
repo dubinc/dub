@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 // `@/lib/api/errors`.
 vi.mock("server-only", () => ({}));
 
-import { isPrivateIp } from "@/lib/api/safe-fetch";
+import { isPrivateIp } from "@/lib/api/is-private-ip";
 
 describe("isPrivateIp", () => {
   describe("IPv4", () => {

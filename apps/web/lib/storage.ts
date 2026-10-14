@@ -1,3 +1,4 @@
+import { isPrivateIp } from "@/lib/api/is-private-ip";
 import { OG_AVATAR_URL, R2_URL, fetchWithTimeout } from "@dub/utils";
 import { AwsClient } from "aws4fetch";
 import { promises as dns } from "dns";
@@ -280,7 +281,7 @@ class StorageClient {
     }
   }
 
-  // Edge sibling is `safeFetch` in `lib/api/safe-fetch.ts` (DoH, no `node:dns`).
+  // Uses the same deny-list as `safeFetch` in `lib/api/safe-fetch.ts`.
   private async assertSafeUrl(url: string): Promise<void> {
     const { hostname, protocol } = new URL(url);
 
@@ -296,29 +297,7 @@ class StorageClient {
       address = result.address;
     }
 
-    const addr = address.toLowerCase();
-    const mappedIPv4 = addr.startsWith("::ffff:");
-    const parts = (mappedIPv4 ? addr.slice("::ffff:".length) : address)
-      .split(".")
-      .map(Number);
-    const isPrivateIPv4 =
-      parts.length === 4 &&
-      (parts[0] === 127 || // loopback 127.0.0.0/8
-        parts[0] === 10 || // private 10.0.0.0/8
-        (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) || // private 172.16.0.0/12
-        (parts[0] === 192 && parts[1] === 168) || // private 192.168.0.0/16
-        (parts[0] === 169 && parts[1] === 254) || // link-local 169.254.0.0/16
-        parts[0] === 0); // unspecified 0.0.0.0/8
-
-    const isPrivateIPv6 =
-      addr === "::1" || // loopback
-      addr === "::" || // unspecified
-      mappedIPv4 || // IPv4-mapped IPv6, e.g. ::ffff:127.0.0.1
-      addr.startsWith("fc") || // unique local fc00::/7
-      addr.startsWith("fd") || // unique local fc00::/7
-      /^fe[89ab]/.test(addr); // link-local fe80::/10
-
-    if (isPrivateIPv4 || isPrivateIPv6) {
+    if (isPrivateIp(address)) {
       throw new Error("URL resolves to a private or internal IP address.");
     }
   }
