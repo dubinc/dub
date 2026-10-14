@@ -1,16 +1,21 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { ProgramLinkConfiguration } from "@/ui/partners/program-link-configuration";
 import { Button, FileUpload, Input, useMediaQuery } from "@dub/ui";
+import { toErrorMessage } from "@dub/utils";
 import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
+
+const { contentTypes, maxBytes } = UPLOAD_POLICIES.programLogos;
+const maxFileSizeMB = maxBytes / (1024 * 1024);
 
 export function Form() {
   const router = useRouter();
@@ -61,14 +66,20 @@ export function Form() {
         `/api/workspaces/${workspaceId}/upload-url`,
         {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
-            folder: "program-logos",
+            folder: "programLogos",
+            contentType: file.type,
+            contentLength: file.size,
           }),
         },
       );
 
       if (!response.ok) {
-        throw new Error("Failed to get signed URL for upload.");
+        const { error } = await response.json();
+        throw new Error(toErrorMessage(error));
       }
 
       const { signedUrl, destinationUrl } = await response.json();
@@ -89,7 +100,7 @@ export function Form() {
       setValue("logo", destinationUrl, { shouldDirty: true });
       toast.success("Program logo uploaded!");
     } catch (e) {
-      toast.error("Failed to upload logo");
+      toast.error(toErrorMessage(e));
     } finally {
       setIsUploading(false);
     }
@@ -138,7 +149,7 @@ export function Form() {
             rules={{ required: true }}
             render={({ field }) => (
               <FileUpload
-                accept="images"
+                acceptedFileTypes={contentTypes}
                 className="size-14 rounded-lg"
                 iconClassName="size-4 text-neutral-800"
                 icon={Plus}
@@ -148,7 +159,7 @@ export function Form() {
                 readFile
                 onChange={({ file }) => handleUpload(file)}
                 content={null}
-                maxFileSizeMB={2}
+                maxFileSizeMB={maxFileSizeMB}
               />
             )}
           />

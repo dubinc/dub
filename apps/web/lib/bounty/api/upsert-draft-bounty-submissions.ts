@@ -87,7 +87,7 @@ export function planDraftBountySubmissionUpserts({
 
     const conditionMet = evaluateWorkflowConditions({
       conditions: [condition],
-      attributes: {
+      context: {
         [condition.attribute]: performanceCount,
       },
     });

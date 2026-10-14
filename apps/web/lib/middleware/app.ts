@@ -13,6 +13,12 @@ import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redire
 import { parse } from "./utils/parse";
 import { WorkspacesMiddleware } from "./workspaces";
 
+const isPublicPath = (path: string) =>
+  ["/marketplace", "/auth/reset-password"].some((p) => path === p) ||
+  ["/marketplace/", "/share/", "/deeplink/", "/unsubscribe/"].some((p) =>
+    path.startsWith(p),
+  );
+
 export async function AppMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsString } = parse(req);
 
@@ -30,10 +36,7 @@ export async function AppMiddleware(req: NextRequest) {
     path !== "/forgot-password" &&
     path !== "/register" &&
     path !== "/auth/saml" &&
-    path !== "/auth/reset-password" &&
-    !path.startsWith("/share/") &&
-    !path.startsWith("/deeplink/") &&
-    !path.startsWith("/unsubscribe/")
+    !isPublicPath(path)
   ) {
     return NextResponse.redirect(
       new URL(
@@ -43,7 +46,7 @@ export async function AppMiddleware(req: NextRequest) {
     );
 
     // if there's a user
-  } else if (user) {
+  } else if (user && !isPublicPath(path)) {
     // /new is a special path that creates a new link (or workspace if the user doesn't have one yet)
     if (path === "/new") {
       return NewLinkMiddleware(req, user);
@@ -61,6 +64,7 @@ export async function AppMiddleware(req: NextRequest) {
         Date.now() - ONBOARDING_WINDOW_SECONDS * 1000 &&
       !["/onboarding", "/account"].some((p) => path.startsWith(p)) &&
       path !== "/auth/reset-password" &&
+      path !== "/workspaces" &&
       !(await getDefaultWorkspace(user)) &&
       !(await hasPendingInvites({ req, user })) &&
       (await onboardingStepCache.get({ userId: user.id })) !== "completed"
@@ -90,7 +94,6 @@ export async function AppMiddleware(req: NextRequest) {
         "/",
         "/login",
         "/register",
-        "/workspaces",
         "/links",
         "/analytics",
         "/events",

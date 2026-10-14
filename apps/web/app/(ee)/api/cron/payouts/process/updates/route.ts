@@ -1,7 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
@@ -20,15 +19,8 @@ const BATCH_SIZE = 100;
 
 // POST /api/cron/payouts/process/updates
 // Recursive cron job to handle side effects of the `cron/payouts/process` job (recordAuditLog, sendBatchEmails)
-export async function POST(req: Request) {
+export const POST = withCron(async ({ rawBody }) => {
   try {
-    const rawBody = await req.text();
-
-    await verifyQstashSignature({
-      req,
-      rawBody,
-    });
-
     const { invoiceId, startingAfter } = payloadSchema.parse(
       JSON.parse(rawBody),
     );
@@ -60,7 +52,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const auditLogResponse = await recordAuditLog(
+    await recordAuditLog(
       payouts.map(({ program, partner, invoice, ...payout }) => {
         return {
           workspaceId: program.workspaceId,
@@ -80,12 +72,12 @@ export async function POST(req: Request) {
         };
       }),
     );
-    console.log(JSON.stringify({ auditLogResponse }, null, 2));
 
     const invoice = payouts[0].invoice;
     const internalPayouts = payouts.filter(
       (payout) => payout.mode === "internal",
     );
+
     if (
       invoice &&
       invoice.paymentMethod !== "card" &&
@@ -103,6 +95,7 @@ export async function POST(req: Request) {
               id: payout.program.id,
               name: payout.program.name,
               logo: payout.program.logo,
+              environment: payout.program.environment,
             },
             payout: {
               id: payout.id,
@@ -144,11 +137,11 @@ export async function POST(req: Request) {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     await log({
-      message: `Error sending Stripe payout: ${errorMessage}`,
+      message: `Error running payouts/process/updates cron job: ${errorMessage}`,
       type: "errors",
       mention: true,
     });
 
-    return handleAndReturnErrorResponse(error);
+    throw error;
   }
-}
+});

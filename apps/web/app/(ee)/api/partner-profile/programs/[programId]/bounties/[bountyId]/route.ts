@@ -2,11 +2,16 @@ import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
+  bountyEligibilityIncludes,
   canPartnerSeeBounty,
-  getEffectiveBountyPeriod,
+  programEnrollmentEligibilityIncludes,
 } from "@/lib/bounty/api/bounty-availability";
+import { toPartnerBounty } from "@/lib/bounty/api/get-bounties-for-partner";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
-import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import {
+  aggregatePartnerLinksStats,
+  partnerLinkStatsSelect,
+} from "@/lib/partners/aggregate-partner-links-stats";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
 
@@ -26,14 +31,9 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           },
         },
         links: {
-          select: {
-            clicks: true,
-            leads: true,
-            conversions: true,
-            sales: true,
-            saleAmount: true,
-          },
+          select: partnerLinkStatsSelect,
         },
+        ...programEnrollmentEligibilityIncludes,
       },
     });
 
@@ -41,23 +41,27 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     programId: program.id,
     bountyId,
     include: {
+      ...bountyEligibilityIncludes,
       workflow: {
         select: {
           triggerConditions: true,
         },
       },
-      groups: true,
       submissions: {
         where: {
           partnerId: partner.id,
         },
         include: {
-          commission: {
+          commissions: {
             select: {
               id: true,
               earnings: true,
               status: true,
+              description: true,
               createdAt: true,
+            },
+            orderBy: {
+              createdAt: "asc",
             },
           },
         },
@@ -78,23 +82,13 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
-  const { startsAt, endsAt } = getEffectiveBountyPeriod({
-    programEnrollment,
-    bounty,
-  });
-
-  const { groups, ...bountyWithoutGroups } = bounty;
-
   return NextResponse.json(
-    PartnerBountySchema.parse({
-      ...bountyWithoutGroups,
-      startsAt,
-      endsAt,
-      performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
-      partner: {
-        ...aggregatePartnerLinksStats(links),
-        totalCommissions: programEnrollment.totalCommissions,
-      },
-    }),
+    PartnerBountySchema.parse(
+      toPartnerBounty({
+        bounty,
+        programEnrollment,
+        partnerLinksStats: aggregatePartnerLinksStats(links),
+      }),
+    ),
   );
 });

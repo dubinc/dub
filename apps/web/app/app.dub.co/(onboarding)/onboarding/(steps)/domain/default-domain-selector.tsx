@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { OnboardingStep } from "@/lib/onboarding/types";
 import {
   Bolt,
@@ -77,6 +78,7 @@ export function DefaultDomainSelector() {
               : undefined
           }
           cta="Connect domain"
+          testId={testIds.onboarding.connectDomain}
         />
         {product === "partners" && (
           <DomainOption
@@ -131,7 +133,11 @@ export function DefaultDomainSelector() {
       </div>
       {product === "links" && (
         <div className="mx-auto mt-8 w-full max-w-sm">
-          <LaterButton next="plan" className="mt-4" />
+          <LaterButton
+            next="plan"
+            className="mt-4"
+            data-testid={testIds.onboarding.skipDomain}
+          />
         </div>
       )}
     </>
@@ -148,6 +154,7 @@ function DomainOption({
   bannerIcon: BannerIcon,
   bannerText,
   bannerVariant = "default",
+  testId,
 }: {
   step: OnboardingStep;
   icon: string;
@@ -161,6 +168,7 @@ function DomainOption({
   bannerIcon?: Icon;
   bannerText?: string;
   bannerVariant?: "default" | "recommended";
+  testId?: string;
 }) {
   const plausible = usePlausible();
   const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
@@ -233,6 +241,7 @@ function DomainOption({
             }}
             loading={isLoading || isSuccessful}
             text={cta}
+            data-testid={testId}
           />
         </div>
       </div>

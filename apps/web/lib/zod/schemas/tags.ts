@@ -69,7 +69,7 @@ export const createTagBodySchema = z
   .superRefine((data, ctx) => {
     if (!data.name && !data.tag) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["name"],
         message: "Name is required.",
       });

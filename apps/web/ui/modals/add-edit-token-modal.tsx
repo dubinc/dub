@@ -1,4 +1,4 @@
-import { ResourceKey, RESOURCES } from "@/lib/api/rbac/resources";
+import { RESOURCES } from "@/lib/api/rbac/resources";
 import {
   getScopesByResourceForRole,
   Scope,
@@ -130,12 +130,23 @@ function AddEditTokenModal({
   };
 
   const { name, scopes } = data;
-  const buttonDisabled =
-    (!name || token?.name === name) && token?.scopes === scopes;
+  const selectedScopes = Object.values(scopes).filter(Boolean);
+
+  let disabledReason: string | null = null;
+
+  if (selectedScopes.length === 0) {
+    disabledReason = "Select at least one permission.";
+  } else if (!name) {
+    disabledReason = "Enter a name.";
+  } else if (token?.name === name && token?.scopes === scopes) {
+    disabledReason = "No changes have been made.";
+  }
+
+  const buttonDisabled = disabledReason !== null;
 
   const scopesByResources = transformScopesForUI(
     getScopesByResourceForRole(role),
-  ).filter(({ name }) => name);
+  );
 
   return (
     <>
@@ -262,10 +273,10 @@ function AddEditTokenModal({
               </span>
             </div>
             {preset === "restricted" && (
-              <div className="flex flex-col divide-y text-sm">
+              <div className="-mx-1 flex max-h-[max(160px,calc(100dvh-500px))] flex-col divide-y overflow-y-auto px-1 text-sm">
                 {scopesByResources.map((resource) => (
                   <div
-                    className="flex items-center justify-between py-4"
+                    className="flex items-center justify-between py-2.5"
                     key={resource.key}
                   >
                     <div className="flex items-center gap-1.5">
@@ -314,6 +325,7 @@ function AddEditTokenModal({
           <Button
             text={token ? "Save changes" : "Create API key"}
             disabled={buttonDisabled}
+            disabledTooltip={disabledReason}
             loading={saving}
           />
         </form>
@@ -394,10 +406,13 @@ export function useAddEditTokenModal({
 }
 
 const transformScopesForUI = (scopedResources) => {
-  return Object.keys(scopedResources).map((resourceKey: ResourceKey) => {
-    return {
-      ...RESOURCES.find((r) => r.key === resourceKey)!,
-      scopes: scopedResources[resourceKey],
-    };
+  return RESOURCES.flatMap((resource) => {
+    const scopes = scopedResources[resource.key];
+
+    if (!scopes) {
+      return [];
+    }
+
+    return [{ ...resource, scopes }];
   });
 };

@@ -389,7 +389,7 @@ function SocialMetricsIncrementalBonus({
                 text={
                   variableBonus.bonusPerIncrement != null &&
                   !isNaN(variableBonus.bonusPerIncrement) &&
-                  variableBonus.bonusPerIncrement >= 0
+                  variableBonus.bonusPerIncrement > 0
                     ? currencyFormatter(variableBonus.bonusPerIncrement * 100, {
                         trailingZeroDisplay: "stripIfInteger",
                       })
@@ -398,12 +398,12 @@ function SocialMetricsIncrementalBonus({
                 invalid={
                   variableBonus.bonusPerIncrement == null ||
                   isNaN(variableBonus.bonusPerIncrement) ||
-                  variableBonus.bonusPerIncrement < 0
+                  variableBonus.bonusPerIncrement <= 0
                 }
                 buttonClassName={
                   variableBonus.bonusPerIncrement != null &&
                   !isNaN(variableBonus.bonusPerIncrement) &&
-                  variableBonus.bonusPerIncrement >= 0
+                  variableBonus.bonusPerIncrement > 0
                     ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
                     : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
                 }

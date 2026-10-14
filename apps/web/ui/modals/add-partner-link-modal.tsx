@@ -1,23 +1,34 @@
-import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
-import useGroup from "@/lib/swr/use-group";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { createPartnerLinkSchemaInternal } from "@/lib/zod/schemas/partners";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
+import { DiscountSelector } from "@/ui/partners/rewards/discount-selector";
+import { RewardSelector } from "@/ui/partners/rewards/reward-selector";
+import { useCustomRewardAndDiscountOptions } from "@/ui/partners/rewards/use-custom-reward-and-discount-options";
 import {
+  AnimatedSizeContainer,
   ArrowTurnLeft,
   Button,
   InfoTooltip,
   Modal,
+  Tooltip,
+  TooltipContent,
   useCopyToClipboard,
+  useLatestCallback,
   useMediaQuery,
 } from "@dub/ui";
-import { constructURLFromUTMParams } from "@dub/utils";
-import { UtmTemplate } from "@prisma/client";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { cn } from "@dub/utils";
+import { ChevronDown } from "lucide-react";
+import { motion } from "motion/react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import * as z from "zod/v4";
 import { X } from "../shared/icons";
 
 interface AddPartnerLinkModalProps {
@@ -27,10 +38,15 @@ interface AddPartnerLinkModalProps {
   partner: Pick<EnrolledPartnerProps, "id" | "email" | "groupId">;
 }
 
-interface FormData {
-  key: string;
-  url: string;
-}
+type FormData = Pick<
+  z.infer<typeof createPartnerLinkSchemaInternal>,
+  | "key"
+  | "url"
+  | "clickRewardId"
+  | "leadRewardId"
+  | "saleRewardId"
+  | "discountId"
+>;
 
 const AddPartnerLinkModal = ({
   showModal,
@@ -40,27 +56,60 @@ const AddPartnerLinkModal = ({
 }: AddPartnerLinkModalProps) => {
   const { program } = useProgram();
   const { isMobile } = useMediaQuery();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, plan } = useWorkspace();
+  const { canUseAdvancedRewardLogic } = getPlanCapabilities(plan);
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
   const [, copyToClipboard] = useCopyToClipboard();
   const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showOverrides, setShowOverrides] = useState(false);
 
-  const { register, handleSubmit, watch } = useForm<FormData>({
-    defaultValues: {
-      key: "",
-      url: program?.url || "",
-    },
+  const {
+    clickRewards,
+    saleRewards,
+    leadRewards,
+    discounts,
+    groupClickRewardId,
+    groupLeadRewardId,
+    groupSaleRewardId,
+    groupDiscountId,
+  } = useCustomRewardAndDiscountOptions({
+    partnerGroupId: partner.groupId,
   });
 
-  const { group: partnerGroup } = useGroup({
-    groupIdOrSlug: partner.groupId ?? DEFAULT_PARTNER_GROUP.slug,
-  });
+  const { register, handleSubmit, watch, setValue, control } =
+    useForm<FormData>({
+      defaultValues: {
+        key: "",
+        url: program?.url || "",
+        clickRewardId: null,
+        leadRewardId: null,
+        saleRewardId: null,
+        discountId: null,
+      },
+    });
 
-  const [key, url] = watch(["key", "url"]);
+  const key = watch("key");
+  const prevShowModal = useRef(showModal);
+
+  useEffect(() => {
+    if (showModal && !prevShowModal.current) {
+      setValue("key", "");
+      setValue("url", program?.url || "");
+      setValue("clickRewardId", null);
+      setValue("leadRewardId", null);
+      setValue("saleRewardId", null);
+      setValue("discountId", null);
+      setShowOverrides(false);
+      setErrorMessage(null);
+    }
+    prevShowModal.current = showModal;
+  }, [showModal, program?.url, setValue]);
 
   const onSubmit = async (formData: FormData) => {
-    if (!program?.id || !partner.id) {
+    if (!partner.id) {
       return;
     }
 
@@ -68,27 +117,24 @@ const AddPartnerLinkModal = ({
     setErrorMessage(null);
 
     try {
-      const response = await fetch(`/api/links?workspaceId=${workspaceId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          partnerId: partner.id,
-          programId: program.id,
-          domain: program.domain,
-          url: constructURLFromUTMParams(
-            url,
-            extractUtmParams(partnerGroup?.utmTemplate as UtmTemplate),
-          ),
-          ...extractUtmParams(partnerGroup?.utmTemplate as UtmTemplate, {
-            excludeRef: true,
+      const response = await fetch(
+        `/api/partners/links?workspaceId=${workspaceId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            partnerId: partner.id,
+            key: formData.key,
+            url: formData.url || undefined,
+            clickRewardId: formData.clickRewardId || undefined,
+            leadRewardId: formData.leadRewardId || undefined,
+            saleRewardId: formData.saleRewardId || undefined,
+            discountId: formData.discountId || undefined,
           }),
-          trackConversion: true,
-          folderId: program.defaultFolderId,
-        }),
-      });
+        },
+      );
 
       const data = await response.json();
 
@@ -96,7 +142,10 @@ const AddPartnerLinkModal = ({
         throw new Error(data.error.message);
       }
 
-      await mutate(`/api/partners/${partner.id}?workspaceId=${workspaceId}`);
+      await Promise.all([
+        mutatePrefix("/api/partners/links"),
+        mutate(`/api/partners/${partner.id}?workspaceId=${workspaceId}`),
+      ]);
       toast.success("Link created successfully!");
       onSuccess?.(data);
       setShowModal(false);
@@ -114,8 +163,9 @@ const AddPartnerLinkModal = ({
     <Modal
       showModal={showModal}
       setShowModal={setShowModal}
-      className="max-w-lg"
+      className="max-w-lg overflow-visible"
     >
+      {advancedUpsellModal}
       <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
         <div className="flex flex-col items-start justify-between gap-4 px-6 py-4">
           <div className="flex w-full items-center justify-between">
@@ -135,9 +185,9 @@ const AddPartnerLinkModal = ({
                 <div className="flex items-center gap-2">
                   <label
                     htmlFor="key"
-                    className="block text-sm font-medium text-neutral-700"
+                    className="text-content-emphasis block text-sm font-medium"
                   >
-                    Short Link
+                    Short link
                   </label>
 
                   <InfoTooltip content="This is the short link that will redirect to your destination URL. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
@@ -172,7 +222,7 @@ const AddPartnerLinkModal = ({
               <div className="flex items-center gap-2">
                 <label
                   htmlFor="url"
-                  className="block text-sm font-medium text-neutral-700"
+                  className="text-content-emphasis block text-sm font-medium"
                 >
                   Destination URL
                 </label>
@@ -189,10 +239,111 @@ const AddPartnerLinkModal = ({
                 />
               </div>
             </div>
+
+            <div className="flex flex-col">
+              <Tooltip
+                content={
+                  !canUseAdvancedRewardLogic ? (
+                    <TooltipContent
+                      title={PARTNER_LEVEL_REWARDS_PLAN_ERROR}
+                      cta="Upgrade to Advanced"
+                      onClick={() => setShowAdvancedUpsellModal(true)}
+                    />
+                  ) : undefined
+                }
+              >
+                <button
+                  type="button"
+                  className={cn(
+                    "flex w-full items-center gap-2",
+                    !canUseAdvancedRewardLogic &&
+                      "cursor-not-allowed opacity-50",
+                  )}
+                  onClick={() => {
+                    if (!canUseAdvancedRewardLogic) {
+                      return;
+                    }
+                    setShowOverrides(!showOverrides);
+                  }}
+                >
+                  <p className="text-sm text-neutral-600">
+                    {showOverrides ? "Hide" : "Show"} rewards and discount
+                    overrides
+                  </p>
+                  <motion.div
+                    animate={{ rotate: showOverrides ? 180 : 0 }}
+                    className="text-neutral-600"
+                  >
+                    <ChevronDown className="size-4" />
+                  </motion.div>
+                </button>
+              </Tooltip>
+
+              <AnimatedSizeContainer height className="-mx-1 overflow-visible">
+                {showOverrides && canUseAdvancedRewardLogic && (
+                  <div className="flex flex-col gap-6 px-1 pt-4">
+                    <Controller
+                      control={control}
+                      name="saleRewardId"
+                      render={({ field }) => (
+                        <RewardSelector
+                          label="Sale reward"
+                          options={saleRewards}
+                          selectedId={field.value ?? groupSaleRewardId}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="leadRewardId"
+                      render={({ field }) => (
+                        <RewardSelector
+                          label="Lead reward"
+                          options={leadRewards}
+                          selectedId={field.value ?? groupLeadRewardId}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="clickRewardId"
+                      render={({ field }) => (
+                        <RewardSelector
+                          label="Click reward"
+                          options={clickRewards}
+                          selectedId={field.value ?? groupClickRewardId}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="discountId"
+                      render={({ field }) => (
+                        <DiscountSelector
+                          options={discounts}
+                          selectedId={field.value ?? groupDiscountId}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </div>
+                )}
+              </AnimatedSizeContainer>
+            </div>
           </div>
         </div>
-
-        <div className="flex items-center justify-end border-t border-neutral-200 bg-neutral-50 p-4">
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 p-4 sm:rounded-b-2xl">
+          <Button
+            type="button"
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
+            onClick={() => setShowModal(false)}
+            disabled={isSubmitting}
+          />
           <Button
             type="submit"
             text={
@@ -222,16 +373,23 @@ export function useAddPartnerLinkModal({
 }) {
   const [showAddPartnerLinkModal, setShowAddPartnerLinkModal] = useState(false);
 
+  const onSuccessCallback = useLatestCallback(onSuccess);
+
   const AddPartnerLinkModalCallback = useCallback(() => {
     return (
       <AddPartnerLinkModal
         showModal={showAddPartnerLinkModal}
         setShowModal={setShowAddPartnerLinkModal}
-        onSuccess={onSuccess}
+        onSuccess={onSuccessCallback}
         partner={partner}
       />
     );
-  }, [showAddPartnerLinkModal, setShowAddPartnerLinkModal, partner]);
+  }, [
+    showAddPartnerLinkModal,
+    setShowAddPartnerLinkModal,
+    onSuccessCallback,
+    partner,
+  ]);
 
   return useMemo(
     () => ({

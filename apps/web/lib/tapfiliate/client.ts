@@ -57,7 +57,7 @@ export class TapfiliateClient extends HttpBaseClient {
     });
   }
 
-  // GET /customers?program_id=&page=
+  // GET /customers/?program_id=&page=
   async listCustomers({
     programId,
     page = 1,
@@ -65,7 +65,7 @@ export class TapfiliateClient extends HttpBaseClient {
     programId: string;
     page?: number;
   }) {
-    return await this.get("/customers", {
+    return await this.get("/customers/", {
       input: {
         program_id: programId,
         page,

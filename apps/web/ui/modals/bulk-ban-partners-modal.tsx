@@ -1,5 +1,5 @@
 import { bulkBanPartnersAction } from "@/lib/actions/partners/bulk-ban-partners";
-import { bulkRejectPartnerApplicationsAction } from "@/lib/actions/partners/bulk-reject-partner-applications";
+import { bulkRejectProgramApplicationsAction } from "@/lib/actions/partners/bulk-reject-program-applications";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import {
@@ -7,7 +7,7 @@ import {
   bulkBanPartnersSchema,
 } from "@/lib/zod/schemas/partners";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { Button, Modal } from "@dub/ui";
+import { Button, Modal, useLatestCallback } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -71,7 +71,7 @@ function BulkBanPartnersModal({
   );
 
   const { executeAsync: executeReject, isPending: isPendingReject } = useAction(
-    bulkRejectPartnerApplicationsAction,
+    bulkRejectProgramApplicationsAction,
     {
       onError({ error }) {
         toast.error(error.serverError);
@@ -287,20 +287,21 @@ export function useBulkBanPartnersModal({
   const [showBulkBanPartnersModal, setShowBulkBanPartnersModal] =
     useState(false);
 
+  const onConfirmCallback = useLatestCallback(onConfirm);
+
   const BulkBanPartnersModalCallback = useCallback(() => {
     return (
       <BulkBanPartnersModal
         showBulkBanPartnersModal={showBulkBanPartnersModal}
         setShowBulkBanPartnersModal={setShowBulkBanPartnersModal}
         partners={partners}
-        onConfirm={onConfirm}
+        onConfirm={onConfirmCallback}
       />
     );
   }, [
     showBulkBanPartnersModal,
     setShowBulkBanPartnersModal,
-    partners,
-    onConfirm,
+    onConfirmCallback,
   ]);
 
   return useMemo(

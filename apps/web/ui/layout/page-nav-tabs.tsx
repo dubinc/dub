@@ -17,6 +17,8 @@ export type PageNavTabsTab = {
   label: string;
   icon: Icon;
   badge?: string | number;
+  // Set when the tab is not at `${basePath}/${id}`
+  href?: string;
 };
 
 export type PageNavTabsQuicklink = {
@@ -81,7 +83,7 @@ export function PageNavTabs({
             layout
             className={cn("relative z-0 inline-flex items-center gap-1")}
           >
-            {tabs.map(({ id, label, icon: Icon, badge }, idx) => {
+            {tabs.map(({ id, label, icon: Icon, badge, href }, idx) => {
               // if it's the base path, match the first tab
               const isSelected =
                 pathname.endsWith(basePath) && idx === 0
@@ -90,7 +92,7 @@ export function PageNavTabs({
               return (
                 <Link
                   key={id}
-                  href={`${basePath}/${id}${
+                  href={`${href ?? `${basePath}/${id}`}${
                     preservedQueryParams
                       ? getQueryString(
                           {},

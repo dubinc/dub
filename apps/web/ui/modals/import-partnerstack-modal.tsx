@@ -4,16 +4,11 @@ import { X } from "@/ui/shared/icons";
 import { Button, Logo, Modal, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { ArrowRight } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { useRouter } from "next/navigation";
+import { Dispatch, SetStateAction, useCallback, useState } from "react";
 import { toast } from "sonner";
 import { MarkdownDescription } from "../shared/markdown-description";
+import { useImportModalParam } from "./use-import-modal-param";
 
 function ImportPartnerStackModal({
   showImportPartnerStackModal,
@@ -173,17 +168,7 @@ function TokenForm({ onClose }: { onClose: () => void }) {
 
 export function useImportPartnerStackModal() {
   const [showImportPartnerStackModal, setShowImportPartnerStackModal] =
-    useState(false);
-  const searchParams = useSearchParams();
-
-  // Sync the modal state with the `?import=` query param here in the hook
-  // rather than in the modal itself, which remounts on every open/close
-  // and would re-open from a stale param mid-navigation
-  useEffect(() => {
-    setShowImportPartnerStackModal(
-      searchParams?.get("import") === "partnerstack",
-    );
-  }, [searchParams]);
+    useImportModalParam("partnerstack");
 
   const ImportPartnerStackModalCallback = useCallback(
     () => (

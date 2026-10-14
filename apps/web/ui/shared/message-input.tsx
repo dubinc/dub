@@ -1,12 +1,12 @@
+import { clientAccessCheck } from "@/lib/client-access-check";
 import {
   MAX_ATTACHMENTS_PER_MESSAGE,
   MAX_MESSAGE_LENGTH,
 } from "@/lib/messages/constants";
-import { messageAttachmentInputSchema } from "@/lib/messages/schemas";
-import {
-  getAttachmentTypeLabel,
-  isPreviewableImageType,
-} from "@/lib/messages/utils";
+import { type MessageAttachmentInput } from "@/lib/messages/schemas";
+import { isPreviewableImageType } from "@/lib/messages/utils";
+import { getMimeTypeLabel } from "@/lib/storage/upload-policies";
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
   ArrowTurnLeft,
   Button,
@@ -23,6 +23,7 @@ import { cn, formatFileSize, nFormatter } from "@dub/utils";
 import { File, Paperclip, X } from "lucide-react";
 import {
   DragEvent,
+  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -31,14 +32,14 @@ import {
   type RefObject,
 } from "react";
 import { toast } from "sonner";
-import * as z from "zod/v4";
 import { ATTACHMENT_MIME_TYPE_COLOR } from "../messages/message-attachments";
 import { EmojiPicker } from "../shared/emoji-picker";
+import {
+  InlineEmojiAutocomplete,
+  type InlineEmojiAutocompleteHandle,
+} from "../shared/inline-emoji-menu";
 
-export type PendingAttachment = Omit<
-  z.infer<typeof messageAttachmentInputSchema>,
-  "storageKey"
-> & {
+export type PendingAttachment = Omit<MessageAttachmentInput, "storageKey"> & {
   id: string;
   file: File;
   storageKey?: string;
@@ -53,6 +54,9 @@ export function MessageInput({
   placeholder = "Type a message...",
   sendButtonText = "Send",
   className,
+  inputClassName,
+  toolbarClassName,
+  actions,
   attachments = [],
   onAddFiles,
   onRemoveAttachment,
@@ -61,7 +65,7 @@ export function MessageInput({
 }: {
   onSendMessage: (
     message: string,
-    attachments: z.infer<typeof messageAttachmentInputSchema>[],
+    attachments: MessageAttachmentInput[],
   ) => void | false;
   defaultValue?: string;
   onCancel?: () => void;
@@ -69,30 +73,30 @@ export function MessageInput({
   placeholder?: string;
   sendButtonText?: string;
   className?: string;
+  inputClassName?: string;
+  toolbarClassName?: string;
+  actions?: ReactNode;
   attachments?: PendingAttachment[];
   onAddFiles?: (files: File[]) => void;
   onRemoveAttachment?: (id: string) => void;
   allowedFileTypes?: readonly string[];
   maxAttachments?: number;
 }) {
+  const { id: workspaceId, role } = useWorkspace();
+  const permissionsError = workspaceId
+    ? clientAccessCheck({
+        action: "messages.write",
+        role,
+        customPermissionDescription: "send messages",
+      }).error
+    : false;
+
   const richTextRef = useRef<{ setContent: (content: any) => void }>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const emojiAutocompleteRef = useRef<InlineEmojiAutocompleteHandle>(null);
   const [typedMessage, setTypedMessage] = useState(defaultValue || "");
-  const [emojiPickerOpen, setEmojiPickerOpenState] = useState(false);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [cursorRect, setCursorRect] = useState<{
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
-  } | null>(null);
-  const stripColonOnEmojiPickRef = useRef(false);
-
-  const setEmojiPickerOpen = useCallback((open: boolean) => {
-    stripColonOnEmojiPickRef.current = false;
-    if (!open) setCursorRect(null);
-    setEmojiPickerOpenState(open);
-  }, []);
 
   const hasCompletedAttachments = attachments.some(
     (a) => !a.uploading && a.storageKey,
@@ -102,7 +106,12 @@ export function MessageInput({
   const isTooLong = typedMessage.trim().length >= MAX_MESSAGE_LENGTH;
 
   const isSendDisabled =
-    (!hasText && !hasCompletedAttachments) || isTooLong || hasUploading;
+    Boolean(permissionsError) ||
+    (!hasText && !hasCompletedAttachments) ||
+    isTooLong ||
+    hasUploading;
+
+  const canAddFiles = Boolean(onAddFiles) && !permissionsError;
 
   const sendMessage = () => {
     if (isSendDisabled) return;
@@ -181,11 +190,11 @@ export function MessageInput({
       )}
       onDragOver={(e) => {
         handleDragEvent(e);
-        if (onAddFiles) setDragActive(true);
+        if (canAddFiles) setDragActive(true);
       }}
       onDragEnter={(e) => {
         handleDragEvent(e);
-        if (onAddFiles) setDragActive(true);
+        if (canAddFiles) setDragActive(true);
       }}
       onDragLeave={(e) => {
         handleDragEvent(e);
@@ -194,13 +203,13 @@ export function MessageInput({
       onDrop={(e) => {
         handleDragEvent(e);
         setDragActive(false);
-        if (e.dataTransfer.files?.length) {
+        if (canAddFiles && e.dataTransfer.files?.length) {
           handleFiles(e.dataTransfer.files);
         }
       }}
     >
       {/* Drag overlay */}
-      {dragActive && onAddFiles && (
+      {dragActive && canAddFiles && (
         <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl border-2 border-dashed border-neutral-400 bg-neutral-50/90">
           <div className="text-center">
             <p className="text-sm font-medium text-neutral-600">
@@ -217,48 +226,42 @@ export function MessageInput({
         style="condensed"
         markdown
         autoFocus={autoFocus}
+        editable={!permissionsError}
         placeholder={placeholder}
         editorClassName="block max-h-[min(40dvh,15rem)] w-full resize-none border-none overflow-auto scrollbar-hide p-3 text-base sm:max-h-64 sm:text-sm md:max-h-80 lg:max-h-96"
         initialValue={defaultValue}
         onChange={(editor) => setTypedMessage((editor as any).getMarkdown())}
         editorProps={{
           handleDOMEvents: {
-            keydown: (view, e) => {
+            paste: (_view, event) => {
+              if (!canAddFiles) return false;
+
+              const files = pastedAttachmentFiles(event.clipboardData);
+              if (files.length === 0) return false;
+
+              event.preventDefault();
+              handleFiles(files);
+              return true;
+            },
+            keydown: (_view, e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
                 e.stopPropagation();
                 sendMessage();
                 return false;
               }
-              if (e.key === ":" && !e.metaKey && !e.ctrlKey && !e.altKey) {
-                const { $from } = view.state.selection;
-                const afterHardBreak =
-                  $from.nodeBefore?.type.name === "hardBreak";
-                const atBlockStart = $from.parentOffset === 0;
-                const afterWhitespace =
-                  $from.parentOffset > 0 &&
-                  /\s/.test(
-                    $from.parent.textBetween(
-                      $from.parentOffset - 1,
-                      $from.parentOffset,
-                    ),
-                  );
-                if (atBlockStart || afterWhitespace || afterHardBreak) {
-                  const coords = view.coordsAtPos(view.state.selection.from);
-                  setCursorRect(coords);
-                  setTimeout(() => {
-                    stripColonOnEmojiPickRef.current = true;
-                    setEmojiPickerOpenState(true);
-                  }, 0);
-                }
-              }
+              if (emojiAutocompleteRef.current?.onKeyDown(e)) return true;
             },
           },
         }}
       >
-        <div className="relative">
+        <div className={cn("relative", inputClassName)}>
           <RichTextArea />
           <MessageInputEditorOverflowFades />
+          <InlineEmojiAutocomplete
+            ref={emojiAutocompleteRef}
+            suspended={emojiPickerOpen}
+          />
         </div>
 
         {/* Attachment preview strip */}
@@ -274,17 +277,22 @@ export function MessageInput({
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-4 p-3">
+        <div
+          className={cn(
+            "flex items-center justify-between gap-4 p-3",
+            toolbarClassName,
+          )}
+        >
           <MessageInputToolbar
+            disabled={Boolean(permissionsError)}
             emojiPickerOpen={emojiPickerOpen}
             setEmojiPickerOpen={setEmojiPickerOpen}
-            stripColonOnEmojiPickRef={stripColonOnEmojiPickRef}
-            cursorRect={cursorRect}
             onAttachClick={
-              onAddFiles ? () => fileInputRef.current?.click() : undefined
+              canAddFiles ? () => fileInputRef.current?.click() : undefined
             }
           />
           <div className="flex items-center justify-between gap-2">
+            {actions}
             {onCancel && (
               <Button
                 variant="secondary"
@@ -331,11 +339,13 @@ export function MessageInput({
               }
               disabled={isSendDisabled}
               disabledTooltip={
-                isTooLong
-                  ? `Message must be less than ${nFormatter(MAX_MESSAGE_LENGTH)} characters`
-                  : hasUploading
-                    ? "Please wait for uploads to complete"
-                    : undefined
+                permissionsError
+                  ? permissionsError
+                  : isTooLong
+                    ? `Message must be less than ${nFormatter(MAX_MESSAGE_LENGTH)} characters`
+                    : hasUploading
+                      ? "Please wait for uploads to complete"
+                      : undefined
               }
               onClick={sendMessage}
               className="h-8 w-fit rounded-lg px-4"
@@ -364,13 +374,40 @@ export function MessageInput({
   );
 }
 
+function pastedAttachmentFiles(data: DataTransfer | null) {
+  if (!data) return [];
+
+  // Read files before text. Some browsers clear the file list after getData.
+  const files = Array.from(data.files);
+  if (files.length === 0) {
+    for (const item of Array.from(data.items)) {
+      if (item.kind !== "file") continue;
+      const file = item.getAsFile();
+      if (file) files.push(file);
+    }
+  }
+  if (files.length === 0) return [];
+
+  // Screenshot HTML is an empty image wrapper. Text pastes stay text.
+  const html = data.getData("text/html");
+  const pastedText = (
+    html.trim()
+      ? new DOMParser().parseFromString(html, "text/html").body.textContent
+      : data.getData("text/plain")
+  )
+    ?.replace(/\u00a0/g, " ")
+    .trim();
+
+  return pastedText ? [] : files;
+}
+
 function getUnsupportedFileTypeMessage(allowedFileTypes: readonly string[]) {
   if (allowedFileTypes.length === 0) {
     return "File type not supported.";
   }
 
   const allowedLabels = formatList(
-    allowedFileTypes.map((type) => getAttachmentTypeLabel(type)),
+    allowedFileTypes.map((type) => getMimeTypeLabel(type)),
   );
 
   return `File type not supported. Upload a ${allowedLabels}.`;
@@ -445,7 +482,7 @@ function AttachmentChip({
         )}
       >
         <File className="size-3 shrink-0" />
-        <span>{getAttachmentTypeLabel(attachment.type)}</span>
+        <span>{getMimeTypeLabel(attachment.type)}</span>
       </div>
 
       <div className="flex min-w-0 max-w-[120px] flex-col">
@@ -551,56 +588,37 @@ function MessageInputEditorOverflowFades() {
 }
 
 function MessageInputToolbar({
+  disabled,
   emojiPickerOpen,
   setEmojiPickerOpen,
-  stripColonOnEmojiPickRef,
-  cursorRect,
   onAttachClick,
 }: {
+  disabled?: boolean;
   emojiPickerOpen: boolean;
   setEmojiPickerOpen: (open: boolean) => void;
-  stripColonOnEmojiPickRef: { current: boolean };
-  cursorRect: {
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
-  } | null;
   onAttachClick?: () => void;
 }) {
   const { editor } = useRichTextContext();
 
   return (
     <RichTextToolbar
+      className={disabled ? "pointer-events-none opacity-50" : undefined}
       toolsStart={
         <EmojiPicker
           openPopover={emojiPickerOpen}
           setOpenPopover={setEmojiPickerOpen}
           onKeyboardDismissFocusEditor={() => editor?.commands.focus()}
-          anchorRect={cursorRect}
           onSelect={(emoji) => {
-            if (!editor) return;
-            const stripColon = stripColonOnEmojiPickRef.current;
-            stripColonOnEmojiPickRef.current = false;
-
-            const { from } = editor.state.selection;
-            if (
-              stripColon &&
-              from > 0 &&
-              editor.state.doc.textBetween(from - 1, from) === ":"
-            ) {
-              editor
-                .chain()
-                .deleteRange({ from: from - 1, to: from })
-                .insertContent(emoji)
-                .run();
-            } else {
-              editor.chain().insertContent(emoji).run();
-            }
+            if (!editor || disabled) return;
+            editor.chain().insertContent(emoji).run();
             setTimeout(() => editor.commands.focus(), 0);
           }}
         >
-          <RichTextToolbarButton icon={FaceSmile} label="Emoji" />
+          <RichTextToolbarButton
+            icon={FaceSmile}
+            label="Emoji"
+            disabled={disabled}
+          />
         </EmojiPicker>
       }
       toolsEnd={
@@ -609,6 +627,7 @@ function MessageInputToolbar({
             icon={Paperclip}
             label="Attach file"
             onClick={onAttachClick}
+            disabled={disabled}
           />
         ) : undefined
       }

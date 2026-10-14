@@ -3,6 +3,7 @@
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
 import { authClient } from "@/lib/better-auth/auth-client";
 import { AUTH_ERROR_MESSAGES } from "@/lib/better-auth/auth-errors";
+import { testIds } from "@/lib/e2e/test-ids";
 import { parseEmail } from "@/lib/zod/schemas/auth";
 import { Button, Input, useCurrentSubdomain, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -94,7 +95,9 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
 
             if (!accountExists) {
               setClickedMethod(undefined);
-              toast.error("No account found with that email address.");
+              toast.error("No account found with that email address.", {
+                testId: testIds.auth.loginNoAccount,
+              });
               return;
             }
           }
@@ -112,7 +115,9 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
 
           if (!accountExists) {
             setClickedMethod(undefined);
-            toast.error("No account found with that email address.");
+            toast.error("No account found with that email address.", {
+              testId: testIds.auth.loginNoAccount,
+            });
             return;
           }
 
@@ -126,6 +131,11 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
               toast.error(
                 authErrorMessage(error.message) ??
                   AUTH_ERROR_MESSAGES["invalid-credentials"],
+                {
+                  ...(error.code === "INVALID_EMAIL_OR_PASSWORD" && {
+                    testId: testIds.auth.loginInvalidCredentials,
+                  }),
+                },
               );
               setClickedMethod(undefined);
               return;
@@ -204,6 +214,7 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
         )}
 
         <Button
+          data-testid={testIds.auth.loginSubmit}
           text={`Log in with ${password ? "password" : "email"}`}
           {...(authMethod !== "email" && {
             type: "button",

@@ -4,16 +4,14 @@ import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
-import {
-  SUBMITTED_LEAD_FORM_REQUIRED_FIELD_KEYS,
-  SUBMITTED_LEADS_ENABLED_PROGRAM_IDS,
-} from "@/lib/submitted-leads/constants";
+import { SUBMITTED_LEAD_FORM_REQUIRED_FIELD_KEYS } from "@/lib/submitted-leads/constants";
+import { getGroupSubmittedLeadForm } from "@/lib/submitted-leads/get-group-submitted-lead-form";
 import { notifyPartnerLeadSubmitted } from "@/lib/submitted-leads/notify-partner-lead-submitted";
 import { SubmittedLeadFormDataField } from "@/lib/types";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import {
   formFieldSchema,
-  submittedLeadFormSchema,
   submittedLeadRequiredFieldsSchema,
 } from "@/lib/zod/schemas/submitted-lead-form";
 import { submitLeadSchema } from "@/lib/zod/schemas/submitted-leads";
@@ -28,7 +26,8 @@ import { ACTIVE_ENROLLMENT_STATUSES } from "../zod/schemas/partners";
  * Converts field values based on field type:
  * - country: converts country code to country name
  * - select: converts option value to option label
- * - multiSelect: converts array of option values to array of option labels
+ * - multiSelect: converts array of option values to array of option labels,
+ *   or a single option value to its label when multiple selections are off
  */
 function convertFieldValue(
   value: unknown,
@@ -47,14 +46,12 @@ function convertFieldValue(
       return option?.label ?? value;
     }
 
-    case "multiSelect":
-      return Array.isArray(value)
-        ? value.map(
-            (val) =>
-              fieldSchema.options.find((opt) => opt.value === val)?.label ??
-              val,
-          )
-        : value;
+    case "multiSelect": {
+      const toLabel = (val: unknown) =>
+        fieldSchema.options.find((opt) => opt.value === val)?.label ?? val;
+
+      return Array.isArray(value) ? value.map(toLabel) : toLabel(value);
+    }
 
     default:
       return value;
@@ -68,23 +65,10 @@ export const submitLeadAction = authPartnerActionClient
     const { partner, user } = ctx;
     const { programId, formData: rawFormData } = parsedInput;
 
-    if (!SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(programId)) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "This program does not accept submitted leads.",
-      });
-    }
-
-    const { success } = await ratelimit(10, "1 m").limit(
-      `rl:submitted-lead:${partner.id}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Too many leads submitted. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.submitLead,
+      identifier: partner.id,
+    });
 
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: {
@@ -99,6 +83,7 @@ export const submitLeadAction = authPartnerActionClient
       include: {
         program: true,
         partner: true,
+        partnerGroup: true,
       },
     });
 
@@ -106,6 +91,15 @@ export const submitLeadAction = authPartnerActionClient
       throw new DubApiError({
         code: "not_found",
         message: "Partner is not eligible to submit leads in this program.",
+      });
+    }
+
+    const leadForm = getGroupSubmittedLeadForm(programEnrollment.partnerGroup);
+
+    if (!leadForm) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "This program does not accept submitted leads.",
       });
     }
 
@@ -126,19 +120,8 @@ export const submitLeadAction = authPartnerActionClient
     // Parse custom fields from formData
     const customFormData: SubmittedLeadFormDataField[] = [];
 
-    // Parse and get form schema fields to extract labels
-    const parsedLeadFormData = programEnrollment.program.referralFormData
-      ? submittedLeadFormSchema.safeParse(
-          programEnrollment.program.referralFormData,
-        )
-      : null;
-    const formSchemaFields =
-      parsedLeadFormData?.success && parsedLeadFormData.data.fields
-        ? parsedLeadFormData.data.fields
-        : [];
-
     const fieldMap = new Map<string, z.infer<typeof formFieldSchema>>();
-    for (const field of formSchemaFields) {
+    for (const field of leadForm.fields) {
       fieldMap.set(field.key, field);
     }
 
@@ -162,6 +145,27 @@ export const submitLeadAction = authPartnerActionClient
       const fieldSchema = fieldMap.get(key);
 
       if (!fieldSchema) continue;
+
+      if (fieldSchema.type === "number") {
+        const { min, max } = fieldSchema.constraints ?? {};
+
+        if (
+          (min !== undefined && !(typeof value === "number" && value >= min)) ||
+          (max !== undefined && !(typeof value === "number" && value <= max))
+        ) {
+          const range =
+            min !== undefined && max !== undefined
+              ? `between ${min} and ${max}`
+              : min !== undefined
+                ? `at least ${min}`
+                : `at most ${max}`;
+
+          throw new DubApiError({
+            code: "bad_request",
+            message: `${fieldSchema.label} must be ${range}.`,
+          });
+        }
+      }
 
       customFormData.push({
         key,

@@ -16,7 +16,7 @@ function assertUrl(
   if (!value) {
     if (required) {
       throw new Error(
-        `${name} is not set. Playwright tests require a local database. ${LOCAL_URL_HINT}`,
+        `${name} is not set. A local database is required. ${LOCAL_URL_HINT}`,
       );
     }
     return;
@@ -27,13 +27,13 @@ function assertUrl(
     hostname = hostnameFromDatabaseUrl(value);
   } catch {
     throw new Error(
-      `${name} is not a valid URL. Playwright tests require a local database. ${LOCAL_URL_HINT}`,
+      `${name} is not a valid URL. A local database is required. ${LOCAL_URL_HINT}`,
     );
   }
 
   if (!LOCAL_HOSTNAMES.has(hostname)) {
     throw new Error(
-      `Refusing to run Playwright tests: ${name} host "${hostname}" is not a local database. Only localhost / 127.0.0.1 / ::1 are allowed. ${LOCAL_URL_HINT}`,
+      `Refusing to proceed: ${name} host "${hostname}" is not a local database. Only localhost / 127.0.0.1 / ::1 are allowed. ${LOCAL_URL_HINT}`,
     );
   }
 }

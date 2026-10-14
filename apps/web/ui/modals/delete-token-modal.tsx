@@ -1,7 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
+import { Callout } from "@/ui/shared/callout";
 import { Button, Key, Modal, Tooltip, useMediaQuery } from "@dub/ui";
-import { TriangleWarning } from "@dub/ui/icons";
 import { timeAgo } from "@dub/utils";
 import {
   Dispatch,
@@ -89,20 +89,19 @@ function DeleteTokenModal({
         className="flex flex-col space-y-4 bg-neutral-50 px-4 py-4 sm:px-6"
       >
         {token.lastUsed && (
-          <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
-            <TriangleWarning className="mt-0.5 size-4 shrink-0 text-amber-600" />
+          <Callout variant="warn" size={2}>
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-amber-900">
+              <h3 className="font-semibold">
                 This key is actively in use (last used{" "}
                 {timeAgo(token.lastUsed, { withAgo: true })})
               </h3>
-              <p className="text-sm text-amber-900">
+              <p>
                 Deleting this key will immediately break any integrations,
                 tracking, or API requests that depend on it. Are you sure you
                 want to continue?
               </p>
             </div>
-          </div>
+          </Callout>
         )}
 
         <div className="relative flex items-center gap-2 space-x-3 rounded-md border border-neutral-300 bg-white px-4 py-2">

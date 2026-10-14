@@ -10,15 +10,15 @@ enum WorkflowTrigger {
 }
 
 model Workflow {
-  id                String          @id
+  id                String           @id
   programId         String
   name              String?
-  trigger           WorkflowTrigger
+  trigger           WorkflowTrigger?
   triggerConditions Json
   actions           Json
   disabledAt        DateTime?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   program      Program       @relation(fields: [programId], references: [id], onDelete: Cascade)
   bounty       Bounty?

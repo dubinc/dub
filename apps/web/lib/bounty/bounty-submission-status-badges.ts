@@ -32,6 +32,12 @@ export const BountySubmissionStatusBadges = {
     icon: CircleHalfDottedCheck,
     iconClassName: "text-blue-600",
   },
+  partiallyApproved: {
+    label: "Partially approved",
+    variant: "success",
+    icon: CircleHalfDottedCheck,
+    iconClassName: "text-green-600",
+  },
   approved: {
     label: "Approved",
     variant: "success",

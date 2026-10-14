@@ -57,6 +57,10 @@ export function useKeyboardShortcut(
     (e: KeyboardEvent) => {
       if (options.enabled === false) return;
 
+      // Skip if another handler already consumed this key (e.g. Radix
+      // popovers/menus/dialogs close on Escape in the capture phase).
+      if (e.defaultPrevented) return;
+
       const target = e.target as HTMLElement;
       const existingModalBackdrop = document.getElementById("modal-backdrop");
       const existingSheetBackdrop = document.querySelector(

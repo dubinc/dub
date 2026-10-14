@@ -4,6 +4,7 @@ import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import {
+  bountyEligibilityIncludes,
   canPartnerSubmitBounty,
   getEffectiveBountyPeriod,
 } from "@/lib/bounty/api/bounty-availability";
@@ -39,8 +40,7 @@ type CreateBountySubmissionParams = z.infer<
 };
 
 type BountyWithRelations = Prisma.BountyGetPayload<{
-  include: {
-    groups: true;
+  include: typeof bountyEligibilityIncludes & {
     submissions: true;
   };
 }>;
@@ -67,6 +67,11 @@ export class BountySubmissionHandler {
         select: {
           id: true;
           defaultGroupId: true;
+        };
+      };
+      programPartnerTags: {
+        select: {
+          partnerTagId: true;
         };
       };
     };
@@ -118,6 +123,11 @@ export class BountySubmissionHandler {
               defaultGroupId: true,
             },
           },
+          programPartnerTags: {
+            select: {
+              partnerTagId: true,
+            },
+          },
         },
       }),
 
@@ -125,7 +135,7 @@ export class BountySubmissionHandler {
         bountyId: this.bountyId,
         programId: this.programId,
         include: {
-          groups: true,
+          ...bountyEligibilityIncludes,
           submissions: {
             where: {
               partnerId: this.partner.id,
@@ -259,9 +269,15 @@ export class BountySubmissionHandler {
         existingSubmission.status !== "draft" ||
         bountyInfo?.hasSocialMetrics
       ) {
+        // e.g. partiallyApproved -> partially approved
+        const status = existingSubmission.status.replace(
+          /[A-Z]/g,
+          (char) => ` ${char.toLowerCase()}`,
+        );
+
         throw new DubApiError({
           code: "conflict",
-          message: `You already have a ${existingSubmission.status} submission for this period.`,
+          message: `You already have a submission for this period (status: ${status}).`,
         });
       }
     }

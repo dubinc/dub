@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { APP_HOSTNAMES } from "@dub/utils";
+import { isAppHostname } from "@dub/utils";
 import { headers } from "next/headers";
 import { isGenericEmail } from "../../email/is-generic-email";
 
@@ -11,7 +11,7 @@ export const isSamlEnforcedForEmailDomain = async (email: string) => {
   if (
     !hostname ||
     !emailDomain ||
-    !APP_HOSTNAMES.has(hostname) ||
+    !isAppHostname(hostname) ||
     isGenericEmail(email)
   ) {
     return false;

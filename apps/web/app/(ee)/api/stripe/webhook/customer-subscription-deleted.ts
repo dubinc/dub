@@ -6,6 +6,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip-advanced-reward-modifiers";
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
@@ -102,7 +103,7 @@ export async function customerSubscriptionDeleted(
   const workspaceLinks = workspace.links;
   const workspaceUsers = workspace.users.map(({ user }) => user);
 
-  await prisma.project.update({
+  const updatedWorkspace = await prisma.project.update({
     where: {
       stripeId,
     },
@@ -208,6 +209,11 @@ export async function customerSubscriptionDeleted(
     // Open/uncollectible invoices remain payable after cancellation
     // Voiding is the only terminal status that prevents payment for a canceled subscription
     voidLatestInvoiceIfPayable(deletedSubscription),
+
+    syncStagingWorkspaceJob.dispatch({
+      action: "sync-workspace",
+      workspaceId: updatedWorkspace.id,
+    }),
   ]);
 
   // Reset cancellation feedback dedupe so a future resubscribe + cancel can send again
@@ -225,7 +231,7 @@ export async function customerSubscriptionDeleted(
 
   // Deactivate the program if the workspace had partner access
   if (workspace.defaultProgramId) {
-    await deactivateProgram(workspace.defaultProgramId);
+    await deactivateProgram(workspace);
   }
 
   const losesAdvancedFeatures = wouldLoseAdvancedFeatures({

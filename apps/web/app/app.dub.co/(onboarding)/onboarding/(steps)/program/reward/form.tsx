@@ -1,6 +1,7 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import { testIds } from "@/lib/e2e/test-ids";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
@@ -448,7 +449,7 @@ export function Form() {
                 </span>
                 <input
                   id={rewardAmountInputId}
-                  data-testid="onboarding-reward-amount"
+                  data-testid={testIds.onboarding.rewardAmount}
                   className={cn(
                     "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                     type === "flat" ? "pl-6 pr-12" : "pr-7",
@@ -480,7 +481,7 @@ export function Form() {
         loading={isLoading}
         disabledTooltip={!isLoading ? disabledTooltip : undefined}
         type="submit"
-        data-testid="onboarding-reward-continue"
+        data-testid={testIds.onboarding.rewardContinue}
       />
     </form>
   );

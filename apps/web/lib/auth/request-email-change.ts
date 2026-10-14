@@ -5,8 +5,7 @@ import { waitUntil } from "@vercel/functions";
 import { randomBytes } from "crypto";
 import { hashToken } from ".";
 import { DubApiError } from "../api/errors";
-import { isEmailDomainBlocked } from "../email/is-email-domain-blocked";
-import { isGenericEmail } from "../email/is-generic-email";
+import { canChangeEmail } from "../email/can-change-email";
 import { redis } from "../upstash";
 import { assertRateLimit } from "../upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "../upstash/ratelimit-policies";
@@ -46,12 +45,19 @@ export const requestEmailChange = async ({
     policy: RATELIMIT_POLICIES.emailChangeRequest,
     identifier: userId,
   });
+
   const user = await prisma.user.findUnique({
     where: {
       id: userId,
     },
     select: {
       createdAt: true,
+      partners: {
+        select: {
+          id: true,
+        },
+        take: 1,
+      },
     },
   });
 
@@ -78,9 +84,15 @@ export const requestEmailChange = async ({
     identifier: newEmail.toLowerCase(),
   });
 
-  const isGenericEmailWithPlus = email.includes("+") && isGenericEmail(email);
-  const emailDomainBlocked = await isEmailDomainBlocked(newEmail);
-  if (isGenericEmailWithPlus || emailDomainBlocked) {
+  const hasPartnerAccount = user.partners.length > 0;
+
+  const allowEmailChange = await canChangeEmail({
+    currentEmail: email,
+    newEmail,
+    hasPartnerAccount,
+  });
+
+  if (!allowEmailChange) {
     throw new DubApiError({
       code: "bad_request",
       message:

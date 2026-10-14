@@ -2,34 +2,53 @@ import { useSession } from "@/lib/better-auth/use-session";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import * as z from "zod/v4";
-import { ProgramEnrollmentProps } from "../types";
+import { PartnerProfileProgramEnrollmentProps } from "../types";
 import { partnerProfileProgramsQuerySchema } from "../zod/schemas/partner-profile";
 
 export default function useProgramEnrollments(
-  query: z.infer<typeof partnerProfileProgramsQuerySchema> = {},
+  {
+    includeInactiveDates,
+    ...query
+  }: Omit<
+    z.input<typeof partnerProfileProgramsQuerySchema>,
+    "includeRewardsDiscounts" | "includeInactiveDates"
+  > & {
+    includeRewardsDiscounts?: boolean;
+    includeInactiveDates?: boolean;
+  } = {},
   { enabled = true }: { enabled?: boolean } = {},
 ) {
   const { data: session } = useSession();
   const partnerId = session?.user?.["defaultPartnerId"];
 
-  const { data: programEnrollments, isLoading } = useSWR<
-    ProgramEnrollmentProps[]
-  >(
+  const {
+    data: programEnrollments,
+    isLoading,
+    error,
+  } = useSWR<PartnerProfileProgramEnrollmentProps[]>(
     enabled &&
       partnerId &&
       `/api/partner-profile/programs?${new URLSearchParams(
         Object.fromEntries(
-          Object.entries(query).map(([key, value]) => [key, value.toString()]),
+          Object.entries({
+            ...query,
+            // sent only when true, so other callers share the same request
+            includeInactiveDates: includeInactiveDates || undefined,
+          })
+            .filter(([, value]) => value !== undefined)
+            .map(([key, value]) => [key, String(value)]),
         ),
       )}`,
     fetcher,
     {
       dedupingInterval: 60000,
+      keepPreviousData: true,
     },
   );
 
   return {
     programEnrollments,
     isLoading,
+    error,
   };
 }

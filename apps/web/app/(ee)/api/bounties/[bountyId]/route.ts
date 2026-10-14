@@ -1,7 +1,9 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
+import { throwIfInvalidPartnerTags } from "@/lib/api/partner-tags/throw-if-invalid-partner-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
 import { parseRequestBody } from "@/lib/api/utils";
 import { WorkflowCondition } from "@/lib/api/workflows/types";
 import { validateWorkflowConditions } from "@/lib/api/workflows/validate-workflow-conditions";
@@ -11,6 +13,7 @@ import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-perform
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getBountyWithDetails } from "@/lib/bounty/api/get-bounty-with-details";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
+import { transformBounty } from "@/lib/bounty/api/transform-bounty";
 import { shouldUpsertDraftSubmissionsOnReopen } from "@/lib/bounty/api/upsert-draft-bounty-submissions";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { qstash } from "@/lib/cron";
@@ -22,7 +25,12 @@ import {
   submissionRequirementsSchema,
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
-import { APP_DOMAIN_WITH_NGROK, arrayEqual, deepEqual } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  arrayEqual,
+  deepEqual,
+  pluck,
+} from "@dub/utils";
 import { BountyStartMode, PartnerGroup, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -69,6 +77,7 @@ export const PATCH = withWorkspace(
       submissionRequirements,
       performanceCondition,
       groupIds,
+      partnerTagIds,
     } = updateBountySchema.parse(await parseRequestBody(req));
 
     const bounty = await getBountyOrThrow({
@@ -90,6 +99,8 @@ export const PATCH = withWorkspace(
 
     // Absolute end dates are cleared when switching to relative (unless the
     // client explicitly sends endsAt) or when setting endsAfterDays.
+    // Do not clear a relative bounty's fixed endsAt on unrelated PATCHes —
+    // relative + calendar endsAt is a supported shape (custom end).
     let endsAtUpdate: { endsAt?: Date | null } = {};
 
     if (endsAt !== undefined) {
@@ -97,6 +108,7 @@ export const PATCH = withWorkspace(
     } else if (endsAfterDays != null) {
       endsAtUpdate = { endsAt: null };
     } else if (
+      bounty.startMode === BountyStartMode.absolute &&
       nextStartMode === BountyStartMode.relative &&
       bounty.endsAt != null
     ) {
@@ -159,9 +171,11 @@ export const PATCH = withWorkspace(
     // if groupIds is provided and is different from the current groupIds, update the groups
     let updatedPartnerGroups: PartnerGroup[] | undefined = undefined;
     let shouldUpdatePartnerGroups = false;
+    let updatedPartnerTags: { id: string }[] | undefined = undefined;
+    let shouldUpdatePartnerTags = false;
 
     if (groupIds !== undefined) {
-      const currentGroupIds = bounty.groups.map((group) => group.groupId);
+      const currentGroupIds = pluck(bounty.groups, "groupId");
       const newGroupIds = groupIds || [];
 
       if (!arrayEqual(currentGroupIds, newGroupIds)) {
@@ -173,6 +187,22 @@ export const PATCH = withWorkspace(
         }
 
         shouldUpdatePartnerGroups = true;
+      }
+    }
+
+    if (partnerTagIds !== undefined) {
+      const currentPartnerTagIds = pluck(bounty.partnerTags, "partnerTagId");
+      const newPartnerTagIds = partnerTagIds || [];
+
+      if (!arrayEqual(currentPartnerTagIds, newPartnerTagIds)) {
+        if (newPartnerTagIds.length > 0) {
+          updatedPartnerTags = await throwIfInvalidPartnerTags({
+            programId,
+            partnerTagIds: newPartnerTagIds,
+          });
+        }
+
+        shouldUpdatePartnerTags = true;
       }
     }
 
@@ -285,6 +315,17 @@ export const PATCH = withWorkspace(
                 }),
             },
           }),
+          ...(shouldUpdatePartnerTags && {
+            partnerTags: {
+              deleteMany: {},
+              ...(updatedPartnerTags &&
+                updatedPartnerTags.length > 0 && {
+                  create: updatedPartnerTags.map((tag) => ({
+                    partnerTagId: tag.id,
+                  })),
+                }),
+            },
+          }),
         },
         include: {
           workflow: true,
@@ -309,11 +350,7 @@ export const PATCH = withWorkspace(
       };
     });
 
-    const updatedBounty = BountySchema.parse({
-      ...data,
-      groups: data.groups.map(({ groupId }) => ({ id: groupId })),
-      performanceCondition: data.workflow?.triggerConditions?.[0],
-    });
+    const updatedBounty = BountySchema.parse(transformBounty(data));
 
     const shouldUpsertDraftSubmissions = shouldUpsertDraftSubmissionsOnReopen({
       type: bounty.type,
@@ -323,6 +360,8 @@ export const PATCH = withWorkspace(
       endsAt: data.endsAt,
       archivedAt: data.archivedAt,
     });
+
+    revalidateProgramPublicPages(programId);
 
     waitUntil(
       Promise.allSettled([
@@ -412,27 +451,27 @@ export const DELETE = withWorkspace(
       }
     });
 
-    const deletedBounty = BountySchema.parse({
-      ...bounty,
-      groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
-      performanceCondition: bounty.workflow?.triggerConditions?.[0],
-    });
+    const deletedBounty = BountySchema.parse(transformBounty(bounty));
+
+    revalidateProgramPublicPages(programId);
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "bounty.deleted",
-        description: `Bounty ${bountyId} deleted`,
-        actor: session?.user,
-        targets: [
-          {
-            type: "bounty",
-            id: bountyId,
-            metadata: deletedBounty,
-          },
-        ],
-      }),
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "bounty.deleted",
+          description: `Bounty ${bountyId} deleted`,
+          actor: session?.user,
+          targets: [
+            {
+              type: "bounty",
+              id: bountyId,
+              metadata: deletedBounty,
+            },
+          ],
+        }),
+      ]),
     );
 
     return NextResponse.json({ id: bountyId });

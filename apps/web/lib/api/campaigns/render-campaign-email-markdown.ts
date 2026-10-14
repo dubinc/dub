@@ -30,7 +30,7 @@ export function renderCampaignEmailMarkdown({
           items: ({ query }: { query: string }) => {
             return EMAIL_TEMPLATE_VARIABLES.filter((item) =>
               item.toLowerCase().startsWith(query.toLowerCase()),
-            ).slice(0, 5);
+            ).slice(0, 10);
           },
         },
       }),

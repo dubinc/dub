@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
+import { sleep } from "@dub/utils";
 import { Customer, Project } from "@prisma/client";
 import Stripe from "stripe";
+
 import { stripeAppClient } from "../stripe";
 import { logImportError } from "../tinybird/log-import-error";
 import { MAX_BATCHES, toltImporter } from "./importer";
@@ -34,8 +36,13 @@ export async function updateStripeCustomers(payload: ToltImportPayload) {
 
   if (!workspace.stripeConnectId) {
     console.error(
-      `Workspace ${workspace.id} has no stripeConnectId. Skipping...`,
+      `Workspace ${workspace.id} has no stripeConnectId. Skipping Stripe customer matching...`,
     );
+
+    await toltImporter.queue({
+      ...payload,
+      action: "cleanup-partners",
+    });
     return;
   }
 
@@ -80,7 +87,7 @@ export async function updateStripeCustomers(payload: ToltImportPayload) {
       ),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await sleep(2000);
 
     processedBatches++;
     startingAfter = customers[customers.length - 1].id;

@@ -2,22 +2,24 @@
 
 import { CUSTOMER_PAGE_EVENTS_LIMIT } from "@/lib/constants/misc";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
+import {
+  usePartnerProfileEarnings,
+  usePartnerProfileEarningsCount,
+} from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { PartnerEarningsResponse } from "@/lib/types";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
 import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
+import { Callout } from "@/ui/shared/callout";
 import { Button, ChevronRight, MoneyBill2, Tooltip, User } from "@dub/ui";
-import { cn, fetcher, formatDate } from "@dub/utils";
+import { cn, formatDate } from "@dub/utils";
 import { addMonths, isBefore } from "date-fns";
-import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { memo, useMemo } from "react";
-import useSWR from "swr";
 
 export function ProgramCustomerPageClient() {
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
@@ -118,14 +120,11 @@ export function ProgramCustomerPageClient() {
                 </div>
                 {rewardPeriodEndDate &&
                   isBefore(rewardPeriodEndDate, new Date()) && (
-                    <div className="flex items-center gap-2 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2">
-                      <AlertCircle className="size-4 shrink-0 text-amber-600" />
-                      <p className="text-sm text-amber-900">
-                        The earning period for this customer has ended as of{" "}
-                        {formatDate(rewardPeriodEndDate)}. No future conversions
-                        will be rewarded.
-                      </p>
-                    </div>
+                    <Callout variant="warn" size={2}>
+                      The earning period for this customer has ended as of{" "}
+                      {formatDate(rewardPeriodEndDate)}. No future conversions
+                      will be rewarded.
+                    </Callout>
                   )}
 
                 <div className="border-border-subtle overflow-hidden rounded-lg border">
@@ -164,27 +163,22 @@ export function ProgramCustomerPageClient() {
 const EarningsTable = memo(({ customerId }: { customerId: string }) => {
   const { programSlug } = useParams();
 
-  const { data: earningsData, isLoading: isEarningsLoading } = useSWR<
-    PartnerEarningsResponse[]
-  >(
-    `/api/partner-profile/programs/${programSlug}/earnings?interval=all&pageSize=${CUSTOMER_PAGE_EVENTS_LIMIT}&customerId=${customerId}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  const { data: earningsData, isLoading: isEarningsLoading } =
+    usePartnerProfileEarnings({
+      programIdOrSlug: programSlug as string,
+      customerId,
+      interval: "all",
+      pageSize: CUSTOMER_PAGE_EVENTS_LIMIT,
+    });
 
-  const { data: totalEarnings, isLoading: isTotalEarningsLoading } = useSWR<{
-    count: number;
-  }>(
-    // Only fetch total earnings count if the earnings data is equal to the limit
-    earningsData?.length === CUSTOMER_PAGE_EVENTS_LIMIT &&
-      `/api/partner-profile/programs/${programSlug}/earnings/count?interval=all&customerId=${customerId}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  const { data: totalEarnings, isLoading: isTotalEarningsLoading } =
+    usePartnerProfileEarningsCount({
+      programIdOrSlug: programSlug as string,
+      customerId,
+      interval: "all",
+      // Only fetch total earnings count if the earnings data is equal to the limit
+      enabled: earningsData?.length === CUSTOMER_PAGE_EVENTS_LIMIT,
+    });
 
   return (
     <CustomerSalesTable

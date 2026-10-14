@@ -13,7 +13,6 @@ import { PayoutsCount } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PAYOUT_STATUS_DESCRIPTIONS } from "@/ui/partners/payout-status-descriptions";
-import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, Tooltip } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import { PartnerPayoutMethod, PayoutStatus } from "@prisma/client";
@@ -71,17 +70,6 @@ function PayoutStatsCard({
         <div className="flex items-center gap-2">
           {!isLoading ? (
             <div className="flex items-center gap-2">
-              {partner && !partner.payoutsEnabledAt && (
-                <Tooltip
-                  content="You need to [connect your payout account](/payouts?settings=true) to be able to receive payouts from the programs you are enrolled in."
-                  side="right"
-                >
-                  <div>
-                    <AlertCircleFill className="size-5 text-black" />
-                  </div>
-                </Tooltip>
-              )}
-
               <span className="h-5 text-base font-medium leading-6 text-neutral-800 sm:h-7 sm:text-xl sm:leading-7">
                 {error ? (
                   "-"

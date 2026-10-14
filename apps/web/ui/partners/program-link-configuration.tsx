@@ -1,3 +1,4 @@
+import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useDomains from "@/lib/swr/use-domains";
@@ -588,11 +589,12 @@ function DomainOnboardingSelection({
   domain,
   onDomainChange,
 }: DomainProps & { onBack: () => void }) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const { data: verificationData } = useSWRImmutable<{
     status: DomainVerificationStatusProps;
     response: any;
+    domainConnect?: DomainConnectDiscovery | null;
   }>(
     workspaceId && domain
       ? `/api/domains/${domain}/verify?workspaceId=${workspaceId}`
@@ -623,7 +625,13 @@ function DomainOnboardingSelection({
               transition={{ duration: 0.2 }}
               className="mt-6 overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 px-5 pb-5"
             >
-              <DomainConfiguration data={verificationData} />
+              <DomainConfiguration
+                data={verificationData}
+                domainConnect={verificationData.domainConnect}
+                domain={domain ?? undefined}
+                workspaceId={workspaceId ?? undefined}
+                workspaceSlug={workspaceSlug ?? undefined}
+              />
             </motion.div>
           )}
       </AnimatePresence>

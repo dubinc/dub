@@ -1,3 +1,4 @@
+import { testIds } from "@/lib/e2e/test-ids";
 import { StepPage } from "../step-page";
 import { DefaultDomainSelector } from "./default-domain-selector";
 
@@ -11,6 +12,7 @@ export default async function Domain({
 
   return (
     <StepPage
+      headingTestId={testIds.onboarding.stepDomain}
       title="Add a custom domain"
       description={
         isPartners ? (

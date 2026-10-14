@@ -37,6 +37,8 @@ export function useLinkBuilderSubmit({
         expiredUrl: rest.expiredUrl || null,
         ios: rest.ios || null,
         android: rest.android || null,
+        externalId: rest.externalId || null,
+        tenantId: rest.tenantId || null,
 
         // Create partner links
         ...(partnerId

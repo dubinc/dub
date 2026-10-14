@@ -1,7 +1,7 @@
 "use client";
 
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
-import { usePartnerApplicationRisks } from "@/lib/swr/use-partner-application-risks";
+import { useProgramApplicationRisks } from "@/lib/swr/use-program-application-risks";
 import {
   EnrolledPartnerExtendedProps,
   FraudGroupCountByPartner,
@@ -10,12 +10,12 @@ import { ButtonLink } from "@/ui/placeholders/button-link";
 import { Flag } from "@dub/ui";
 import { useParams } from "next/navigation";
 
-export function PartnerApplicationRiskBanner({
+export function ProgramApplicationRiskBanner({
   partner,
 }: {
   partner: EnrolledPartnerExtendedProps;
 }) {
-  const { severity, isLoading } = usePartnerApplicationRisks({
+  const { severity, isLoading } = useProgramApplicationRisks({
     filters: { partnerId: partner?.id },
     enabled: partner.status === "pending",
   });

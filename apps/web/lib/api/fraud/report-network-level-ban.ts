@@ -43,6 +43,9 @@ export async function reportNetworkLevelBan({
   });
 
   if (affectedProgramEnrollments.length === 0) {
+    console.log(
+      `No eligible program enrollments found for partner ${partnerId}, skipping reportNetworkLevelBan...`,
+    );
     return;
   }
 
@@ -55,6 +58,9 @@ export async function reportNetworkLevelBan({
   );
 
   if (affectedProgramEnrollments.length === 0) {
+    console.log(
+      `No eligible program enrollments found for partner ${partnerId}, skipping reportNetworkLevelBan...`,
+    );
     return;
   }
 
@@ -69,6 +75,10 @@ export async function reportNetworkLevelBan({
         bannedAt,
       },
     })),
+  );
+
+  console.log(
+    `Reporting network level ban for partner ${partnerId} to ${affectedGroups.length} programs...`,
   );
 
   const results = await Promise.allSettled([

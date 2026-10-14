@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { pluralize } from "@dub/utils";
-import { PartnerGroup, WorkflowTrigger } from "@prisma/client";
+import { PartnerGroup } from "@prisma/client";
 import { createId } from "../create-id";
 import { DubApiError } from "../errors";
 import { validateWorkflowConditions } from "../workflows/validate-workflow-conditions";
@@ -82,7 +82,6 @@ export async function upsertGroupMoveRules({
   };
 
   const workflowData = {
-    trigger: "partnerMetricsUpdated" as WorkflowTrigger,
     triggerConditions: moveRules,
     actions: [action],
   };

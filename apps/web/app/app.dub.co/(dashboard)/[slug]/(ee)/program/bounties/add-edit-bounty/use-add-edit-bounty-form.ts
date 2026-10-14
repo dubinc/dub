@@ -14,7 +14,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
 import { bountySocialContentRequirementsSchema } from "@/lib/zod/schemas/bounties";
-import { formatDate } from "@dub/utils";
+import { formatDate, pluck } from "@dub/utils";
 import { BountyStartMode, BountySubmissionFrequency } from "@prisma/client";
 import { addDays } from "date-fns";
 import {
@@ -34,7 +34,7 @@ const ACCORDION_ITEMS = [
   "bounty-type",
   "bounty-details",
   "bounty-criteria",
-  "groups",
+  "eligibility",
 ];
 
 const DEFAULT_SOCIAL_METRICS_CRITERIA = {
@@ -161,7 +161,10 @@ export function useAddEditBountyForm({
               ? "submission"
               : "performance",
       submissionRequirements: initialSubmissionRequirements,
-      groupIds: bounty?.groups?.map(({ id }) => id) || null,
+      groupIds: bounty?.groups?.length ? pluck(bounty.groups, "id") : null,
+      partnerTagIds: bounty?.partnerTags?.length
+        ? pluck(bounty.partnerTags, "id")
+        : null,
       performanceCondition: bounty?.performanceCondition
         ? {
             ...bounty.performanceCondition,
@@ -202,6 +205,7 @@ export function useAddEditBountyForm({
     description,
     performanceCondition,
     groupIds,
+    partnerTagIds,
     rewardType,
     submissionRequirements,
   ] = watch([
@@ -217,6 +221,7 @@ export function useAddEditBountyForm({
     "description",
     "performanceCondition",
     "groupIds",
+    "partnerTagIds",
     "rewardType",
     "submissionRequirements",
   ]);
@@ -540,6 +545,13 @@ export function useAddEditBountyForm({
         if (!socialMetrics.minCount || socialMetrics.minCount <= 0) {
           return "Minimum metric count must be greater than 0.";
         }
+
+        const bonusPerIncrement =
+          socialMetrics.incrementalBonus?.bonusPerIncrement;
+
+        if (bonusPerIncrement != null && bonusPerIncrement <= 0) {
+          return "Bonus per increment must be greater than 0.";
+        }
       }
     }
 
@@ -724,6 +736,7 @@ export function useAddEditBountyForm({
             rewardDescription: rewardDescription || null,
             submissionRequirements: submissionRequirements ?? null,
             groups: groupIds?.map((id) => ({ id })) || [],
+            partnerTags: partnerTagIds?.map((id) => ({ id })) || [],
           }
         : undefined,
       onConfirm: async ({ sendNotificationEmails }) => {

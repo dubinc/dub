@@ -307,19 +307,13 @@ export function CreateLinkButton({
         shortcut="C"
         disabledTooltip={
           exceededLinks ? (
-            trialActive ? (
-              <TooltipContent
-                title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
-                cta="Start paid plan"
-                onClick={() => openTrialLimitModal("links")}
-              />
-            ) : (
-              <TooltipContent
-                title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
-                cta="Upgrade plan"
-                href={`/${slug}/upgrade`}
-              />
-            )
+            <TooltipContent
+              title="Your workspace have exceeded your monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
+              cta={trialActive ? "Start paid plan" : "Upgrade plan"}
+              {...(trialActive
+                ? { onClick: () => openTrialLimitModal("links") }
+                : { href: `/${slug}/upgrade` })}
+            />
           ) : (
             permissionsError || undefined
           )

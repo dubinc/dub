@@ -1,17 +1,17 @@
 "use client";
 
-import { scopesToName } from "@/lib/api/tokens/scopes";
+import { hasLegacyScopeGrant, scopesToName } from "@/lib/api/tokens/scopes";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { UserAvatarWithTooltip } from "@/ui/links/link-title-column";
 import { useAddEditTokenModal } from "@/ui/modals/add-edit-token-modal";
 import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Delete } from "@/ui/shared/icons";
-import { UserAvatar } from "@/ui/users/user-avatar";
 import {
   Button,
   buttonVariants,
@@ -20,8 +20,9 @@ import {
   Key,
   PenWriting,
   Popover,
+  StatusBadge,
   Table,
-  Tooltip,
+  TimestampTooltip,
   usePagination,
   useTable,
 } from "@dub/ui";
@@ -31,7 +32,7 @@ import { useState } from "react";
 import useSWR from "swr";
 
 export default function TokensPage() {
-  const { id: workspaceId, role } = useWorkspace();
+  const { id: workspaceId, role, defaultProgramId } = useWorkspace();
   const { pagination, setPagination } = usePagination();
   const [createdToken, setCreatedToken] = useState<string | null>(null);
   const [selectedToken, setSelectedToken] = useState<TokenProps | null>(null);
@@ -108,7 +109,25 @@ export default function TokensPage() {
         id: "permissions",
         header: "Permissions",
         accessorKey: "scopes",
-        cell: ({ row }) => scopesToName(row.original.scopes).name,
+        cell: ({ row }) => (
+          <span className="flex items-center gap-2">
+            {scopesToName(row.original.scopes).name}
+            {defaultProgramId &&
+              hasLegacyScopeGrant({
+                scopes: row.original.scopes,
+                createdAt: row.original.createdAt,
+              }) && (
+                <StatusBadge
+                  variant="warning"
+                  size="sm"
+                  icon={null}
+                  tooltip="This key was created before partner program scopes were added, so it can still access partners, commissions, customers and other program data. Create a new key with only the scopes you need, then delete this one."
+                >
+                  Action required
+                </StatusBadge>
+              )}
+          </span>
+        ),
       },
       {
         id: "user",
@@ -117,21 +136,23 @@ export default function TokensPage() {
         cell: ({ row }) => {
           return (
             <div className="flex items-center gap-2">
-              <Tooltip content={row.original.user.name}>
-                <div>
-                  <UserAvatar
-                    user={row.original.user}
-                    className="size-5 rounded-full"
-                  />
-                </div>
-              </Tooltip>
-              <p>
-                {new Date(row.original.createdAt).toLocaleDateString("en-us", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </p>
+              <UserAvatarWithTooltip user={row.original.user} />
+              <TimestampTooltip
+                timestamp={row.original.createdAt}
+                rows={["local", "utc", "unix"]}
+                delayDuration={150}
+              >
+                <p>
+                  {new Date(row.original.createdAt).toLocaleDateString(
+                    "en-us",
+                    {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    },
+                  )}
+                </p>
+              </TimestampTooltip>
             </div>
           );
         },
@@ -140,13 +161,35 @@ export default function TokensPage() {
         id: "partialKey",
         header: "Key",
         accessorKey: "partialKey",
-        cell: ({ row }) => row.original.partialKey,
+        cell: ({ row }) => {
+          const isExpired =
+            row.original.expires && new Date(row.original.expires) < new Date();
+
+          return (
+            <span className="flex items-center gap-2">
+              {row.original.partialKey}
+              {isExpired && (
+                <StatusBadge variant="warning" size="sm" icon={null}>
+                  Expired
+                </StatusBadge>
+              )}
+            </span>
+          );
+        },
       },
       {
         id: "lastUsed",
         header: "Last used",
         accessorKey: "lastUsed",
-        cell: ({ row }) => timeAgo(row.original.lastUsed),
+        cell: ({ row }) => (
+          <TimestampTooltip
+            timestamp={row.original.lastUsed}
+            rows={["local", "utc", "unix"]}
+            delayDuration={150}
+          >
+            <span>{timeAgo(row.original.lastUsed)}</span>
+          </TimestampTooltip>
+        ),
       },
 
       // Menu

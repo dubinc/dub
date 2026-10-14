@@ -80,29 +80,32 @@ export const POST = withAxiom(async (req) => {
       return logAndRespond(`[Intercom] Program ${program.id} is deactivated.`);
     }
 
-    let response: Awaited<ReturnType<typeof handleConversationAdminReplied>> =
-      "";
+    let result:
+      | Awaited<ReturnType<typeof handleConversationAdminReplied>>
+      | undefined;
 
     if (topic === "conversation.admin.replied") {
-      response = await handleConversationAdminReplied({
+      result = await handleConversationAdminReplied({
         data,
         program,
         installation,
       });
     }
 
-    await captureWebhookLog({
-      workspaceId,
-      method: "POST",
-      path: "/intercom/webhook",
-      statusCode: 200,
-      duration: Date.now() - startTime,
-      requestBody: body,
-      responseBody: response,
-      userAgent: req.headers.get("user-agent"),
-    });
+    if (result?.partnersFound) {
+      await captureWebhookLog({
+        workspaceId,
+        method: "POST",
+        path: "/intercom/webhook",
+        statusCode: 200,
+        duration: Date.now() - startTime,
+        requestBody: body,
+        responseBody: result.message,
+        userAgent: req.headers.get("user-agent"),
+      });
+    }
 
-    return logAndRespond(response);
+    return logAndRespond(result?.message ?? "Webhook processed successfully.");
   } catch (error) {
     const response = handleAndReturnErrorResponse(error);
 

@@ -2,15 +2,14 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
 import {
   ALLOWED_MIN_PAYOUT_AMOUNTS,
   getAllowedMinPayoutAmounts,
 } from "@/lib/constants/payouts";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { waitUntil } from "@vercel/functions";
-import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { ProgramSchema, updateProgramSchema } from "../../zod/schemas/programs";
@@ -20,7 +19,6 @@ import { throwIfNoPermission } from "../throw-if-no-permission";
 const schema = updateProgramSchema.partial().extend({
   workspaceId: z.string(),
   applyHoldingPeriodDaysToAllGroups: z.boolean().optional(),
-  referralFormData: submittedLeadFormSchema.optional(),
 });
 
 export const updateProgramAction = authActionClient
@@ -33,7 +31,6 @@ export const updateProgramAction = authActionClient
       termsUrl,
       minPayoutAmount,
       messagingEnabledAt,
-      referralFormData,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -69,31 +66,30 @@ export const updateProgramAction = authActionClient
         ...(messagingEnabledAt !== undefined &&
           (getPlanCapabilities(workspace.plan).canMessagePartners ||
             messagingEnabledAt === null) && { messagingEnabledAt }),
-        ...(referralFormData !== undefined && {
-          referralFormData: referralFormData ?? null,
-        }),
       },
     });
 
     if (updatedProgram.termsUrl !== program.termsUrl) {
-      revalidatePath(`/partners.dub.co/${program.slug}/apply`);
+      revalidateProgramPublicPages(programId);
     }
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId: program.id,
-        action: "program.updated",
-        description: `Program ${program.name} updated`,
-        actor: user,
-        targets: [
-          {
-            type: "program",
-            id: program.id,
-            metadata: updatedProgram,
-          },
-        ],
-      }),
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId: program.id,
+          action: "program.updated",
+          description: `Program ${program.name} updated`,
+          actor: user,
+          targets: [
+            {
+              type: "program",
+              id: program.id,
+              metadata: updatedProgram,
+            },
+          ],
+        }),
+      ]),
     );
 
     return {

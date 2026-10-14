@@ -2,6 +2,7 @@ import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { getHubSpotEventAction } from "@/lib/integrations/hubspot/get-hubspot-event-action";
 import { hubSpotOAuthProvider } from "@/lib/integrations/hubspot/oauth";
 import {
   hubSpotSettingsSchema,
@@ -79,60 +80,31 @@ export const POST = withAxiom(async (req) => {
 
     console.log("[HubSpot] Integration settings", settings);
 
-    let response = "";
+    const action = getHubSpotEventAction({
+      event: body,
+      settings,
+    });
 
-    // Contact events
-    if (objectTypeId === "0-1") {
-      const isContactCreated = subscriptionType === "object.creation";
+    console.log("[HubSpot] Event action", action);
 
-      const isLifecycleStageChanged =
-        subscriptionType === "object.propertyChange" &&
-        settings.leadTriggerEvent === "lifecycleStageReached";
+    let response: string;
 
-      if (isContactCreated || isLifecycleStageChanged) {
-        response = await trackHubSpotLeadEvent({
-          payload: body,
-          workspace,
-          authToken,
-          settings,
-        });
-      } else {
-        response = `Skipping contact event: subscriptionType "${subscriptionType}" does not match the configured leadTriggerEvent "${settings.leadTriggerEvent}".`;
-      }
-    }
-
-    // Deal event
-    else if (objectTypeId === "0-3") {
-      const isDealCreated =
-        subscriptionType === "object.creation" &&
-        settings.leadTriggerEvent === "dealCreated";
-
-      const isDealUpdated = subscriptionType === "object.propertyChange";
-
-      // Track the final lead event
-      if (isDealCreated) {
-        response = await trackHubSpotLeadEvent({
-          payload: body,
-          workspace,
-          authToken,
-          settings,
-        });
-      }
-
-      // Track the sale event when deal is closed won
-      else if (isDealUpdated) {
-        response = await trackHubSpotSaleEvent({
-          payload: body,
-          workspace,
-          authToken,
-          settings,
-        });
-      }
-    }
-
-    // Unknown object type
-    else {
-      response = `Unknown objectTypeId ${objectTypeId}.`;
+    if (action === "trackLead") {
+      response = await trackHubSpotLeadEvent({
+        payload: body,
+        workspace,
+        authToken,
+        settings,
+      });
+    } else if (action === "trackSale") {
+      response = await trackHubSpotSaleEvent({
+        payload: body,
+        workspace,
+        authToken,
+        settings,
+      });
+    } else {
+      response = `Skipping event: objectTypeId "${objectTypeId}", subscriptionType "${subscriptionType}", propertyName "${body.propertyName ?? ""}" does not match the configured leadTriggerEvent "${settings.leadTriggerEvent}".`;
     }
 
     await captureWebhookLog({

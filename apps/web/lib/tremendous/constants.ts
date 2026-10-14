@@ -1,11 +1,3 @@
-import { ACME_PROGRAM_ID } from "@dub/utils";
-
-export const TREMENDOUS_ENABLED_PROGRAM_IDS = [
-  "prog_d8pl69xXCv4AoHNT281pHQdo", // Dub
-  ACME_PROGRAM_ID,
-  "prog_1KPAZMF49X9A1WEWRBM55KZY7", // Upheal
-];
-
 export const TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS = 500; // $5
 export const TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS = 2000_00; // $2,000
 
@@ -25,6 +17,14 @@ export const TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS = [
   ".ua",
   ".ve",
   ".ye",
+];
+
+export const TREMENDOUS_LOGO_CONTENT_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/gif",
+  "image/svg+xml",
 ];
 
 export const TREMENDOUS_PRODUCT_IDS = [

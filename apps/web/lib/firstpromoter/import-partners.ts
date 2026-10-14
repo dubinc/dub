@@ -9,6 +9,9 @@ import {
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { upsertPartnerPlatform } from "../api/partner-profile/upsert-partner-platform";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { FirstPromoterApi } from "./api";
 import { firstPromoterImporter, MAX_BATCHES } from "./importer";
@@ -88,6 +91,14 @@ export async function importPartners(payload: FirstPromoterImportPayload) {
             result.reason,
           );
         }
+      });
+
+      // Queue an index update because the imported partners were enrolled.
+      // Queued per page rather than per partner.
+      await queuePartnerSearchSync({
+        enrollmentIds: results.flatMap((result) =>
+          result.status === "fulfilled" && result.value ? [result.value] : [],
+        ),
       });
     }
 
@@ -170,41 +181,47 @@ async function createPartnerAndLinks({
     );
   }
 
-  const programEnrollment = await prisma.programEnrollment.upsert({
-    where: {
-      partnerId_programId: {
-        partnerId: partner.id,
-        programId: program.id,
-      },
-    },
-    create: {
-      id: createId({ prefix: "pge_" }),
-      programId: program.id,
+  const { enrollment: programEnrollment, preservedBan } =
+    await upsertImportedProgramEnrollment({
       partnerId: partner.id,
-      status: "approved",
-      groupId: group.id,
-      clickRewardId: group.clickRewardId,
-      leadRewardId: group.leadRewardId,
-      saleRewardId: group.saleRewardId,
-      referralRewardId: group.referralRewardId,
-      discountId: group.discountId,
-    },
-    update: {
-      status: "approved",
-    },
-    include: {
-      links: true,
-    },
-  });
+      programId: program.id,
+      create: {
+        id: createId({ prefix: "pge_" }),
+        programId: program.id,
+        partnerId: partner.id,
+        status: "approved",
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        referralRewardId: group.referralRewardId,
+        customRewardId: group.customRewardId,
+        discountId: group.discountId,
+      },
+      include: {
+        links: true,
+      },
+    });
+
+  if (!preservedBan) {
+    await approveLinkedApplication({
+      applicationId: programEnrollment.applicationId,
+      userId,
+    });
+  }
 
   if (!program.domain || !program.url) {
     console.error("Program domain or url not found", program.id);
-    return;
+    return programEnrollment.id;
+  }
+
+  if (preservedBan) {
+    return programEnrollment.id;
   }
 
   if (programEnrollment.links.length > 0) {
     console.log("Partner already has links", partner.id);
-    return;
+    return programEnrollment.id;
   }
 
   const links = affiliate.promoter_campaigns.map((campaign, idx) => ({
@@ -221,7 +238,18 @@ async function createPartnerAndLinks({
       idx === 0 ? group.partnerGroupDefaultLinks[0]?.id ?? null : null,
   }));
 
-  await bulkCreateLinks({
-    links,
-  });
+  try {
+    await bulkCreateLinks({
+      links,
+    });
+  } catch (error) {
+    // The enrollment is already committed, so its ID must still reach the
+    // page-level search sync even when link creation fails.
+    console.error(
+      `Failed to create links for imported affiliate ${affiliate.id}`,
+      error,
+    );
+  }
+
+  return programEnrollment.id;
 }

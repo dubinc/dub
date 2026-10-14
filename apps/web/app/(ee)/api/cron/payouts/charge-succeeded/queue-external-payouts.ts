@@ -1,5 +1,6 @@
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import { prisma } from "@/lib/prisma";
+import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { payoutWebhookEventSchema } from "@/lib/zod/schemas/payouts";
 import type PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
@@ -14,13 +15,17 @@ export async function queueExternalPayouts(
 ) {
   // All payouts are processed internally, hence no need to queue external payouts
   if (invoice.payoutMode === "internal") {
-    console.log(`Invoice ${invoice.id} is paid internally. Skipping...`);
+    console.log(
+      `Invoice ${invoice.id} is paid internally. Skipping external payouts...`,
+    );
     return;
   }
 
   // should never happen, but just in case
   if (!invoice.programId) {
-    console.log(`Invoice ${invoice.id} has no program ID. Skipping...`);
+    console.log(
+      `Invoice ${invoice.id} has no program ID. Skipping external payouts...`,
+    );
     return;
   }
 
@@ -34,6 +39,7 @@ export async function queueExternalPayouts(
       slug: true,
       logo: true,
       supportEmail: true,
+      environment: true,
     },
   });
 
@@ -76,7 +82,7 @@ export async function queueExternalPayouts(
       projectId: invoice.workspaceId,
       disabledAt: null,
       triggers: {
-        array_contains: ["payout.confirmed"],
+        array_contains: [EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER],
       },
     },
     select: {
@@ -88,7 +94,7 @@ export async function queueExternalPayouts(
 
   if (webhooks.length === 0) {
     await log({
-      message: `No payout.confirmed webhook found for workspace ${invoice.workspaceId} (program: ${program.slug}, invoice: ${invoice.id}). Skipping external payouts...`,
+      message: `No ${EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER} webhook found for workspace ${invoice.workspaceId} (program: ${program.slug}, invoice: ${invoice.id}). Skipping external payouts...`,
       type: "errors",
       mention: true,
     });
@@ -112,7 +118,7 @@ export async function queueExternalPayouts(
         },
         webhooks,
         data,
-        trigger: "payout.confirmed",
+        trigger: EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER,
       });
     } catch (error) {
       console.error(error.message);
@@ -132,6 +138,7 @@ export async function queueExternalPayouts(
           id: program.id,
           name: program.name,
           logo: program.logo,
+          environment: program.environment,
         },
         payout: {
           id: payout.id,

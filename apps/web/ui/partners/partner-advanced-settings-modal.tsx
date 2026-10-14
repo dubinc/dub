@@ -282,11 +282,7 @@ export function usePartnerAdvancedSettingsModal({
         partner={partner}
       />
     );
-  }, [
-    showPartnerAdvancedSettingsModal,
-    setShowPartnerAdvancedSettingsModal,
-    partner,
-  ]);
+  }, [showPartnerAdvancedSettingsModal, setShowPartnerAdvancedSettingsModal]);
 
   return useMemo(
     () => ({

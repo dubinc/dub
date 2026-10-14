@@ -4,7 +4,6 @@ import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useDomain from "@/lib/swr/use-domain";
 import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { UserProps } from "@/lib/types";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import {
   ArrowTurnRight2,
@@ -414,7 +413,16 @@ const Details = memo(
   },
 );
 
-export function UserAvatarWithTooltip({ user }: { user: UserProps }) {
+export function UserAvatarWithTooltip({
+  user,
+}: {
+  user: {
+    id?: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
+}) {
   const { slug } = useParams();
   return (
     <Tooltip

@@ -154,6 +154,7 @@ export function ChatInterface({
           const last = current[current.length - 1];
           return last.role === "user" ? current.slice(0, -1) : current;
         });
+        setPendingImages(pendingSendRef.current);
         pendingSendRef.current = null;
       }
       return;
@@ -242,6 +243,9 @@ export function ChatInterface({
   useEffect(() => {
     return () => {
       pendingImagesRef.current.forEach((image) =>
+        URL.revokeObjectURL(image.previewUrl),
+      );
+      pendingSendRef.current?.forEach((image) =>
         URL.revokeObjectURL(image.previewUrl),
       );
     };
@@ -348,6 +352,7 @@ export function ChatInterface({
       }
 
       setInput("");
+      setPendingImages([]);
       textareaRef.current?.focus();
     } catch (err) {
       sendingRef.current = false;

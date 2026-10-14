@@ -1,7 +1,7 @@
 import { handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
-import useRewards from "@/lib/swr/use-rewards";
+import { useRewards } from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   createCommissionResponseSchema,
@@ -17,21 +17,31 @@ import {
   ProgramSheetAccordionItem,
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
+import { Callout } from "@/ui/shared/callout";
 import { X } from "@/ui/shared/icons";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import {
   AnimatedSizeContainer,
   Button,
+  Check2,
   LoadingSpinner,
   Sheet,
   SmartDateTimePicker,
   Switch,
   ToggleGroup,
 } from "@dub/ui";
+import { Minus } from "@dub/ui/icons";
 import { cn, currencyFormatter, formatDate } from "@dub/utils";
 import { CommissionType } from "@prisma/client";
 import { useParams } from "next/navigation";
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -83,6 +93,35 @@ async function fetcherStripeInvoices(url: string): Promise<{
     throw new Error(body?.error?.message ?? "Failed to load invoices");
   }
   return { invoices: Array.isArray(body) ? body : [] };
+}
+
+function InvoiceCheckbox({
+  checked,
+  indeterminate = false,
+  disabled = false,
+}: {
+  checked: boolean;
+  indeterminate?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <span
+      className={cn(
+        "flex size-4 shrink-0 items-center justify-center rounded border",
+        disabled && "opacity-50",
+        checked || indeterminate
+          ? "border-black bg-black text-white"
+          : "border-neutral-300 bg-white",
+      )}
+      aria-hidden
+    >
+      {indeterminate ? (
+        <Minus className="size-3" />
+      ) : checked ? (
+        <Check2 className="size-3" />
+      ) : null}
+    </span>
+  );
 }
 
 function CreateCommissionSheetContent({
@@ -202,11 +241,62 @@ function CreateCommissionSheetContent({
   );
 
   const stripeInvoices = stripeInvoicesData?.invoices ?? [];
+  const paidStripeInvoiceCount = stripeInvoices.filter(
+    (inv) => !inv.refunded,
+  ).length;
   const unimportedStripeInvoices = stripeInvoices.filter(
-    (inv) => !inv.dubCommissionId,
+    (inv) => !inv.dubCommissionId && !inv.refunded,
   );
+  const unimportedStripeInvoiceIdsKey = unimportedStripeInvoices
+    .map((invoice) => invoice.id)
+    .join(",");
+  const unimportedStripeInvoiceIds = useMemo(
+    () => unimportedStripeInvoiceIdsKey.split(",").filter(Boolean),
+    [unimportedStripeInvoiceIdsKey],
+  );
+  const [selectedStripeInvoiceIds, setSelectedStripeInvoiceIds] = useState<
+    string[] | null
+  >(null);
+  const selectedInvoiceIdsToImport =
+    selectedStripeInvoiceIds ?? unimportedStripeInvoiceIds;
   const noStripeCustomerId = stripeInvoicesData?.noStripeCustomerId ?? false;
   const noStripeCustomerMessage = stripeInvoicesData?.message;
+  const stripeInvoiceSelectionScopeRef = useRef({
+    customerId,
+    importStripeInvoices,
+  });
+
+  useEffect(() => {
+    const scope = stripeInvoiceSelectionScopeRef.current;
+    const scopeChanged =
+      scope.customerId !== customerId ||
+      scope.importStripeInvoices !== importStripeInvoices;
+
+    stripeInvoiceSelectionScopeRef.current = {
+      customerId,
+      importStripeInvoices,
+    };
+
+    // null selects every eligible invoice. Only restore that default when the
+    // customer or import mode changes; a refreshed invoice list should keep
+    // an explicit selection that is still eligible.
+    if (scopeChanged) {
+      setSelectedStripeInvoiceIds(null);
+      return;
+    }
+
+    const eligibleIds = new Set(unimportedStripeInvoiceIds);
+
+    setSelectedStripeInvoiceIds((current) => {
+      if (current === null) {
+        return null;
+      }
+
+      const retained = current.filter((id) => eligibleIds.has(id));
+
+      return retained.length === current.length ? current : retained;
+    });
+  }, [customerId, importStripeInvoices, unimportedStripeInvoiceIds]);
 
   useEffect(() => {
     if (commissionType === "custom") {
@@ -276,9 +366,9 @@ function CreateCommissionSheetContent({
         partnerId,
         customerId: data.customerId,
         linkId: data.linkId,
-        importStripeInvoices,
         ...(importStripeInvoices
           ? {
+              stripeInvoicesToImport: selectedInvoiceIdsToImport,
               saleAmount: null,
               saleEventDate: null,
               invoiceId: null,
@@ -336,6 +426,10 @@ function CreateCommissionSheetContent({
         if (unimportedStripeInvoices.length === 0) {
           return "No unimported Stripe invoices found for this customer.";
         }
+
+        if (selectedInvoiceIdsToImport.length === 0) {
+          return "You need to select at least one invoice to import.";
+        }
       } else {
         if (!saleAmount) {
           return "You need to enter a sale amount for the commission.";
@@ -354,6 +448,7 @@ function CreateCommissionSheetContent({
     importStripeInvoices,
     noStripeCustomerId,
     unimportedStripeInvoices.length,
+    selectedInvoiceIdsToImport.length,
     isStripeInvoicesLoading,
   ]);
 
@@ -668,26 +763,26 @@ function CreateCommissionSheetContent({
                               <LoadingSpinner />
                             </div>
                           ) : noStripeCustomerId ? (
-                            <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-4">
-                              <p className="text-sm font-medium text-amber-800">
+                            <Callout variant="warn" size={2}>
+                              <p className="font-medium">
                                 No Stripe customer ID
                               </p>
-                              <p className="mt-1 text-xs text-amber-700">
+                              <p className="mt-1">
                                 {noStripeCustomerMessage ??
                                   "This customer doesn't have a Stripe customer ID. Add one in the customer profile to use paid Stripe invoices here."}
                               </p>
                               <a
                                 href={`/${slug}/program/customers/${customerId}`}
                                 target="_blank"
-                                className="mt-2 inline-block text-xs font-medium text-amber-800 underline hover:no-underline"
+                                className="mt-2 inline-block font-medium underline hover:no-underline"
                               >
                                 Open customer profile →
                               </a>
-                            </div>
+                            </Callout>
                           ) : stripeInvoicesError ? (
-                            <div className="rounded-lg border border-red-200 bg-red-50/80 p-4 text-sm text-red-800">
+                            <Callout variant="error" size={2}>
                               Failed to load invoices. Try again.
-                            </div>
+                            </Callout>
                           ) : stripeInvoices.length === 0 ? (
                             <div className="flex h-24 flex-col items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50/30 text-center">
                               <p className="text-sm font-medium text-neutral-600">
@@ -699,64 +794,157 @@ function CreateCommissionSheetContent({
                             </div>
                           ) : (
                             <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm">
-                              <div className="border-b border-neutral-100 bg-neutral-50/80 px-3 py-2">
+                              <div className="flex items-center gap-3 border-b border-neutral-100 bg-neutral-50/80 px-3 py-2">
+                                {unimportedStripeInvoices.length > 0 && (
+                                  <button
+                                    type="button"
+                                    className="flex items-center"
+                                    aria-label="Select all invoices"
+                                    aria-checked={
+                                      selectedInvoiceIdsToImport.length ===
+                                      unimportedStripeInvoiceIds.length
+                                        ? true
+                                        : selectedInvoiceIdsToImport.length > 0
+                                          ? "mixed"
+                                          : false
+                                    }
+                                    role="checkbox"
+                                    onClick={() => {
+                                      const allSelected =
+                                        selectedInvoiceIdsToImport.length ===
+                                        unimportedStripeInvoiceIds.length;
+
+                                      setSelectedStripeInvoiceIds(
+                                        allSelected
+                                          ? []
+                                          : unimportedStripeInvoiceIds,
+                                      );
+                                    }}
+                                  >
+                                    <InvoiceCheckbox
+                                      checked={
+                                        selectedInvoiceIdsToImport.length ===
+                                        unimportedStripeInvoiceIds.length
+                                      }
+                                      indeterminate={
+                                        selectedInvoiceIdsToImport.length > 0 &&
+                                        selectedInvoiceIdsToImport.length <
+                                          unimportedStripeInvoiceIds.length
+                                      }
+                                    />
+                                  </button>
+                                )}
                                 <p className="text-xs font-medium text-neutral-500">
-                                  Paid invoices ({stripeInvoices.length})
+                                  Paid invoices ({paidStripeInvoiceCount})
                                 </p>
                               </div>
-                              <div className="max-h-96 overflow-y-auto p-1.5">
-                                {stripeInvoices.map((inv) => (
-                                  <div
-                                    key={inv.id}
-                                    className={cn(
-                                      "flex items-center justify-between gap-3 rounded-md px-3 py-2.5",
-                                      inv.dubCommissionId &&
-                                        "bg-neutral-50/80 opacity-75",
-                                    )}
-                                  >
-                                    <div className="min-w-0 flex-1">
-                                      <a
-                                        href={`https://dashboard.stripe.com/invoices/${inv.id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={cn(
-                                          "cursor-alias font-mono text-sm font-medium decoration-dotted underline-offset-2 hover:underline",
-                                          inv.dubCommissionId
-                                            ? "text-neutral-500"
-                                            : "text-neutral-800",
-                                        )}
-                                      >
-                                        {inv.id}
-                                      </a>
-                                      <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-neutral-500">
-                                        {formatDate(inv.createdAt)}
-                                        {inv.refunded ? (
-                                          <span className="rounded-md bg-neutral-200/80 px-1.5 py-0.5 text-xs text-neutral-500">
-                                            Refunded
-                                          </span>
-                                        ) : inv.dubCommissionId ? (
-                                          <a
-                                            href={`/${slug}/program/commissions?partnerId=${partnerId}&customerId=${customerId}`}
-                                            target="_blank"
-                                            className="rounded bg-neutral-200/80 px-1.5 py-0.5 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-900"
-                                          >
-                                            Already imported
-                                          </a>
-                                        ) : null}
-                                      </p>
-                                    </div>
-                                    <span
+                              <div className="flex max-h-96 flex-col gap-1 overflow-y-auto p-1.5">
+                                {stripeInvoices.map((inv) => {
+                                  const imported = Boolean(inv.dubCommissionId);
+                                  const disabled = imported || inv.refunded;
+                                  const selected =
+                                    !disabled &&
+                                    selectedInvoiceIdsToImport.includes(inv.id);
+                                  const toggleSelected = () => {
+                                    setSelectedStripeInvoiceIds((current) => {
+                                      const selectedIds =
+                                        current ?? unimportedStripeInvoiceIds;
+
+                                      return selectedIds.includes(inv.id)
+                                        ? selectedIds.filter(
+                                            (id) => id !== inv.id,
+                                          )
+                                        : [...selectedIds, inv.id];
+                                    });
+                                  };
+
+                                  return (
+                                    <div
+                                      key={inv.id}
                                       className={cn(
-                                        "shrink-0 text-sm font-medium",
-                                        inv.dubCommissionId
-                                          ? "text-neutral-500"
-                                          : "text-neutral-700",
+                                        "flex items-center gap-3 rounded-md px-2.5 py-1.5",
+                                        disabled && "opacity-60",
+                                        selected && "bg-neutral-100",
                                       )}
                                     >
-                                      {currencyFormatter(inv.amount)}
-                                    </span>
-                                  </div>
-                                ))}
+                                      <span className="relative inline-flex size-4 shrink-0 rounded-sm focus-within:ring-2 focus-within:ring-black focus-within:ring-offset-2">
+                                        <input
+                                          id={`stripe-invoice-${inv.id}`}
+                                          type="checkbox"
+                                          checked={selected}
+                                          disabled={disabled}
+                                          aria-label={`Select invoice ${inv.id}`}
+                                          onChange={toggleSelected}
+                                          onKeyDown={(event) => {
+                                            if (
+                                              event.key !== "Enter" ||
+                                              disabled
+                                            ) {
+                                              return;
+                                            }
+
+                                            event.preventDefault();
+                                            toggleSelected();
+                                          }}
+                                          className="absolute inset-0 z-10 cursor-pointer opacity-0 disabled:cursor-not-allowed"
+                                        />
+                                        <InvoiceCheckbox
+                                          checked={selected}
+                                          disabled={disabled}
+                                        />
+                                      </span>
+                                      <div className="min-w-0 flex-1">
+                                        <a
+                                          href={`https://dashboard.stripe.com/invoices/${inv.id}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className={cn(
+                                            "cursor-alias font-mono text-sm font-medium decoration-dotted underline-offset-2 hover:underline",
+                                            disabled
+                                              ? "text-neutral-500"
+                                              : "text-neutral-800",
+                                          )}
+                                        >
+                                          {inv.id}
+                                        </a>
+                                        <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-neutral-500">
+                                          <label
+                                            htmlFor={`stripe-invoice-${inv.id}`}
+                                            className={cn(
+                                              !disabled && "cursor-pointer",
+                                            )}
+                                          >
+                                            {formatDate(inv.createdAt)}
+                                          </label>
+                                          {inv.refunded ? (
+                                            <span className="rounded-md bg-neutral-200/80 px-1.5 py-0.5 text-xs text-neutral-500">
+                                              Refunded
+                                            </span>
+                                          ) : imported ? (
+                                            <a
+                                              href={`/${slug}/program/commissions?partnerId=${partnerId}&customerId=${customerId}`}
+                                              target="_blank"
+                                              className="rounded bg-neutral-200/80 px-1.5 py-0.5 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-900"
+                                            >
+                                              Already imported
+                                            </a>
+                                          ) : null}
+                                        </p>
+                                      </div>
+                                      <label
+                                        htmlFor={`stripe-invoice-${inv.id}`}
+                                        className={cn(
+                                          "shrink-0 text-sm font-medium",
+                                          disabled
+                                            ? "text-neutral-500"
+                                            : "cursor-pointer text-neutral-700",
+                                        )}
+                                      >
+                                        {currencyFormatter(inv.amount)}
+                                      </label>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
                           )}
@@ -1063,7 +1251,7 @@ function CreateCommissionSheetContent({
           <Button
             type="submit"
             variant="primary"
-            text={`Create commission${unimportedStripeInvoices.length > 0 ? "s" : ""}`}
+            text={`Create commission${importStripeInvoices && selectedInvoiceIdsToImport.length !== 1 ? "s" : ""}`}
             className="w-fit"
             loading={isSubmitting}
             disabledTooltip={submitDisabledMessage}

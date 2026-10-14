@@ -21,5 +21,9 @@ export async function getStripeRecipientPayoutMethod(
     throw new Error(error.message);
   }
 
-  return data.data?.find((m) => m.type === "crypto_wallet") ?? null;
+  return (
+    data.data?.find(
+      (m) => m.type === "crypto_wallet" && !m.crypto_wallet?.archived,
+    ) ?? null
+  );
 }

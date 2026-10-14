@@ -118,7 +118,8 @@ export const generateLanderAction = authActionClient
         `Do not add any file blocks. ` +
         `For image blocks, make sure the image URL is an absolute URL, not a relative URL (append the website URL to the image URL if it's a relative URL). ` +
         `If you have product pricing information, ${landerData ? "you could" : "you should"} include an earnings calculator block, using the highest non-enterprise tier for the product price. ` +
-        `Markdown is supported in "text" blocks, but use it sparingly. ` +
+        `Markdown is supported in "text" and "accordion" blocks, but use it sparingly. ` +
+        `GFM tables are supported in those blocks (pipe tables with one row per line) and should be used for structured data. ` +
         `Avoid using links. Relevant CTA links are already on the landing page. ` +
         // Additional instructions
         (prompt

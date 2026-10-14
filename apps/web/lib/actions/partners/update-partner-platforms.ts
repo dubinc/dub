@@ -1,11 +1,13 @@
 "use server";
 
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { getDomainWithoutWWW, getUrlFromString, isValidUrl } from "@dub/utils";
 import { PartnerPlatform, PlatformType } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -189,4 +191,8 @@ export const updatePartnerPlatformsAction = authPartnerActionClient
     }
 
     await Promise.all(operations);
+
+    // Queue an index update because the platform identifiers changed. Not
+    // scoped by program, since platforms are shared across them.
+    waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
   });

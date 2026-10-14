@@ -1,22 +1,7 @@
 "use client";
 
-import { ModalProvider } from "@/ui/modals/modal-provider";
-import { Analytics as DubAnalytics } from "@dub/analytics/react";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <DubAnalytics
-        apiHost="/_proxy/dub"
-        cookieOptions={{
-          domain: process.env.VERCEL === "1" ? ".dub.co" : "localhost",
-        }}
-        domainsConfig={{
-          refer: "refer.dub.co",
-        }}
-      />
-      <ModalProvider>{children}</ModalProvider>
-    </>
-  );
+  return <Suspense>{children}</Suspense>;
 }

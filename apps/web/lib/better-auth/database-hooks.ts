@@ -1,10 +1,9 @@
 import { trackDubLead } from "@/lib/auth/track-dub-lead";
-import { qstash } from "@/lib/cron";
 import { isBlacklistedEmail } from "@/lib/edge-config";
+import { welcomeUserJob } from "@/lib/jobs/handlers/welcome-user-job";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { prisma } from "@/lib/prisma";
 import { isStored } from "@/lib/storage";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type { BetterAuthOptions } from "better-auth";
 import { APIError, getSessionFromCtx } from "better-auth/api";
@@ -63,13 +62,15 @@ export const databaseHooks = {
               image: user.image,
             }),
 
-            qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/welcome-user`,
-              delay: 45 * 60,
-              body: {
+            welcomeUserJob.dispatch(
+              {
                 userId: user.id,
               },
-            }),
+              {
+                delay: 45 * 60,
+                label: user.id,
+              },
+            ),
           ]),
         );
       },

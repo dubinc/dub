@@ -1,5 +1,4 @@
 import { createId } from "@/lib/api/create-id";
-import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { generateRandomName } from "@/lib/names";
@@ -10,19 +9,22 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { nanoid } from "@dub/utils";
+import { EventType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { orderSchema } from "./schema";
+import { queueGoogleAdsConversionUpload } from "../google-ads/upload-conversion";
+import { ShopifyError } from "./error";
+import { ShopifyOrder } from "./schema";
 
 export async function createShopifyLead({
+  order,
   clickId,
   workspaceId,
-  event,
 }: {
+  order: ShopifyOrder;
   clickId: string;
   workspaceId: string;
-  event: any;
 }) {
-  const { customer: orderCustomer } = orderSchema.parse(event);
+  const { customer: orderCustomer } = order;
 
   const customerId = createId({ prefix: "cus_" });
   /*
@@ -40,10 +42,13 @@ export async function createShopifyLead({
   const clickData = await getClickEvent({ clickId });
 
   if (!clickData) {
-    throw new DubApiError({
-      code: "not_found",
-      message: `Click event not found for clickId: ${clickId}`,
-    });
+    throw new ShopifyError("Click event not found. Skipping the order...");
+  }
+
+  if (clickData.workspace_id !== workspaceId) {
+    throw new ShopifyError(
+      "Click event not found in the workspace. Skipping the order...",
+    );
   }
 
   const { link_id: linkId, country, timestamp } = clickData;
@@ -56,14 +61,18 @@ export async function createShopifyLead({
       id: true,
       programId: true,
       partnerId: true,
+      disabledAt: true,
     },
   });
 
   if (!partnerLink) {
-    throw new DubApiError({
-      code: "not_found",
-      message: `Link not found for linkId: ${linkId}`,
-    });
+    throw new ShopifyError(
+      "Link not found in your workspace. Skipping the order...",
+    );
+  }
+
+  if (partnerLink.disabledAt) {
+    throw new ShopifyError("Link is disabled. Skipping the order...");
   }
 
   // create customer
@@ -83,13 +92,16 @@ export async function createShopifyLead({
     },
   });
 
-  const eventName = "Account created";
+  const leadEvent = {
+    id: nanoid(16),
+    name: "Account created",
+  };
 
   const leadData = leadEventSchemaTB.parse({
     ...clickData,
     workspace_id: clickData.workspace_id || customer.projectId, // in case for some reason the click event doesn't have workspace_id
-    event_id: nanoid(16),
-    event_name: eventName,
+    event_id: leadEvent.id,
+    event_name: leadEvent.name,
     customer_id: customer.id,
   });
 
@@ -131,11 +143,24 @@ export async function createShopifyLead({
         workspace,
         data: transformLeadEventData({
           ...clickData,
-          eventName,
+          eventName: leadEvent.name,
           link,
           customer,
           metadata: null,
         }),
+      }),
+
+      queueGoogleAdsConversionUpload({
+        workspaceId: workspace.id,
+        eventType: EventType.lead,
+        eventId: leadData.event_id,
+        eventName: leadData.event_name,
+        conversionDateTime: new Date().toISOString(),
+        conversionCount: 1,
+        click: {
+          id: clickData.click_id,
+          url: clickData.url,
+        },
       }),
 
       ...(link.partnerId
@@ -145,7 +170,7 @@ export async function createShopifyLead({
               event: "lead.created",
               data: {
                 ...clickData,
-                eventName,
+                eventName: leadEvent.name,
                 link,
                 customer,
               },
@@ -174,5 +199,7 @@ export async function createShopifyLead({
     ]),
   );
 
-  return leadData;
+  return {
+    leadData,
+  };
 }

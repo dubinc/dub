@@ -8,7 +8,7 @@ import {
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyRejected from "@dub/email/templates/bounty-rejected";
-import { User } from "@prisma/client";
+import { BountySubmissionStatus, BountyType, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
@@ -39,6 +39,7 @@ export async function rejectBountySubmission({
       bounty: {
         select: {
           name: true,
+          type: true,
         },
       },
     },
@@ -65,10 +66,14 @@ export async function rejectBountySubmission({
     });
   }
 
-  if (submission.status === "draft") {
+  if (
+    submission.status === BountySubmissionStatus.draft &&
+    submission.bounty.type !== BountyType.submission
+  ) {
     throw new DubApiError({
       code: "bad_request",
-      message: "This bounty submission is in progress and cannot be rejected.",
+      message:
+        "Performance bounty submissions can only be rejected after the partner completes the bounty.",
     });
   }
 
@@ -99,7 +104,6 @@ export async function rejectBountySubmission({
       userId: user.id,
       rejectionReason,
       rejectionNote,
-      commissionId: null,
     },
     include: {
       partner: {

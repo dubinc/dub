@@ -1,6 +1,7 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { WorkflowContext } from "@/lib/api/workflows/types";
 import {
+  bountyEligibilityIncludes,
   getEffectiveBountyPeriod,
   isPartnerEligibleForBounty,
 } from "@/lib/bounty/api/bounty-availability";
@@ -24,6 +25,7 @@ const terminalStatusReason: Record<
   string
 > = {
   submitted: "finished",
+  partiallyApproved: "been partially awarded",
   approved: "been awarded",
   rejected: "been rejected",
 };
@@ -35,7 +37,14 @@ export const executeAwardBountyWorkflow = async ({
   workflow: Workflow;
   context: WorkflowContext;
 }) => {
-  const { condition, action } = parseWorkflowConfig(workflow);
+  const { conditions, action } = parseWorkflowConfig(workflow);
+
+  // Award bounty workflows require exactly one condition
+  if (conditions.length !== 1) {
+    return;
+  }
+
+  const condition = conditions[0];
 
   if (action.type !== WORKFLOW_ACTION_TYPES.AwardBounty) {
     return;
@@ -63,6 +72,7 @@ export const executeAwardBountyWorkflow = async ({
       id: bountyId,
     },
     include: {
+      ...bountyEligibilityIncludes,
       program: {
         select: {
           id: true,
@@ -70,11 +80,6 @@ export const executeAwardBountyWorkflow = async ({
           slug: true,
           supportEmail: true,
           defaultGroupId: true,
-        },
-      },
-      groups: {
-        select: {
-          groupId: true,
         },
       },
       submissions: {
@@ -193,7 +198,7 @@ export const executeAwardBountyWorkflow = async ({
   // Check if the bounty submission meet the reward criteria
   const shouldExecute = evaluateWorkflowConditions({
     conditions: [condition],
-    attributes: {
+    context: {
       [condition.attribute]: Number(bountySubmission.performanceCount ?? 0),
     },
   });

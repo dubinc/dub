@@ -11,6 +11,7 @@ import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   ProgramPayoutMode,
+  WorkspaceEnvironment,
 } from "@prisma/client";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
@@ -66,6 +67,7 @@ export const ProgramSchema = z.object({
   messagingEnabledAt: z.date().nullish(),
   partnerNetworkEnabledAt: z.date().nullish(),
   payoutMode: z.enum(ProgramPayoutMode).default("internal"),
+  environment: z.enum(WorkspaceEnvironment),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   categories: z.array(z.enum(Category)).nullish(),
@@ -74,7 +76,6 @@ export const ProgramSchema = z.object({
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
-  referralFormData: z.record(z.string(), z.any()).nullish(),
   applicationRequirements: applicationRequirementsSchema.nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -107,7 +108,6 @@ export const updateProgramSchema = z.object({
     .max(500)
     .nullish(),
   messagingEnabledAt: z.coerce.date().nullish(),
-  referralFormData: submittedLeadFormSchema.nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({
@@ -122,6 +122,17 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
   sales: true,
   saleAmount: true,
 });
+
+// Internal-only fields used by the Dub UI.
+// These fields are not exposed through the public API.
+export const ProgramPartnerLinkSchemaInternal = ProgramPartnerLinkSchema.extend(
+  {
+    clickReward: z.string().nullable().default(null),
+    leadReward: z.string().nullable().default(null),
+    saleReward: z.string().nullable().default(null),
+    discount: z.string().nullable().default(null),
+  },
+);
 
 export const ProgramEnrollmentApplicationSchema = z.object({
   rejectionReason: z
@@ -163,6 +174,7 @@ export const ProgramEnrollmentSchema = z.object({
   leadRewardId: z.string().nullish(),
   saleRewardId: z.string().nullish(),
   referralRewardId: z.string().nullish(),
+  customRewardId: z.string().nullish(),
   discount: DiscountSchema.nullish(),
   discountId: z.string().nullish(),
   applicationId: z
@@ -192,10 +204,14 @@ export const ProgramEnrollmentSchema = z.object({
     additionalLinks: true,
     maxPartnerLinks: true,
     linkStructure: true,
-  }).nullish(),
+    submittedLeadsEnabledAt: true,
+  })
+    .extend({
+      submittedLeadFormData: submittedLeadFormSchema.nullish(),
+    })
+    .nullish(),
   customerDataSharingEnabledAt: z.date().nullable(),
   groupMoveDisabledAt: z.date().nullable(),
-  referralFormData: submittedLeadFormSchema.nullish(),
   application: ProgramEnrollmentApplicationSchema.nullish().describe(
     "Linked program application, including review outcome when applicable.",
   ),

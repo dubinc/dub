@@ -4,10 +4,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { buildLookupKey } from "@/lib/better-auth/utils";
 import { deleteVerificationTokens } from "@/lib/better-auth/verification-token";
-import {
-  MAX_INVITES_PER_REQUEST,
-  MAX_PARTNER_USERS,
-} from "@/lib/constants/partner-profile";
+import { MAX_INVITES_PER_REQUEST } from "@/lib/constants/partner-profile";
 import { prisma } from "@/lib/prisma";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
@@ -134,11 +131,11 @@ export const POST = withPartnerProfile(
 
     if (
       partnerInvitesCount + partnerUsersCount + invites.length >
-      MAX_PARTNER_USERS
+      partner.usersLimit
     ) {
       throw new DubApiError({
         code: "exceeded_limit",
-        message: `You can only have ${MAX_PARTNER_USERS} members in this partner profile.`,
+        message: `You can only have ${partner.usersLimit} members in this partner profile.`,
       });
     }
 

@@ -54,10 +54,6 @@ import { expect } from "@playwright/test";
 import { randomName } from "../../utils";
 import { test, type ApiClient } from "../fixtures";
 
-test.describe.configure({
-  mode: "parallel",
-});
-
 async function createThing(
   api: ApiClient,
   overrides: Record<string, unknown> = {},
@@ -98,7 +94,7 @@ test("POST /things", async ({ api }) => {
 | Rule                                            | Detail                                                                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | Import `test` from `../fixtures`                | Provides `api`, `workspace`, and `program`                                                                    |
-| `test.describe.configure({ mode: "parallel" })` | At top of every API spec file                                                                                 |
+| Serial only when tests share state              | API project is `fullyParallel: true`. Do not add `mode: "parallel"`. Use `test.describe.configure({ mode: "serial" })` only when tests in a file/describe share state (e.g. domains, seeded pagination) |
 | Cleanup in `finally`                            | Create → assert → always delete created rows                                                                  |
 | Unique names/ids                                | Use `randomName` / `randomCustomer` / `randomPartnerEmail` from `../../utils` — never fixed colliding names   |
 | Assert status + body                            | Prefer `toStrictEqual` / `toEqual` on full shapes; use `expect.any(String)` for ids/timestamps                |

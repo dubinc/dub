@@ -16,6 +16,10 @@ export const maxDurationSchema = z.coerce
 
 export const planSchema = z.enum(plans).describe("The plan of the workspace.");
 
+export const yearMonthSchema = z
+  .string()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Expected a month in the format yyyy-MM");
+
 export const roleSchema = z
   .enum(WorkspaceRole)
   .describe("The role of the authenticated user in the workspace.");
@@ -93,3 +97,12 @@ export const getCursorPaginationQuerySchema = ({
       example,
     }),
 });
+
+export const metadataSchema = z
+  .record(z.string(), z.any())
+  .nullish()
+  .default(null)
+  .transform((val) => (val != null && Object.keys(val).length > 0 ? val : null))
+  .refine((val) => !val || JSON.stringify(val).length <= 10000, {
+    message: "Metadata must be less than 10,000 characters when stringified",
+  });

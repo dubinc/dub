@@ -177,7 +177,7 @@ export function useDeletePartnerModal({
         partner={partner}
       />
     );
-  }, [showDeletePartnerModal, setShowDeletePartnerModal, partner]);
+  }, [showDeletePartnerModal, setShowDeletePartnerModal]);
 
   return useMemo(
     () => ({

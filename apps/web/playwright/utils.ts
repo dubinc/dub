@@ -1,6 +1,26 @@
+import { ErrorCodes } from "@/lib/api/error-codes";
 import { generateRandomName } from "@/lib/names";
 import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
+
+export function apiError({
+  code,
+  message,
+}: {
+  code: keyof typeof ErrorCodes;
+  message: string;
+}) {
+  return {
+    status: ErrorCodes[code],
+    data: {
+      error: {
+        code,
+        message,
+        doc_url: `https://dub.co/docs/api-reference/errors#${code.replace("_", "-")}`,
+      },
+    },
+  };
+}
 
 export function randomName(prefix = "e2e", length = 5) {
   return `${prefix}-${nanoid(length)}`;

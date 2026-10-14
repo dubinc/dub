@@ -61,6 +61,7 @@ export function PayoutMethodDropdown() {
 
   const handleAction = useCallback(
     (type: PartnerPayoutMethod, isManage: boolean) => {
+      setOpenPopover(false);
       connect(type, { isManage });
     },
     [connect],
@@ -169,11 +170,13 @@ function PayoutMethodItem({
               {method.label}
             </span>
 
-            <PayoutMethodStatusBadge
-              method={method}
-              onSetDefault={onSetDefault}
-              pendingDefaultType={pendingDefaultType}
-            />
+            {method.identifier && (
+              <PayoutMethodStatusBadge
+                method={method}
+                onSetDefault={onSetDefault}
+                pendingDefaultType={pendingDefaultType}
+              />
+            )}
           </div>
           <span className="mt-0.5 block truncate text-xs text-neutral-500">
             {method.identifier ?? "Not connected"}

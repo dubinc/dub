@@ -32,8 +32,10 @@ model PartnerTag {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  program            Program?            @relation(fields: [programId], references: [id], onDelete: Cascade)
-  programPartnerTags ProgramPartnerTag[]
+  program             Program?             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programPartnerTags  ProgramPartnerTag[]
+  campaignPartnerTags CampaignPartnerTag[]
+  bountyPartnerTags   BountyPartnerTag[]
 
   @@unique([programId, name])
   @@index(programId)

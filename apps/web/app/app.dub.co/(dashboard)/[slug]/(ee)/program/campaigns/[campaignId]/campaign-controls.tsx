@@ -58,7 +58,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
     subject,
     groupIds,
     bodyJson,
-    triggerCondition,
+    triggerConditions,
     from,
     scheduledAt,
   ] = useWatch({
@@ -68,7 +68,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
       "subject",
       "groupIds",
       "bodyJson",
-      "triggerCondition",
+      "triggerConditions",
       "from",
       "scheduledAt",
     ],
@@ -103,7 +103,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
       if (
         !sendPreview &&
         campaign.type === "transactional" &&
-        !triggerCondition
+        !triggerConditions?.length
       ) {
         return "Please select a trigger condition.";
       }
@@ -112,7 +112,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
         return "Please write the message you want to send to the partners.";
       }
     },
-    [name, subject, groupIds, triggerCondition, bodyJson, from],
+    [name, subject, groupIds, triggerConditions, bodyJson, from],
   );
 
   // Confirmation modals
