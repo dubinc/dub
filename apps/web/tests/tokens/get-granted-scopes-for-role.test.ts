@@ -4,12 +4,11 @@ import {
   getGrantedScopesForRole,
   getMissingScopesForRole,
 } from "@/lib/api/tokens/scopes";
-import { WorkspaceRole } from "@prisma/client";
 import { describe, expect, test } from "vitest";
 
 const ALL_OAUTH_SCOPES = [...OAUTH_SCOPES];
 
-const OWNER_ONLY_OAUTH_SCOPES = ["domains.write", "webhooks.write"];
+const SCOPES_EXCLUDED_FOR_MEMBER = ["domains.write", "webhooks.write"];
 
 const READ_OAUTH_SCOPES = ALL_OAUTH_SCOPES.filter(
   (scope) => scope === "user.read" || scope.endsWith(".read"),
@@ -25,7 +24,7 @@ describe("getGrantedScopesForRole", () => {
     ).toEqual(ALL_OAUTH_SCOPES);
   });
 
-  test("member is granted write scopes except owner-only ones", () => {
+  test("member is granted every scope except domains and webhooks write", () => {
     expect(
       getGrantedScopesForRole({
         scopes: ALL_OAUTH_SCOPES,
@@ -33,22 +32,28 @@ describe("getGrantedScopesForRole", () => {
       }),
     ).toEqual(
       ALL_OAUTH_SCOPES.filter(
-        (scope) => !OWNER_ONLY_OAUTH_SCOPES.includes(scope),
+        (scope) => !SCOPES_EXCLUDED_FOR_MEMBER.includes(scope),
       ),
     );
   });
 
-  test.each(["viewer", "billing"] as const)(
-    "%s is only granted read OAuth scopes and user.read",
-    (role: WorkspaceRole) => {
-      expect(
-        getGrantedScopesForRole({
-          scopes: ALL_OAUTH_SCOPES,
-          role,
-        }),
-      ).toEqual(READ_OAUTH_SCOPES);
-    },
-  );
+  test("viewer is only granted read OAuth scopes and user.read", () => {
+    expect(
+      getGrantedScopesForRole({
+        scopes: ALL_OAUTH_SCOPES,
+        role: "viewer",
+      }),
+    ).toEqual(READ_OAUTH_SCOPES);
+  });
+
+  test("billing is only granted read OAuth scopes and user.read", () => {
+    expect(
+      getGrantedScopesForRole({
+        scopes: ALL_OAUTH_SCOPES,
+        role: "billing",
+      }),
+    ).toEqual(READ_OAUTH_SCOPES);
+  });
 
   test("always grants user.read even when other requested scopes are not allowed", () => {
     expect(

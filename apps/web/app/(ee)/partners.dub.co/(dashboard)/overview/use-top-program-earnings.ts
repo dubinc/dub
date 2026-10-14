@@ -1,9 +1,9 @@
+import { usePartnerDateRange } from "@/lib/analytics/use-partner-date-range";
 import { usePartnerProfileEarningsAnalytics } from "@/lib/swr/use-partner-profile-earnings";
-import { useOverviewDateRange } from "./use-overview-date-range";
 
 // shared by the earnings chart tooltip and the Top programs card, so both use one request
 export function useTopProgramEarnings() {
-  const { start, end, interval } = useOverviewDateRange();
+  const { start, end, interval } = usePartnerDateRange();
 
   return usePartnerProfileEarningsAnalytics({
     groupBy: "programId",

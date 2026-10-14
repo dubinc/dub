@@ -44,6 +44,14 @@ test.describe("Partner Programs page", () => {
 
       await logIn(page, email, password);
 
+      // the Marketplace filter counts must not load on this page
+      const marketplaceCountRequests: string[] = [];
+      page.on("request", (request) => {
+        if (request.url().includes("/api/network/programs/count")) {
+          marketplaceCountRequests.push(request.url());
+        }
+      });
+
       // the old Invitations page redirects to the Invitations tab
       await page.goto("/programs/invitations");
       await expect(page).toHaveURL("/programs?tab=invitations");
@@ -80,6 +88,8 @@ test.describe("Partner Programs page", () => {
       // a search with no match shows the empty state
       await page.goto("/programs?tab=active&search=no-such-program");
       await expect(page.getByText("No programs found")).toBeVisible();
+
+      expect(marketplaceCountRequests).toEqual([]);
     } finally {
       if (userId) await prisma.user.delete({ where: { id: userId } });
       await deletePartner(partnerId);

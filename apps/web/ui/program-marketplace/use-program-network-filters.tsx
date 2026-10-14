@@ -20,7 +20,9 @@ import {
   getPreservedMarketplaceSearchParams,
 } from "./utils/urls";
 
-export function useProgramNetworkFilters() {
+export function useProgramNetworkFilters({
+  enabled = true,
+}: { enabled?: boolean } = {}) {
   const router = useRouter();
   const pathname = usePathname();
   const { searchParamsObj, queryParams } = useRouterStuff();
@@ -38,6 +40,7 @@ export function useProgramNetworkFilters() {
       groupBy: "category",
     },
     excludeParams: ["category"],
+    enabled,
   });
 
   const { data: rewardTypesCount } = useNetworkProgramsCount<
@@ -51,6 +54,7 @@ export function useProgramNetworkFilters() {
       groupBy: "rewardType",
     },
     excludeParams: ["rewardType"],
+    enabled,
   });
 
   const { data: statusCount } = useNetworkProgramsCount<
@@ -64,6 +68,7 @@ export function useProgramNetworkFilters() {
       groupBy: "status",
     },
     excludeParams: ["status"],
+    enabled,
   });
 
   const filters = useMemo(
