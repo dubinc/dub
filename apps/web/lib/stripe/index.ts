@@ -16,7 +16,7 @@ const secretMap: Record<StripeMode, string | undefined> = {
 };
 
 // Stripe Integration App client
-export const stripeAppClient = ({ mode }: { mode?: StripeMode }) => {
+export const stripeAppClient = ({ mode }: { mode: StripeMode | null }) => {
   const appSecretKey = secretMap[mode ?? "live"];
 
   return new Stripe(appSecretKey!, {

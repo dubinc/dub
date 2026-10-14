@@ -80,6 +80,7 @@ async function main() {
       id: true,
       slug: true,
       stripeConnectId: true,
+      stripeConnectMode: true,
       defaultProgramId: true,
     },
   });
@@ -133,6 +134,8 @@ async function main() {
         id: workspace.id,
         slug: workspace.slug,
         stripeConnectId,
+        stripeConnectMode: workspace.stripeConnectMode,
+        defaultProgramId: programId,
       },
       programId,
       user: {
@@ -486,7 +489,13 @@ async function backfillCustomer({
   firstInvoiceCreated,
 }: Candidate & {
   stripe: Stripe;
-  workspace: { id: string; slug: string; stripeConnectId: string };
+  workspace: {
+    id: string;
+    slug: string;
+    stripeConnectId: string;
+    stripeConnectMode: StripeMode | null;
+    defaultProgramId: string;
+  };
   programId: string;
   user: { id: string; name: string; email: string; isMachine: boolean };
   stripeCustomerId: string;

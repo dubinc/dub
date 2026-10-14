@@ -39,7 +39,10 @@ import { executeWorkflows } from "../workflows/execute-workflows";
 type CreateCommissionsArgs = z.infer<
   typeof createManualCommissionBodySchema
 > & {
-  workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
+  workspace: Pick<
+    Project,
+    "id" | "slug" | "stripeConnectId" | "stripeConnectMode" | "defaultProgramId"
+  >;
   programId: string;
   user: Session["user"];
 };
@@ -51,7 +54,10 @@ type ResolveLinkAndCustomerArgs = CreateCommissionsArgs & {
 };
 
 type RecordEventsArgs = CreateCommissionsArgs & {
-  workspace: Pick<Project, "id" | "stripeConnectId">;
+  workspace: Pick<
+    Project,
+    "id" | "stripeConnectId" | "stripeConnectMode" | "defaultProgramId"
+  >;
   partner: Pick<Partner, "id" | "email">;
   targetLink: Link;
   targetCustomer: Customer;
@@ -561,9 +567,7 @@ async function recordEvents(args: RecordEventsArgs) {
 
     stripeCustomerInvoices = await getCustomerStripeInvoices({
       stripeCustomerId: targetCustomer.stripeCustomerId!,
-      stripeConnectId: workspace.stripeConnectId!,
-      workspaceId: workspace.id,
-      programId,
+      workspace,
     });
 
     if (stripeInvoicesToImport === "all") {

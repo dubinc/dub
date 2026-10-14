@@ -18,6 +18,7 @@ interface CreateDiscountCodeArgs {
     | "id"
     | "environment"
     | "stripeConnectId"
+    | "stripeConnectMode"
     | "shopifyStoreId"
     | "webhookEnabled"
   >;
