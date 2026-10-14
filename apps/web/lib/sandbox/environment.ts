@@ -29,5 +29,7 @@ export function isValidPublishableKeyForEnvironment(
 ) {
   const isTestKey = publishableKey.startsWith("dub_pk_test_");
 
-  return isProductionEnvironment(environment) ? !isTestKey : isTestKey;
+  return isProductionEnvironment(environment)
+    ? publishableKey.startsWith("dub_pk_") && !isTestKey
+    : isTestKey;
 }
