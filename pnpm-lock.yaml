@@ -391,6 +391,9 @@ importers:
       tremendous:
         specifier: 4.12.0
         version: 4.12.0
+      undici:
+        specifier: 7.29.0
+        version: 7.29.0
       unique-names-generator:
         specifier: ^4.7.1
         version: 4.7.1
