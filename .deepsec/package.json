@@ -4,8 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@9.15.9",
   "scripts": {
-    "deepsec": "deepsec",
-    "notify-slack": "node scripts/notify-slack.mjs"
+    "deepsec": "deepsec"
   },
   "dependencies": {
     "deepsec": "^2.3.8"
