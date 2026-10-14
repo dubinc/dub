@@ -156,6 +156,14 @@ export function EarningsChart() {
                 .sort(([, a], [, b]) => b - a)
                 .slice(0, MAX_TOOLTIP_PROGRAMS);
 
+              // the programs past the limit, so that the rows add up to the total
+              const otherEarnings =
+                d.values.main -
+                programEarnings.reduce(
+                  (acc, [, earnings]) => acc + earnings,
+                  0,
+                );
+
               return (
                 <div className="text-[11px] leading-[1.1]">
                   <div className="flex items-center justify-between gap-3 border-b border-neutral-200 p-3">
@@ -195,6 +203,19 @@ export function EarningsChart() {
                       })
                     ) : (
                       <span className="text-neutral-500">No earnings</span>
+                    )}
+                    {programEarnings.length > 0 && otherEarnings !== 0 && (
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <div className="size-3.5 shrink-0" />
+                          <span className="truncate font-medium text-neutral-700">
+                            Other
+                          </span>
+                        </div>
+                        <span className="shrink-0 text-neutral-500">
+                          {currencyFormatter(otherEarnings)}
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
