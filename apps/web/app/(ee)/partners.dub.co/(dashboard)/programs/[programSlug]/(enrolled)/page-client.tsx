@@ -20,6 +20,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import { DiscountCodeTooltip } from "@/ui/partners/discounts/discount-code-tooltip";
 import { EarningsTablePartner } from "@/ui/partners/earnings/earnings-table";
+import { ShareEarningsModal } from "@/ui/partners/earnings/share-earnings-modal";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -79,7 +80,6 @@ import {
   useState,
 } from "react";
 import { PayoutsCard } from "./payouts-card";
-import { ShareEarningsModal } from "./share-earnings-modal";
 
 const ProgramOverviewContext = createContext<{
   start?: Date;
