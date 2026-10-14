@@ -1,20 +1,20 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { usePayout } from "@/lib/swr/use-payout";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, PayoutResponse } from "@/lib/types";
-import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ActivityEvent } from "@/ui/partners/activity-event";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
-import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionDescriptionLabel } from "@/ui/partners/commission-description-label";
-import {
-  CommissionTypeBadge,
-} from "@/ui/partners/commission-type-badge";
+import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
+import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
@@ -42,7 +42,7 @@ import {
   formatDateTimeSmart,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
-import { PayoutStatus } from "@prisma/client";
+import { PayoutStatus, ProgramPayoutMode } from "@prisma/client";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { useMemo } from "react";
@@ -167,6 +167,7 @@ function PayoutDetailsContent({
       Partner: (
         <ConditionalLink
           href={`/${slug}/program/partners/${payout.partner.id}`}
+          target="_blank"
           className="flex min-w-0 items-center gap-1.5 text-neutral-500"
         >
           <PartnerAvatar
@@ -508,6 +509,7 @@ function PayoutDetailsskeleton() {
 
 function PayoutConfirmButton() {
   const { slug, role } = useWorkspace();
+  const { program } = useProgram();
   const { payout } = usePayout();
   const router = useRouter();
 
@@ -519,31 +521,47 @@ function PayoutConfirmButton() {
   const permissionsError =
     typeof _permissionsError === "string" ? _permissionsError : null;
 
+  const programLoaded = !!program;
+  const isProductionProgram = isProductionEnvironment(program?.environment);
+  const requiresTenantId =
+    programLoaded &&
+    !isProductionProgram &&
+    program?.payoutMode === ProgramPayoutMode.external;
+  const missingExternalTenant = !payout?.partner.tenantId && requiresTenantId;
+  const partnerNotConnected =
+    !payout?.partner.payoutsEnabledAt && isProductionProgram;
+  const disabledTooltip = !programLoaded
+    ? undefined
+    : missingExternalTenant
+      ? "This partner does not have a tenant ID configured, which is required to process external payouts."
+      : partnerNotConnected
+        ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
+        : permissionsError || undefined;
+  const confirmBlocked = !programLoaded || !!disabledTooltip;
+
   const url = `/${slug}/program/payouts?status=pending&confirmPayouts=true&selectedPayoutIds=${payout?.id}`;
 
   useKeyboardShortcut("c", () => router.push(url), {
-    enabled:
-      !!payout?.id && !!payout.partner.payoutsEnabledAt && !permissionsError,
+    enabled: !!payout?.id && !confirmBlocked,
   });
 
   if (payout?.status !== "pending") {
     return null;
   }
 
+  const button = (
+    <Button
+      text="Confirm payout"
+      className="h-8 px-3 sm:h-9"
+      shortcut="C"
+      disabled={!programLoaded}
+      disabledTooltip={disabledTooltip}
+    />
+  );
+
   return (
     <div className="flex items-center gap-2">
-      <Link href={url}>
-        <Button
-          text="Confirm payout"
-          className="h-8 px-3 sm:h-9"
-          shortcut="C"
-          disabledTooltip={
-            !payout.partner.payoutsEnabledAt
-              ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
-              : permissionsError || undefined
-          }
-        />
-      </Link>
+      {confirmBlocked ? button : <Link href={url}>{button}</Link>}
     </div>
   );
 }

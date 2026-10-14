@@ -25,10 +25,12 @@ const expectedGroup: Partial<GroupProps> = {
   holdingPeriodDays: expect.any(Number),
   brandColor: null,
   autoApprovePartnersEnabledAt: null,
+  submittedLeadsEnabledAt: null,
   clickReward: null,
   leadReward: null,
   saleReward: null,
   referralReward: null,
+  customReward: null,
   discount: null,
   maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
   linkStructure: "short",
@@ -75,6 +77,7 @@ describe.sequential("/groups/**", async () => {
       linkStructure: defaultGroup.linkStructure,
       holdingPeriodDays: defaultGroup.holdingPeriodDays,
       autoApprovePartnersEnabledAt: defaultGroup.autoApprovePartnersEnabledAt,
+      submittedLeadsEnabledAt: defaultGroup.submittedLeadsEnabledAt,
     });
 
     group = data;
@@ -91,6 +94,7 @@ describe.sequential("/groups/**", async () => {
       bounties,
       landerData,
       landerPublishedAt,
+      submittedLeadFormData,
       program,
       ...fetchedGroup
     } = data;
@@ -282,6 +286,7 @@ describe.sequential("/groups/**", async () => {
       brandColor: group.brandColor,
       holdingPeriodDays: group.holdingPeriodDays,
       autoApprovePartnersEnabledAt: group.autoApprovePartnersEnabledAt,
+      submittedLeadsEnabledAt: group.submittedLeadsEnabledAt,
       totalPartners: 0,
       totalClicks: 0,
       totalLeads: 0,

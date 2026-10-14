@@ -27,9 +27,10 @@ export default function CreateWebhookButton() {
   return (
     <Link href={`/${slug}/settings/webhooks/new`}>
       <Button
-        className="flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm"
-        text="Create Webhook"
+        className="h-9"
+        text="Create webhook"
         disabledTooltip={permissionsError}
+        aria-label="Create webhook"
       />
     </Link>
   );

@@ -1,5 +1,6 @@
 import { isAppHostname, SHORT_DOMAIN } from "@dub/utils";
 import { NextRequest } from "next/server";
+import { DOMAIN_REDIRECTS } from "./domain-redirects";
 
 export const parse = (req: NextRequest) => {
   let domain = req.headers.get("host") as string;
@@ -8,6 +9,10 @@ export const parse = (req: NextRequest) => {
 
   // remove www. from domain and convert to lowercase
   domain = domain.replace(/^www./, "").toLowerCase();
+
+  if (DOMAIN_REDIRECTS[domain]) {
+    domain = DOMAIN_REDIRECTS[domain];
+  }
 
   const isE2ERedirectTestRequest =
     // local development

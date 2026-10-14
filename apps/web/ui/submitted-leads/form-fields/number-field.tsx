@@ -2,7 +2,11 @@ import { numberFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { cn } from "@dub/utils";
 import { useFormContext } from "react-hook-form";
 import * as z from "zod/v4";
-import { FormControl } from "./form-control";
+import {
+  blockNonNumericKeys,
+  FormControl,
+  requiredFieldRule,
+} from "./form-control";
 
 type NumberFieldData = z.infer<typeof numberFieldSchema>;
 
@@ -13,10 +17,12 @@ export function NumberField({
   keyPath?: string;
   field: NumberFieldData;
 }) {
-  const { register, getFieldState } = useFormContext<any>();
+  const { register, getFieldState, formState } = useFormContext<any>();
   const keyPath = keyPathProp || `formData.${field.key}`;
-  const state = getFieldState(keyPath);
+  const state = getFieldState(keyPath, formState);
   const error = !!state.error;
+  const min = field.constraints?.min;
+  const max = field.constraints?.max;
 
   return (
     <FormControl
@@ -27,6 +33,9 @@ export function NumberField({
     >
       <input
         type="number"
+        onKeyDown={blockNonNumericKeys}
+        min={min}
+        max={max}
         className={cn(
           "mt-2 block w-full rounded-md text-sm focus:outline-none",
           error
@@ -34,8 +43,20 @@ export function NumberField({
             : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
         )}
         {...register(keyPath, {
-          required: field.required,
+          required: requiredFieldRule(field.required),
           valueAsNumber: true,
+          ...(min !== undefined && {
+            min: {
+              value: min,
+              message: `Please enter a number of at least ${min}`,
+            },
+          }),
+          ...(max !== undefined && {
+            max: {
+              value: max,
+              message: `Please enter a number of at most ${max}`,
+            },
+          }),
         })}
       />
     </FormControl>

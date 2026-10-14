@@ -40,9 +40,7 @@ export const UpgradeRequiredToast = ({
             {title ||
               `You've discovered a ${capitalize(planToUpgradeTo)} feature!`}
           </p>
-          <p className="text-[13px] leading-snug text-neutral-500">
-            {message}
-          </p>
+          <p className="text-[13px] leading-snug text-neutral-500">{message}</p>
         </div>
       </div>
       <Link

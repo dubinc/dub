@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  assertValidPartnerMacroValue,
+  PARTNER_MACROS,
+} from "@/lib/partners/macros";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { Button, Combobox, ComboboxOption, Input } from "@dub/ui";
@@ -11,10 +15,8 @@ import { toast } from "sonner";
 import {
   APPSFLYER_DEFAULT_SETTINGS,
   APPSFLYER_HARDCODED_PARAMETERS,
-  APPSFLYER_MACROS,
   APPSFLYER_REQUIRED_PARAMETERS,
 } from "../constants";
-import { assertAppsFlyerMacroValueParses } from "../macro-template";
 import { appsFlyerSettingsSchema } from "../schema";
 import { updateAppsFlyerSettingsAction } from "../update-settings";
 
@@ -35,7 +37,7 @@ function cloneFormBaseline(data: AppsFlyerFormBaseline): AppsFlyerFormBaseline {
 type AppsFlyerMacroMeta = { description: string };
 
 const REQUIRED_MACRO_COMBO_OPTIONS: ComboboxOption<AppsFlyerMacroMeta>[] =
-  APPSFLYER_MACROS.map((m) => ({
+  PARTNER_MACROS.map((m) => ({
     value: m.macro,
     label: m.macro,
     meta: { description: m.description },
@@ -172,7 +174,7 @@ export const AppsFlyerSettings = ({
 
     for (const p of filteredParameters) {
       try {
-        assertAppsFlyerMacroValueParses(p.value);
+        assertValidPartnerMacroValue(p.value);
       } catch (err) {
         toast.error(
           err instanceof Error

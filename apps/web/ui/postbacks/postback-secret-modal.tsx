@@ -85,10 +85,13 @@ export function usePostbackSecretModal() {
     setState({ show: false, secret: "" });
   }
 
-  function PostbackSecretModalWrapper() {
-    if (!state.show) return null;
-
-    return (
+  return {
+    openPostbackSecretModal,
+    closePostbackSecretModal,
+    // Return an element (rendered as `{PostbackSecretModal}`) rather than a
+    // per-render component type, which would remount the modal – and reset its
+    // state – on every parent render
+    PostbackSecretModal: (
       <PostbackSecretModal
         showModal={state.show}
         setShowModal={(show) => {
@@ -97,13 +100,7 @@ export function usePostbackSecretModal() {
         }}
         secret={state.secret}
       />
-    );
-  }
-
-  return {
-    openPostbackSecretModal,
-    closePostbackSecretModal,
-    PostbackSecretModal: PostbackSecretModalWrapper,
+    ),
     isPostbackSecretModalOpen: state.show,
   };
 }

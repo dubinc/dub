@@ -157,6 +157,7 @@ export const listPayoutMethodsOutputSchema = z.object({
 
 export const retrieveAccountQuerySchema = z.object({
   "include[0]": z.string(),
+  "include[1]": z.string().optional(),
 });
 
 export const retrieveAccountOutputSchema = z.object({
@@ -172,6 +173,13 @@ export const retrieveAccountOutputSchema = z.object({
         .nullable(),
     })
     .nullable(),
+  requirements: z
+    .object({
+      entries: z.array(z.any()).nullable().optional(),
+    })
+    .passthrough()
+    .nullable()
+    .optional(),
 });
 
 export const createPayoutInputSchema = z.object({

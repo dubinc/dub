@@ -154,30 +154,37 @@ export function useTable<T extends any>(
               minSize: SELECT_COLUMN_WIDTH,
               size: SELECT_COLUMN_WIDTH,
               maxSize: SELECT_COLUMN_WIDTH,
-              header: ({ table }: { table: TableType<T> }) => (
-                <button
-                  type="button"
-                  className="flex size-full items-center justify-center"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    table.toggleAllRowsSelected();
-                  }}
-                  title="Select all"
-                >
-                  <Checkbox
-                    className="border-border-default pointer-events-none size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
-                    checked={
-                      table.getIsAllRowsSelected()
-                        ? true
-                        : table.getIsSomeRowsSelected()
-                          ? "indeterminate"
-                          : false
-                    }
-                  />
-                </button>
-              ),
+              header: ({ table }: { table: TableType<T> }) => {
+                const onSelectAll = (e: MouseEvent<HTMLElement>) => {
+                  e.stopPropagation();
+                  table.toggleAllRowsSelected();
+                };
+
+                // The checkbox is the control, the wrapper only widens the
+                // click area (a <button> wrapper would nest two buttons)
+                return (
+                  <div
+                    className="flex size-full cursor-pointer items-center justify-center"
+                    onClick={onSelectAll}
+                    title="Select all"
+                  >
+                    <Checkbox
+                      className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+                      checked={
+                        table.getIsAllRowsSelected()
+                          ? true
+                          : table.getIsSomeRowsSelected()
+                            ? "indeterminate"
+                            : false
+                      }
+                      onClick={onSelectAll}
+                      aria-label="Select all"
+                    />
+                  </div>
+                );
+              },
               cell: ({ row, table }: { row: Row<T>; table: TableType<T> }) => {
-                const onSelectRow = (e: MouseEvent<HTMLButtonElement>) => {
+                const onSelectRow = (e: MouseEvent<HTMLElement>) => {
                   e.stopPropagation();
                   const currentId = getRowId?.(row.original);
                   const rows = table.getRowModel().rows;
@@ -239,17 +246,18 @@ export function useTable<T extends any>(
                 };
 
                 return (
-                  <button
-                    type="button"
-                    className="flex size-full items-center justify-center"
+                  <div
+                    className="flex size-full cursor-pointer items-center justify-center"
                     onClick={onSelectRow}
                     title="Select"
                   >
                     <Checkbox
-                      className="border-border-default pointer-events-none size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+                      className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
                       checked={row.getIsSelected()}
+                      onClick={onSelectRow}
+                      aria-label="Select"
                     />
-                  </button>
+                  </div>
                 );
               },
             },
@@ -443,6 +451,8 @@ export function Table<T>({
   className,
   containerClassName,
   scrollWrapperClassName,
+  scrollWrapperRef,
+  onScroll,
   emptyWrapperClassName,
   thClassName,
   tdClassName,
@@ -467,7 +477,6 @@ export function Table<T>({
       columnsAfterSelect.add(visibleColumns[i].id);
     }
   }
-  const scrollWrapperRef = useRef<HTMLDivElement>(null);
   const utilityColumnWidths = new Map(
     visibleColumns.map((column) => [column.id, column.getSize()]),
   );
@@ -495,6 +504,7 @@ export function Table<T>({
           )}
           <div
             ref={scrollWrapperRef}
+            onScroll={onScroll}
             className={cn(
               "relative min-h-[400px] overflow-x-auto rounded-[inherit]",
               scrollWrapperClassName,
@@ -580,6 +590,7 @@ export function Table<T>({
                                 header.column.id === "select"
                                   ? "flex size-full items-center justify-center"
                                   : "flex items-center gap-2",
+                                isSortableColumn && "group/sort",
                               )}
                               {...(isSortableColumn && {
                                 type: "button",
@@ -616,13 +627,21 @@ export function Table<T>({
                                       </HeaderWithTooltip>
                                     );
                                   })()}
-                              {isSortableColumn &&
-                                sortBy === header.column.id && (
-                                  <SortOrder
-                                    className="h-3 w-3 shrink-0"
-                                    order={sortOrder || "desc"}
-                                  />
-                                )}
+                              {isSortableColumn && (
+                                <SortOrder
+                                  className={cn(
+                                    "h-3 w-3 shrink-0",
+                                    sortBy === header.column.id
+                                      ? "text-neutral-950"
+                                      : "text-neutral-300 group-hover/sort:text-neutral-400",
+                                  )}
+                                  order={
+                                    sortBy === header.column.id
+                                      ? sortOrder || "desc"
+                                      : null
+                                  }
+                                />
+                              )}
                             </ButtonOrDiv>
                           </div>
                           {enableColumnResizing &&

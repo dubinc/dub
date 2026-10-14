@@ -58,6 +58,7 @@ export const POST = withWorkspace(
         userId,
         sourceEmail,
         targetEmail,
+        skipEmailNotification: true,
       },
       options: {
         flowControl: {

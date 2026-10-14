@@ -27,6 +27,7 @@ export const POST = withWorkspace(
               domain: link.domain,
               key: link.key,
             },
+            projectId: null,
             userId: null,
           },
         });

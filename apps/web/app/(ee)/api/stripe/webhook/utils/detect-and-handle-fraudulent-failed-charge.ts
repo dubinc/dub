@@ -100,6 +100,15 @@ export async function detectAndHandleFraudulentFailedCharge(
             );
             // disable workspace links
             await disableWorkspaceLinks(workspace.id);
+
+            await prisma.project.update({
+              where: {
+                id: workspace.id,
+              },
+              data: {
+                disabledAt: new Date(),
+              },
+            });
           } else {
             // if workspace has no links, just delete it
             await prisma.project.delete({

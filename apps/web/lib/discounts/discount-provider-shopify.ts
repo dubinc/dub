@@ -32,16 +32,16 @@ interface ShopifyDiscountCodeDelete {
   }[];
 }
 
+type Workspace = Pick<Project, "id" | "environment" | "shopifyStoreId">;
+
 const MAX_ATTEMPTS = 3;
 
-async function requireInstalledIntegration(
-  workspace: Pick<Project, "id" | "shopifyStoreId">,
-) {
+async function requireInstalledIntegration(workspace: Workspace) {
   if (!workspace.shopifyStoreId) {
     throw new DiscountProviderError(
       "shopify",
       "INTEGRATION_NOT_AVAILABLE",
-      "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.",
+      `SHOPIFY_CONNECTION_REQUIRED: Your workspace (${workspace.environment}) isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.`,
     );
   }
 
@@ -56,7 +56,7 @@ async function requireInstalledIntegration(
     throw new DiscountProviderError(
       "shopify",
       "INTEGRATION_NOT_AVAILABLE",
-      "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.",
+      `SHOPIFY_CONNECTION_REQUIRED: Your workspace (${workspace.environment}) isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.`,
     );
   }
 
@@ -68,7 +68,7 @@ async function requireInstalledIntegration(
     throw new DiscountProviderError(
       "shopify",
       "PERMISSIONS_REQUIRED",
-      "SHOPIFY_APP_UPGRADE_REQUIRED: Your connected Shopify store doesn't have permission to create discount codes. Please reinstall or upgrade the Dub Shopify app.",
+      `SHOPIFY_APP_UPGRADE_REQUIRED: Your connected Shopify store in the workspace (${workspace.environment}) doesn't have permission to create discount codes. Please reinstall or upgrade the Dub Shopify app.`,
     );
   }
 
@@ -107,7 +107,7 @@ function createShopifyDiscountProvider() {
     code,
     shouldRetry = true,
   }: {
-    workspace: Pick<Project, "id" | "shopifyStoreId">;
+    workspace: Pick<Project, "id" | "environment" | "shopifyStoreId">;
     discount: Pick<Discount, "id" | "amount" | "type" | "maxDuration">;
     code: string;
     shouldRetry?: boolean;
@@ -275,7 +275,7 @@ function createShopifyDiscountProvider() {
     workspace,
     code,
   }: {
-    workspace: Pick<Project, "id" | "shopifyStoreId">;
+    workspace: Workspace;
     code: string;
   }) => {
     const { credentials } = await requireInstalledIntegration(workspace);
@@ -352,7 +352,7 @@ function createShopifyDiscountProvider() {
   const assertDiscountIntegration = async ({
     workspace,
   }: {
-    workspace: Pick<Project, "id" | "stripeConnectId" | "shopifyStoreId">;
+    workspace: Workspace;
   }) => {
     await requireInstalledIntegration(workspace);
   };

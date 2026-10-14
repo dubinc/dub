@@ -1,9 +1,14 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { googleAdsInstalledWorkspaces } from "@/lib/integrations/google-ads/installed-workspaces";
+import { hubSpotOAuthProvider } from "@/lib/integrations/hubspot/oauth";
 import { slackOAuthProvider } from "@/lib/integrations/slack/oauth";
 import { prisma } from "@/lib/prisma";
-import { GOOGLE_ADS_INTEGRATION_ID, SLACK_INTEGRATION_ID } from "@dub/utils";
+import {
+  GOOGLE_ADS_INTEGRATION_ID,
+  HUBSPOT_INTEGRATION_ID,
+  SLACK_INTEGRATION_ID,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -34,21 +39,20 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const { integrationId, webhooks } =
-      await prisma.installedIntegration.delete({
-        where: {
-          id: installationId,
-        },
-        select: {
-          integrationId: true,
-          webhooks: {
-            select: {
-              id: true,
-              triggers: true,
-            },
+    const { integrationId } = await prisma.installedIntegration.delete({
+      where: {
+        id: installationId,
+      },
+      select: {
+        integrationId: true,
+        webhooks: {
+          select: {
+            id: true,
+            triggers: true,
           },
         },
-      });
+      },
+    });
 
     waitUntil(
       Promise.all([
@@ -57,6 +61,9 @@ export const DELETE = withWorkspace(
           : []),
         ...(integrationId === GOOGLE_ADS_INTEGRATION_ID
           ? [googleAdsInstalledWorkspaces.remove(workspace.id)]
+          : []),
+        ...(integrationId === HUBSPOT_INTEGRATION_ID
+          ? [hubSpotOAuthProvider.uninstall(installation)]
           : []),
       ]),
     );

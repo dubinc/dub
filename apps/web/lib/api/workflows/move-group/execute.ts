@@ -100,6 +100,7 @@ export const executeMoveGroupWorkflow = async ({
       leadRewardId: true,
       saleRewardId: true,
       referralRewardId: true,
+      customRewardId: true,
       discountId: true,
     },
   });
@@ -126,6 +127,7 @@ export const executeMoveGroupWorkflow = async ({
       partnerIds: [partnerId],
       userId: null,
       group: newGroup,
+      clearLinkRewardsSync: false,
     });
   } finally {
     await redis.del(lockKey);

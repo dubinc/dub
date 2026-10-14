@@ -1,3 +1,4 @@
+import { timingSafeCompare } from "@/lib/webhook/timing-safe-compare";
 import { createHmac } from "crypto";
 
 interface SlackRequestVerificationOptions {
@@ -63,7 +64,7 @@ export const verifySlackSignature = async (req: Request, body: string) => {
   hmac.update(`${signatureVersion}:${requestTimestampSec}:${options.body}`);
   const expectedSignature = hmac.digest("hex");
 
-  if (!signatureHash || signatureHash !== expectedSignature) {
+  if (!timingSafeCompare(signatureHash, expectedSignature)) {
     throw new Error(`${verifyErrorPrefix}: signature mismatch`);
   }
 };

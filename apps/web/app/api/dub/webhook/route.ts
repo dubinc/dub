@@ -1,10 +1,12 @@
+import { withAxiom } from "@/lib/axiom/server";
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
+import { timingSafeCompare } from "@/lib/webhook/timing-safe-compare";
 import crypto from "crypto";
 import { leadCreated } from "./lead-created";
 import { saleCreated } from "./sale-created";
 
 // POST /api/dub/webhook - receive webhooks for Dub
-export const POST = async (req: Request) => {
+export const POST = withAxiom(async (req: Request) => {
   const body = await req.json();
   const { event, data } = webhookPayloadSchema.parse(body);
 
@@ -19,7 +21,7 @@ export const POST = async (req: Request) => {
     .update(JSON.stringify(body))
     .digest("hex");
 
-  if (webhookSignature !== computedSignature) {
+  if (!timingSafeCompare(webhookSignature, computedSignature)) {
     return new Response("Invalid signature", { status: 400 });
   }
 
@@ -35,4 +37,4 @@ export const POST = async (req: Request) => {
   }
 
   return new Response(response);
-};
+});

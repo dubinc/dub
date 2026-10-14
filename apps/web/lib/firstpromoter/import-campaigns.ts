@@ -49,6 +49,8 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
     linkStructure,
     applicationFormData,
     landerData,
+    submittedLeadFormData,
+    submittedLeadsEnabledAt,
   } = defaultGroup ?? {};
 
   const credentials = await firstPromoterImporter.getCredentials(
@@ -91,6 +93,7 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
           brandColor,
           holdingPeriodDays,
           autoApprovePartnersEnabledAt,
+          submittedLeadsEnabledAt,
           ...(additionalLinks && {
             additionalLinks: sanitizeAdditionalLinks(additionalLinks),
           }),
@@ -98,6 +101,7 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
           ...(linkStructure && { linkStructure }),
           ...(applicationFormData && { applicationFormData }),
           ...(landerData && { landerData }),
+          ...(submittedLeadFormData && { submittedLeadFormData }),
         })),
         skipDuplicates: true,
       });

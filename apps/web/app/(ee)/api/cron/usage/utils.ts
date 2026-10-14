@@ -5,6 +5,7 @@ import {
   sendWorkspaceLimitAlert,
 } from "@/lib/cron/send-limit-alert";
 import { prisma } from "@/lib/prisma";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { getWorkspaceUsage } from "@/lib/tinybird/get-workspace-usage";
 import { WorkspaceProps } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
@@ -16,6 +17,7 @@ import {
   getAdjustedBillingCycleStart,
   log,
 } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { getMonth, getYear } from "date-fns";
 
 const limit = 100;
@@ -124,10 +126,12 @@ export const updateUsage = async () => {
         }
 
         /* Only send the 30-day summary email if:
+           - the workspace is production (skip staging/sandbox)
            - the workspace has at least 1 link click
            - the workspace was created more than 30 days ago
          */
         if (
+          isProductionEnvironment(workspace.environment) &&
           workspace.usage > 0 &&
           workspace.createdAt.getTime() <
             new Date().getTime() - 30 * 24 * 60 * 60 * 1000
@@ -219,9 +223,11 @@ export const updateUsage = async () => {
     },
   });
 
-  // Get all workspaces that have exceeded usage
+  // Get all production workspaces that have exceeded usage
+  // (skip staging/sandbox notifications; resets still run above)
   const exceedingUsage = workspaces.filter(
-    ({ usage, usageLimit }) => usage > usageLimit,
+    ({ usage, usageLimit, environment }) =>
+      isProductionEnvironment(environment) && usage > usageLimit,
   );
 
   const slackWebhookByWorkspace = await getSlackWebhooks(
@@ -236,15 +242,6 @@ export const updateUsage = async () => {
         const emails = users.map((user) => user.user.email) as string[];
         const slackWebhookUrl = slackWebhookByWorkspace.get(workspace.id);
 
-        await log({
-          message: `*${slug}* is over their *${capitalize(
-            plan,
-          )} Plan* usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
-            ", ",
-          )}`,
-          type: "cron",
-          mention: plan !== "free",
-        });
         const firstUsageLimitEmail = sentEmails.find(
           (email) => email.type === "firstUsageLimitEmail",
         );
@@ -275,6 +272,18 @@ export const updateUsage = async () => {
             }
           }
         }
+
+        waitUntil(
+          log({
+            message: `*${slug}* is over their *${capitalize(
+              plan,
+            )} Plan* usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
+              ", ",
+            )}`,
+            type: "cron",
+            mention: plan !== "free",
+          }),
+        );
       }),
     );
   }

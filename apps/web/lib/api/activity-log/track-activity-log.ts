@@ -63,3 +63,31 @@ export const trackActivityLog = async (
     await logger.flush();
   }
 };
+
+// Same as trackActivityLog, but writes within the caller's Prisma transaction.
+export const trackActivityLogsTx = async ({
+  tx,
+  logs,
+}: {
+  tx: Prisma.TransactionClient;
+  logs: TrackActivityLogInput | TrackActivityLogInput[];
+}) => {
+  let inputs = Array.isArray(logs) ? logs : [logs];
+
+  inputs = inputs.filter(
+    (i) =>
+      ACTIONS_WITHOUT_CHANGE_SET.includes(i.action) ||
+      (i.changeSet && Object.keys(i.changeSet).length > 0),
+  );
+
+  if (inputs.length === 0) {
+    return;
+  }
+
+  await tx.activityLog.createMany({
+    data: inputs.map((input) => ({
+      ...input,
+      changeSet: input.changeSet as Prisma.InputJsonValue,
+    })),
+  });
+};

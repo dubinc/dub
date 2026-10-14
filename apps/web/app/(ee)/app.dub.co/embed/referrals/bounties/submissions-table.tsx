@@ -1,12 +1,14 @@
 "use client";
 
 import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
+import { isPartnerBountyExpired } from "@/lib/bounty/partner-bounty-tabs";
 import {
   type SubmissionPeriod,
   getSubmissionPeriods,
 } from "@/lib/bounty/periods";
 import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { Button, StatusBadge, Table, useTable } from "@dub/ui";
+import { BountySubmissionStatus } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
@@ -99,8 +101,7 @@ export function EmbedBountySubmissionsTable({
         },
         cell: ({ row: { original } }) => {
           const { status, periodNumber } = original;
-          const isExpired =
-            bounty.endsAt !== null && new Date(bounty.endsAt) < new Date();
+          const isExpired = isPartnerBountyExpired(bounty);
           const isActionable =
             status === "notSubmitted" ||
             (status === "draft" &&
@@ -113,7 +114,16 @@ export function EmbedBountySubmissionsTable({
             } else {
               buttonText = "Continue";
             }
-          } else if (["submitted", "approved", "rejected"].includes(status)) {
+          } else if (
+            (
+              [
+                BountySubmissionStatus.submitted,
+                BountySubmissionStatus.partiallyApproved,
+                BountySubmissionStatus.approved,
+                BountySubmissionStatus.rejected,
+              ] as string[]
+            ).includes(status)
+          ) {
             buttonText = "View";
           }
 

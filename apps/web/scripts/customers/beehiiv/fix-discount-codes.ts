@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { sleep } from "@dub/utils";
+
 import "dotenv-flow/config";
 import { stripeAppClient } from "../../../lib/stripe";
 
@@ -75,7 +77,7 @@ async function main() {
   }
 
   // sleep for 3 seconds
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  await sleep(3000);
 
   // recreate the discount codes (since it'll be deleted by promotion_code.updated webhook)
   const { count: createdDiscountCodesCount } =

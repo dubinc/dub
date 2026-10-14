@@ -40,9 +40,16 @@ export const POST = withAdmin(
 
     await disableWorkspaceLinks(project.id);
 
+    const workspaceIds = [
+      project.id,
+      ...(project.stagingWorkspaceId ? [project.stagingWorkspaceId] : []),
+    ];
+
     const updatedOwners = await prisma.projectUsers.updateMany({
       where: {
-        projectId: project.id,
+        projectId: {
+          in: workspaceIds,
+        },
         role: "owner",
       },
       data: {
@@ -54,7 +61,9 @@ export const POST = withAdmin(
 
     const updatedMembers = await prisma.projectUsers.updateMany({
       where: {
-        projectId: project.id,
+        projectId: {
+          in: workspaceIds,
+        },
         role: "member",
       },
       data: {
@@ -63,6 +72,15 @@ export const POST = withAdmin(
     });
 
     console.log(`Updated ${updatedMembers.count} members to viewer role`);
+
+    await prisma.project.update({
+      where: {
+        id: project.id,
+      },
+      data: {
+        disabledAt: new Date(),
+      },
+    });
 
     const owners = project.users.map(({ user }) => user.email);
 

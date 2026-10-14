@@ -40,10 +40,13 @@ export async function bulkUpdateLinks(
 
   const imageUrlNonce = nanoid(7);
 
-  // The bulk payload omits domain/key/externalId but not `partnerId`, so an
+  const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+    getParamsFromURL(url || "");
+
+  // The bulk payload omits link key but not `partnerId`, so an
   // update can move links between partners. The former owners are unrecoverable
   // after the write, so read them first, and only when the payload can move one.
-  const previousOwners =
+  const previousPartnersForLinks =
     rest.partnerId !== undefined || rest.programId !== undefined
       ? await prisma.link.findMany({
           where: { id: { in: linkIds } },
@@ -71,7 +74,14 @@ export async function bulkUpdateLinks(
           geo: geo === null ? Prisma.DbNull : geo,
           testVariants: testVariants === null ? Prisma.DbNull : testVariants,
 
-          ...(url && getParamsFromURL(url)),
+          // Only persist known UTM Link columns — ignore other query params
+          ...(url && {
+            utm_source: utm_source || null,
+            utm_medium: utm_medium || null,
+            utm_campaign: utm_campaign || null,
+            utm_term: utm_term || null,
+            utm_content: utm_content || null,
+          }),
           // Associate tags by tagNames
           ...(tagNames &&
             workspaceId && {
@@ -127,9 +137,12 @@ export async function bulkUpdateLinks(
       propagateBulkLinkChanges({
         links: updatedLinks,
       }),
-      // Queue an index update because a bulk edit can change the destination
-      // URL or the link owner.
-      queuePartnerSearchSyncForLinks([...previousOwners, ...updatedLinks]),
+      // Queue an index update if there are previous partners (meaning partnerId was bulk updated)
+      previousPartnersForLinks.length > 0 &&
+        queuePartnerSearchSyncForLinks([
+          ...previousPartnersForLinks,
+          ...updatedLinks,
+        ]),
       // if proxy is true and image is not stored in R2, upload image to R2
       proxy &&
         image &&

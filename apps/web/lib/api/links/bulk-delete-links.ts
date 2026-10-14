@@ -62,10 +62,12 @@ export async function bulkDeleteLinks(
             storage.delete({ key: link.image!.replace(`${R2_URL}/`, "") }),
           ),
 
-        // Queue an index update because the links were deleted. The enrollment
-        // outlives them, so the document is re-serialized without them.
-        queuePartnerSearchSyncForLinks(links, {
-        }),
+        // Queue an index update if any of the deleted links are associated with a partner
+        // The program enrollments outlives them, so the document is re-serialized without them.
+        links.some((link) => link.partnerId) &&
+          queuePartnerSearchSyncForLinks(
+            links.filter((link) => link.partnerId),
+          ),
       ]),
     );
   }

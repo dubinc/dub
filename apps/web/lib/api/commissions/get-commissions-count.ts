@@ -23,6 +23,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     type,
     partnerId,
     payoutId,
+    bountySubmissionId,
     customerId,
     groupId,
     partnerTagId,
@@ -55,7 +56,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
 
   const statusFilter = status
     ? status
-    : type || customerId || payoutId || partnerId
+    : type || customerId || payoutId || bountySubmissionId || partnerId
       ? undefined
       : {
           notIn: [
@@ -109,6 +110,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
             : { in: typeFilter.values as CommissionType[] },
       }),
       payoutId,
+      bountySubmissionId,
       ...(customerFilter && {
         customerId:
           customerFilter.sqlOperator === "NOT IN"

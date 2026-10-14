@@ -79,12 +79,15 @@ export async function deleteCampaign(api: ApiClient, id: string | undefined) {
   await api.delete(`/api/campaigns/${id}`);
 }
 
-export async function createPartnerTag(programId: string) {
+export async function createPartnerTag(
+  programId: string,
+  name = randomName("tag"),
+) {
   return prisma.partnerTag.create({
     data: {
       id: createId({ prefix: "ptag_" }),
       programId,
-      name: randomName("tag"),
+      name,
     },
   });
 }

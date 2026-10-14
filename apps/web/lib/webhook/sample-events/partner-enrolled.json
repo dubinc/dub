@@ -21,6 +21,8 @@
   "trustedAt": null,
   "createdAt": "2025-02-07T17:58:18.793Z",
   "applicationId": null,
+  "application": null,
+  "referralFormData": null,
   "website": null,
   "youtube": null,
   "twitter": null,
@@ -32,9 +34,16 @@
   "leadRewardId": null,
   "saleRewardId": "rw_1KEC01MXCW9RK7PQMCTZQCPB3",
   "referralRewardId": null,
+  "customRewardId": null,
   "discountId": "disc_1KEC01MXC5H50XQMSN83VCW65",
   "bannedAt": null,
   "bannedReason": null,
+  "tags": [
+    {
+      "id": "ptag_1KEC01MXCWZW95SMYMV85NBYM",
+      "name": "vip"
+    }
+  ],
   "totalClicks": 100,
   "totalLeads": 70,
   "totalConversions": 10,

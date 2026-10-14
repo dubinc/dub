@@ -10,7 +10,7 @@ import {
   Brush,
   Button,
   ChevronRight,
-  Discount,
+  DiscountCode,
   Gift,
   Hyperlink,
   Sliders,
@@ -93,7 +93,7 @@ export function GroupHeaderTabs() {
     {
       id: "discounts",
       label: "Discounts",
-      icon: Discount,
+      icon: DiscountCode,
       external: false,
       getHref: (group: GroupProps) =>
         `/${slug}/program/groups/${group.slug}/discounts`,

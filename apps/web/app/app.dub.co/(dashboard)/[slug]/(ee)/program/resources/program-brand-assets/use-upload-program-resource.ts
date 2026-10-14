@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { getProgramResourceUploadUrlAction } from "@/lib/actions/partners/program-resources/get-program-resource-upload-url";
 import { useAction } from "next-safe-action/hooks";
 
@@ -19,27 +20,33 @@ export function useUploadProgramResource(workspaceId: string) {
       resourceType: opts.resourceType,
       name: opts.name,
       extension: opts.extension,
-      fileSize: opts.file.size,
+      contentType: opts.file.type,
+      contentLength: opts.file.size,
     });
 
-    if (!result?.data) throw new Error("Failed to get upload URL");
-
-    const { signedUrl, key, fileSize } = result.data;
-
-    const headers: Record<string, string> = {};
-    if (opts.resourceType === "logo" && opts.extension === "svg") {
-      headers["Content-Type"] = "image/svg+xml";
+    if (!result?.data) {
+      throw new Error(
+        parseActionError(result ?? {}, "Failed to get upload URL"),
+      );
     }
+
+    const { signedUrl, key } = result.data;
 
     const response = await fetch(signedUrl, {
       method: "PUT",
-      headers,
+      headers: {
+        "Content-Type": opts.file.type,
+        "Content-Length": opts.file.size.toString(),
+      },
       body: opts.file,
     });
 
     if (!response.ok) throw new Error(`Failed to upload ${opts.resourceType}`);
 
-    return { key, fileSize };
+    return {
+      key,
+      fileSize: opts.file.size,
+    };
   };
 
   return { upload };

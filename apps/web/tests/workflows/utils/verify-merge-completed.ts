@@ -3,7 +3,9 @@ import {
   VITEST_TEST_TIMEOUT_MS,
 } from "@/lib/constants/misc";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { sleep } from "@dub/utils";
 import { expect } from "vitest";
+
 import { HttpClient } from "../../utils/http";
 
 interface VerifyMergeCompletedProps {
@@ -50,9 +52,7 @@ export const verifyMergeCompleted = async ({
       return targetRes.data;
     }
 
-    await new Promise((resolve) =>
-      setTimeout(resolve, VITEST_POLL_INTERVAL_MS),
-    );
+    await sleep(VITEST_POLL_INTERVAL_MS);
   }
 
   throw new Error(

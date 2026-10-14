@@ -5,6 +5,7 @@ import { hashToken } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
+import { timingSafeCompare } from "@/lib/webhook/timing-safe-compare";
 import { authCodeExchangeSchema } from "@/lib/zod/schemas/oauth";
 import { waitUntil } from "@vercel/functions";
 import { NextRequest } from "next/server";
@@ -100,7 +101,8 @@ export const exchangeAuthCodeForToken = async (
       });
     }
 
-    if (app.hashedClientSecret !== (await hashToken(clientSecret))) {
+    const hashedClientSecret = await hashToken(clientSecret);
+    if (!timingSafeCompare(hashedClientSecret, app.hashedClientSecret)) {
       throw new DubApiError({
         code: "unauthorized",
         message: "Invalid client_secret",

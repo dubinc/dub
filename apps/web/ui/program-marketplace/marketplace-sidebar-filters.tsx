@@ -1,12 +1,16 @@
 "use client";
 
-import { getMarketplaceHref } from "@/ui/program-marketplace/utils/urls";
 import { ChevronLeft, Filter, useKeyboardShortcut } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useProgramNetworkFilters } from "./use-program-network-filters";
+import { isMarketplaceFilterSidebarPath } from "./utils/urls";
 
 export function MarketplaceSidebarFilters() {
+  const pathname = usePathname();
+
+  // the sidebar keeps these filters mounted on every page, so only load the counts where they show
   const {
     filters,
     activeFilters,
@@ -14,7 +18,9 @@ export function MarketplaceSidebarFilters() {
     onRemove,
     onRemoveAll,
     isFiltered,
-  } = useProgramNetworkFilters();
+  } = useProgramNetworkFilters({
+    enabled: isMarketplaceFilterSidebarPath(pathname),
+  });
 
   useKeyboardShortcut("Escape", onRemoveAll, {
     enabled: isFiltered,
@@ -24,7 +30,7 @@ export function MarketplaceSidebarFilters() {
   return (
     <div className="flex flex-col gap-2">
       <Link
-        href={getMarketplaceHref()}
+        href="/marketplace"
         className={cn(
           "group flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-sm font-medium text-neutral-800 transition-all duration-75",
           "hover:bg-neutral-200/50 active:bg-neutral-200/80",

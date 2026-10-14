@@ -47,6 +47,7 @@ function RichTextLinkModalInner({ state }: { state: RichTextLinkModalState }) {
 
   const handleSave = (e: FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (!editor) return;
 
     const finalHref = normalizeLinkHref(href);

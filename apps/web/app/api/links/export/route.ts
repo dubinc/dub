@@ -28,7 +28,7 @@ export const GET = withWorkspace(
     const { folderIds } = await validateLinksQueryFilters({
       ...filters,
       workspace,
-      userId: session.user.id,
+      sessionUserId: session.user.id,
     });
 
     const { interval, start, end } = filters;

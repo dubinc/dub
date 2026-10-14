@@ -90,5 +90,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPlan: ["business", "advanced", "enterprise"],
+    featureFlag: "submittedLeads",
   },
 );

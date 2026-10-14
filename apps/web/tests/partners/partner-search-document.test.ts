@@ -9,6 +9,7 @@ const source: PartnerSearchDocumentSource = {
   programId: "prog_test",
   partnerId: "pn_test",
   status: "approved" as const,
+  tenantId: null,
   groupId: "grp_test",
   partner: {
     name: "Rafi Hasan",
@@ -16,11 +17,6 @@ const source: PartnerSearchDocumentSource = {
     companyName: "Dub Partners",
     description: "Developer tools educator",
     country: "US",
-    programPartnerTags: [
-      { programId: "prog_test", partnerTagId: "ptag_a" },
-      // A tag from a different program must not leak into this document.
-      { programId: "prog_other", partnerTagId: "ptag_other" },
-    ],
     platforms: [
       {
         type: "website",
@@ -32,20 +28,8 @@ const source: PartnerSearchDocumentSource = {
       },
     ],
   },
-  links: [
-    {
-      domain: "dub.sh",
-      key: "rafi",
-      shortLink: "https://dub.sh/rafi",
-      url: "https://example.com/referrals/rafi",
-    },
-    {
-      domain: "dub.sh",
-      key: "rafi-tools",
-      shortLink: "https://dub.sh/rafi-tools",
-      url: "https://rafi.dev/tools",
-    },
-  ],
+  links: [{ key: "rafi" }, { key: "rafi-tools" }],
+  programPartnerTags: [{ partnerTagId: "ptag_a" }, { partnerTagId: "ptag_a" }],
 };
 
 describe("serializePartnerSearchDocument", () => {
@@ -60,17 +44,11 @@ describe("serializePartnerSearchDocument", () => {
       description: "Developer tools educator",
       platformTypes: ["website", "twitter"],
       platformIdentifiers: ["https://rafi.dev", "@rafi-on-x"],
-      linkDomains: ["dub.sh"],
       linkKeys: ["rafi", "rafi-tools"],
-      shortLinks: ["https://dub.sh/rafi", "https://dub.sh/rafi-tools"],
-      destinationUrls: [
-        "https://example.com/referrals/rafi",
-        "https://rafi.dev/tools",
-      ],
       status: "approved",
+      tenantId: null,
       groupId: "grp_test",
       country: "US",
-      // The tag from prog_other is dropped: tags are per program.
       partnerTagIds: ["ptag_a"],
     });
   });

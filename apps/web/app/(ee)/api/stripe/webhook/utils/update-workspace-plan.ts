@@ -6,6 +6,7 @@ import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { qstash } from "@/lib/cron";
+import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
@@ -14,6 +15,7 @@ import {
 } from "@/lib/plans/has-partner-access";
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { prisma } from "@/lib/prisma";
+import { queueCreateStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
 import {
   getSubscriptionBillingFields,
   getSubscriptionTrialEndsAt,
@@ -49,6 +51,7 @@ export async function updateWorkspacePlan({
     | "subscriptionCanceledAt"
     | "billingCycleStart"
     | "partnersLimit"
+    | "stagingWorkspaceId"
   > & {
     plan: string;
     restrictedTokens: {
@@ -58,17 +61,19 @@ export async function updateWorkspacePlan({
   priceId: string;
   subscription: Stripe.Subscription;
 }) {
-  const cancellationFields = getSubscriptionBillingFields(subscription);
+  const subscriptionBillingFields = getSubscriptionBillingFields(subscription);
   const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
   const trialEndsAt = getSubscriptionTrialEndsAt(subscription);
   const isPaidPlanActivated =
     workspace.trialEndsAt !== null && trialEndsAt === null;
 
   const datetimeFieldsUpdated =
+    workspace.billingCycleStart !==
+      subscriptionBillingFields.billingCycleStart ||
     workspace.billingCycleEndsAt?.getTime() !==
-      cancellationFields.billingCycleEndsAt?.getTime() ||
+      subscriptionBillingFields.billingCycleEndsAt?.getTime() ||
     workspace.subscriptionCanceledAt?.getTime() !==
-      cancellationFields.subscriptionCanceledAt?.getTime() ||
+      subscriptionBillingFields.subscriptionCanceledAt?.getTime() ||
     (trialEndsAt !== undefined &&
       workspace.trialEndsAt?.getTime() !== trialEndsAt?.getTime());
 
@@ -86,7 +91,7 @@ export async function updateWorkspacePlan({
         id: workspace.id,
       },
       data: {
-        ...cancellationFields,
+        ...subscriptionBillingFields,
         planPeriod,
       },
     });
@@ -123,80 +128,84 @@ export async function updateWorkspacePlan({
     (workspace.partnersLimit < newPlan.limits.partners &&
       NEW_BUSINESS_PRICE_IDS.includes(priceId))
   ) {
-    const [updatedWorkspace] = await Promise.allSettled([
-      prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          plan: newPlanName,
-          planTier: newPlanTier,
-          usageLimit: limits.clicks,
-          linksLimit: limits.links,
-          payoutsLimit: limits.payouts,
-          domainsLimit: limits.domains,
-          aiLimit: limits.ai,
-          tagsLimit: limits.tags,
-          partnerTagsLimit: limits.partnerTags,
-          foldersLimit: limits.folders,
-          groupsLimit: limits.groups,
-          networkInvitesLimit: limits.networkInvites,
-          partnersLimit: limits.partners,
-          usersLimit: limits.users,
-          ...(["active", "trialing"].includes(subscription.status)
-            ? { paymentFailedAt: null }
-            : {}),
-          ...(trialEndsAt !== undefined && { trialEndsAt }),
-          ...cancellationFields,
-          ...(planPeriod !== undefined && { planPeriod }),
-          ...(recomputedUsage && {
-            usage: recomputedUsage.usage,
-            linksUsage: recomputedUsage.linksUsage,
-            payoutsUsage: recomputedUsage.payoutsUsage,
-            sentEmails: {
-              deleteMany: {
-                type: {
-                  in: [
-                    "firstUsageLimitEmail",
-                    "secondUsageLimitEmail",
-                    "firstLinksLimitEmail",
-                    "secondLinksLimitEmail",
-                  ],
-                },
+    // A failed write must throw so the Stripe retry runs this block again
+    const updatedWorkspace = await prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        plan: newPlanName,
+        planTier: newPlanTier,
+        usageLimit: limits.clicks,
+        linksLimit: limits.links,
+        payoutsLimit: limits.payouts,
+        domainsLimit: limits.domains,
+        aiLimit: limits.ai,
+        tagsLimit: limits.tags,
+        partnerTagsLimit: limits.partnerTags,
+        foldersLimit: limits.folders,
+        groupsLimit: limits.groups,
+        networkInvitesLimit: limits.networkInvites,
+        partnersLimit: limits.partners,
+        usersLimit: limits.users,
+        ...(["active", "trialing"].includes(subscription.status)
+          ? { paymentFailedAt: null }
+          : {}),
+        ...(trialEndsAt !== undefined && { trialEndsAt }),
+        ...subscriptionBillingFields,
+        ...(planPeriod !== undefined && { planPeriod }),
+        ...(recomputedUsage && {
+          usage: recomputedUsage.usage,
+          linksUsage: recomputedUsage.linksUsage,
+          payoutsUsage: recomputedUsage.payoutsUsage,
+          sentEmails: {
+            deleteMany: {
+              type: {
+                in: [
+                  "firstUsageLimitEmail",
+                  "secondUsageLimitEmail",
+                  "firstLinksLimitEmail",
+                  "secondLinksLimitEmail",
+                ],
               },
-            },
-          }),
-        },
-        include: {
-          users: {
-            where: {
-              role: "owner",
-              user: {
-                isMachine: false,
-              },
-            },
-            select: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                },
-              },
-            },
-            orderBy: {
-              createdAt: "asc",
             },
           },
+        }),
+      },
+      include: {
+        users: {
+          where: {
+            role: "owner",
+            user: {
+              isMachine: false,
+            },
+          },
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
         },
-      }),
+      },
+    });
 
-      // expire tokens cache
+    // The plan is saved at this point. A failure here must not stop the steps
+    // below, because a Stripe retry skips this block once the plan matches.
+    await Promise.allSettled([
+      // Expire tokens cache
       tokenCache.expireMany({
         hashedKeys: workspace.restrictedTokens.map(
           ({ hashedKey }) => hashedKey,
         ),
       }),
+
       ...(workspace.defaultProgramId
         ? [
             prisma.program.update({
@@ -210,6 +219,7 @@ export async function updateWorkspacePlan({
           ]
         : []),
     ]);
+
     console.log(
       `Updated workspace ${workspace.id} plan / limits / subscription details.`,
     );
@@ -255,7 +265,7 @@ export async function updateWorkspacePlan({
       }) &&
       workspace.defaultProgramId
     ) {
-      await deactivateProgram(workspace.defaultProgramId);
+      await deactivateProgram(workspace);
       console.log(`Deactivated program for workspace ${workspace.id}.`);
     }
 
@@ -267,14 +277,19 @@ export async function updateWorkspacePlan({
       }) &&
       workspace.defaultProgramId
     ) {
-      await reactivateProgram(workspace.defaultProgramId);
+      await reactivateProgram(workspace);
       console.log(`Reactivated program for workspace ${workspace.id}.`);
     }
 
-    const workspaceOwners =
-      updatedWorkspace.status === "fulfilled"
-        ? updatedWorkspace.value.users.map((user) => user.user)
-        : [];
+    await Promise.allSettled([
+      queueCreateStagingWorkspace(updatedWorkspace),
+      syncStagingWorkspaceJob.dispatch({
+        action: "sync-workspace",
+        workspaceId: updatedWorkspace.id,
+      }),
+    ]);
+
+    const workspaceOwners = updatedWorkspace.users.map((user) => user.user);
 
     if (
       workspace.defaultProgramId &&
@@ -361,7 +376,7 @@ export async function updateWorkspacePlan({
         id: workspace.id,
       },
       data: {
-        ...cancellationFields,
+        ...subscriptionBillingFields,
         ...(trialEndsAt !== undefined && { trialEndsAt }),
       },
     });

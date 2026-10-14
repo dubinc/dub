@@ -4,6 +4,7 @@ import { getBountyRewardDescription } from "@/lib/bounty/rewards";
 import { APP_DOMAIN, COUNTRIES, currencyFormatter, truncate } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
 import * as z from "zod/v4";
+import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "../../webhook/constants";
 import { webhookPayloadSchema } from "../../webhook/schemas";
 import type { WebhookTrigger } from "../../webhook/types";
 import {
@@ -308,13 +309,13 @@ const partnerEnrolledTemplate = ({
   };
 };
 
-const partnerApplicationSubmittedTemplate = ({
+const programApplicationSubmittedTemplate = ({
   data,
 }: {
   data: PartnerApplicationWebhookPayload;
 }) => {
   const { partner } = data;
-  const hrefToApplicationPage = `${APP_DOMAIN}/program/partners/applications?partnerId=${partner.id}`;
+  const hrefToApplicationPage = `${APP_DOMAIN}/program/partners/applications?applicationId=${data.id}`;
 
   return {
     blocks: [
@@ -708,11 +709,12 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "sale.created": saleCreatedTemplate,
   "partner.enrolled": partnerEnrolledTemplate,
   "partner.merged": partnerMergedTemplate,
-  "partner.application_submitted": partnerApplicationSubmittedTemplate,
+  "partner.application_submitted": programApplicationSubmittedTemplate,
+  "program_application.created": programApplicationSubmittedTemplate,
   "commission.created": commissionCreatedTemplate,
   "bounty.created": bountyTemplates,
   "bounty.updated": bountyTemplates,
-  "payout.confirmed": payoutConfirmedTemplate,
+  [EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER]: payoutConfirmedTemplate,
   "discount_code.created": discountCodeTemplates,
   "discount_code.deleted": discountCodeTemplates,
 };

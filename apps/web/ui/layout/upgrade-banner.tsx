@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { useDashboardBannerVisible } from "@/lib/hooks/use-dashboard-banner-visible";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRetryPaymentModal } from "@/ui/modals/retry-payment-modal";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
@@ -55,8 +56,8 @@ export function UpgradeBanner() {
     useRetryPaymentModal();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const { isVisible, needsUpgrade, subscriptionCanceled } =
-    useUpgradeBannerVisibility();
+  const { needsUpgrade, subscriptionCanceled } = useUpgradeBannerVisibility();
+  const { isUpgradeBannerVisible } = useDashboardBannerVisible();
 
   const permissionsError = clientAccessCheck({
     action: "billing.write",
@@ -73,7 +74,7 @@ export function UpgradeBanner() {
 
   const { isMobile } = useMediaQuery();
 
-  if (!isVisible) return null;
+  if (!isUpgradeBannerVisible) return null;
 
   return (
     <>
@@ -83,7 +84,7 @@ export function UpgradeBanner() {
         initial={{ transform: "translateY(-100%)" }}
         animate={{ transform: "translateY(0)" }}
         className={cn(
-          "fixed left-0 right-0 top-0 z-50 flex items-center justify-center overflow-hidden px-6 py-2 text-white sm:h-12 sm:py-0",
+          "fixed left-0 right-0 top-0 z-30 flex items-center justify-center overflow-hidden px-6 py-2 text-white sm:h-12 sm:py-0",
           needsUpgrade ? "bg-amber-600" : "bg-red-600",
         )}
       >

@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   findMany: vi.fn(),
+  programFindUnique: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -15,6 +16,7 @@ vi.mock("@/lib/prisma", () => ({
     programEnrollment: {
       findMany: mocks.findMany,
     },
+    program: { findUnique: mocks.programFindUnique },
   },
 }));
 
@@ -28,10 +30,10 @@ function enrollment(id: string, partnerId: string) {
     totalCommissions: BigInt(0),
     partner: {
       id: partnerId,
-      programPartnerTags: [],
       platforms: [],
     },
     links: [],
+    programPartnerTags: [],
   };
 }
 
@@ -49,6 +51,52 @@ function createSearchProvider(
 describe("getPartners search", () => {
   beforeEach(() => {
     mocks.findMany.mockReset();
+    mocks.programFindUnique.mockReset();
+  });
+
+  it("searches a pasted program short link by its key", async () => {
+    mocks.findMany.mockResolvedValue([enrollment("pge_1", "pn_1")]);
+    mocks.programFindUnique.mockResolvedValue({ domain: "go.acme.com" });
+    const searchProvider = createSearchProvider([{ id: "pge_1" }]);
+
+    await getPartners(
+      {
+        programId: "prog_test",
+        search: "https://go.acme.com/partner",
+        page: 1,
+        pageSize: 25,
+        sortBy: "totalSaleAmount",
+        sortOrder: "desc",
+      },
+      { searchProvider },
+    );
+
+    expect(searchProvider.searchCandidates).toHaveBeenCalledWith(
+      expect.objectContaining({ query: "partner" }),
+    );
+  });
+
+  it("hydrates only tags that still belong to the program", async () => {
+    // Deleting a tag nulls its programId first and removes the associations
+    // in a later job, so the relation must filter on the tag, not the link.
+    mocks.findMany.mockResolvedValue([enrollment("pge_1", "pn_1")]);
+
+    await getPartners(
+      {
+        programId: "prog_test",
+        page: 1,
+        pageSize: 25,
+        sortBy: "totalSaleAmount",
+        sortOrder: "desc",
+      },
+      { searchProvider: null },
+    );
+
+    const { include } = mocks.findMany.mock.calls.at(-1)![0];
+    expect(include.programPartnerTags).toEqual({
+      where: { partnerTag: { programId: "prog_test" } },
+      include: { partnerTag: true },
+    });
   });
 
   it("keeps a tenant filter on the database search path", async () => {

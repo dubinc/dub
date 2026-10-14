@@ -10,10 +10,10 @@ import {
   mergePartnerCountryAndSearchWhere,
 } from "./program-enrollment-query";
 import {
-  buildPartnerSearchCandidateQuery,
   findPartnerSearchCandidates,
   getPartnerSearchReadProvider,
   PartnerSearchProvider,
+  resolvePartnerSearchCandidateQuery,
 } from "./search";
 
 type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
@@ -35,7 +35,10 @@ export async function getPartnersCount<T>(
 ): Promise<T> {
   const { groupBy, programId, ...enrollmentFilters } = filters;
   const candidateQuery = searchProvider
-    ? buildPartnerSearchCandidateQuery({ ...enrollmentFilters, programId })
+    ? await resolvePartnerSearchCandidateQuery({
+        ...enrollmentFilters,
+        programId,
+      })
     : null;
   const candidateResult =
     searchProvider && candidateQuery

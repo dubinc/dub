@@ -12,7 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
 import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
 import { APPSFLYER_INTEGRATION_ID, getSearchParams } from "@dub/utils";
-import { Project } from "@prisma/client";
+import { CommissionSource, Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../cron/utils";
@@ -53,9 +53,10 @@ export const GET = withAxiom(async (req) => {
     const { appId, partnerEventId } = querySchema.parse(queryParams);
 
     if (!partnerEventId || !["lead", "sale"].includes(partnerEventId)) {
-      return logAndRespond(
-        `"${partnerEventId}" is not a valid partner event ID (accepted values: "lead", "sale"). Skipping...`,
-      );
+      throw new DubApiError({
+        code: "bad_request",
+        message: `"${partnerEventId}" is not a valid partner event ID (accepted values: "lead", "sale"). Skipping...`,
+      });
     }
 
     // Find the installation
@@ -109,6 +110,7 @@ export const GET = withAxiom(async (req) => {
         mode: undefined,
         metadata: null,
         workspace,
+        commissionSource: CommissionSource.appsflyer,
       });
 
       response = JSON.stringify(leadResponse);
@@ -133,6 +135,7 @@ export const GET = withAxiom(async (req) => {
         leadEventName: undefined,
         metadata: null,
         workspace,
+        commissionSource: CommissionSource.appsflyer,
       });
 
       response = JSON.stringify(saleResponse);

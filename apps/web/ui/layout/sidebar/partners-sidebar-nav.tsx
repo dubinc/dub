@@ -1,13 +1,15 @@
 "use client";
 
 import { useProgramMessagesCount } from "@/lib/messages/hooks/use-program-messages-count";
+import { getGroupSubmittedLeadForm } from "@/lib/submitted-leads/get-group-submitted-lead-form";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
+import { usePartnerProfileBounties } from "@/lib/swr/use-partner-profile-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { MarketplaceSidebarFilters } from "@/ui/program-marketplace/marketplace-sidebar-filters";
 import { ProgramMarketplaceCard } from "@/ui/program-marketplace/program-marketplace-card";
 import { isMarketplaceFilterSidebarPath } from "@/ui/program-marketplace/utils/urls";
+import { formatTabBadgeCount } from "@/ui/shared/sheet-tabs";
 import { type Icon, useMediaQuery, useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -15,26 +17,27 @@ import {
   ColorPalette2,
   Gauge6,
   Gear2,
-  Gift,
-  GridIcon,
-  MoneyBills2,
-  Msgs,
   Nodes4,
   ShieldCheck,
   Shop,
-  SquareUserSparkle2,
   Trophy,
   UserCheck,
+  UserPlus,
   Users2,
   Webhook,
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { CursorRays } from "./icons/cursor-rays";
+import { Gift } from "./icons/gift";
+import { GridIcon } from "./icons/grid";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
+import { MoneyBills2 } from "./icons/money-bills2";
+import { Msgs } from "./icons/msgs";
+import { SquareUserSparkle2 } from "./icons/square-user-sparkle2";
 import { User } from "./icons/user";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { PayoutStats } from "./payout-stats";
@@ -55,9 +58,11 @@ type SidebarNavData = {
   invitationsCount?: number;
   unreadMessagesCount?: number;
   programBountiesCount?: number;
+  allBountiesCount?: number;
   showDetailedAnalytics?: boolean;
   postbacksEnabled?: boolean;
   hasReferralReward?: boolean;
+  submittedLeadsEnabled?: boolean;
   newsContent?: ReactNode;
 };
 
@@ -70,9 +75,11 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     description:
       "View all your enrolled programs and review invitations to other programs.",
     icon: GridIcon,
-    href: "/programs",
-    active:
-      pathname.startsWith("/programs") || pathname.startsWith("/marketplace"),
+    // the middleware sends "/" to /overview or /programs, depending on the partner's programs
+    href: "/",
+    active: ["/overview", "/programs", "/marketplace", "/bounties"].some((p) =>
+      pathname.startsWith(p),
+    ),
   },
   {
     name: "Payouts",
@@ -83,9 +90,9 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     active: pathname.startsWith("/payouts"),
   },
   {
-    name: "Partner profile",
+    name: "Profile settings",
     description:
-      "Build a great partner profile and get noticed in our partner network.",
+      "Customize your profile, invite your team, and manage your notifications.",
     icon: SquareUserSparkle2,
     href: "/profile",
     active: pathname.startsWith("/profile"),
@@ -102,17 +109,23 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
 
 const PROGRAMS_CONTENT = ({
   invitationsCount,
+  allBountiesCount,
 }: {
   invitationsCount?: number;
-}): { items: NavItemType[] }[] => [
+  allBountiesCount?: number;
+}): { name?: string; items: NavItemType[] }[] => [
   {
     items: [
+      {
+        name: "Overview",
+        icon: Gauge6,
+        href: "/overview",
+      },
       {
         name: "Programs",
         icon: GridIcon,
         href: "/programs",
-        isActive: (pathname, href) =>
-          pathname.startsWith(href) && pathname !== "/programs/invitations",
+        badge: invitationsCount || undefined,
       },
       {
         name: "Marketplace",
@@ -121,11 +134,16 @@ const PROGRAMS_CONTENT = ({
         isActive: (pathname) => pathname.startsWith("/marketplace"),
         badge: "New",
       },
+    ],
+  },
+  {
+    name: "Engage",
+    items: [
       {
-        name: "Invitations",
-        icon: UserCheck,
-        href: "/programs/invitations",
-        badge: invitationsCount || undefined,
+        name: "Bounties",
+        icon: Trophy,
+        href: "/bounties",
+        badge: formatTabBadgeCount(allBountiesCount),
       },
     ],
   },
@@ -133,16 +151,16 @@ const PROGRAMS_CONTENT = ({
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
-  programs: ({ invitationsCount }) => ({
+  programs: ({ invitationsCount, allBountiesCount }) => ({
     title: <PartnerProgramDropdown />,
-    content: PROGRAMS_CONTENT({ invitationsCount }),
+    content: PROGRAMS_CONTENT({ invitationsCount, allBountiesCount }),
     direction: "left",
   }),
 
-  marketplace: ({ isMobile, invitationsCount }) => ({
+  marketplace: ({ isMobile, invitationsCount, allBountiesCount }) => ({
     title: <PartnerProgramDropdown />,
     content: isMobile ? (
-      PROGRAMS_CONTENT({ invitationsCount })
+      PROGRAMS_CONTENT({ invitationsCount, allBountiesCount })
     ) : (
       <MarketplaceSidebarFilters />
     ),
@@ -202,6 +220,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     programBountiesCount,
     showDetailedAnalytics,
     hasReferralReward,
+    submittedLeadsEnabled,
   }) => ({
     title: <PartnerProgramDropdown />,
     content: [
@@ -268,12 +287,19 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Bounties",
             icon: Trophy,
             href: `/programs/${programSlug}/bounties` as `/${string}`,
-            badge:
-              programBountiesCount && programBountiesCount > 99
-                ? "99+"
-                : programBountiesCount || undefined,
+            badge: formatTabBadgeCount(programBountiesCount),
             locked: isUnapproved,
           },
+          ...(submittedLeadsEnabled
+            ? [
+                {
+                  name: "Submitted Leads",
+                  icon: UserPlus as Icon,
+                  href: `/programs/${programSlug}/leads` as `/${string}`,
+                  locked: isUnapproved,
+                },
+              ]
+            : []),
           ...(hasReferralReward
             ? [
                 {
@@ -358,10 +384,6 @@ export function PartnersSidebarNav({
               : "programs";
   }, [pathname, isEnrolledProgramPage, isMarketplaceFilterSidebarPage]);
 
-  const { count: invitationsCount } = useProgramEnrollmentsCount({
-    status: "invited",
-  });
-
   const isUnapproved = useMemo(
     () =>
       !!programEnrollment &&
@@ -371,11 +393,16 @@ export function PartnersSidebarNav({
     [programEnrollment],
   );
 
-  const { bountiesCount } = usePartnerProgramBounties({
+  const { bountiesCount } = usePartnerProfileBounties({
+    programIdOrSlug: programSlug,
     enabled:
       isEnrolledProgramPage && programEnrollment && !isUnapproved
         ? true
         : false,
+  });
+
+  const { count: invitationsCount } = useProgramEnrollmentsCount({
+    status: "invited",
   });
 
   const { count: unreadMessagesCount } = useProgramMessagesCount({
@@ -387,21 +414,35 @@ export function PartnersSidebarNav({
 
   const { isMobile } = useMediaQuery();
 
+  // only load the bounties of all programs where the sidebar shows them
+  const { bountiesCount: allBountiesCount } = usePartnerProfileBounties({
+    enabled:
+      currentArea === "programs" || (currentArea === "marketplace" && isMobile),
+  });
+
   const { partner } = usePartnerProfile();
 
   const referralsActive =
     pathname === "/referrals" || pathname.startsWith("/referrals/");
+  const [referralsHovered, setReferralsHovered] = useState(false);
 
   const composedToolContent = (
     <div className="flex flex-col items-center gap-3">
       <Link
         href="/referrals"
+        aria-label="Referrals"
+        onPointerEnter={() => setReferralsHovered(true)}
+        onPointerLeave={() => setReferralsHovered(false)}
+        onFocus={(e) =>
+          e.currentTarget.matches(":focus-visible") && setReferralsHovered(true)
+        }
+        onBlur={() => setReferralsHovered(false)}
         className={cn(
           "text-content-default flex size-11 shrink-0 items-center justify-center rounded-lg",
           referralsActive ? "bg-white" : "hover:bg-bg-inverted/5",
         )}
       >
-        <Gift className="size-5" />
+        <Gift className="size-5" data-hovered={referralsHovered} />
       </Link>
       {toolContent}
     </div>
@@ -421,9 +462,13 @@ export function PartnersSidebarNav({
         invitationsCount,
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
+        allBountiesCount: allBountiesCount.active,
         showDetailedAnalytics,
         postbacksEnabled: partner?.featureFlags?.postbacks,
         hasReferralReward: !!programEnrollment?.referralRewardId,
+        submittedLeadsEnabled: Boolean(
+          getGroupSubmittedLeadForm(programEnrollment?.group),
+        ),
         newsContent,
       }}
       toolContent={composedToolContent}

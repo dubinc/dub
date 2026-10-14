@@ -6,14 +6,17 @@ import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permis
 import { requestEmailChange } from "@/lib/auth/request-email-change";
 import { qstash } from "@/lib/cron";
 import { isReservedUsername } from "@/lib/edge-config";
+import { dispatchGroupUtmSyncForPartner } from "@/lib/partners/dispatch-partner-utm-sync";
 import {
   assertEmailAvailableForIdentitySync,
   requestSyncedEmailChange,
   syncNameAndImageToUser,
 } from "@/lib/partners/sync-partner-identity";
+import { updatePartnerCountry } from "@/lib/partners/update-partner-country";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
@@ -21,6 +24,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import {
   APP_DOMAIN_WITH_NGROK,
+  COUNTRIES,
   deepEqual,
   nanoid,
   PARTNERS_DOMAIN,
@@ -42,6 +46,7 @@ const updatePartnerProfileSchema = z
     description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
     profileType: z.enum(PartnerProfileType).optional(),
     companyName: z.string().nullish(),
+    country: z.string().optional(),
     syncIdentity: z.boolean().optional(),
   })
   .extend(PartnerProfileDetailsSchema.partial().shape)
@@ -86,8 +91,39 @@ export const updatePartnerProfileAction = authPartnerActionClient
       preferredEarningStructures,
       salesChannels,
       username,
+      country,
       syncIdentity,
     } = parsedInput;
+
+    const countryChanged = Boolean(country) && country !== partner.country;
+
+    if (countryChanged) {
+      if (partner.country !== "US") {
+        throw new Error(
+          "Your profile country cannot be changed. Contact support to update it.",
+        );
+      }
+
+      if (!country || !Object.hasOwn(COUNTRIES, country)) {
+        throw new Error("Select a valid country.");
+      }
+
+      const processingPayout = await prisma.payout.findFirst({
+        where: {
+          partnerId: partner.id,
+          status: "processing",
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (processingPayout) {
+        throw new Error(
+          "Your country cannot be changed while a payout is being processed.",
+        );
+      }
+    }
 
     await updatedComplianceFieldsChecks({
       partner,
@@ -111,17 +147,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
     }
 
     if (username && username !== partner.username) {
-      const { success } = await ratelimit(5, "1 h").limit(
-        `partner-profile:username-update:${partner.id}`,
-      );
-
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message:
-            "You've updated your username too many times. Please try again later.",
-        });
-      }
+      await assertRateLimit({
+        policy: RATELIMIT_POLICIES.partnerUsernameUpdate,
+        identifier: partner.id,
+      });
 
       if (!validSlugRegex.test(username) || RESERVED_SLUGS.includes(username)) {
         throw new Error("Invalid username");
@@ -260,6 +289,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
 
       waitUntil(
         Promise.allSettled([
+          partner.name !== updatedPartner.name
+            ? dispatchGroupUtmSyncForPartner(partner.id)
+            : undefined,
+
           (async () => {
             const shouldExpireCache = !deepEqual(
               {
@@ -285,6 +318,13 @@ export const updatePartnerProfileAction = authPartnerActionClient
           })(),
         ]),
       );
+
+      if (countryChanged && country) {
+        await updatePartnerCountry({
+          partnerId: partner.id,
+          country,
+        });
+      }
 
       return {
         needsEmailVerification,

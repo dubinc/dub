@@ -3,12 +3,12 @@ import { toCentsNumber } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { buildProgramEnrollmentWhereForList } from "./program-enrollment-query";
 import {
-  buildPartnerSearchCandidateQuery,
   findPartnerSearchCandidates,
   getPartnerSearchReadProvider,
   orderByPartnerSearchHits,
   PartnerSearchProvider,
   PartnerSearchQueryInput,
+  resolvePartnerSearchCandidateQuery,
 } from "./search";
 
 type PartnerFilters = PartnerSearchQueryInput & {
@@ -39,7 +39,7 @@ export async function getPartners(
   } = filters;
 
   const candidateQuery = searchProvider
-    ? buildPartnerSearchCandidateQuery(filters)
+    ? await resolvePartnerSearchCandidateQuery(filters)
     : null;
   const candidateResult =
     searchProvider && candidateQuery
@@ -69,15 +69,18 @@ export async function getPartners(
   const include = {
     partner: {
       include: {
-        programPartnerTags: {
-          where: {
-            programId,
-          },
-          include: {
-            partnerTag: true,
-          },
-        },
         platforms: true,
+      },
+    },
+    programPartnerTags: {
+      // Deleted tags have a null programId until background cleanup removes their associations.
+      where: {
+        partnerTag: {
+          programId,
+        },
+      },
+      include: {
+        partnerTag: true,
       },
     },
     links: true,
@@ -114,7 +117,7 @@ export async function getPartners(
       pageIds.length > 0
         ? await prisma.programEnrollment.findMany({
             where: {
-              ...candidateWhere,
+              programId,
               id: { in: pageIds },
             },
             include,
@@ -135,15 +138,19 @@ export async function getPartners(
   }
 
   return partners.map(
-    ({ partner, links, partnerGroup, ...programEnrollment }) => ({
+    ({
+      partner,
+      links,
+      partnerGroup,
+      programPartnerTags,
+      ...programEnrollment
+    }) => ({
       ...partner,
       ...programEnrollment,
       id: partner.id,
       createdAt: new Date(programEnrollment.createdAt),
       ...(includeGroup && { group: partnerGroup }),
-      tags: partner.programPartnerTags
-        .map(({ partnerTag }) => partnerTag)
-        .filter((t) => t.programId != null && t.programId === programId),
+      tags: programPartnerTags.map(({ partnerTag }) => partnerTag),
       links,
       netRevenue:
         toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -

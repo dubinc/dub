@@ -7,14 +7,14 @@ export default function PlanBadge({ plan }: { plan: PlanProps }) {
     <Badge
       variant={
         plan === "enterprise"
-          ? "violet"
+          ? "violetGradient"
           : plan === "advanced"
-            ? "amber"
+            ? "amberGradient"
             : plan.startsWith("business")
-              ? "sky"
+              ? "blueGradient"
               : plan === "pro"
-                ? "blue"
-                : "black"
+                ? "blueGradient"
+                : "neutralGradient"
       }
     >
       {capitalize(plan)}

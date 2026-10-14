@@ -9,7 +9,11 @@ export default function usePartnerPayouts(opts?: Record<string, string>) {
   const partnerId = session?.user?.["defaultPartnerId"];
   const { getQueryString } = useRouterStuff();
 
-  const { data: payouts, error } = useSWR<PartnerPayoutResponse[]>(
+  const {
+    data: payouts,
+    error,
+    isLoading,
+  } = useSWR<PartnerPayoutResponse[]>(
     partnerId
       ? `/api/partner-profile/payouts${getQueryString(opts, {
           include: [
@@ -31,6 +35,6 @@ export default function usePartnerPayouts(opts?: Record<string, string>) {
   return {
     payouts,
     error,
-    loading: !payouts && !error,
+    isLoading,
   };
 }

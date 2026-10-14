@@ -83,7 +83,6 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
               customer={customer}
               customerActivity={customerActivity}
               isCustomerActivityLoading={!customer || isCustomerActivityLoading}
-              workspaceSlug={workspaceSlug}
             />
           </div>
           <div className="@3xl/page:order-1">
