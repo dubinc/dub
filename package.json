@@ -29,6 +29,8 @@
     "turbo": "^1.12.5"
   },
   "resolutions": {
+    "@types/react": "19.1.15",
+    "@types/react-dom": "19.1.9",
     "chrono-node": "2.7.5"
   },
   "packageManager": "pnpm@9.15.9"
