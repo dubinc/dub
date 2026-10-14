@@ -69,7 +69,7 @@ function getGroupLabel({
   group,
   id,
 }: {
-  groupBy: EarningsGroupBy;
+  groupBy?: EarningsGroupBy;
   group?: EarningsCountGroup;
   id: string;
 }) {
@@ -95,10 +95,16 @@ export function EarningsCompositeChart() {
   const filters = usePartnerEarningsFilters();
   const { start, end, interval } = filters;
 
-  // the All programs page has no programSlug, and groups by program by default
-  const { groupBy = programSlug ? "type" : "programId" } = searchParamsObj as {
-    groupBy?: EarningsGroupBy;
-  };
+  // no grouping by default, so the chart shows one line with the total. Only
+  // the All programs page (no programSlug) can group by program.
+  const groupByOptions: EarningsGroupBy[] = programSlug
+    ? ["type", "linkId"]
+    : ["type", "linkId", "programId"];
+  const groupBy = groupByOptions.find(
+    (option) => option === searchParamsObj.groupBy,
+  );
+  const labelsGroupBy =
+    groupBy === "linkId" || groupBy === "programId" ? groupBy : undefined;
 
   const { data } = usePartnerProfileEarningsTimeseries({
     ...filters,
@@ -109,8 +115,8 @@ export function EarningsCompositeChart() {
   const { data: groups } = usePartnerProfileEarningsCount<EarningsCountGroup[]>(
     {
       ...filters,
-      groupBy: groupBy === "type" ? undefined : groupBy,
-      enabled: groupBy !== "type",
+      groupBy: labelsGroupBy,
+      enabled: !!labelsGroupBy,
     },
   );
 
@@ -229,12 +235,15 @@ export function EarningsCompositeChart() {
                     },
                   ]),
             ]}
-            selected={groupBy}
-            selectAction={(option) => {
-              queryParams({
-                set: { groupBy: option },
-              });
-            }}
+            selected={groupBy ?? null}
+            // a click on the selected option goes back to the total
+            selectAction={(option) =>
+              queryParams(
+                option === groupBy
+                  ? { del: "groupBy" }
+                  : { set: { groupBy: option } },
+              )
+            }
           />
         </div>
         <div className="mt-5 h-80">
@@ -246,7 +255,12 @@ export function EarningsCompositeChart() {
               tooltipContent={(d) => {
                 return (
                   <>
-                    <div className="flex justify-between border-b border-neutral-200 p-3 text-xs">
+                    <div
+                      className={cn(
+                        "flex justify-between gap-6 p-3 text-xs",
+                        groupBy && "border-b border-neutral-200",
+                      )}
+                    >
                       <p className="font-medium leading-none text-neutral-900">
                         {formatDateTooltip(d.date, {
                           interval,
@@ -258,38 +272,40 @@ export function EarningsCompositeChart() {
                         {currencyFormatter(d.values.total || 0)}
                       </p>
                     </div>
-                    <div className="grid max-w-64 grid-cols-[minmax(0,1fr),min-content] gap-x-6 gap-y-2 px-4 py-3 text-xs">
-                      {series.map(({ id, colorClassName, valueAccessor }) => {
-                        const group = groupsById.get(id);
-                        return (
-                          <Fragment key={id}>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={cn(
-                                  colorClassName,
-                                  "size-2 shrink-0 rounded-sm bg-current opacity-50 shadow-[inset_0_0_0_1px_#0003]",
-                                )}
-                              />
-                              {groupBy === "programId" && group?.name && (
-                                <ProgramLogo
-                                  program={{
-                                    name: group.name,
-                                    logo: group.logo ?? null,
-                                  }}
-                                  className="size-3.5"
+                    {groupBy && (
+                      <div className="grid max-w-64 grid-cols-[minmax(0,1fr),min-content] gap-x-6 gap-y-2 px-4 py-3 text-xs">
+                        {series.map(({ id, colorClassName, valueAccessor }) => {
+                          const group = groupsById.get(id);
+                          return (
+                            <Fragment key={id}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={cn(
+                                    colorClassName,
+                                    "size-2 shrink-0 rounded-sm bg-current opacity-50 shadow-[inset_0_0_0_1px_#0003]",
+                                  )}
                                 />
-                              )}
-                              <span className="min-w-0 truncate font-medium text-neutral-700">
-                                {getGroupLabel({ groupBy, group, id })}
-                              </span>
-                            </div>
-                            <p className="text-right text-neutral-500">
-                              {currencyFormatter(valueAccessor(d))}
-                            </p>
-                          </Fragment>
-                        );
-                      })}
-                    </div>
+                                {groupBy === "programId" && group?.name && (
+                                  <ProgramLogo
+                                    program={{
+                                      name: group.name,
+                                      logo: group.logo ?? null,
+                                    }}
+                                    className="size-3.5"
+                                  />
+                                )}
+                                <span className="min-w-0 truncate font-medium text-neutral-700">
+                                  {getGroupLabel({ groupBy, group, id })}
+                                </span>
+                              </div>
+                              <p className="text-right text-neutral-500">
+                                {currencyFormatter(valueAccessor(d))}
+                              </p>
+                            </Fragment>
+                          );
+                        })}
+                      </div>
+                    )}
                   </>
                 );
               }}
