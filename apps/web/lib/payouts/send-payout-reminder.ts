@@ -4,7 +4,7 @@ import { PAYOUT_SUPPORTED_COUNTRIES } from "@/lib/constants/payouts-supported-co
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import { prisma } from "@/lib/prisma";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
-import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID, pluck } from "@dub/utils";
+import { pluck } from "@dub/utils";
 import {
   Partner,
   PayoutStatus,
@@ -14,13 +14,6 @@ import {
 } from "@prisma/client";
 
 const BATCH_SIZE = 500;
-
-const EXCLUDED_PROGRAM_IDS = [
-  ACME_PROGRAM_ID,
-  DEMO_PROGRAM_ID,
-  // programs that are in the migration process
-  "prog_xxx",
-];
 
 type PartnerPayoutReminder = {
   partner: Pick<Partner, "id" | "name"> & {
@@ -47,8 +40,8 @@ function payoutReminderWhere({
         PayoutStatus.failed,
       ],
     },
-    programId: {
-      notIn: EXCLUDED_PROGRAM_IDS,
+    amount: {
+      gte: MIN_PAYOUT_AMOUNT_FOR_REMINDERS,
     },
     ...(afterPartnerId && {
       partnerId: {
@@ -85,8 +78,9 @@ function payoutReminderWhere({
         },
       ],
     },
-    amount: {
-      gte: MIN_PAYOUT_AMOUNT_FOR_REMINDERS,
+    program: {
+      deactivatedAt: null,
+      environment: "production",
     },
     programEnrollment: {
       // - Internal programs always pay through Dub, so those partners still need
