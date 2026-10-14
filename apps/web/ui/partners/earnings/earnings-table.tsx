@@ -248,6 +248,9 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               id: "amount",
               header: "Sale Amount",
               accessorKey: "amount",
+              // the header and the sort icon need more than the default 120px
+              size: 150,
+              minSize: 150,
               cell: ({ row }) =>
                 row.original.amount
                   ? currencyFormatter(row.original.amount)
