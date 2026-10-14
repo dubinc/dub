@@ -9,6 +9,40 @@ import { waitUntil } from "@vercel/functions";
 import he from "he";
 import { parse } from "node-html-parser";
 
+// Meta tags are in the <head>, which ends before 1 MB on real pages. Some full
+// pages (long Wikipedia articles) are near 3 MB, so the cap leaves room for them.
+export const MAX_HTML_BYTES = 5 * 1024 * 1024; // 5 MB
+
+// Reads the body as UTF-8 text like response.text(), but stops and returns
+// null when the body passes maxBytes.
+const readTextWithLimit = async (response: Response, maxBytes: number) => {
+  if (!response.body) {
+    return "";
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let bytesRead = 0;
+  let text = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    bytesRead += value.byteLength;
+    if (bytesRead > maxBytes) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+
+    text += decoder.decode(value, { stream: true });
+  }
+
+  return text + decoder.decode();
+};
+
 export const getHtml = async (url: string) => {
   try {
     const response = await safeFetch(url);
@@ -24,7 +58,23 @@ export const getHtml = async (url: string) => {
       return null;
     }
 
-    const text = await response.text();
+    const contentLength = Number(response.headers.get("content-length"));
+    if (contentLength > MAX_HTML_BYTES) {
+      await response.body?.cancel().catch(() => {});
+      console.warn(
+        `HTML response too large (Content-Length: ${contentLength}) for URL: ${url}`,
+      );
+      return null;
+    }
+
+    // Content-Length can be missing or wrong, so the stream is capped as well.
+    const text = await readTextWithLimit(response, MAX_HTML_BYTES);
+    if (text === null) {
+      console.warn(
+        `HTML response passed ${MAX_HTML_BYTES} bytes for URL: ${url}`,
+      );
+      return null;
+    }
 
     // Check if the response contains Cloudflare's challenge page
     if (
