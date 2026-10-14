@@ -5,7 +5,7 @@ import {
   getDomainQuerySchema,
   getUrlQuerySchema,
 } from "@/lib/zod/schemas/links";
-import { getSearchParams, isIframeable } from "@dub/utils";
+import { getSearchParams, isIframeableFromHeaders } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     await ratelimitOrThrow(req, "iframeable");
 
     const res = await safeFetch(url);
-    const iframeable = isIframeable({
+    const iframeable = isIframeableFromHeaders({
       headers: res.headers,
       requestDomain: domain,
     });

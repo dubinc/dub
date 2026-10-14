@@ -1,7 +1,7 @@
 // Determine whether a fetched page can be displayed in an iframe by the
 // requesting domain, given the response's CSP / X-Frame-Options headers.
 // The caller is responsible for fetching the URL (use an SSRF-safe fetcher).
-export const isIframeable = ({
+export const isIframeableFromHeaders = ({
   headers,
   requestDomain,
 }: {
@@ -36,4 +36,21 @@ export const isIframeable = ({
   }
 
   return true;
+};
+
+/**
+ * Fetches `url` and checks whether it can be displayed in an iframe.
+ *
+ * @deprecated This fetches `url` with no SSRF guards. Fetch the URL with an
+ * SSRF-safe fetcher and pass the response headers to `isIframeableFromHeaders`.
+ */
+export const isIframeable = async ({
+  url,
+  requestDomain,
+}: {
+  url: string;
+  requestDomain: string;
+}) => {
+  const res = await fetch(url);
+  return isIframeableFromHeaders({ headers: res.headers, requestDomain });
 };
