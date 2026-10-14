@@ -1,7 +1,8 @@
 "use client";
 
 import { IntervalOptions } from "@/lib/analytics/types";
-import { Button, LoadingSpinner, Modal } from "@dub/ui";
+import { Button, LoadingSpinner, Modal, Tooltip } from "@dub/ui";
+import { ReferredVia } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { X } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -29,6 +30,22 @@ type ShareEarningsModalProps = {
   end?: Date;
   interval: IntervalOptions;
 };
+
+// the share icon next to an earnings chart title
+export function ShareChartButton({ onClick }: { onClick: () => void }) {
+  return (
+    <Tooltip content="Share chart">
+      <button
+        type="button"
+        aria-label="Share chart"
+        onClick={onClick}
+        className="flex size-6 items-center justify-center rounded-md border border-transparent text-neutral-500 transition-colors hover:border-neutral-200 hover:bg-neutral-50 hover:text-neutral-700"
+      >
+        <ReferredVia className="size-3.5" />
+      </button>
+    </Tooltip>
+  );
+}
 
 export function ShareEarningsModal({
   showModal,
