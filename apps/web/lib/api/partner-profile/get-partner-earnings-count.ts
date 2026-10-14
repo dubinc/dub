@@ -1,7 +1,7 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
-import { getPartnerEarningsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
+import { partnerProfileEarningsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { getEarningsProgramFilter } from "./get-earnings-program-id";
@@ -14,7 +14,10 @@ export async function getPartnerEarningsCount({
 }: {
   partnerId: string;
   programId?: string; // if not provided, earnings across all programs (except the network program) are counted
-  filters: z.infer<typeof getPartnerEarningsCountQuerySchema>;
+  filters: Omit<
+    z.infer<typeof partnerProfileEarningsCountQuerySchema>,
+    "programIdOrSlug"
+  >;
 }) {
   const {
     groupBy,
@@ -40,7 +43,10 @@ export async function getPartnerEarningsCount({
     earnings: {
       not: 0,
     },
-    programId: getEarningsProgramFilter(programId),
+    // the program filter options list every program, like the other grouped filters
+    programId: getEarningsProgramFilter(
+      groupBy === "programId" ? undefined : programId,
+    ),
     partnerId,
     ...(payoutId && { payoutId }),
     createdAt: {
@@ -175,6 +181,35 @@ export async function getPartnerEarningsCount({
         domain: link?.domain,
         key: link?.key,
         url: link?.url,
+        _count,
+      };
+    });
+  }
+
+  if (groupBy === "programId") {
+    const programs = await prisma.program.findMany({
+      where: {
+        id: {
+          in: counts.map(({ programId }) => programId),
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        logo: true,
+      },
+    });
+
+    const programsById = new Map(programs.map((p) => [p.id, p]));
+
+    return counts.map(({ programId, _count }) => {
+      const program = programsById.get(programId);
+      return {
+        id: programId,
+        name: program?.name,
+        slug: program?.slug,
+        logo: program?.logo,
         _count,
       };
     });

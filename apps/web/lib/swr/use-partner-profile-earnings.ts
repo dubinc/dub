@@ -72,7 +72,7 @@ export function usePartnerProfileEarningsCount<T = { count: number }>({
   groupBy,
   ...query
 }: PartnerProfileEarningsQuery & {
-  groupBy?: "linkId" | "customerId" | "status" | "type";
+  groupBy?: "linkId" | "customerId" | "status" | "type" | "programId";
 }) {
   return usePartnerProfileEarningsSWR<T>(
     "/count",

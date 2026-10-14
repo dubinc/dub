@@ -233,6 +233,33 @@ test.describe("GET /partner-profile/earnings", () => {
     });
   });
 
+  test("counts earnings grouped by program, also when one program is selected", async ({
+    playwright,
+    program,
+  }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      for (const query of ["", `&programIdOrSlug=${programB.slug}`]) {
+        const { status, data } = await partnerApi.get<
+          { id: string; slug: string; _count: number }[]
+        >(`/api/partner-profile/earnings/count?groupBy=programId${query}`);
+
+        expect(status).toEqual(200);
+        expect(data).toEqual([
+          expect.objectContaining({
+            id: program.id,
+            slug: programSlug,
+            _count: 2,
+          }),
+          expect.objectContaining({
+            id: programB.id,
+            slug: programB.slug,
+            _count: 1,
+          }),
+        ]);
+      }
+    });
+  });
+
   test("filters by program ID or slug", async ({ playwright, program }) => {
     await withPartnerApi(playwright, async (partnerApi) => {
       for (const programIdOrSlug of [program.id, programSlug]) {
