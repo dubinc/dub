@@ -19,6 +19,8 @@ export type PageNavTabsTab = {
   badge?: string | number;
   // Set when the tab is not at `${basePath}/${id}`
   href?: string;
+  // Overrides path-based selection, for tabs that share a path and differ by query param
+  selected?: boolean;
 };
 
 export type PageNavTabsQuicklink = {
@@ -83,12 +85,13 @@ export function PageNavTabs({
             layout
             className={cn("relative z-0 inline-flex items-center gap-1")}
           >
-            {tabs.map(({ id, label, icon: Icon, badge, href }, idx) => {
+            {tabs.map(({ id, label, icon: Icon, badge, href, selected }, idx) => {
               // if it's the base path, match the first tab
               const isSelected =
-                pathname.endsWith(basePath) && idx === 0
+                selected ??
+                (pathname.endsWith(basePath) && idx === 0
                   ? true
-                  : pathname.endsWith(`/${id}`);
+                  : pathname.endsWith(`/${id}`));
               return (
                 <Link
                   key={id}
