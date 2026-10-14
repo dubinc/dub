@@ -63,6 +63,31 @@ type EarningsCountGroup = {
   logo?: string | null;
 };
 
+// the program name, the short link, or the commission type of a chart line
+function getGroupLabel({
+  groupBy,
+  group,
+  id,
+}: {
+  groupBy: EarningsGroupBy;
+  group?: EarningsCountGroup;
+  id: string;
+}) {
+  if (groupBy === "programId" && group?.name) {
+    return group.name;
+  }
+
+  if (groupBy === "linkId" && group?.domain && group?.key) {
+    return linkConstructor({
+      domain: group.domain,
+      key: group.key,
+      pretty: true,
+    });
+  }
+
+  return capitalize(id);
+}
+
 export function EarningsCompositeChart() {
   const { programSlug } = useParams<{ programSlug?: string }>();
   const { queryParams, searchParamsObj } = useRouterStuff();
@@ -255,17 +280,7 @@ export function EarningsCompositeChart() {
                                 />
                               )}
                               <span className="min-w-0 truncate font-medium text-neutral-700">
-                                {groupBy === "programId" && group?.name
-                                  ? group.name
-                                  : groupBy === "linkId" &&
-                                      group?.domain &&
-                                      group?.key
-                                    ? linkConstructor({
-                                        domain: group.domain,
-                                        key: group.key,
-                                        pretty: true,
-                                      })
-                                    : capitalize(id)}
+                                {getGroupLabel({ groupBy, group, id })}
                               </span>
                             </div>
                             <p className="text-right text-neutral-500">
