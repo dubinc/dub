@@ -64,6 +64,7 @@ export const GET = withWorkspace(
     return NextResponse.json(DiscountCodeSchema.array().parse(discountCodes));
   },
   {
+    requiredPermissions: ["discount_codes.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
@@ -210,7 +211,7 @@ export const POST = withWorkspace(
     return NextResponse.json(DiscountCodeSchema.parse(discountCode));
   },
   {
+    requiredPermissions: ["discount_codes.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );

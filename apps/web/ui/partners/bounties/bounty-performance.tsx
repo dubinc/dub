@@ -4,6 +4,7 @@ import { PartnerBountyProps } from "@/lib/types";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import {
   BountyProgressBarRow,
+  BountyProgressVariant,
   EmphasisNumber,
 } from "./bounty-progress-bar-row";
 
@@ -11,10 +12,12 @@ export function PerformanceBountyProgress({
   bounty,
   labelClassName,
   wrapperClassName,
+  variant,
 }: {
   bounty: PartnerBountyProps;
   labelClassName?: string;
   wrapperClassName?: string;
+  variant?: BountyProgressVariant;
 }) {
   const performanceCondition = bounty.performanceCondition;
 
@@ -47,6 +50,7 @@ export function PerformanceBountyProgress({
       progress={percent}
       labelClassName={labelClassName}
       wrapperClassName={wrapperClassName}
+      variant={variant}
     >
       <EmphasisNumber>{formattedValue}</EmphasisNumber> of{" "}
       <EmphasisNumber>{formattedTarget}</EmphasisNumber> {metricLabel} generated
@@ -59,11 +63,13 @@ export function SubmissionBountyProgress({
   labelClassName,
   wrapperClassName,
   className,
+  variant,
 }: {
   bounty: PartnerBountyProps;
   labelClassName?: string;
   wrapperClassName?: string;
   className?: string;
+  variant?: BountyProgressVariant;
 }) {
   const submittedCount = bounty.submissions.filter(
     ({ status }) => status !== "draft",
@@ -83,6 +89,7 @@ export function SubmissionBountyProgress({
         progress={submittedPercent}
         labelClassName={labelClassName}
         wrapperClassName={wrapperClassName}
+        variant={variant}
       >
         <EmphasisNumber>{submittedCount}</EmphasisNumber> of{" "}
         <EmphasisNumber>{maxSubmissions}</EmphasisNumber> submitted
@@ -91,6 +98,7 @@ export function SubmissionBountyProgress({
         progress={approvedPercent}
         labelClassName={labelClassName}
         wrapperClassName={wrapperClassName}
+        variant={variant}
       >
         <EmphasisNumber>{approvedCount}</EmphasisNumber> approved
       </BountyProgressBarRow>

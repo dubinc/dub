@@ -69,7 +69,7 @@ export const DELETE = withWorkspace(
     return NextResponse.json({ id: discountCode.id });
   },
   {
+    requiredPermissions: ["discount_codes.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );
