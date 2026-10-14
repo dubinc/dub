@@ -13,7 +13,13 @@ import {
   PermissionAction,
   getPermissionsByRole,
 } from "../api/rbac/permissions";
-import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
+import {
+  LEGACY_SCOPE_GRANTS,
+  LegacyScopeGrant,
+  Scope,
+  grantLegacyScopePermissions,
+  mapScopesToPermissions,
+} from "../api/tokens/scopes";
 import { throwIfNoAccess } from "../api/tokens/throw-if-no-access";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { withAxiomBodyLog } from "../axiom/server";
@@ -63,11 +69,13 @@ export const withWorkspace = (
     requiredPlan = ["free", "pro", "business", "advanced", "enterprise"], // if the action needs a specific plan
     requiredPermissions = [],
     requiredRoles = [],
+    legacyScopeGrants = [], // permissions that older restricted tokens keep on this route only
     featureFlag, // if the action needs a specific feature flag
   }: {
     requiredPlan?: Array<PlanProps>;
     requiredPermissions?: PermissionAction[];
     requiredRoles?: WorkspaceRole[];
+    legacyScopeGrants?: LegacyScopeGrant[];
     featureFlag?: BetaFeatures;
   } = {},
 ) => {
@@ -168,9 +176,21 @@ export const withWorkspace = (
         if (apiKey) {
           const hashedKey = await hashToken(apiKey);
 
-          const cachedToken = await tokenCache.get({
+          let cachedToken = await tokenCache.get({
             hashedKey,
           });
+
+          // Entries cached before scope dates were stored would be treated as
+          // legacy and granted extra permissions, so reload them from the DB.
+          if (isRestrictedToken && cachedToken) {
+            const cachedScopeEffectiveSince = cachedToken.installationId
+              ? cachedToken.installedIntegration?.createdAt
+              : cachedToken.createdAt;
+
+            if (cachedScopeEffectiveSince == null) {
+              cachedToken = null;
+            }
+          }
 
           if (!cachedToken) {
             const prismaArgs = {
@@ -182,8 +202,14 @@ export const withWorkspace = (
                 expires: true,
                 ...(isRestrictedToken && {
                   scopes: true,
+                  createdAt: true,
                   projectId: true,
                   installationId: true,
+                  installedIntegration: {
+                    select: {
+                      createdAt: true,
+                    },
+                  },
                   project: {
                     select: {
                       plan: true,
@@ -404,7 +430,8 @@ export const withWorkspace = (
           workspace.users[0].role = "owner";
         }
 
-        permissions = getPermissionsByRole(workspace.users[0].role);
+        const rolePermissions = getPermissionsByRole(workspace.users[0].role);
+        permissions = rolePermissions;
 
         // Find the subset of permissions that the user has access to based on the token scopes
         // Empty/null scopes must fail closed (no permissions) — never inherit full role perms
@@ -413,8 +440,20 @@ export const withWorkspace = (
             []) as Scope[];
 
           permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
-            permissions.includes(p),
+            rolePermissions.includes(p),
           );
+
+          // OAuth access tokens are reissued on refresh, so grandfather the
+          // installation date. Workspace API keys use their own createdAt.
+          const scopeEffectiveSince = token?.installationId
+            ? token.installedIntegration?.createdAt
+            : token?.createdAt;
+
+          permissions = grantLegacyScopePermissions({
+            permissions,
+            createdAt: scopeEffectiveSince,
+            grants: [...LEGACY_SCOPE_GRANTS, ...legacyScopeGrants],
+          }).filter((p) => rolePermissions.includes(p));
         }
 
         // Check user has permission to make the action

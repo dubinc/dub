@@ -5,12 +5,16 @@ import * as z from "zod/v4";
 import { PartnerProfileProgramEnrollmentProps } from "../types";
 import { partnerProfileProgramsQuerySchema } from "../zod/schemas/partner-profile";
 
-export default function useProgramEnrollments(
-  query: Omit<
-    z.input<typeof partnerProfileProgramsQuerySchema>,
-    "includeRewardsDiscounts"
-  > & { includeRewardsDiscounts?: boolean } = {},
-) {
+export default function useProgramEnrollments({
+  includeInactiveDates,
+  ...query
+}: Omit<
+  z.input<typeof partnerProfileProgramsQuerySchema>,
+  "includeRewardsDiscounts" | "includeInactiveDates"
+> & {
+  includeRewardsDiscounts?: boolean;
+  includeInactiveDates?: boolean;
+} = {}) {
   const { data: session } = useSession();
   const partnerId = session?.user?.["defaultPartnerId"];
 
@@ -22,7 +26,11 @@ export default function useProgramEnrollments(
     partnerId &&
       `/api/partner-profile/programs?${new URLSearchParams(
         Object.fromEntries(
-          Object.entries(query)
+          Object.entries({
+            ...query,
+            // sent only when true, so other callers share the same request
+            includeInactiveDates: includeInactiveDates || undefined,
+          })
             .filter(([, value]) => value !== undefined)
             .map(([key, value]) => [key, String(value)]),
         ),

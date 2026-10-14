@@ -11,6 +11,12 @@ enum WorkspaceEnvironment {
   sandbox
 }
 
+enum StripeConnectMode {
+  live
+  test
+  sandbox
+}
+
 enum DubProduct {
   program
   links
@@ -39,8 +45,9 @@ model Project {
   environment        WorkspaceEnvironment @default(production)
   stagingWorkspaceId String?              @unique
 
-  stripeConnectId String? @unique // for Stripe Integration
-  shopifyStoreId  String? @unique // for Shopify Integration
+  stripeConnectId   String? // for Stripe Integration
+  stripeConnectMode StripeConnectMode? // Stripe mode the account is connected in
+  shopifyStoreId    String?            @unique // for Shopify Integration
 
   totalLinks  Int @default(0) // Total number of links in the workspace
   totalClicks Int @default(0) // Total number of clicks in the workspace
@@ -109,6 +116,7 @@ model Project {
   utmTemplates          UtmTemplate[]
   yearInReviews         YearInReview[]
 
+  @@unique([stripeConnectId, stripeConnectMode])
   @@index(usageLastChecked(sort: Asc))
   @@index(trialEndsAt)
 }
