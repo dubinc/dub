@@ -32,7 +32,15 @@ export const checkAccountExistsAction = actionClient
           email,
         },
         select: {
-          passwordHash: true,
+          accounts: {
+            where: {
+              providerId: "credential",
+            },
+            select: {
+              id: true,
+            },
+            take: 1,
+          },
         },
       }),
 
@@ -41,7 +49,7 @@ export const checkAccountExistsAction = actionClient
 
     return {
       accountExists: !!user,
-      hasPassword: !!user?.passwordHash,
+      hasPassword: (user?.accounts.length ?? 0) > 0,
       requireSAML: isSamlEnforced,
     };
   });

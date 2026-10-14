@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth";
+import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { redirect } from "next/navigation";
@@ -13,7 +13,7 @@ export default async function ProgramPage({
 
   if (!slug) redirect("/onboarding");
 
-  const { user } = await getSession();
+  const { user } = await requireServerSessionRedirect();
 
   const workspace = await prisma.project.findUniqueOrThrow({
     where: {

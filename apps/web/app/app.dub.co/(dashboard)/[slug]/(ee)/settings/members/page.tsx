@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { isStagingEnvironment } from "@/lib/sandbox/environment";
@@ -46,7 +47,6 @@ import { WorkspaceEnvironment, WorkspaceRole } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus } from "lucide-react";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";

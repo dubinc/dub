@@ -1,6 +1,7 @@
 "use client";
 
 import { GlobalChatContext } from "@/lib/ai/build-system-prompt";
+import { useSession } from "@/lib/better-auth/use-session";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { useChat } from "@ai-sdk/react";
 import { Combobox } from "@dub/ui";
@@ -8,7 +9,6 @@ import { OfficeBuilding, PaperPlane, Users2, Xmark } from "@dub/ui/icons";
 import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
 import { DefaultChatTransport, isFileUIPart, UIMessage } from "ai";
 import { Paperclip } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";

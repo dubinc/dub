@@ -1,6 +1,5 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
-import { Session } from "@/lib/auth";
 import {
   buildMilestonesCommissionDescription,
   getPendingSocialMetricsMilestones,
@@ -20,6 +19,7 @@ import {
   BountySubmissionStatus,
   CommissionSource,
   Prisma,
+  User,
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
@@ -29,7 +29,7 @@ interface ApproveBountySubmissionParams
   programId: string;
   bountyId?: string;
   submissionId: string;
-  user: Session["user"];
+  user: Pick<User, "id">;
 }
 
 const submissionApprovalInclude = {
@@ -210,7 +210,7 @@ async function approveSocialMetricsMilestones({
   submissionId: string;
   submission: SubmissionToApprove;
   metric: string;
-  user: Session["user"];
+  user: Pick<User, "id">;
 }) {
   const { bounty } = submission;
 
@@ -328,7 +328,7 @@ function runApprovalSideEffects({
 }: {
   approvedSubmission: ApprovedSubmission;
   bounty: Pick<SubmissionToApprove["bounty"], "name" | "type">;
-  user: Session["user"];
+  user: Pick<User, "id">;
   description: string;
   notifyPartner: boolean;
 }) {

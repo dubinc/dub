@@ -1,6 +1,7 @@
 import { jackson } from "@/lib/jackson";
 import { NextResponse } from "next/server";
 
+// POST - /api/auth/saml/callback
 export async function POST(req: Request) {
   const { oauthController } = await jackson();
 

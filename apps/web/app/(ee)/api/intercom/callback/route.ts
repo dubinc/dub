@@ -1,5 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { getSession } from "@/lib/auth";
+import { requireServerSession } from "@/lib/better-auth/get-session";
 import { encrypt } from "@/lib/encryption";
 import { installIntegration } from "@/lib/integrations/install";
 import { Intercom } from "@/lib/integrations/intercom/client";
@@ -31,14 +31,7 @@ export const GET = async (req: Request) => {
     | null = null;
 
   try {
-    const session = await getSession();
-
-    if (!session?.user.id) {
-      throw new DubApiError({
-        code: "unauthorized",
-        message: "Unauthorized. Please login to continue.",
-      });
-    }
+    const { user } = await requireServerSession();
 
     const { token, contextId: workspaceId } =
       await intercomOAuthProvider.exchangeCodeForToken<string>(req);
@@ -53,7 +46,7 @@ export const GET = async (req: Request) => {
         plan: true,
         users: {
           where: {
-            userId: session.user.id,
+            userId: user.id,
           },
           select: {
             role: true,
@@ -114,7 +107,7 @@ export const GET = async (req: Request) => {
 
     await installIntegration({
       integrationId: integration.id,
-      userId: session.user.id,
+      userId: user.id,
       workspaceId,
       credentials,
     });

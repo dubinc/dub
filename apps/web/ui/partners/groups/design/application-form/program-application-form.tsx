@@ -4,6 +4,7 @@ import {
   createProgramApplicationAction,
   PartnerData,
 } from "@/lib/actions/partners/create-program-application";
+import { useSession } from "@/lib/better-auth/use-session";
 import {
   GroupWithFormDataProps,
   ProgramApplicationFormDataWithValues,
@@ -12,7 +13,6 @@ import {
 import { useTrackApplyStart } from "@/ui/application-analytics";
 import { Button, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";

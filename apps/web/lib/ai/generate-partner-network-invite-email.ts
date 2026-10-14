@@ -8,7 +8,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramPartnerEarningsClaim } from "@/lib/api/programs/get-program-partner-earnings-claim";
 import { getUsableNetworkPartnerName } from "@/lib/network/get-program-network-invite-email-defaults";
 import { prisma } from "@/lib/prisma";
-import { emailSchema } from "@/lib/zod/schemas/auth";
+import { parseEmail } from "@/lib/zod/schemas/auth";
 import { anthropic } from "@ai-sdk/anthropic";
 import { generateText, Output } from "ai";
 import * as z from "zod/v4";
@@ -73,7 +73,7 @@ export const generatePartnerNetworkInviteEmailAction = authActionClient
       throw new Error("Partner not found or already enrolled in this program.");
     }
 
-    if (!emailSchema.safeParse(partner.email).success) {
+    if (!parseEmail(partner.email)) {
       throw new Error("Partner does not have a valid email address.");
     }
 

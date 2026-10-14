@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth";
+import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
 import { prisma } from "@/lib/prisma";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import {
@@ -29,9 +29,9 @@ export default async function WorkspaceInvitePage({
 }) {
   const { slug } = await params;
 
-  const session = await getSession();
-
-  if (!session) redirect(`/login?next=/${slug}/invite`);
+  const session = await requireServerSessionRedirect(
+    `/login?next=/${slug}/invite`,
+  );
 
   const [user, invite] = await Promise.all([
     prisma.user.findUniqueOrThrow({

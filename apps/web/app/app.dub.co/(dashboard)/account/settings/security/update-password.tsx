@@ -1,5 +1,6 @@
 "use client";
 
+import { authClient } from "@/lib/better-auth/auth-client";
 import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
 import { PasswordRequirements } from "@/ui/shared/password-requirements";
 import { Button, Input, Label } from "@dub/ui";
@@ -13,24 +14,31 @@ export const UpdatePassword = () => {
   const {
     register,
     handleSubmit,
-    setError,
     formState: { isSubmitting, isDirty, errors },
     reset,
+    setError,
   } = form;
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const response = await fetch("/api/user/password", {
-        method: "PATCH",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const { error } = await authClient.changePassword({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+        revokeOtherSessions: true,
       });
 
-      if (!response.ok) {
-        const { error } = await response.json();
-        setError("currentPassword", { message: error.message });
+      if (error) {
+        if (error.code === "INVALID_PASSWORD") {
+          setError("currentPassword", { message: error.message });
+        } else if (
+          error.code === "PASSWORD_TOO_SHORT" ||
+          error.code === "PASSWORD_REQUIREMENTS_NOT_MET"
+        ) {
+          setError("newPassword", { message: error.message });
+        } else {
+          toast.error(error.message || "Failed to update password.");
+        }
+
         return;
       }
 

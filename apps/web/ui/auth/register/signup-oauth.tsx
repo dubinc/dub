@@ -1,10 +1,13 @@
 "use client";
 
+import { getOAuthErrorCallbackURL } from "@/lib/better-auth/account-linking";
+import { authClient } from "@/lib/better-auth/auth-client";
 import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { Button, Github, Google } from "@dub/ui";
-import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { AccountAlreadyExistsModal } from "../account-already-exists-modal";
 
 export const SignUpOAuth = ({
   methods,
@@ -29,15 +32,23 @@ export const SignUpOAuth = ({
 
   return (
     <>
+      <AccountAlreadyExistsModal />
       {methods.includes("google") && (
         <Button
           variant="secondary"
           text="Continue with Google"
-          onClick={() => {
+          onClick={async () => {
             setClickedGoogle(true);
-            signIn("google", {
-              ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+            const { error } = await authClient.signIn.social({
+              provider: "google",
+              ...(next && next.length > 0 ? { callbackURL: next } : {}),
+              errorCallbackURL: getOAuthErrorCallbackURL("google"),
             });
+
+            if (error) {
+              toast.error(error.message || "Failed to start Google sign in.");
+              setClickedGoogle(false);
+            }
           }}
           loading={clickedGoogle}
           icon={<Google className="h-4 w-4" />}
@@ -47,11 +58,18 @@ export const SignUpOAuth = ({
         <Button
           variant="secondary"
           text="Continue with GitHub"
-          onClick={() => {
+          onClick={async () => {
             setClickedGithub(true);
-            signIn("github", {
-              ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+            const { error } = await authClient.signIn.social({
+              provider: "github",
+              ...(next && next.length > 0 ? { callbackURL: next } : {}),
+              errorCallbackURL: getOAuthErrorCallbackURL("github"),
             });
+
+            if (error) {
+              toast.error(error.message || "Failed to start GitHub sign in.");
+              setClickedGithub(false);
+            }
           }}
           loading={clickedGithub}
           icon={<Github className="h-4 w-4" />}

@@ -1,7 +1,7 @@
 "use client";
 
+import { signOut } from "@/lib/better-auth/use-session";
 import { Button } from "@dub/ui";
-import { signOut } from "next-auth/react";
 import { useState } from "react";
 
 export function ContinueAsInvitedButton({

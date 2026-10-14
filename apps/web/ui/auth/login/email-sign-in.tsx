@@ -1,23 +1,41 @@
+"use client";
+
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
+import { authClient } from "@/lib/better-auth/auth-client";
+import { AUTH_ERROR_MESSAGES } from "@/lib/better-auth/auth-errors";
 import { testIds } from "@/lib/e2e/test-ids";
+import { parseEmail } from "@/lib/zod/schemas/auth";
 import { Button, Input, useCurrentSubdomain, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { errorCodes, LoginFormContext } from "./login-form";
+import { getPostLoginRedirect } from "./get-post-login-redirect";
+import { LoginFormContext } from "./login-form";
+
+function authErrorMessage(message?: string | null) {
+  if (!message) {
+    return null;
+  }
+
+  return AUTH_ERROR_MESSAGES[message] ?? message;
+}
 
 export const EmailSignIn = ({ next }: { next?: string }) => {
   const { subdomain } = useCurrentSubdomain();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const finalNext = next ?? searchParams?.get("next");
   const { isMobile } = useMediaQuery();
-  const [email, setEmail] = useState("");
+  const prefilledEmail = parseEmail(searchParams?.get("email"));
+  const [email, setEmail] = useState(prefilledEmail ?? "");
   const [password, setPassword] = useState("");
+
+  const finalNext = getPostLoginRedirect({
+    next,
+    searchParamsNext: searchParams?.get("next"),
+  });
 
   const {
     showPasswordField,
@@ -26,7 +44,6 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
     authMethod,
     setAuthMethod,
     clickedMethod,
-    setLastUsedAuthMethod,
     setShowSSOOption,
   } = useContext(LoginFormContext);
 
@@ -35,6 +52,19 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
       toast.error(error.serverError);
     },
   });
+
+  useEffect(() => {
+    if (!prefilledEmail) {
+      return;
+    }
+
+    void executeAsync({ email: prefilledEmail }).then((result) => {
+      if (result?.data?.accountExists && result.data.hasPassword) {
+        setShowPasswordField(true);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -54,9 +84,7 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
 
             if (requireSAML) {
               setClickedMethod(undefined);
-              toast.error(
-                "Your organization requires authentication through your company's identity provider.",
-              );
+              toast.error(AUTH_ERROR_MESSAGES["require-saml-sso"]);
               return;
             }
 
@@ -79,6 +107,7 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
           const result = await executeAsync({ email });
 
           if (!result?.data) {
+            setClickedMethod(undefined);
             return;
           }
 
@@ -92,46 +121,46 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
             return;
           }
 
-          const provider = password && hasPassword ? "credentials" : "email";
+          if (password && hasPassword) {
+            const { error } = await authClient.signIn.email({
+              email,
+              password,
+            });
 
-          const response = await signIn(provider, {
-            email,
-            redirect: false,
-            callbackUrl: finalNext || "/workspaces",
-            ...(password && { password }),
-          });
-
-          if (!response) {
-            return;
-          }
-
-          if (response.error) {
-            if (response.error === "invalid-credentials") {
-              toast.error(errorCodes[response.error], {
-                testId: testIds.auth.loginInvalidCredentials,
-              });
-            } else if (errorCodes[response.error]) {
-              toast.error(errorCodes[response.error]);
-            } else {
-              toast.error(response.error);
+            if (error) {
+              toast.error(
+                authErrorMessage(error.message) ??
+                  AUTH_ERROR_MESSAGES["invalid-credentials"],
+                {
+                  ...(error.code === "INVALID_EMAIL_OR_PASSWORD" && {
+                    testId: testIds.auth.loginInvalidCredentials,
+                  }),
+                },
+              );
+              setClickedMethod(undefined);
+              return;
             }
 
+            router.push(finalNext);
+            return;
+          }
+
+          const { error } = await authClient.signIn.magicLink({
+            email,
+            callbackURL: finalNext,
+          });
+
+          if (error) {
+            toast.error(
+              authErrorMessage(error.message) ?? "Failed to send login email.",
+            );
             setClickedMethod(undefined);
             return;
           }
 
-          setLastUsedAuthMethod("email");
-
-          if (provider === "email") {
-            toast.success("Email sent - check your inbox!");
-            setEmail("");
-            setClickedMethod(undefined);
-            return;
-          }
-
-          if (provider === "credentials") {
-            router.push(response?.url || finalNext || "/workspaces");
-          }
+          toast.success("Email sent - check your inbox!");
+          setEmail("");
+          setClickedMethod(undefined);
         }}
         className="flex flex-col gap-y-6"
       >

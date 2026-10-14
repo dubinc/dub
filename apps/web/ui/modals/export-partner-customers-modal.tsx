@@ -1,6 +1,7 @@
 "use client";
 
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
+import { useSession } from "@/lib/better-auth/use-session";
 import { CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
@@ -15,7 +16,6 @@ import {
   Switch,
   useRouterStuff,
 } from "@dub/ui";
-import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import {
   Dispatch,

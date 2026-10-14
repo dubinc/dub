@@ -1,7 +1,7 @@
 "use server";
 
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import { getSession } from "@/lib/auth";
+import { getServerSession } from "@/lib/better-auth/get-session";
 import { prisma } from "@/lib/prisma";
 import {
   filterPayoutFixes,
@@ -202,8 +202,8 @@ async function authorizeRewardTooltipReview(input: unknown) {
     return null;
   }
 
-  const session = await getSession();
-  if (!session?.user.id) {
+  const { user } = await getServerSession();
+  if (!user?.id) {
     return null;
   }
 
@@ -212,7 +212,7 @@ async function authorizeRewardTooltipReview(input: unknown) {
     where: { id: workspaceId },
     include: {
       users: {
-        where: { userId: session.user.id },
+        where: { userId: user.id },
         select: { role: true },
       },
     },
@@ -232,7 +232,7 @@ async function authorizeRewardTooltipReview(input: unknown) {
   }
 
   return {
-    userId: session.user.id,
+    userId: user.id,
     workspaceId,
     data: parsedInput.data,
   };

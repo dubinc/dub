@@ -2,6 +2,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { inviteUser } from "@/lib/api/users";
 import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan";
 import { withWorkspace } from "@/lib/auth";
+import { buildLookupKey } from "@/lib/better-auth/utils";
+import { deleteVerificationTokens } from "@/lib/better-auth/verification-token";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { prisma } from "@/lib/prisma";
 import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
@@ -241,6 +243,10 @@ export const DELETE = withWorkspace(
           projectId: workspace.id,
         },
       },
+    });
+
+    await deleteVerificationTokens({
+      lookupKey: buildLookupKey("invite", email, workspace.id),
     });
 
     return NextResponse.json(response);

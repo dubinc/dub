@@ -1,31 +1,22 @@
 "use client";
 
 import useUser from "@/lib/swr/use-user";
-import { RequestSetPassword } from "./request-set-password";
+import { RecentSessions } from "@/ui/account/recent-sessions";
+import { SignInMethods } from "@/ui/account/sign-in-methods";
+import { useState } from "react";
 import { UpdatePassword } from "./update-password";
 
 export const dynamic = "force-dynamic";
 
 export default function SecurityPageClient() {
-  const { loading, user } = useUser();
+  const { user } = useUser();
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
 
-  if (loading) {
-    return (
-      <div className="rounded-xl border border-neutral-200 bg-white">
-        <div className="flex flex-col space-y-1 border-b border-neutral-200 p-6">
-          <h2 className="text-base font-semibold">Password</h2>
-          <div className="h-3 w-56 rounded-full bg-neutral-100"></div>
-        </div>
-        <div className="p-5">
-          <div className="flex justify-between gap-2">
-            <div className="h-3 w-56 rounded-full bg-neutral-100"></div>
-            <div className="h-3 w-56 rounded-full bg-neutral-100"></div>
-          </div>
-          <div className="mt-5 h-3 rounded-full bg-neutral-100"></div>
-        </div>
-      </div>
-    );
-  }
-
-  return <>{user?.hasPassword ? <UpdatePassword /> : <RequestSetPassword />}</>;
+  return (
+    <div className="flex flex-col gap-6">
+      <SignInMethods onManagePassword={() => setShowPasswordForm(true)} />
+      {user?.hasPassword && showPasswordForm && <UpdatePassword />}
+      <RecentSessions />
+    </div>
+  );
 }

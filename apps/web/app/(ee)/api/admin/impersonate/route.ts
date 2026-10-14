@@ -1,12 +1,12 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { normalizeDomainInput } from "@/lib/api/domains/normalize-domain-input";
-import { hashToken, withAdmin } from "@/lib/auth";
+import { withAdmin } from "@/lib/auth";
+import { createImpersonationUrls } from "@/lib/better-auth/admin-impersonation-plugin";
 import { prisma } from "@/lib/prisma";
 import { getWorkspaceUsage } from "@/lib/tinybird/get-workspace-usage";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import {
-  APP_DOMAIN,
   isAppHostname,
   isDubDomain,
   PARTNERS_DOMAIN,
@@ -14,7 +14,6 @@ import {
   validSlugRegex,
 } from "@dub/utils";
 import { Prisma } from "@prisma/client";
-import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 
 const userSelect = {
@@ -266,7 +265,7 @@ export const POST = withAdmin(async ({ req }) => {
             ...rest,
           }))
         : [],
-    impersonateUrl: await getImpersonateUrl(response.email),
+    impersonateUrl: await createImpersonationUrls(response.email),
     ...(link
       ? {
           link: {
@@ -617,32 +616,4 @@ async function findUser(
   }
 
   return { user };
-}
-
-async function getImpersonateUrl(email: string) {
-  const token = randomBytes(32).toString("hex");
-
-  await prisma.verificationToken.create({
-    data: {
-      identifier: email,
-      token: await hashToken(token, { secret: true }),
-      expires: new Date(Date.now() + 60000),
-      isAdminImpersonation: true,
-    },
-  });
-
-  return {
-    app: `${APP_DOMAIN}/api/auth/callback/email?${new URLSearchParams({
-      callbackUrl: APP_DOMAIN,
-      email,
-      token,
-    })}`,
-    partners: `${PARTNERS_DOMAIN}/api/auth/callback/email?${new URLSearchParams(
-      {
-        callbackUrl: PARTNERS_DOMAIN,
-        email,
-        token,
-      },
-    )}`,
-  };
 }

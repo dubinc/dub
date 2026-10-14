@@ -1,8 +1,10 @@
 import { dub } from "@/lib/dub";
-import { User } from "next-auth";
 import { cookies } from "next/headers";
+import { SessionUser } from "../better-auth/get-session";
 
-export const trackDubLead = async (user: User) => {
+export const trackDubLead = async (
+  user: Pick<SessionUser, "id" | "name" | "email" | "image">,
+) => {
   const cookieStore = await cookies();
   const clickId = cookieStore.get("dub_id")?.value;
 

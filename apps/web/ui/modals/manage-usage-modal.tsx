@@ -1,3 +1,4 @@
+import { useSession } from "@/lib/better-auth/use-session";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -23,7 +24,6 @@ import {
   isDowngradePlan,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   Dispatch,

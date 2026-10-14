@@ -1,5 +1,5 @@
+import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
 import { testIds } from "@/lib/e2e/test-ids";
-import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Suspense } from "react";
 import { OnboardingForm } from "./onboarding-form";
@@ -23,7 +23,7 @@ export default function PartnerOnboarding() {
 }
 
 async function OnboardingFormRSC() {
-  const { user } = await getSession();
+  const { user } = await requireServerSessionRedirect();
 
   const partner = await prisma.partner.findUnique({
     where: {

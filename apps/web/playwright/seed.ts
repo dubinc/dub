@@ -1,7 +1,7 @@
 import "dotenv-flow/config";
 
+import { hashPassword } from "@/lib/auth/password";
 import { PrismaClient } from "@prisma/client";
-import { hashSync } from "bcryptjs";
 import { assertLocalDatabaseEnv } from "./assert-local-database";
 
 const prisma = new PrismaClient();
@@ -15,19 +15,41 @@ const E2E_PARTNER = {
 async function main() {
   assertLocalDatabaseEnv();
 
-  const passwordHash = hashSync(E2E_PARTNER.password, 10);
+  const passwordHash = await hashPassword(E2E_PARTNER.password);
 
   const user = await prisma.user.upsert({
     where: {
       email: E2E_PARTNER.email,
     },
-    update: {},
+    update: {
+      passwordHash,
+      emailVerified: new Date(),
+      emailVerifiedBa: true,
+    },
     create: {
       email: E2E_PARTNER.email,
       name: E2E_PARTNER.name,
       emailVerified: new Date(),
       emailVerifiedBa: true,
       passwordHash,
+    },
+  });
+
+  await prisma.account.upsert({
+    where: {
+      providerId_accountId: {
+        providerId: "credential",
+        accountId: user.id,
+      },
+    },
+    update: {
+      password: passwordHash,
+    },
+    create: {
+      userId: user.id,
+      accountId: user.id,
+      providerId: "credential",
+      password: passwordHash,
     },
   });
 

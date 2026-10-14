@@ -9,8 +9,15 @@
       "@/lib/*": ["lib/*"]
     },
     "target": "ES2022",
-    "types": ["node"]
+    "types": ["node"],
+    "noEmit": true,
+    "plugins": []
   },
-  "include": ["./**/*.ts"],
+  "include": [
+    "./**/*.ts",
+    "./**/*.tsx",
+    "../playwright.config.ts",
+    "./global-setup.ts"
+  ],
   "exclude": ["node_modules"]
 }

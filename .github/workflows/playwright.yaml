@@ -27,7 +27,8 @@ jobs:
       PLANETSCALE_DATABASE_URL: "http://root:unused@localhost:3900/planetscale"
 
       NEXTAUTH_SECRET: "e2e-test-secret-at-least-32-chars-long"
-      NEXTAUTH_URL: "http://partners.localhost:8888"
+      BETTER_AUTH_SECRET: "e2e-test-secret-at-least-32-chars-long"
+      BETTER_AUTH_URL: "http://partners.localhost:8888"
 
       E2E_PARTNER_EMAIL: "partner1@dub-internal-test.com"
       E2E_PARTNER_PASSWORD: "password"

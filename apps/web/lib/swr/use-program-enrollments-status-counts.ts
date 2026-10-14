@@ -1,6 +1,6 @@
+import { useSession } from "@/lib/better-auth/use-session";
 import { fetcher } from "@dub/utils";
 import { ProgramEnrollmentStatus } from "@prisma/client";
-import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 import useSWR from "swr";
 

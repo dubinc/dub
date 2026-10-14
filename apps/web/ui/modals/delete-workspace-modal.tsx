@@ -1,7 +1,7 @@
+import { useSession } from "@/lib/better-auth/use-session";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BlurImage, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,

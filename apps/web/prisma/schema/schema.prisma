@@ -67,6 +67,7 @@ model User {
   @@index(sentMail)
 }
 
+// Unified NextAuth + Better Auth account table
 model Account {
   // Shared
   id     String  @id @default(cuid())
@@ -86,6 +87,7 @@ model Account {
   session_state            String?
 
   // Better Auth
+  // TODO: Make accountId and providerId required after NextAuth → Better Auth migration
   accountId             String?
   providerId            String?
   accessToken           String?   @db.Text
@@ -127,6 +129,7 @@ model Session {
   @@index(expiresAt)
 }
 
+// Better Auth verification table
 model Verification {
   id         String   @id @default(cuid())
   identifier String // Token

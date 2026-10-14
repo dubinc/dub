@@ -1,5 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { getSession } from "@/lib/auth";
+import { getServerSession } from "@/lib/better-auth/get-session";
 import { encrypt } from "@/lib/encryption";
 import {
   GoogleAdsApi,
@@ -28,9 +28,9 @@ export const GET = async (req: Request) => {
     | null = null;
 
   try {
-    const session = await getSession();
+    const { user } = await getServerSession();
 
-    if (!session?.user.id) {
+    if (!user?.id) {
       throw new DubApiError({
         code: "unauthorized",
         message: "Unauthorized. Please login to continue.",
@@ -50,7 +50,7 @@ export const GET = async (req: Request) => {
         plan: true,
         users: {
           where: {
-            userId: session.user.id,
+            userId: user.id,
           },
           select: {
             role: true,
@@ -127,7 +127,7 @@ export const GET = async (req: Request) => {
 
     await installIntegration({
       integrationId: GOOGLE_ADS_INTEGRATION_ID,
-      userId: session.user.id,
+      userId: user.id,
       workspaceId,
       credentials,
       settings,

@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import { WorkspaceEnvironmentSwitcher } from "@/lib/sandbox/components/workspace-environment";
 import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
@@ -16,7 +17,6 @@ import {
 } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
 import { cn, isLegacyBusinessPlan, pluralize } from "@dub/utils";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";

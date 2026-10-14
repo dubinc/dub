@@ -2,9 +2,9 @@
 
 import { cancelEmailChangeAction } from "@/lib/actions/cancel-email-change";
 import { confirmEmailChangeAction } from "@/lib/actions/confirm-email-change";
+import { useSession } from "@/lib/better-auth/use-session";
 import EmptyState from "@/ui/shared/empty-state";
 import { Button, InputPassword } from "@dub/ui";
-import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -16,8 +16,8 @@ export default function ConfirmEmailChangePageClient({
   newEmail,
 }: {
   token: string;
-  email: string;
-  newEmail: string;
+  email?: string;
+  newEmail?: string;
 }) {
   const router = useRouter();
   const { update } = useSession();
@@ -78,9 +78,18 @@ export default function ConfirmEmailChangePageClient({
         Confirm your email change
       </h3>
       <p className="mt-2 text-center text-sm text-neutral-500">
-        Confirm the update to your email from{" "}
-        <span className="font-medium text-neutral-700">{email}</span> to{" "}
-        <span className="font-medium text-neutral-900">{newEmail}</span>.
+        {email && newEmail ? (
+          <>
+            Confirm the update to your email from{" "}
+            <span className="font-medium text-neutral-700">{email}</span> to{" "}
+            <span className="font-medium text-neutral-900">{newEmail}</span>.
+          </>
+        ) : (
+          <>
+            Confirm the update to your email address. This change will take
+            effect immediately.
+          </>
+        )}
       </p>
 
       <div className="mt-8 flex gap-3">

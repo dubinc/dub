@@ -1,5 +1,5 @@
+import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
 import { testIds } from "@/lib/e2e/test-ids";
-import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { PartnerPlatformProps } from "@/lib/types";
@@ -37,7 +37,7 @@ export default function OnboardingPlatformsPage() {
 }
 
 async function OnboardingPlatformsFormRSC() {
-  const { user } = await getSession();
+  const { user } = await requireServerSessionRedirect();
 
   const [partner, application] = await Promise.all([
     prisma.partner.findFirst({

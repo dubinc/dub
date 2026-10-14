@@ -1,5 +1,5 @@
+import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
 import { testIds } from "@/lib/e2e/test-ids";
-import { getSession } from "@/lib/auth";
 import { getPartnerPayoutMethods } from "@/lib/payouts/get-partner-payout-methods";
 import { prisma } from "@/lib/prisma";
 import { PayoutMethodSelector } from "@/ui/partners/payouts/payout-method-cards";
@@ -53,7 +53,7 @@ function PayoutSkeleton() {
 }
 
 async function PayoutRSC() {
-  const { user } = await getSession();
+  const { user } = await requireServerSessionRedirect();
 
   const partner = await prisma.partner.findUnique({
     where: {

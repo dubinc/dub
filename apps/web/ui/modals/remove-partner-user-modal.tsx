@@ -1,9 +1,9 @@
+import { signOut, useSession } from "@/lib/better-auth/use-session";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerUserProps } from "@/lib/types";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
-import { signOut, useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
 import {

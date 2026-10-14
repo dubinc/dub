@@ -1,6 +1,7 @@
 "use client";
 
 import { canAccessProgram } from "@/lib/auth/product-access-guard";
+import { useSession } from "@/lib/better-auth/use-session";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -9,7 +10,6 @@ import { PageContent } from "@/ui/layout/page-content";
 import { SimpleEmptyState } from "@/ui/shared/simple-empty-state";
 import { ShieldSlash, buttonVariants } from "@dub/ui";
 import { cn, isLegacyBusinessPlan } from "@dub/utils";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { ReactNode } from "react";
 import { ProgramEmptyState } from "./program-empty-state";

@@ -89,6 +89,8 @@ export const confirmEmailChangeAction = authUserActionClient
           },
           data: {
             email: data.newEmail,
+            emailVerified: new Date(),
+            emailVerifiedBa: true,
           },
         }),
 
@@ -123,6 +125,8 @@ export const confirmEmailChangeAction = authUserActionClient
         },
         data: {
           email: data.newEmail,
+          emailVerified: new Date(),
+          emailVerifiedBa: true,
         },
       });
     }

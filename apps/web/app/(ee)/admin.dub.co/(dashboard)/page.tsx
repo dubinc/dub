@@ -1,5 +1,5 @@
-import { getSession } from "@/lib/auth";
 import { isAdminAccessRestricted } from "@/lib/auth/admin-access-guard";
+import { getServerSession } from "@/lib/better-auth/get-session";
 import { BanLink } from "./components/ban-link";
 import { ConvertToSandboxWorkspace } from "./components/convert-to-sandbox-workspace";
 import { DeletePartnerAccount } from "./components/delete-partner-account";
@@ -10,8 +10,8 @@ import { ResetLoginAttempts } from "./components/reset-login-attempts";
 import { SlackSupportInvite } from "./components/slack-support-invite";
 
 export default async function AdminPage() {
-  const session = await getSession();
-  const showModerationTools = !isAdminAccessRestricted(session?.user?.id);
+  const { user } = await getServerSession();
+  const showModerationTools = !isAdminAccessRestricted(user?.id);
 
   return (
     <div className="mx-auto flex w-full max-w-screen-sm flex-col divide-y divide-neutral-200 overflow-auto bg-white">

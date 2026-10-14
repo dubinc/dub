@@ -24,4 +24,5 @@ const handler = async (req: Request) => {
   }
 };
 
+// GET/POST - /api/auth/saml/authorize
 export { handler as GET, handler as POST };

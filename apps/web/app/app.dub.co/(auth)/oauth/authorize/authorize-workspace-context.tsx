@@ -1,10 +1,10 @@
 "use client";
 
 import { canInstallOAuthApp } from "@/lib/api/oauth/can-install-oauth-app";
+import { useSession } from "@/lib/better-auth/use-session";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { WorkspaceProps } from "@/lib/types";
 import { Integration } from "@prisma/client";
-import { useSession } from "next-auth/react";
 import {
   createContext,
   Dispatch,

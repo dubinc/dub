@@ -1,5 +1,5 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
-import { getSession } from "@/lib/auth";
+import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
 import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
 import { prisma } from "@/lib/prisma";
 import { emailSchema } from "@/lib/zod/schemas/auth";
@@ -27,9 +27,9 @@ export default async function ProgramInvitePage(props: {
   const searchParams = await props.searchParams;
   const { programSlug } = params;
 
-  const session = await getSession();
-  const user = session?.user;
-  if (!user) redirect(`/login?next=/programs/${programSlug}/invite`);
+  const { user } = await requireServerSessionRedirect(
+    `/login?next=/programs/${programSlug}/invite`,
+  );
 
   const invitedEmailResult = emailSchema.safeParse(
     Array.isArray(searchParams.email)

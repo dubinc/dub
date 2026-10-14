@@ -1,6 +1,7 @@
 "use client";
 
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
+import { useSession } from "@/lib/better-auth/use-session";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -15,7 +16,6 @@ import {
   Switch,
   useRouterStuff,
 } from "@dub/ui";
-import { useSession } from "next-auth/react";
 import {
   Dispatch,
   SetStateAction,

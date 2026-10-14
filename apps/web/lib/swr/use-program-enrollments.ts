@@ -1,20 +1,23 @@
+import { useSession } from "@/lib/better-auth/use-session";
 import { fetcher } from "@dub/utils";
-import { useSession } from "next-auth/react";
 import useSWR from "swr";
 import * as z from "zod/v4";
 import { PartnerProfileProgramEnrollmentProps } from "../types";
 import { partnerProfileProgramsQuerySchema } from "../zod/schemas/partner-profile";
 
-export default function useProgramEnrollments({
-  includeInactiveDates,
-  ...query
-}: Omit<
-  z.input<typeof partnerProfileProgramsQuerySchema>,
-  "includeRewardsDiscounts" | "includeInactiveDates"
-> & {
-  includeRewardsDiscounts?: boolean;
-  includeInactiveDates?: boolean;
-} = {}) {
+export default function useProgramEnrollments(
+  {
+    includeInactiveDates,
+    ...query
+  }: Omit<
+    z.input<typeof partnerProfileProgramsQuerySchema>,
+    "includeRewardsDiscounts" | "includeInactiveDates"
+  > & {
+    includeRewardsDiscounts?: boolean;
+    includeInactiveDates?: boolean;
+  } = {},
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   const { data: session } = useSession();
   const partnerId = session?.user?.["defaultPartnerId"];
 
@@ -23,7 +26,8 @@ export default function useProgramEnrollments({
     isLoading,
     error,
   } = useSWR<PartnerProfileProgramEnrollmentProps[]>(
-    partnerId &&
+    enabled &&
+      partnerId &&
       `/api/partner-profile/programs?${new URLSearchParams(
         Object.fromEntries(
           Object.entries({

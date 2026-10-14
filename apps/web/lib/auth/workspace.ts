@@ -23,12 +23,15 @@ import {
 import { throwIfNoAccess } from "../api/tokens/throw-if-no-access";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { withAxiomBodyLog } from "../axiom/server";
+import { requireServerSession } from "../better-auth/get-session";
 import { getFeatureFlags } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { canAccessProgram, isProgramApiPath } from "./product-access-guard";
 import { rateLimitRequest } from "./rate-limit-request";
 import { TokenCacheItem, tokenCache } from "./token-cache";
-import { Session, getSession } from "./utils";
+import { Session } from "./utils";
+
+type SessionUser = Session["user"];
 
 const RATE_LIMIT_FOR_SESSIONS = {
   api: {
@@ -96,7 +99,7 @@ export const withWorkspace = (
       let requestHeaders = await headers();
       let responseHeaders = new Headers();
       let workspace: WorkspaceWithUsers | undefined;
-      let session: Session | undefined;
+      let user: SessionUser | undefined;
       let token: TokenCacheItem | null = null;
 
       const startTime = Date.now();
@@ -318,30 +321,28 @@ export const withWorkspace = (
             })(),
           );
 
-          session = {
-            user: {
-              id: token.user.id,
-              name: token.user.name || "",
-              email: token.user.email || "",
-              isMachine: token.user.isMachine,
-            },
+          user = {
+            id: token.user.id,
+            name: token.user.name || "",
+            email: token.user.email || "",
+            isMachine: token.user.isMachine,
           };
         } else {
-          session = await getSession();
+          const result = await requireServerSession();
 
-          if (!session?.user?.id) {
-            throw new DubApiError({
-              code: "unauthorized",
-              message: "Unauthorized: Login required.",
-            });
-          }
+          user = {
+            id: result.user.id,
+            name: result.user.name || "",
+            email: result.user.email || "",
+            isMachine: result.user.isMachine,
+          };
 
           // Rate limit checks for session requests
           const rateLimit =
             RATE_LIMIT_FOR_SESSIONS[isAnalytics ? "analyticsApi" : "api"];
 
           const { success, headers } = await rateLimitRequest({
-            identifier: `workspace:ratelimit:${session.user.id}`,
+            identifier: `workspace:ratelimit:${user.id}`,
             requests: rateLimit.limit,
             interval: rateLimit.interval,
           });
@@ -366,7 +367,7 @@ export const withWorkspace = (
           include: {
             users: {
               where: {
-                userId: session.user.id,
+                userId: user.id,
               },
               select: {
                 role: true,
@@ -393,7 +394,7 @@ export const withWorkspace = (
           const pendingInvites = await prisma.projectInvite.findUnique({
             where: {
               email_projectId: {
-                email: session.user.email,
+                email: user.email,
                 projectId: workspace.id,
               },
             },
@@ -426,7 +427,7 @@ export const withWorkspace = (
 
         // Machine users have owner role by default
         // Only workspace owners can create machine users
-        if (session.user.isMachine) {
+        if (user.isMachine) {
           workspace.users[0].role = "owner";
         }
 
@@ -523,7 +524,7 @@ export const withWorkspace = (
         const isProgramPath = isProgramApiPath(url.pathname);
         const hasProgramAccess = canAccessProgram({
           workspaceId: workspace.id,
-          userId: session.user.id,
+          userId: user.id,
         });
 
         if (isProgramPath && !hasProgramAccess) {
@@ -539,7 +540,7 @@ export const withWorkspace = (
           params,
           searchParams,
           headers: responseHeaders,
-          session,
+          session: { user },
           workspace,
           permissions,
           token,
@@ -551,7 +552,7 @@ export const withWorkspace = (
               req: reqForLog,
               response,
               workspace,
-              session,
+              user,
               token,
               url,
               requestHeaders,
@@ -572,13 +573,13 @@ export const withWorkspace = (
           { headers: responseHeaders, status },
         );
 
-        if (workspace?.users?.length) {
+        if (workspace?.users?.length && user) {
           waitUntil(
             captureRequestLog({
               req: reqForLog,
               response,
               workspace,
-              session,
+              user,
               token,
               url,
               requestHeaders,

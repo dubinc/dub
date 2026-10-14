@@ -13,15 +13,15 @@ import { PartnerUser } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { requireServerSession } from "../better-auth/get-session";
 import { getPartnerFeatureFlags } from "../edge-config";
 import { ratelimit } from "../upstash";
-import { partnerPlatformSchema } from "../zod/schemas/partners";
 import { hashToken } from "./hash-token";
 import { Permission } from "./partner-users/partner-user-permissions";
 import { throwIfNoPermission } from "./partner-users/throw-if-no-permission";
 import { rateLimitRequest } from "./rate-limit-request";
 import { tokenCache, TokenCacheItem } from "./token-cache";
-import { getSession, Session } from "./utils";
+import { Session } from "./utils";
 
 interface WithPartnerProfileHandler {
   ({
@@ -186,14 +186,19 @@ export const withPartnerProfile = (
             },
           };
         } else {
-          session = await getSession();
+          const result = await requireServerSession();
 
-          if (!session?.user?.id) {
-            throw new DubApiError({
-              code: "unauthorized",
-              message: "Unauthorized: Login required.",
-            });
-          }
+          session = {
+            user: {
+              id: result.user.id,
+              name: result.user.name || "",
+              email: result.user.email || "",
+              image: result.user.image ?? undefined,
+              isMachine: result.user.isMachine ?? false,
+              defaultWorkspace: result.user.defaultWorkspace ?? undefined,
+              defaultPartnerId: result.user.defaultPartnerId || undefined,
+            },
+          };
         }
 
         const { defaultPartnerId, id: userId } = session.user;
@@ -245,14 +250,7 @@ export const withPartnerProfile = (
             },
           },
           include: {
-            partner: {
-              include: {
-                industryInterests: true,
-                preferredEarningStructures: true,
-                salesChannels: true,
-                platforms: true,
-              },
-            },
+            partner: true,
           },
         });
 
@@ -283,31 +281,18 @@ export const withPartnerProfile = (
           }
         }
 
-        const {
-          industryInterests,
-          preferredEarningStructures,
-          salesChannels,
-          platforms,
-          ...partnerProps
-        } = partnerUser.partner;
-
         return await handler({
           req,
           params,
           searchParams,
           session,
           partner: {
-            ...flattenVeriffMetadata(partnerProps),
-            industryInterests: industryInterests.map(
-              ({ industryInterest }) => industryInterest,
-            ),
-            preferredEarningStructures: preferredEarningStructures.map(
-              ({ preferredEarningStructure }) => preferredEarningStructure,
-            ),
-            salesChannels: salesChannels.map(
-              ({ salesChannel }) => salesChannel,
-            ),
-            platforms: partnerPlatformSchema.array().parse(platforms),
+            ...flattenVeriffMetadata(partnerUser.partner),
+            // Nested profile relations are loaded only where needed (e.g. GET /partner-profile).
+            industryInterests: [],
+            preferredEarningStructures: [],
+            salesChannels: [],
+            platforms: [],
           } as Omit<PartnerProps, "role" | "userId">,
           partnerUser: {
             userId: partnerUser.userId,

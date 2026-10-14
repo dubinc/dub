@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { usePlausible } from "next-plausible";
 import { useEffect } from "react";
 

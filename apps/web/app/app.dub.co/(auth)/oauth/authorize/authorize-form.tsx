@@ -4,13 +4,13 @@ import {
   canInstallOAuthApp,
   UNVERIFIED_APP_INSTALL_MESSAGE,
 } from "@/lib/api/oauth/can-install-oauth-app";
+import { useSession } from "@/lib/better-auth/use-session";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { WorkspaceProps } from "@/lib/types";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { WorkspaceSelector } from "@/ui/workspaces/workspace-selector";
 import { Button } from "@dub/ui";
 import { Integration, WorkspaceEnvironment } from "@prisma/client";
-import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import * as z from "zod/v4";

@@ -1,29 +1,38 @@
+import { getOAuthErrorCallbackURL } from "@/lib/better-auth/account-linking";
+import { authClient } from "@/lib/better-auth/auth-client";
 import { Button } from "@dub/ui";
 import { Google } from "@dub/ui/icons";
-import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
+import { toast } from "sonner";
+import { getPostLoginRedirect } from "./get-post-login-redirect";
 import { LoginFormContext } from "./login-form";
 
 export function GoogleButton({ next }: { next?: string }) {
   const searchParams = useSearchParams();
-  const finalNext = next ?? searchParams?.get("next");
+  const finalNext = getPostLoginRedirect({
+    next,
+    searchParamsNext: searchParams?.get("next"),
+  });
 
-  const { setClickedMethod, clickedMethod, setLastUsedAuthMethod } =
-    useContext(LoginFormContext);
+  const { setClickedMethod, clickedMethod } = useContext(LoginFormContext);
 
   return (
     <Button
       text="Continue with Google"
       variant="secondary"
-      onClick={() => {
+      onClick={async () => {
         setClickedMethod("google");
-        setLastUsedAuthMethod("google");
-        signIn("google", {
-          ...(finalNext && finalNext.length > 0
-            ? { callbackUrl: finalNext }
-            : {}),
+        const { error } = await authClient.signIn.social({
+          provider: "google",
+          callbackURL: finalNext,
+          errorCallbackURL: getOAuthErrorCallbackURL("google"),
         });
+
+        if (error) {
+          toast.error(error.message || "Failed to start Google sign in.");
+          setClickedMethod(undefined);
+        }
       }}
       loading={clickedMethod === "google"}
       disabled={clickedMethod && clickedMethod !== "google"}

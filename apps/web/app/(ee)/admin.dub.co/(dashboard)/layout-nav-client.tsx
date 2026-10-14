@@ -1,6 +1,7 @@
 "use client";
 
 import { canAccessAdminPath } from "@/lib/auth/admin-access-guard";
+import { useSession } from "@/lib/better-auth/use-session";
 import {
   ClientOnly,
   MaxWidthWrapper,
@@ -8,7 +9,6 @@ import {
   Popover,
   useMediaQuery,
 } from "@dub/ui";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";

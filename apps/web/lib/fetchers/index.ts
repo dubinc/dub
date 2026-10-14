@@ -1,17 +1,19 @@
 import { prisma } from "@/lib/prisma";
 import { cache } from "react";
-import { getSession } from "../auth";
+import { getServerSession } from "../better-auth/get-session";
 
 export const getDefaultWorkspace = cache(async () => {
-  const session = await getSession();
-  if (!session) {
+  const { user } = await getServerSession();
+
+  if (!user) {
     return null;
   }
+
   return await prisma.project.findFirst({
     where: {
       users: {
         some: {
-          userId: session.user.id,
+          userId: user.id,
         },
       },
     },
@@ -22,10 +24,12 @@ export const getDefaultWorkspace = cache(async () => {
 });
 
 export const getWorkspace = cache(async ({ slug }: { slug: string }) => {
-  const session = await getSession();
-  if (!session) {
+  const { user } = await getServerSession();
+
+  if (!user) {
     return null;
   }
+
   return await prisma.project.findUnique({
     where: {
       slug,
@@ -43,7 +47,7 @@ export const getWorkspace = cache(async ({ slug }: { slug: string }) => {
       createdAt: true,
       users: {
         where: {
-          userId: session.user.id,
+          userId: user.id,
         },
         select: {
           role: true,

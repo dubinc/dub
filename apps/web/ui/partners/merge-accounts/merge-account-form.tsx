@@ -1,10 +1,10 @@
 import { mergePartnerAccountsAction } from "@/lib/actions/partners/merge-partner-accounts";
+import { signOut } from "@/lib/better-auth/use-session";
 import useUser from "@/lib/swr/use-user";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Callout } from "@/ui/shared/callout";
 import { Button } from "@dub/ui";
 import { ArrowDown } from "lucide-react";
-import { signOut } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import { AccountInputGroup } from "./account-input-group";
@@ -106,9 +106,9 @@ export function MergeAccountForm({
             <h3 className="font-semibold">This action can't be undone.</h3>
             <p>
               All data — including links, commissions, and payouts from{" "}
-              {sourceAccount.email} will be transferred to{" "}
-              {targetAccount.email}. Duplicate bounty submissions from{" "}
-              {sourceAccount.email} will also be deleted.
+              {sourceAccount.email} will be transferred to {targetAccount.email}
+              . Duplicate bounty submissions from {sourceAccount.email} will
+              also be deleted.
               <br />
               <br />
               After the merge, {sourceAccount.email} will be permanently
