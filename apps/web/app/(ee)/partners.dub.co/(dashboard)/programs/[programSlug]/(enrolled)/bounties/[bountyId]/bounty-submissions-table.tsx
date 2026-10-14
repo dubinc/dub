@@ -1,6 +1,7 @@
 "use client";
 
 import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
+import { isPartnerBountyExpired } from "@/lib/bounty/partner-bounty-tabs";
 import {
   type SubmissionPeriod,
   getSubmissionPeriods,
@@ -145,8 +146,7 @@ export function BountySubmissionsTable({
         cell: ({ row: { original } }) => {
           const { status } = original;
           const bountyInfo = resolveBountyDetails(bounty);
-          const isExpired =
-            bounty.endsAt !== null && new Date(bounty.endsAt) < new Date();
+          const isExpired = isPartnerBountyExpired(bounty);
           const isActionable = bountyInfo?.hasSocialMetrics
             ? status === "notSubmitted"
             : status === "notSubmitted" || status === "draft";

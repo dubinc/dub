@@ -49,6 +49,7 @@ export const GET = withWorkspace(
     return NextResponse.json(response);
   },
   {
+    requiredPermissions: ["customers.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
@@ -128,7 +129,7 @@ export const POST = withWorkspace(
     }
   },
   {
+    requiredPermissions: ["customers.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );

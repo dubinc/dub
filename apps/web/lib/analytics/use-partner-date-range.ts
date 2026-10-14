@@ -4,7 +4,8 @@ import { useRouterStuff } from "@dub/ui";
 import { endOfDay, startOfDay } from "date-fns";
 import { useMemo } from "react";
 
-export function useOverviewDateRange() {
+// the date range from the URL, as the partner earnings and analytics hooks need it
+export function usePartnerDateRange() {
   const { searchParamsObj } = useRouterStuff();
 
   const {

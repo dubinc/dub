@@ -7,8 +7,8 @@ import {
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
 import { TestPayoutBadge } from "@/lib/sandbox/components/test-payout-badge";
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
+import { usePartnerProfileEarnings } from "@/lib/swr/use-partner-profile-earnings";
+import { PartnerPayoutResponse } from "@/lib/types";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionDescriptionLabel } from "@/ui/partners/commission-description-label";
@@ -34,7 +34,6 @@ import {
 import {
   cn,
   currencyFormatter,
-  fetcher,
   formatDateTime,
   formatDateTimeSmart,
   NETWORK_PROGRAM_ID,
@@ -45,7 +44,6 @@ import { PartnerPayoutMethod, PayoutStatus } from "@prisma/client";
 import { addBusinessDays, addMinutes } from "date-fns";
 import Link from "next/link";
 import { Dispatch, Fragment, SetStateAction, useMemo } from "react";
-import useSWR from "swr";
 
 type PayoutDetailsSheetProps = {
   payout: PartnerPayoutResponse;
@@ -64,18 +62,18 @@ const failureTooltips: Record<PartnerPayoutMethod, string> = {
 };
 
 function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
-  const { partner } = usePartnerProfile();
-
   const {
     data: earnings,
     isLoading,
     error,
-  } = useSWR<PartnerEarningsResponse[]>(
-    partner && payout.program.id !== NETWORK_PROGRAM_ID
-      ? `/api/partner-profile/programs/${payout.program.id}/earnings?payoutId=${payout.id}&interval=all&pageSize=${PAYOUTS_SHEET_ITEMS_LIMIT}`
-      : undefined,
-    fetcher,
-  );
+  } = usePartnerProfileEarnings({
+    programIdOrSlug: payout.program.id,
+    payoutId: payout.id,
+    interval: "all",
+    pageSize: PAYOUTS_SHEET_ITEMS_LIMIT,
+    enabled: payout.program.id !== NETWORK_PROGRAM_ID,
+    keepPreviousData: false,
+  });
 
   const invoiceData = useMemo(() => {
     const statusBadge = PayoutStatusBadges[payout.status];

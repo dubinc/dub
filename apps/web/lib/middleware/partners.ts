@@ -14,6 +14,7 @@ const AUTHENTICATED_PATHS = [
   "/overview",
   "/programs",
   "/marketplace",
+  "/bounties",
   "/onboarding",
   "/settings",
   "/profile",
@@ -28,7 +29,6 @@ export async function PartnersMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsObj, searchParamsString } = parse(req);
 
   const user = await getUserViaToken(req);
-  const isPartnerInvite = req.nextUrl.pathname.endsWith("/invite");
 
   // match whole path segments, so program slugs like "overviewai" stay public
   const isAuthenticatedPath = AUTHENTICATED_PATHS.some(
@@ -80,7 +80,9 @@ export async function PartnersMiddleware(req: NextRequest) {
 
     if (
       !defaultPartnerId &&
-      !isPartnerInvite &&
+      // /invite is the partner-profile team invite and can be accepted before a
+      // profile exists. Program invites (/programs/:slug/invite) need a profile.
+      path !== "/invite" &&
       !["/onboarding", "/account"].some((p) => path.startsWith(p))
     ) {
       return NextResponse.redirect(
@@ -101,7 +103,13 @@ export async function PartnersMiddleware(req: NextRequest) {
       }) &&
       !path.startsWith("/onboarding")
     ) {
-      return NextResponse.redirect(new URL(searchParamsObj.next, req.url));
+      const nextUrl = new URL(searchParamsObj.next, req.url);
+      // Keep the invited email on the destination so a signed-in account can
+      // be compared with the address the invitation was sent to.
+      if (searchParamsObj.email && !nextUrl.searchParams.has("email")) {
+        nextUrl.searchParams.set("email", searchParamsObj.email);
+      }
+      return NextResponse.redirect(nextUrl);
     }
 
     if (path === "/" || path.startsWith("/pn_")) {

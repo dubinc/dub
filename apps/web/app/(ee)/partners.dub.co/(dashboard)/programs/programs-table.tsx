@@ -3,7 +3,7 @@
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { usePartnerProgramActivity } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
-import { ProgramEnrollmentProps } from "@/lib/types";
+import { PartnerProfileProgramEnrollmentProps } from "@/lib/types";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramInviteActions } from "@/ui/partners/program-invite-actions";
 import { ProgramLogo } from "@/ui/partners/program-logo";
@@ -26,7 +26,7 @@ import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { PROGRAMS_TABLE_PAGE_SIZE, ProgramTab } from "./program-tabs";
 
-type ProgramColumn = ColumnDef<ProgramEnrollmentProps>;
+type ProgramColumn = ColumnDef<PartnerProfileProgramEnrollmentProps>;
 
 export function ProgramsTable({
   tab,
@@ -51,6 +51,7 @@ export function ProgramsTable({
 
   const { programEnrollments, isLoading, error } = useProgramEnrollments({
     includeRewardsDiscounts: tab.id === "invitations",
+    includeInactiveDates: tab.id === "inactive",
     status,
     search,
     ...(sortBy && { sortBy }),
@@ -101,7 +102,10 @@ export function ProgramsTable({
   return <Table {...tableProps} table={table} />;
 }
 
-function getProgramUrl(tab: ProgramTab, { program }: ProgramEnrollmentProps) {
+function getProgramUrl(
+  tab: ProgramTab,
+  { program }: PartnerProfileProgramEnrollmentProps,
+) {
   return tab.id === "invitations"
     ? `/programs/${program.slug}/invite`
     : `/programs/${program.slug}`;
@@ -206,12 +210,20 @@ function getColumns(tab: ProgramTab): ProgramColumn[] {
       return [
         programColumn,
         {
-          id: "status",
-          header: "Status",
+          id: "reason",
+          header: "Reason",
           size: 160,
-          cell: ({ row }) => (
-            <EnrollmentStatusBadge status={row.original.status} />
-          ),
+          cell: ({ row }) => PartnerStatusBadges[row.original.status].label,
+        },
+        {
+          id: "inactiveAt",
+          header: "Inactive date",
+          size: 160,
+          // older deactivations and archives have no date
+          cell: ({ row }) =>
+            row.original.inactiveAt
+              ? formatDate(row.original.inactiveAt, { month: "short" })
+              : "-",
         },
         earningsColumn,
       ];
@@ -221,7 +233,7 @@ function getColumns(tab: ProgramTab): ProgramColumn[] {
 function ProgramName({
   program,
 }: {
-  program: ProgramEnrollmentProps["program"];
+  program: PartnerProfileProgramEnrollmentProps["program"];
 }) {
   return (
     <div className="flex min-w-0 items-center gap-2">
@@ -236,7 +248,7 @@ function ProgramName({
 function EnrollmentStatusBadge({
   status,
 }: {
-  status: ProgramEnrollmentProps["status"];
+  status: PartnerProfileProgramEnrollmentProps["status"];
 }) {
   const badge = PartnerStatusBadges[status];
 
@@ -250,7 +262,7 @@ function EnrollmentStatusBadge({
 function ProgramLinkChip({
   programEnrollment,
 }: {
-  programEnrollment: ProgramEnrollmentProps;
+  programEnrollment: PartnerProfileProgramEnrollmentProps;
 }) {
   const { group } = programEnrollment;
   const link = programEnrollment.links?.[0];
@@ -291,7 +303,7 @@ function ProgramLinkChip({
 function ProgramActivity({
   programEnrollment,
 }: {
-  programEnrollment: ProgramEnrollmentProps;
+  programEnrollment: PartnerProfileProgramEnrollmentProps;
 }) {
   const data = usePartnerProgramActivity(programEnrollment.programId);
 
