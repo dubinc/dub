@@ -14,7 +14,6 @@ import { Button, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -39,7 +38,6 @@ export function ProgramApplicationForm({
   preview?: boolean;
 }) {
   const { isMobile } = useMediaQuery();
-  const router = useRouter();
   const { data: session } = useSession();
   const trackApplyStart = useTrackApplyStart({
     preview,
@@ -117,7 +115,11 @@ export function ProgramApplicationForm({
           }),
         });
 
-        router.push(
+        // Use a full page load, not router.push. The action sets cookies, so
+        // Next.js still refreshes this route when onSuccess runs. A router.push
+        // started then discards that refresh, and the two navigations can
+        // cancel each other, which leaves the form stuck on submit.
+        window.location.assign(
           `/${program.slug}/${group.slug}/apply/success?${searchParams.toString()}`,
         );
       },
