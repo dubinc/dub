@@ -16,7 +16,10 @@ import { DiscountProviderError } from "./discount-error";
 
 const MAX_ATTEMPTS = 3;
 
-type Workspace = Pick<Project, "id" | "environment" | "stripeConnectId">;
+type Workspace = Pick<
+  Project,
+  "id" | "environment" | "stripeConnectId" | "stripeConnectMode"
+>;
 
 async function requireInstalledIntegration(workspace: Workspace) {
   if (!workspace.stripeConnectId) {
@@ -77,10 +80,10 @@ function createStripeDiscountProvider() {
     couponId: string;
     workspace: Project;
   }) => {
-    const { settings } = await requireInstalledIntegration(workspace);
+    await requireInstalledIntegration(workspace);
 
     const stripeApp = stripeAppClient({
-      mode: settings.stripeMode,
+      mode: workspace.stripeConnectMode,
     });
 
     try {
@@ -122,10 +125,10 @@ function createStripeDiscountProvider() {
       "amount" | "type" | "maxDuration"
     >;
   }) => {
-    const { settings } = await requireInstalledIntegration(workspace);
+    await requireInstalledIntegration(workspace);
 
     const stripeApp = stripeAppClient({
-      mode: settings.stripeMode,
+      mode: workspace.stripeConnectMode,
     });
 
     const stripeCouponData = dubDiscountToStripeCoupon({
@@ -166,7 +169,7 @@ function createStripeDiscountProvider() {
     const { settings } = await requireInstalledIntegration(workspace);
 
     const stripeApp = stripeAppClient({
-      mode: settings.stripeMode,
+      mode: workspace.stripeConnectMode,
     });
 
     if (!discount.couponId) {
@@ -268,10 +271,10 @@ function createStripeDiscountProvider() {
     workspace: Workspace;
     code: string;
   }) => {
-    const { settings } = await requireInstalledIntegration(workspace);
+    await requireInstalledIntegration(workspace);
 
     const stripeApp = stripeAppClient({
-      mode: settings.stripeMode,
+      mode: workspace.stripeConnectMode,
     });
 
     try {
