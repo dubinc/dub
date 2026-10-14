@@ -308,13 +308,14 @@ async function fetchWithRedirects(
   signal: AbortSignal,
 ): Promise<Response> {
   let currentUrl = url;
+  let currentInit: RequestInit = { ...init };
   let hops = 0;
 
   while (true) {
     await assertUrlIsSafe(currentUrl, signal);
 
     const response = await fetch(currentUrl.toString(), {
-      ...init,
+      ...currentInit,
       redirect: "manual",
       signal,
     });
@@ -325,18 +326,72 @@ async function fetchWithRedirects(
       return response;
     }
 
+    // We do not read the redirect body, so release its connection.
+    await response.body?.cancel().catch(() => {});
+
     if (hops >= maxRedirects) {
       throw new Error("Too many redirects");
     }
 
+    let nextUrl: URL;
     try {
-      currentUrl = new URL(location, currentUrl);
+      nextUrl = new URL(location, currentUrl);
     } catch {
       throw new DubApiError({
         code: "unprocessable_entity",
         message: `Invalid redirect location: ${location}`,
       });
     }
+
+    currentInit = initForRedirect(
+      currentInit,
+      response.status,
+      currentUrl,
+      nextUrl,
+    );
+    currentUrl = nextUrl;
     hops += 1;
   }
+}
+
+const REQUEST_BODY_HEADERS = [
+  "content-encoding",
+  "content-language",
+  "content-location",
+  "content-type",
+];
+const CREDENTIAL_HEADERS = ["authorization", "cookie", "proxy-authorization"];
+
+/**
+ * Builds the request for the next redirect hop with the rules that `fetch`
+ * uses when it follows redirects: 303 (and 301/302 after a POST) switch to a
+ * GET without a body, and credentials are not sent to another origin.
+ */
+function initForRedirect(
+  init: RequestInit,
+  status: number,
+  from: URL,
+  to: URL,
+): RequestInit {
+  const method = (init.method ?? "GET").toUpperCase();
+  const switchToGet =
+    (status === 303 && method !== "GET" && method !== "HEAD") ||
+    ((status === 301 || status === 302) && method === "POST");
+  const crossOrigin = from.origin !== to.origin;
+
+  if (!switchToGet && !crossOrigin) return init;
+
+  const headers = new Headers(init.headers);
+  if (switchToGet) {
+    REQUEST_BODY_HEADERS.forEach((name) => headers.delete(name));
+  }
+  if (crossOrigin) {
+    CREDENTIAL_HEADERS.forEach((name) => headers.delete(name));
+  }
+
+  return {
+    ...init,
+    headers,
+    ...(switchToGet && { method: "GET", body: undefined }),
+  };
 }
