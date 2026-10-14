@@ -5,6 +5,7 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   bountyEligibilityIncludes,
   canPartnerSubmitBounty,
+  programEnrollmentEligibilityIncludes,
 } from "@/lib/bounty/api/bounty-availability";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
@@ -39,11 +40,7 @@ export const GET = withPartnerProfile(
             defaultGroupId: true,
           },
         },
-        programPartnerTags: {
-          select: {
-            partnerTagId: true,
-          },
-        },
+        ...programEnrollmentEligibilityIncludes,
       },
     });
 

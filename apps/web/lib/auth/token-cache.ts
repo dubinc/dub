@@ -16,7 +16,13 @@ const tokenCacheItemSchema = z.object({
     defaultPartnerId: z.string().nullish(),
   }),
   scopes: z.string().nullish(),
+  createdAt: z.coerce.date().nullish(),
   projectId: z.string().nullish(),
+  installedIntegration: z
+    .object({
+      createdAt: z.coerce.date(),
+    })
+    .nullish(),
   project: z
     .object({
       plan: z.string().nullish(),

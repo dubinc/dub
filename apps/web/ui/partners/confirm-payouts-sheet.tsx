@@ -24,6 +24,7 @@ import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
+import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { X } from "@/ui/shared/icons";
 import {
@@ -403,61 +404,71 @@ function ConfirmPayoutsSheetContent() {
         return false;
       case "external":
         return true;
+      // in hybrid mode, payouts are only processed externally if:
+      // - the partner has not connected a payout method on Dub
+      // - the partner has a valid tenant ID
       case "hybrid":
-        return payout.partner.payoutsEnabledAt === null;
+        return (
+          payout.partner.payoutsEnabledAt === null &&
+          payout.partner.tenantId !== null
+        );
       default:
         return false;
     }
   };
 
-  const { amount, fee, total, fastAchFee, externalAmount } = useMemo(() => {
-    const amount = eligiblePayoutsSummaryCount?.amount;
+  const { amount, fee, total, chargeableTotal, fastAchFee, externalAmount } =
+    useMemo(() => {
+      const amount = eligiblePayoutsSummaryCount?.amount;
 
-    if (
-      amount === undefined ||
-      selectedPaymentMethod === null ||
-      program?.payoutMode === undefined
-    ) {
+      if (
+        amount === undefined ||
+        selectedPaymentMethod === null ||
+        program?.payoutMode === undefined
+      ) {
+        return {
+          amount: undefined,
+          externalAmount: undefined,
+          fee: undefined,
+          total: undefined,
+          chargeableTotal: undefined,
+          fastAchFee: undefined,
+        };
+      }
+
+      const externalAmount = payoutsIncludedInInvoice.reduce(
+        (acc, payout) =>
+          isExternalPayout(payout) ? acc + payout.amount : acc + 0,
+        0,
+      );
+
+      const invoicePaymentMethod = selectedPaymentMethod.fastSettlement
+        ? "ach_fast"
+        : STRIPE_PAYMENT_METHOD_NORMALIZATION[selectedPaymentMethod.type];
+
+      const fastAchFee =
+        invoicePaymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
+
+      const { fee } = calculatePayoutFeeWithWaiver({
+        payoutAmount: amount,
+        payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
+        payoutFeeWaiverUsage: payoutFeeWaiverUsage ?? 0,
+        payoutFee: selectedPaymentMethod.fee,
+        paymentMethod: invoicePaymentMethod,
+      });
+
+      const total = amount + fee;
+      const chargeableTotal = amount - externalAmount + fee;
+
       return {
-        amount: undefined,
-        externalAmount: undefined,
-        fee: undefined,
-        total: undefined,
-        fastAchFee: undefined,
+        amount,
+        externalAmount,
+        fee,
+        total,
+        chargeableTotal,
+        fastAchFee,
       };
-    }
-
-    const externalAmount = payoutsIncludedInInvoice.reduce(
-      (acc, payout) =>
-        isExternalPayout(payout) ? acc + payout.amount : acc + 0,
-      0,
-    );
-
-    const invoicePaymentMethod = selectedPaymentMethod.fastSettlement
-      ? "ach_fast"
-      : STRIPE_PAYMENT_METHOD_NORMALIZATION[selectedPaymentMethod.type];
-
-    const fastAchFee =
-      invoicePaymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
-
-    const { fee } = calculatePayoutFeeWithWaiver({
-      payoutAmount: amount,
-      payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
-      payoutFeeWaiverUsage: payoutFeeWaiverUsage ?? 0,
-      payoutFee: selectedPaymentMethod.fee,
-      paymentMethod: invoicePaymentMethod,
-    });
-
-    const total = amount + fee;
-
-    return {
-      amount,
-      externalAmount,
-      fee,
-      total,
-      fastAchFee,
-    };
-  }, [
+    }, [
     eligiblePayoutsSummaryCount,
     payoutsIncludedInInvoice,
     selectedPaymentMethod,
@@ -599,7 +610,7 @@ function ConfirmPayoutsSheetContent() {
                     <CircleArrowRight className="size-3.5 text-neutral-500" />
                   </div>
                 ),
-              tooltipContent: `Payouts that are processed externally via the \`payout.confirmed\` [webhook event](${`/${slug}/settings/webhooks`}). [Learn more about external payouts](http://dub.co/docs/partners/external-payouts).`,
+              tooltipContent: `Payouts that are processed externally via the \`${EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER}\` [webhook event](${`/${slug}/settings/webhooks`}). [Learn more about external payouts](http://dub.co/docs/partners/external-payouts).`,
             },
           ]
         : []),
@@ -631,15 +642,16 @@ function ConfirmPayoutsSheetContent() {
       {
         key: "Total",
         value:
-          total === undefined ? (
+          chargeableTotal === undefined ? (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
-            currencyFormatter(total)
+            currencyFormatter(chargeableTotal)
           ),
       },
     ];
   }, [
     amount,
+    chargeableTotal,
     externalAmount,
     eligiblePayoutsSummaryCount,
     payoutsIncludedInInvoice,
@@ -939,8 +951,9 @@ function ConfirmPayoutsSheetContent() {
                     ? { onClick: () => openTrialLimitModal("payouts") }
                     : { href: `/${slug}/upgrade` })}
                 />
-              ) : amount && amount < INVOICE_MIN_PAYOUT_AMOUNT_CENTS ? (
-                "Your payout total is less than the minimum invoice amount of $10."
+              ) : typeof chargeableTotal === "number" &&
+                chargeableTotal < INVOICE_MIN_PAYOUT_AMOUNT_CENTS ? (
+                `Your payout total is less than the minimum invoice amount of ${currencyFormatter(INVOICE_MIN_PAYOUT_AMOUNT_CENTS, { trailingZeroDisplay: "stripIfInteger" })}.`
               ) : (
                 permissionsError || undefined
               )

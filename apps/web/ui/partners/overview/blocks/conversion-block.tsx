@@ -3,7 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { FunnelChart } from "@dub/ui/charts";
-import { nFormatter } from "@dub/utils";
+import { formatPercentage } from "@dub/utils";
 import { useContext, useMemo } from "react";
 import { ExceededEventsLimit } from "../exceeded-events-limit";
 import { ProgramOverviewBlock } from "../program-overview-block";
@@ -109,9 +109,3 @@ export function ConversionBlock() {
     </ProgramOverviewBlock>
   );
 }
-
-const formatPercentage = (value: number) => {
-  return value > 0 && value < 0.01
-    ? "< 0.01"
-    : nFormatter(value, { digits: 2 });
-};

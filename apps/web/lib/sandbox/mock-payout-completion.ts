@@ -17,7 +17,8 @@ interface MockPayoutCompletionParams {
   workspace: Pick<Project, "id" | "environment">;
 }
 
-// Mark the all payouts and commissions in the invoice as paid
+// Mark internal payouts and their commissions as paid. External payouts stay
+// processing until the webhook callback. The invoice is marked completed either way.
 export async function mockPayoutCompletion({
   invoice,
   workspace,
@@ -30,6 +31,7 @@ export async function mockPayoutCompletion({
     where: {
       invoiceId: invoice.id,
       status: PayoutStatus.processing,
+      mode: "internal",
     },
     orderBy: {
       id: "asc",
@@ -52,11 +54,41 @@ export async function mockPayoutCompletion({
     },
   });
 
-  if (payouts.length === 0) {
+  const payoutIds = payouts.map((p) => p.id);
+
+  await prisma.$transaction([
+    prisma.invoice.update({
+      where: {
+        id: invoice.id,
+      },
+      data: {
+        status: InvoiceStatus.completed,
+        paidAt: new Date(),
+      },
+    }),
+    ...(payoutIds.length > 0
+      ? [
+          prisma.payout.updateMany({
+            where: {
+              id: {
+                in: payoutIds,
+              },
+            },
+            data: {
+              status: PayoutStatus.completed,
+              paidAt: new Date(),
+            },
+          }),
+        ]
+      : []),
+  ]);
+
+  if (payoutIds.length === 0) {
+    console.log(
+      `[mockPayoutCompletion] No internal payouts found for invoice ${invoice.id}, skipping commission updates...`,
+    );
     return;
   }
-
-  const payoutIds = payouts.map((p) => p.id);
 
   const commissions = await prisma.commission.findMany({
     where: {
@@ -72,30 +104,6 @@ export async function mockPayoutCompletion({
       programId: true,
     },
   });
-
-  await prisma.$transaction([
-    prisma.payout.updateMany({
-      where: {
-        id: {
-          in: payoutIds,
-        },
-      },
-      data: {
-        status: PayoutStatus.completed,
-        paidAt: new Date(),
-      },
-    }),
-
-    prisma.invoice.update({
-      where: {
-        id: invoice.id,
-      },
-      data: {
-        status: InvoiceStatus.completed,
-        paidAt: new Date(),
-      },
-    }),
-  ]);
 
   const commissionIds = commissions.map((c) => c.id);
 
