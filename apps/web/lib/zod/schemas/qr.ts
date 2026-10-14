@@ -1,9 +1,4 @@
-import {
-  DEFAULT_BGCOLOR,
-  DEFAULT_FGCOLOR,
-  DEFAULT_MARGIN,
-  QR_LEVELS,
-} from "@/lib/qr/constants";
+import { DEFAULT_FGCOLOR, DEFAULT_MARGIN, QR_LEVELS } from "@/lib/qr/constants";
 import * as z from "zod/v4";
 import { booleanQuerySchema } from "./misc";
 import { parseUrlSchema } from "./utils";
@@ -40,9 +35,8 @@ export const getQRCodeQuerySchema = z.object({
   bgColor: z
     .string()
     .optional()
-    .default(DEFAULT_BGCOLOR)
     .describe(
-      "The background color of the QR code in hex format. Defaults to `#ffffff` if not provided.",
+      "The background color of the QR code in hex format. Defaults to `#ffffff` for `png`. When omitted for `svg`, the background is transparent.",
     ),
   hideLogo: booleanQuerySchema
     .optional()
@@ -64,4 +58,9 @@ export const getQRCodeQuerySchema = z.object({
       "DEPRECATED: Margin is included by default. Use the `margin` prop to customize the margin size.",
     )
     .meta({ deprecated: true }),
+  format: z
+    .enum(["png", "svg"])
+    .optional()
+    .default("png")
+    .describe("The format of the QR code. Defaults to `png` if not provided."),
 });

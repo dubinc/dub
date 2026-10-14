@@ -53,9 +53,10 @@ export const GET = withAxiom(async (req) => {
     const { appId, partnerEventId } = querySchema.parse(queryParams);
 
     if (!partnerEventId || !["lead", "sale"].includes(partnerEventId)) {
-      return logAndRespond(
-        `"${partnerEventId}" is not a valid partner event ID (accepted values: "lead", "sale"). Skipping...`,
-      );
+      throw new DubApiError({
+        code: "bad_request",
+        message: `"${partnerEventId}" is not a valid partner event ID (accepted values: "lead", "sale"). Skipping...`,
+      });
     }
 
     // Find the installation

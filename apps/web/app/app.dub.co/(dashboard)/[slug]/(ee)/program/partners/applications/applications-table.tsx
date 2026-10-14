@@ -392,9 +392,10 @@ export function ApplicationsTable({
       {detailsSheetState.applicationId && currentApplication && (
         <ProgramApplicationReviewSheet
           isOpen={detailsSheetState.open}
-          setIsOpen={(open) =>
-            setDetailsSheetState((s) => ({ ...s, open }) as any)
-          }
+          setIsOpen={(open) => {
+            setDetailsSheetState((s) => ({ ...s, open }) as any);
+            if (!open) queryParams({ del: ["applicationId", "partnerId"] });
+          }}
           partner={currentApplication}
           onPrevious={onPreviousApplication}
           onNext={onNextApplication}
@@ -567,17 +568,20 @@ function useApplicationSheet({
     | { open: true; applicationId: string }
   >({ open: false, applicationId: null });
 
+  // Only reacts to URL changes, so a refetch of `partners` can't reopen the
+  // sheet while the navigation that removes `?applicationId=` is pending
   useEffect(() => {
     const applicationId = searchParams.get("applicationId");
 
     if (applicationId) {
       setDetailsSheetState({ open: true, applicationId });
-      return;
     }
+  }, [searchParams]);
 
+  useEffect(() => {
     const partnerId = searchParams.get("partnerId");
 
-    if (!partnerId || !partners) {
+    if (searchParams.get("applicationId") || !partnerId || !partners) {
       return;
     }
 
