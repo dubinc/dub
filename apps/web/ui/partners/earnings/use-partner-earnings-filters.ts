@@ -6,23 +6,38 @@ import { useMemo } from "react";
 
 // the program, filters and date range of the partner Earnings pages, from the URL
 export function usePartnerEarningsFilters() {
-  const { programSlug } = useParams<{ programSlug: string }>();
+  const { programSlug } = useParams<{ programSlug?: string }>();
   const { searchParamsObj } = useRouterStuff();
   const dateRange = usePartnerDateRange();
 
-  const { type, linkId, customerId, status, payoutId } =
-    searchParamsObj as Omit<PartnerProfileEarningsFilters, "programIdOrSlug">;
+  const { programId, type, linkId, customerId, status, payoutId } =
+    searchParamsObj as Omit<
+      PartnerProfileEarningsFilters,
+      "programIdOrSlug"
+    > & {
+      programId?: string;
+    };
 
   return useMemo(
     () => ({
       ...dateRange,
-      programIdOrSlug: programSlug,
+      // on the All programs page, the Program filter sets programId
+      programIdOrSlug: programSlug ?? programId,
       type,
       linkId,
       customerId,
       status,
       payoutId,
     }),
-    [dateRange, programSlug, type, linkId, customerId, status, payoutId],
+    [
+      dateRange,
+      programSlug,
+      programId,
+      type,
+      linkId,
+      customerId,
+      status,
+      payoutId,
+    ],
   );
 }
