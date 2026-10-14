@@ -5,6 +5,7 @@ import { partnerProfileEarningsCountQuerySchema } from "@/lib/zod/schemas/partne
 import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { getEarningsProgramFilter } from "./get-earnings-program-id";
+import { programSelect } from "./get-partner-earnings-by-group";
 import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
 
 export async function getPartnerEarningsCount({
@@ -193,12 +194,7 @@ export async function getPartnerEarningsCount({
           in: counts.map(({ programId }) => programId),
         },
       },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        logo: true,
-      },
+      select: programSelect,
     });
 
     const programsById = new Map(programs.map((p) => [p.id, p]));
