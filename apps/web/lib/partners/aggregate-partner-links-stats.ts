@@ -1,4 +1,5 @@
 import { toCentsNumber } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { LinkProps } from "../types";
 
 export type PartnerLink = Pick<
@@ -7,6 +8,17 @@ export type PartnerLink = Pick<
 > & {
   saleAmount: number | bigint;
 };
+
+export type PartnerLinksStats = ReturnType<typeof aggregatePartnerLinksStats>;
+
+// the link fields that aggregatePartnerLinksStats needs
+export const partnerLinkStatsSelect = {
+  clicks: true,
+  leads: true,
+  conversions: true,
+  sales: true,
+  saleAmount: true,
+} satisfies Prisma.LinkSelect;
 
 export function aggregatePartnerLinksStats(links?: PartnerLink[] | null) {
   if (!links || links.length === 0) {

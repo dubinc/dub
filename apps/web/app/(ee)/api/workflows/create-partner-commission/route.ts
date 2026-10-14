@@ -574,6 +574,7 @@ async function stepRunSideEffects(
       slug: true,
       logo: true,
       supportEmail: true,
+      environment: true,
       workspace: {
         select: {
           id: true,

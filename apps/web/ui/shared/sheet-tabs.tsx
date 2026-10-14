@@ -1,22 +1,25 @@
 import { cn } from "@dub/utils";
 import { LayoutGroup, motion } from "motion/react";
-import { ComponentType, SVGProps, useId } from "react";
+import { ComponentType, ReactNode, SVGProps, useId } from "react";
 
 export type SheetTab = {
   id: string;
   label: string;
-  icon: ComponentType<SVGProps<SVGSVGElement>>;
+  icon?: ComponentType<SVGProps<SVGSVGElement>>;
   badge?: string | number;
+  badgeClassName?: string;
 };
 
 export function SheetTabs({
   tabs,
   currentTabId,
   setCurrentTabId,
+  right,
 }: {
   tabs: SheetTab[];
   currentTabId: string;
   setCurrentTabId: (id: string) => void;
+  right?: ReactNode;
 }) {
   const layoutGroupId = useId();
 
@@ -24,7 +27,7 @@ export function SheetTabs({
     <div className="scrollbar-hide relative z-0 flex items-center justify-between gap-1 overflow-x-auto p-2">
       <LayoutGroup id={layoutGroupId}>
         <div className="relative z-0 inline-flex items-center gap-1">
-          {tabs.map(({ id, label, icon: Icon, badge }) => {
+          {tabs.map(({ id, label, icon: Icon, badge, badgeClassName }) => {
             const isSelected = id === currentTabId;
             return (
               <button
@@ -39,10 +42,15 @@ export function SheetTabs({
                   badge && "pr-1",
                 )}
               >
-                <Icon className="size-4" />
+                {Icon && <Icon className="size-4" />}
                 <span>{label}</span>
                 {badge && (
-                  <span className="rounded-md bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">
+                  <span
+                    className={cn(
+                      "rounded-md bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white",
+                      badgeClassName,
+                    )}
+                  >
                     {badge}
                   </span>
                 )}
@@ -60,6 +68,7 @@ export function SheetTabs({
           })}
         </div>
       </LayoutGroup>
+      {right}
     </div>
   );
 }

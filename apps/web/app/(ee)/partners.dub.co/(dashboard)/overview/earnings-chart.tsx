@@ -1,6 +1,7 @@
 "use client";
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
+import { usePartnerDateRange } from "@/lib/analytics/use-partner-date-range";
 import { testIds } from "@/lib/e2e/test-ids";
 import { usePartnerProfileEarningsTimeseries } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
@@ -19,7 +20,6 @@ import NumberFlow from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { useRouter } from "next/navigation";
 import { useId, useMemo } from "react";
-import { useOverviewDateRange } from "./use-overview-date-range";
 import { useTopProgramEarnings } from "./use-top-program-earnings";
 
 const MAX_TOOLTIP_PROGRAMS = 5;
@@ -27,7 +27,7 @@ const MAX_TOOLTIP_PROGRAMS = 5;
 export function EarningsChart() {
   const id = useId();
   const router = useRouter();
-  const { start, end, interval } = useOverviewDateRange();
+  const { start, end, interval } = usePartnerDateRange();
 
   // on touch devices, the chart opens /programs at the end of each drag, which
   // stops partners from reading the tooltip

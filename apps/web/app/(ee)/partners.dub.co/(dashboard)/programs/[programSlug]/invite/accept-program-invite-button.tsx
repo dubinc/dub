@@ -18,7 +18,11 @@ export function AcceptProgramInviteButton({
   const { executeAsync: executeAcceptInvite, isPending: isAcceptingInvite } =
     useAction(acceptProgramInviteAction, {
       onSuccess: async () => {
-        await mutatePrefix("/api/partner-profile/programs");
+        // an accepted invite adds the program's bounties to the All programs list
+        await mutatePrefix([
+          "/api/partner-profile/programs",
+          "/api/partner-profile/bounties",
+        ]);
         toast.success("Program invite accepted!");
         router.push(`/programs/${program.slug}`);
       },

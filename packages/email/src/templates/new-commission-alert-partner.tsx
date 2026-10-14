@@ -12,8 +12,9 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
+import { EnvironmentBanner } from "../components/environment-banner";
 import { Footer } from "../components/footer";
-import { CommissionStatus } from "../types";
+import { CommissionStatus, WorkspaceEnvironment } from "../types";
 
 export default function NewCommissionAlertPartner({
   email = "panic@thedis.co",
@@ -21,6 +22,7 @@ export default function NewCommissionAlertPartner({
     name: "Acme",
     slug: "acme",
     logo: DUB_WORDMARK,
+    environment: "production",
   },
   group = {
     holdingPeriodDays: 30,
@@ -38,6 +40,7 @@ export default function NewCommissionAlertPartner({
     name: string;
     slug: string;
     logo: string | null;
+    environment?: WorkspaceEnvironment;
   };
   group: {
     holdingPeriodDays: number;
@@ -66,6 +69,7 @@ export default function NewCommissionAlertPartner({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <EnvironmentBanner environment={program.environment} />
             <Section className="mt-8">
               <Img
                 src={program.logo || "https://assets.dub.co/wordmark.png"}
