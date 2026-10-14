@@ -10,7 +10,13 @@ import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { ProgramLogo } from "@/ui/partners/program-logo";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { Filter, LoadingSpinner, ToggleGroup, useRouterStuff } from "@dub/ui";
+import {
+  Filter,
+  type Icon,
+  LoadingSpinner,
+  ToggleGroup,
+  useRouterStuff,
+} from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import {
   CircleDotted,
@@ -54,6 +60,23 @@ const MAX_LINES = LINE_COLORS.length;
 
 type EarningsGroupBy = "type" | "linkId" | "programId";
 
+// the chart groupings. Only the All programs page (no programSlug) groups by program.
+const GROUP_BY_OPTIONS: {
+  value: EarningsGroupBy;
+  label: string;
+  icon: Icon;
+  allProgramsOnly?: boolean;
+}[] = [
+  { value: "type", label: "Type", icon: Sliders },
+  { value: "linkId", label: "Link", icon: Hyperlink },
+  {
+    value: "programId",
+    label: "Program",
+    icon: GridIcon,
+    allProgramsOnly: true,
+  },
+];
+
 // a row of GET /api/partner-profile/earnings/count, grouped by link or by program
 type EarningsCountGroup = {
   id: string;
@@ -69,7 +92,7 @@ function getGroupLabel({
   group,
   id,
 }: {
-  groupBy?: EarningsGroupBy;
+  groupBy: EarningsGroupBy;
   group?: EarningsCountGroup;
   id: string;
 }) {
@@ -95,14 +118,13 @@ export function EarningsCompositeChart() {
   const filters = usePartnerEarningsFilters();
   const { start, end, interval } = filters;
 
-  // no grouping by default, so the chart shows one line with the total. Only
-  // the All programs page (no programSlug) can group by program.
-  const groupByOptions: EarningsGroupBy[] = programSlug
-    ? ["type", "linkId"]
-    : ["type", "linkId", "programId"];
-  const groupBy = groupByOptions.find(
-    (option) => option === searchParamsObj.groupBy,
+  // no grouping by default, so the chart shows one line with the total
+  const groupByOptions = GROUP_BY_OPTIONS.filter(
+    ({ allProgramsOnly }) => !programSlug || !allProgramsOnly,
   );
+  const groupBy = groupByOptions.find(
+    ({ value }) => value === searchParamsObj.groupBy,
+  )?.value;
   const labelsGroupBy =
     groupBy === "linkId" || groupBy === "programId" ? groupBy : undefined;
 
@@ -202,39 +224,15 @@ export function EarningsCompositeChart() {
             className="flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100"
             optionClassName="h-8 px-2.5 flex items-center justify-center"
             indicatorClassName="border border-neutral-200 bg-white"
-            options={[
-              {
-                label: (
-                  <div className="flex items-center gap-1.5 text-neutral-600">
-                    <Sliders className="size-4" />
-                    <span className="text-sm">Type</span>
-                  </div>
-                ),
-                value: "type",
-              },
-              {
-                label: (
-                  <div className="flex items-center gap-1.5 text-neutral-600">
-                    <Hyperlink className="size-4" />
-                    <span className="text-sm">Link</span>
-                  </div>
-                ),
-                value: "linkId",
-              },
-              ...(programSlug
-                ? []
-                : [
-                    {
-                      label: (
-                        <div className="flex items-center gap-1.5 text-neutral-600">
-                          <GridIcon className="size-4" />
-                          <span className="text-sm">Program</span>
-                        </div>
-                      ),
-                      value: "programId",
-                    },
-                  ]),
-            ]}
+            options={groupByOptions.map(({ value, label, icon: Icon }) => ({
+              value,
+              label: (
+                <div className="flex items-center gap-1.5 text-neutral-600">
+                  <Icon className="size-4" />
+                  <span className="text-sm">{label}</span>
+                </div>
+              ),
+            }))}
             selected={groupBy ?? null}
             // a click on the selected option goes back to the total
             selectAction={(option) =>
