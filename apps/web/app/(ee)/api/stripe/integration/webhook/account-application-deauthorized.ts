@@ -23,7 +23,6 @@ export async function accountApplicationDeauthorized({
       where: {
         id: workspace.id,
         stripeConnectId: stripeAccountId,
-        OR: [{ stripeConnectMode: mode }, { stripeConnectMode: null }],
       },
       data: {
         stripeConnectId: null,

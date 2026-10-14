@@ -105,7 +105,7 @@ export const PATCH = withWorkspace(
       if (error.code === "P2002") {
         throw new DubApiError({
           code: "conflict",
-          message: `The stripe connect account "${stripeAccountId}" is already in use.`,
+          message: `The Stripe account "${stripeAccountId}" is already connected to another workspace in "${stripeMode}" mode.`,
         });
       }
 
