@@ -8,6 +8,13 @@ import { gzipSync } from "zlib";
 
 vi.mock("server-only", () => ({}));
 
+// Run the sitemap import through the Edge `safeFetch`, so the stubbed global
+// `fetch` below handles both the DoH lookups and the sitemap requests.
+vi.mock("@/lib/api/safe-fetch-node", async () => {
+  const { safeFetch } = await import("@/lib/api/safe-fetch");
+  return { safeFetchNode: safeFetch };
+});
+
 function toArrayBuffer(buf: Buffer): ArrayBuffer {
   const ab = new ArrayBuffer(buf.length);
   new Uint8Array(ab).set(buf);

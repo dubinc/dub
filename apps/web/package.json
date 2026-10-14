@@ -137,6 +137,7 @@
     "svix": "^1.76.1",
     "swr": "^2.1.5",
     "tremendous": "4.12.0",
+    "undici": "7.29.0",
     "unique-names-generator": "^4.7.1",
     "unsplash-js": "^7.0.18",
     "use-debounce": "^10.0.4",

@@ -9,8 +9,10 @@
  *   3. Manual redirect handling: each hop's `Location` is re-validated, so a
  *      whitelisted host cannot bounce us into an internal IP.
  *
- * Node sibling is `Storage.assertSafeUrl` in `storage.ts`. This module uses
- * DoH because it runs on the Edge runtime, which has no `node:dns`.
+ * `safeFetch` uses DoH because the Edge runtime has no `node:dns`. The DoH
+ * check and the connect use separate lookups, so a DNS server that answers
+ * differently each time can still pass it. On the Node runtime, use
+ * `safeFetchNode` from `safe-fetch-node.ts`, which checks the IPs at connect time.
  */
 
 import { DubApiError } from "@/lib/api/errors";
@@ -220,7 +222,11 @@ async function resolveHostnameToIps(
   return [...a, ...aaaa];
 }
 
-async function assertUrlIsSafe(url: URL, signal: AbortSignal): Promise<void> {
+async function assertUrlIsSafe(
+  url: URL,
+  signal: AbortSignal,
+  resolveHostnames: boolean,
+): Promise<void> {
   if (!ALLOWED_PROTOCOLS.has(url.protocol)) {
     throw new DubApiError({
       code: "unprocessable_entity",
@@ -238,6 +244,9 @@ async function assertUrlIsSafe(url: URL, signal: AbortSignal): Promise<void> {
     }
     return;
   }
+
+  // The transport checks the resolved IPs itself when it connects.
+  if (!resolveHostnames) return;
 
   const ips = await resolveHostnameToIps(url.hostname, signal);
   if (signal.aborted) {
@@ -267,7 +276,34 @@ type SafeFetchOptions = {
   maxRedirects?: number;
 };
 
-export async function safeFetch(
+type SafeFetchTransport = {
+  fetch: (url: string, init: RequestInit) => Promise<Response>;
+  /**
+   * False when `fetch` checks every resolved IP at connect time, so the DoH
+   * check is not needed. IP literals are always checked here, because no DNS
+   * lookup runs for them.
+   */
+  resolveHostnames: boolean;
+};
+
+export type SafeFetch = (
+  url: string,
+  init?: RequestInit,
+  opts?: SafeFetchOptions,
+) => Promise<Response>;
+
+/** Builds a `safeFetch` on top of another transport. Used by `safeFetchNode`. */
+export function createSafeFetch(transport: SafeFetchTransport): SafeFetch {
+  return (url, init, opts) => safeFetchWith(transport, url, init, opts);
+}
+
+export const safeFetch = createSafeFetch({
+  fetch: (url, init) => fetch(url, init),
+  resolveHostnames: true,
+});
+
+async function safeFetchWith(
+  transport: SafeFetchTransport,
   url: string,
   init?: RequestInit,
   opts: SafeFetchOptions = {},
@@ -291,6 +327,7 @@ export async function safeFetch(
 
   try {
     return await fetchWithRedirects(
+      transport,
       currentUrl,
       init,
       maxRedirects,
@@ -302,6 +339,7 @@ export async function safeFetch(
 }
 
 async function fetchWithRedirects(
+  transport: SafeFetchTransport,
   url: URL,
   init: RequestInit | undefined,
   maxRedirects: number,
@@ -312,9 +350,9 @@ async function fetchWithRedirects(
   let hops = 0;
 
   while (true) {
-    await assertUrlIsSafe(currentUrl, signal);
+    await assertUrlIsSafe(currentUrl, signal, transport.resolveHostnames);
 
-    const response = await fetch(currentUrl.toString(), {
+    const response = await transport.fetch(currentUrl.toString(), {
       ...currentInit,
       redirect: "manual",
       signal,

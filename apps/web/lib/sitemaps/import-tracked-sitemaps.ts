@@ -1,5 +1,5 @@
 import { bulkCreateLinks } from "@/lib/api/links/bulk-create-links";
-import { safeFetch } from "@/lib/api/safe-fetch";
+import { safeFetchNode } from "@/lib/api/safe-fetch-node";
 import { prisma } from "@/lib/prisma";
 import type { TrackedSitemap } from "@/lib/sitemaps/site-visit-tracking";
 import { ProcessedLinkProps } from "@/lib/types";
@@ -72,7 +72,9 @@ async function decompressIfGzip(buffer: ArrayBuffer): Promise<string> {
 async function fetchAndParseSitemap(
   sitemapUrl: string,
 ): Promise<SitemapXmlResult> {
-  const response = await safeFetch(sitemapUrl, undefined, { maxRedirects: 0 });
+  const response = await safeFetchNode(sitemapUrl, undefined, {
+    maxRedirects: 0,
+  });
   if (!response.ok) {
     throw new Error(
       `Failed to fetch sitemap: ${response.status} ${response.statusText}`,
