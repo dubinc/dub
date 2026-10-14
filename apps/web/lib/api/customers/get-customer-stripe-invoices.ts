@@ -99,12 +99,14 @@ export async function getCustomerStripeInvoices({
     console.warn(error);
   }
 
+  const programId = getDefaultProgramIdOrThrow(workspace);
+
   const commissions = await prisma.commission.findMany({
     where: {
       invoiceId: {
         in: invoices.map((invoice) => invoice.id),
       },
-      programId: programId,
+      programId,
     },
   });
 

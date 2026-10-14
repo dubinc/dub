@@ -558,7 +558,7 @@ async function recordEvents(args: RecordEventsArgs) {
   let stripeCustomerInvoices: Awaited<
     ReturnType<typeof getCustomerStripeInvoices>
   > = [];
-  const { workspace, programId, targetLink, targetCustomer } = args;
+  const { workspace, targetLink, targetCustomer } = args;
 
   if (type === "lead") {
     finalLeadEventDate = args.date ?? args.leadEventDate ?? new Date();
