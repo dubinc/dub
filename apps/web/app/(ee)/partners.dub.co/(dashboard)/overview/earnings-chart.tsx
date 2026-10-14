@@ -5,6 +5,10 @@ import { usePartnerDateRange } from "@/lib/analytics/use-partner-date-range";
 import { testIds } from "@/lib/e2e/test-ids";
 import { usePartnerProfileEarningsTimeseries } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
+import {
+  ShareChartButton,
+  ShareEarningsModal,
+} from "@/ui/partners/earnings/share-earnings-modal";
 import { ProgramLogo } from "@/ui/partners/program-logo";
 import { useIsTouchDevice } from "@dub/ui";
 import {
@@ -19,7 +23,7 @@ import { currencyFormatter, nFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { useRouter } from "next/navigation";
-import { useId, useMemo } from "react";
+import { useId, useMemo, useState } from "react";
 import { ViewAllButton } from "./overview-card";
 import { useEarningsPageHref } from "./use-earnings-page-href";
 import { useTopProgramEarnings } from "./use-top-program-earnings";
@@ -31,6 +35,7 @@ export function EarningsChart() {
   const router = useRouter();
   const { start, end, interval } = usePartnerDateRange();
   const earningsPageHref = useEarningsPageHref();
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // on touch devices, the chart opens /programs at the end of each drag, which
   // stops partners from reading the tooltip
@@ -78,11 +83,21 @@ export function EarningsChart() {
       data-testid={testIds.partnerOverview.earnings}
       className="flex flex-col rounded-xl border border-neutral-200 bg-white lg:h-[460px]"
     >
+      <ShareEarningsModal
+        showModal={showShareModal}
+        setShowModal={setShowShareModal}
+        start={start}
+        end={end}
+        interval={interval}
+      />
       <div className="px-5 py-4">
         <div className="flex items-start justify-between gap-2">
-          <h2 className="pt-0.5 text-base font-semibold leading-6 text-neutral-800">
-            Earnings
-          </h2>
+          <div className="flex items-center gap-1.5 pt-0.5">
+            <h2 className="text-base font-semibold leading-6 text-neutral-800">
+              Earnings
+            </h2>
+            <ShareChartButton onClick={() => setShowShareModal(true)} />
+          </div>
           <ViewAllButton href={earningsPageHref} />
         </div>
         {total !== undefined ? (
