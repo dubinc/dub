@@ -30,7 +30,7 @@ import {
 import NumberFlow from "@number-flow/react";
 import { CommissionType } from "@prisma/client";
 import { Fragment, useMemo, useState } from "react";
-import { useProgramEarningsFilters } from "./use-program-earnings-filters";
+import { usePartnerEarningsFilters } from "./use-partner-earnings-filters";
 
 const LINE_COLORS = [
   "text-teal-500",
@@ -54,7 +54,7 @@ const MAX_LINES = LINE_COLORS.length;
 export function EarningsCompositeChart() {
   const { queryParams, searchParamsObj } = useRouterStuff();
 
-  const filters = useProgramEarningsFilters();
+  const filters = usePartnerEarningsFilters();
   const { start, end, interval } = filters;
 
   const { groupBy = "type" } = searchParamsObj as {
@@ -251,7 +251,7 @@ export function EarningsCompositeChart() {
 
 function EarningsTableControls() {
   const { queryParams, searchParamsObj } = useRouterStuff();
-  const earningsFilters = useProgramEarningsFilters();
+  const earningsFilters = usePartnerEarningsFilters();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
 
   const { data: links } = usePartnerProfileEarningsCount<

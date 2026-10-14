@@ -37,7 +37,7 @@ import {
 import { CommissionType } from "@prisma/client";
 import { Cell } from "@tanstack/react-table";
 import { useParams } from "next/navigation";
-import { useProgramEarningsFilters } from "./use-program-earnings-filters";
+import { usePartnerEarningsFilters } from "./use-partner-earnings-filters";
 
 type ColumnMeta = {
   filterParams?: (
@@ -50,7 +50,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
   const { partner } = usePartnerProfile();
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const { queryParams, searchParamsObj } = useRouterStuff();
-  const filters = useProgramEarningsFilters();
+  const filters = usePartnerEarningsFilters();
 
   const { sortBy = "createdAt", sortOrder = "desc" } = searchParamsObj as {
     sortBy?: "createdAt" | "amount" | "earnings";

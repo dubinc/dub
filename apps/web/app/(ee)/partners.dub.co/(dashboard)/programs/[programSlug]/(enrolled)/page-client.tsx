@@ -19,6 +19,7 @@ import { GroupProps, PartnerProfileLinkProps } from "@/lib/types";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import { DiscountCodeTooltip } from "@/ui/partners/discounts/discount-code-tooltip";
+import { EarningsTablePartner } from "@/ui/partners/earnings/earnings-table";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -77,7 +78,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { EarningsTablePartner } from "./earnings/earnings-table";
 import { PayoutsCard } from "./payouts-card";
 import { ShareEarningsModal } from "./share-earnings-modal";
 

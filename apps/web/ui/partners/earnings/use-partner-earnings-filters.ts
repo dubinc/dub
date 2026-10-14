@@ -4,8 +4,8 @@ import { useRouterStuff } from "@dub/ui";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 
-// the program, filters and date range of the program Earnings page, from the URL
-export function useProgramEarningsFilters() {
+// the program, filters and date range of the partner Earnings pages, from the URL
+export function usePartnerEarningsFilters() {
   const { programSlug } = useParams<{ programSlug: string }>();
   const { searchParamsObj } = useRouterStuff();
   const dateRange = usePartnerDateRange();
