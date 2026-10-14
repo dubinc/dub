@@ -235,14 +235,14 @@ function ProgramsGrid({
               ),
             )}
       </div>
-      {/* like the table footer, but only when the tab has more than one page */}
+      {/* sticky like the table footer, but only when the tab has more than one page */}
       {count !== undefined && count > pagination.pageSize && (
         <PaginationControls
           pagination={pagination}
           setPagination={setPagination}
           totalCount={count}
           unit={(plural) => `${tab.resourceName}${plural ? "s" : ""}`}
-          className="border-border-subtle border-t px-4 py-3.5"
+          className="border-border-subtle bg-bg-default sticky bottom-0 z-10 rounded-b-[inherit] border-t px-4 py-3.5"
         />
       )}
     </>
