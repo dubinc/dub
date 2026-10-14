@@ -150,37 +150,36 @@ function BountiesEmptyState({
     emptyState.description;
 
   return (
-    <div className="py-10">
-      <AnimatedEmptyState
-        title={title}
-        description={
-          showLearnMore ? (
-            <>
-              {description}{" "}
-              <a
-                href="https://dub.co/help/article/program-bounties"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-content-default underline sm:whitespace-nowrap"
-              >
-                Learn more about bounties
-              </a>
-              .
-            </>
-          ) : (
-            description
-          )
-        }
-        cardContent={(idx) => {
-          const Icon = [Trophy, Heart][idx % 2];
-          return (
-            <>
-              <Icon className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-            </>
-          );
-        }}
-      />
-    </div>
+    <AnimatedEmptyState
+      className="border-none"
+      title={title}
+      description={
+        showLearnMore ? (
+          <>
+            {description}{" "}
+            <a
+              href="https://dub.co/help/article/program-bounties"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-content-default underline sm:whitespace-nowrap"
+            >
+              Learn more about bounties
+            </a>
+            .
+          </>
+        ) : (
+          description
+        )
+      }
+      cardContent={(idx) => {
+        const Icon = [Trophy, Heart][idx % 2];
+        return (
+          <>
+            <Icon className="size-4 text-neutral-700" />
+            <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+          </>
+        );
+      }}
+    />
   );
 }

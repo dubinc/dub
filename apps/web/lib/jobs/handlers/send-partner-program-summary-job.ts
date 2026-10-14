@@ -7,7 +7,12 @@ import { tz } from "@date-fns/tz";
 import { sendBatchEmail } from "@dub/email";
 import PartnerProgramSummary from "@dub/email/templates/partner-program-summary";
 import { chunk } from "@dub/utils";
-import { CommissionStatus, Prisma, Program } from "@prisma/client";
+import {
+  CommissionStatus,
+  Prisma,
+  Program,
+  WorkspaceEnvironment,
+} from "@prisma/client";
 import { endOfMonth, format, parse, subMonths } from "date-fns";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
@@ -262,6 +267,7 @@ export const sendPartnerProgramSummaryJob = defineJob({
         partnerId,
         program: {
           deactivatedAt: null,
+          environment: WorkspaceEnvironment.production,
         },
         status: {
           in: ACTIVE_ENROLLMENT_STATUSES,
