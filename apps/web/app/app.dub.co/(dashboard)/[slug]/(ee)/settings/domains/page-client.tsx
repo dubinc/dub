@@ -241,9 +241,7 @@ export function CustomDomains() {
           </>
         )}
 
-        {isProductionEnvironment(environment) && !dotLinkClaimed && (
-          <FreeDotLinkBanner />
-        )}
+        {!dotLinkClaimed && <FreeDotLinkBanner />}
 
         <div key={archived} className="animate-fade-in">
           {!loading ? (

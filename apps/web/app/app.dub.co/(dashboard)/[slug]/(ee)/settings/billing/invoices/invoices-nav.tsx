@@ -5,23 +5,17 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PageNavTabs } from "@/ui/layout/page-nav-tabs";
 import { CreditCard, Globe, Icon, MoneyBills2, useRouterStuff } from "@dub/ui";
 
-export const INVOICE_TYPES = [
-  "subscription",
-  "partnerPayout",
-  "domainRenewal",
-] as const;
-
-export type InvoiceTypeId = (typeof INVOICE_TYPES)[number];
-
-export const INVOICE_TABS: {
-  id: InvoiceTypeId;
-  label: string;
-  icon: Icon;
-}[] = [
+export const INVOICE_TABS = [
   { id: "subscription", label: "Subscription", icon: CreditCard },
   { id: "partnerPayout", label: "Partner payouts", icon: MoneyBills2 },
   { id: "domainRenewal", label: "Domain renewals", icon: Globe },
-];
+] as const satisfies {
+  id: string;
+  label: string;
+  icon: Icon;
+}[];
+
+export type InvoiceTypeId = (typeof INVOICE_TABS)[number]["id"];
 
 export function getVisibleInvoiceTabs(isProduction: boolean) {
   return isProduction
