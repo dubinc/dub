@@ -20,6 +20,8 @@ import NumberFlow from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { useRouter } from "next/navigation";
 import { useId, useMemo } from "react";
+import { ViewAllButton } from "./overview-card";
+import { useEarningsPageHref } from "./use-earnings-page-href";
 import { useTopProgramEarnings } from "./use-top-program-earnings";
 
 const MAX_TOOLTIP_PROGRAMS = 5;
@@ -28,6 +30,7 @@ export function EarningsChart() {
   const id = useId();
   const router = useRouter();
   const { start, end, interval } = usePartnerDateRange();
+  const earningsPageHref = useEarningsPageHref();
 
   // on touch devices, the chart opens /programs at the end of each drag, which
   // stops partners from reading the tooltip
@@ -76,9 +79,12 @@ export function EarningsChart() {
       className="flex flex-col rounded-xl border border-neutral-200 bg-white lg:h-[460px]"
     >
       <div className="px-5 py-4">
-        <h2 className="pt-0.5 text-base font-semibold leading-6 text-neutral-800">
-          Earnings
-        </h2>
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="pt-0.5 text-base font-semibold leading-6 text-neutral-800">
+            Earnings
+          </h2>
+          <ViewAllButton href={earningsPageHref} />
+        </div>
         {total !== undefined ? (
           <NumberFlow
             className="text-lg font-medium leading-7 text-neutral-600"
