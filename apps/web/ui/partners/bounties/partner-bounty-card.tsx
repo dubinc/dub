@@ -1,12 +1,7 @@
-import { PartnerBountyProps } from "@/lib/types";
-import {
-  PerformanceBountyProgress,
-  SubmissionBountyProgress,
-} from "@/ui/partners/bounties/bounty-performance";
-import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
-import { BountyStatusBadge } from "@/ui/partners/bounties/bounty-status-badge";
-import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
+import { isPartnerBountyExpired } from "@/lib/bounty/partner-bounty-tabs";
+import { PartnerBountyProps, ProgramProps } from "@/lib/types";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
+import { ProgramLogo } from "@/ui/partners/program-logo";
 import { buttonVariants, Table, TimestampTooltip, useTable } from "@dub/ui";
 import { Calendar6 } from "@dub/ui/icons";
 import {
@@ -17,6 +12,13 @@ import {
 } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import {
+  PerformanceBountyProgress,
+  SubmissionBountyProgress,
+} from "./bounty-performance";
+import { BountyRewardDescription } from "./bounty-reward-description";
+import { BountyStatusBadge } from "./bounty-status-badge";
+import { BountyThumbnailImage } from "./bounty-thumbnail-image";
 
 export function PartnerBountyCard({
   bounty,
@@ -25,6 +27,7 @@ export function PartnerBountyCard({
   showRewards = false,
   href,
   onClick,
+  program,
 }: {
   bounty: PartnerBountyProps;
   showFullTitle?: boolean;
@@ -32,6 +35,8 @@ export function PartnerBountyCard({
   showRewards?: boolean;
   href?: string;
   onClick?: () => void;
+  // shown under the reward on the bounties of all programs
+  program?: Pick<ProgramProps, "name" | "logo">;
 }) {
   const { programSlug } = useParams();
   const As = href ? Link : "div";
@@ -72,6 +77,13 @@ export function PartnerBountyCard({
           onTooltipClick={(e) => e.stopPropagation()}
           className="font-medium"
         />
+
+        {program && (
+          <div className="text-content-subtle mt-1 flex min-w-0 items-center gap-1.5 text-xs font-medium">
+            <ProgramLogo program={program} className="size-4" />
+            <span className="truncate">{program.name}</span>
+          </div>
+        )}
       </div>
 
       {!hideFooter && (
@@ -86,13 +98,13 @@ export function PartnerBountyCard({
 
       {showRewards &&
         bounty.submissions.some((s) => s.commissions.length > 0) && (
-        <div className="@3xl/page:block border-border-subtle hidden border-t p-4">
-          <BountyRewardsTable
-            bounty={bounty}
-            programSlug={programSlug as string}
-          />
-        </div>
-      )}
+          <div className="@3xl/page:block border-border-subtle hidden border-t p-4">
+            <BountyRewardsTable
+              bounty={bounty}
+              programSlug={programSlug as string}
+            />
+          </div>
+        )}
     </As>
   );
 }
@@ -172,8 +184,7 @@ export function BountyRewardsTable({
 }
 
 export function BountyEndDate({ bounty }: { bounty: PartnerBountyProps }) {
-  const isExpired =
-    bounty.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
+  const isExpired = isPartnerBountyExpired(bounty);
 
   return (
     <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">

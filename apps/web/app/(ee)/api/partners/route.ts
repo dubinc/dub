@@ -108,6 +108,7 @@ export const GET = withWorkspace(
     );
   },
   {
+    requiredPermissions: ["partners.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
@@ -141,7 +142,7 @@ export const POST = withWorkspace(
     });
   },
   {
+    requiredPermissions: ["partners.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );

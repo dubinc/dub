@@ -352,7 +352,6 @@ export default function IntegrationPageClient({
                   icon={<ConnectedDots className="size-4" />}
                   disabledTooltip={
                     [
-                      HUBSPOT_INTEGRATION_ID,
                       APPSFLYER_INTEGRATION_ID,
                       INTERCOM_INTEGRATION_ID,
                       GOOGLE_ADS_INTEGRATION_ID,
