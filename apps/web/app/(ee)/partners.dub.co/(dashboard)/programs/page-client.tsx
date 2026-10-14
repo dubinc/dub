@@ -180,7 +180,12 @@ function ProgramsTabContent({
       countError={countError}
     />
   ) : (
-    <ProgramsGrid tab={tab} search={search} count={count} />
+    <ProgramsGrid
+      tab={tab}
+      search={search}
+      count={count}
+      countError={countError}
+    />
   );
 }
 
@@ -198,15 +203,18 @@ function ProgramsGrid({
   tab,
   search,
   count,
+  countError,
 }: {
   tab: ProgramTab;
   search?: string;
   count?: number;
+  countError?: unknown;
 }) {
   const { programEnrollments, isLoading, error, pagination, setPagination } =
     useProgramsPage({ tab, search });
 
-  if (error) {
+  // like the table, since without the count the grid cannot show its pages
+  if (error || countError) {
     return (
       <div className="py-10 text-center text-sm text-neutral-500">
         Failed to load programs
