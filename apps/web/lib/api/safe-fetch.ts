@@ -234,7 +234,10 @@ async function assertUrlIsSafe(url: URL): Promise<void> {
 type SafeFetchOptions = {
   /** Total timeout across all redirect hops. Defaults to 5000ms. */
   timeoutMs?: number;
-  /** Max number of redirects to follow. Defaults to 5. Set to 0 to disable. */
+  /**
+   * Max number of redirects to follow. Defaults to 5. Set to 0 to return a
+   * redirect response as is, like `redirect: "manual"`.
+   */
   maxRedirects?: number;
 };
 
@@ -283,7 +286,7 @@ export async function safeFetch(
 
     const isRedirect = response.status >= 300 && response.status < 400;
     const location = response.headers.get("location");
-    if (!isRedirect || !location) {
+    if (!isRedirect || !location || maxRedirects === 0) {
       return response;
     }
 
