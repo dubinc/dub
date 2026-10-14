@@ -245,7 +245,6 @@ function EarningsChart() {
           start={start}
           end={end}
           interval={interval}
-          timeseries={timeseries}
         />
       )}
       <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">

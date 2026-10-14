@@ -23,11 +23,11 @@ type BackgroundType = (typeof BACKGROUND_OPTIONS)[number]["id"];
 type ShareEarningsModalProps = {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
-  programId: string;
+  // without a program, the image shows the earnings of all programs
+  programId?: string;
   start?: Date;
   end?: Date;
   interval: IntervalOptions;
-  timeseries?: { start: string; earnings: number }[];
 };
 
 export function ShareEarningsModal({
@@ -37,7 +37,6 @@ export function ShareEarningsModal({
   start,
   end,
   interval,
-  timeseries,
 }: ShareEarningsModalProps) {
   return (
     <Modal
@@ -51,7 +50,6 @@ export function ShareEarningsModal({
         start={start}
         end={end}
         interval={interval}
-        timeseries={timeseries}
       />
     </Modal>
   );
@@ -63,7 +61,6 @@ function ShareEarningsModalInner({
   start,
   end,
   interval,
-  timeseries,
 }: Omit<ShareEarningsModalProps, "showModal">) {
   const [background, setBackground] = useState<BackgroundType>("light");
   const [isLoading, setIsLoading] = useState(false);
@@ -72,7 +69,7 @@ function ShareEarningsModalInner({
   const imageUrl = useMemo(() => {
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     return `/api/og/partner-earnings?${new URLSearchParams({
-      programId,
+      ...(programId && { programId }),
       background,
       interval,
       timezone,
@@ -82,8 +79,6 @@ function ShareEarningsModalInner({
   }, [programId, background, interval, start, end]);
 
   useEffect(() => {
-    if (!programId) return;
-
     const abortController = new AbortController();
 
     setIsLoading(true);
@@ -102,7 +97,7 @@ function ShareEarningsModalInner({
       });
 
     return () => abortController.abort();
-  }, [imageUrl, programId]);
+  }, [imageUrl]);
 
   const handleCopy = async () => {
     if (!blob) return;
