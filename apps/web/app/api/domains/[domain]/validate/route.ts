@@ -1,7 +1,7 @@
 import { isValidDomain } from "@/lib/api/domains/is-valid-domain";
 import { domainExists } from "@/lib/api/domains/utils";
 import { validateDubLinkSubdomain } from "@/lib/api/domains/validate-dub-link-subdomain";
-import { safeFetch } from "@/lib/api/safe-fetch";
+import { safeFetchNode } from "@/lib/api/safe-fetch-node";
 import { withSession } from "@/lib/auth";
 import dns from "dns/promises";
 import { NextResponse } from "next/server";
@@ -52,13 +52,14 @@ export const GET = withSession(async ({ params }) => {
 async function hasSiteConfigured(domain: string): Promise<boolean> {
   try {
     // Try HTTP HEAD request first (both HTTP and HTTPS).
-    // safeFetch enforces SSRF guards on the user-supplied domain (the path
-    // param flows in here) so this can't be used to probe internal hosts.
+    // safeFetchNode enforces SSRF guards on the user-supplied domain (the path
+    // param flows in here) so this can't be used to probe internal hosts. It
+    // checks the IPs when it connects, so no DoH lookups run for these URLs.
     const urls = [`https://${domain}`, `http://${domain}`];
 
     for (const url of urls) {
       try {
-        const response = await safeFetch(
+        const response = await safeFetchNode(
           url,
           { method: "HEAD" },
           { timeoutMs: 3000 },
