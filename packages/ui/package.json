@@ -42,7 +42,7 @@
     "@dub/utils": "workspace:*",
     "@types/d3-array": "^3.2.1",
     "@types/js-cookie": "^3.0.6",
-    "@types/react": "^19.1.14",
+    "@types/react": "^19.1.15",
     "@types/react-dom": "^19.1.9",
     "autoprefixer": "^10.4.16",
     "next": "15.5.8",

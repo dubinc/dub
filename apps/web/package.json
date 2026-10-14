@@ -153,7 +153,7 @@
     "@types/luxon": "^3.7.1",
     "@types/ms": "^0.7.31",
     "@types/node": "18.11.9",
-    "@types/react": "19.1.14",
+    "@types/react": "19.1.15",
     "@types/react-dom": "19.1.9",
     "@types/react-highlight-words": "^0.16.4",
     "@types/sanitize-html": "^2.16.0",
@@ -174,11 +174,5 @@
   },
   "browser": {
     "crypto": false
-  },
-  "pnpm": {
-    "overrides": {
-      "@types/react": "19.1.14",
-      "@types/react-dom": "19.1.9"
-    }
   }
 }
