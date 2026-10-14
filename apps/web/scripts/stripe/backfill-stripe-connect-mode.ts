@@ -1,7 +1,8 @@
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@/lib/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { StripeConnectMode } from "@prisma/client";
 import "dotenv-flow/config";
+import * as z from "zod/v4";
 
 const DRY_RUN = true;
 const BATCH_SIZE = 100;
@@ -61,9 +62,7 @@ async function main() {
         | undefined;
 
       // Parse only stripeMode so unrelated invalid settings don't reset the mode to live
-      const parsed = stripeIntegrationSettingsSchema.shape.stripeMode.safeParse(
-        settings?.stripeMode,
-      );
+      const parsed = z.enum(StripeConnectMode).safeParse(settings?.stripeMode);
 
       return {
         id: workspace.id,
