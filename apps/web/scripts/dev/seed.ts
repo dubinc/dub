@@ -1,6 +1,8 @@
 import { createId } from "@/lib/api/create-id";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
+import { createStagingProgram } from "@/lib/sandbox/create-staging-program";
+import { createStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
 import {
   Domain,
   EmailDomain,
@@ -674,9 +676,12 @@ async function main() {
   await createDomains(data);
   await createFolders(data);
   await createProgram(data);
+  await createStagingWorkspace(data.workspace.id);
   await createEmailDomains(data);
   await createRewards(data);
   await createGroups(data);
+  await createStagingProgram(data.workspace.id);
+  console.log("Created staging workspace and program");
   await createPartners(data);
   await createIntegrations(data);
 }
