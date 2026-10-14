@@ -9,7 +9,7 @@ import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { OverviewCard } from "./overview-card";
 
-export function TasksCard() {
+export function TasksCard({ className }: { className?: string }) {
   const { isMobile } = useMediaQuery();
 
   const { count: unreadMessagesCount } = useProgramMessagesCount({
@@ -36,7 +36,6 @@ export function TasksCard() {
   ];
 
   // only on mobile: hide the card when no action is needed
-  // so that Recent payouts fills the column
   const incompleteTasks = tasks.filter(
     (task): task is typeof task & { count: number } => !!task.count,
   );
@@ -45,7 +44,11 @@ export function TasksCard() {
   }
 
   return (
-    <OverviewCard title="Tasks" testId={testIds.partnerOverview.tasks}>
+    <OverviewCard
+      title="Tasks"
+      className={className}
+      testId={testIds.partnerOverview.tasks}
+    >
       <div className="flex flex-col px-2 pb-2">
         {tasks.map((task) => (
           <TaskRow key={task.href} {...task} />

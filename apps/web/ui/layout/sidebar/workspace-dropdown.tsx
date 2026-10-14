@@ -218,7 +218,7 @@ function WorkspaceList({
         <div className="flex flex-row gap-1">
           <Link
             href={`/${selected.slug ? selected.slug : "account"}/settings`}
-            className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
+            className="flex flex-1 items-center justify-center gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
             onClick={() => setOpenPopover(false)}
           >
             <Gear className="size-4 text-neutral-800" />
@@ -228,7 +228,7 @@ function WorkspaceList({
             (inviteMembersRestricted ? (
               <Tooltip content="Teammates can only be invited from your production workspace (members are automatically synced to staging).">
                 <div
-                  className="flex cursor-not-allowed items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-400 outline-none"
+                  className="flex flex-1 cursor-not-allowed items-center justify-center gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-400 outline-none"
                   aria-disabled="true"
                 >
                   <UserPlus className="size-4" />
@@ -238,7 +238,7 @@ function WorkspaceList({
             ) : (
               <Link
                 href={`/${selected.slug}/settings/people`}
-                className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
+                className="flex flex-1 items-center justify-center gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
                 onClick={() => setOpenPopover(false)}
               >
                 <UserPlus className="size-4 text-neutral-800" />

@@ -17,24 +17,38 @@ export async function accountApplicationDeauthorized({
     };
   }
 
-  await prisma.project.update({
-    where: {
-      stripeConnectId: stripeAccountId,
-    },
-    data: {
-      stripeConnectId: null,
-    },
-    select: {
-      id: true,
-    },
+  const disconnected = await prisma.$transaction(async (tx) => {
+    // Only disconnect if the workspace is still connected to the deauthorized account
+    const { count } = await tx.project.updateMany({
+      where: {
+        id: workspace.id,
+        stripeConnectId: stripeAccountId,
+      },
+      data: {
+        stripeConnectId: null,
+        stripeConnectMode: null,
+      },
+    });
+
+    if (count === 0) {
+      return false;
+    }
+
+    await tx.installedIntegration.deleteMany({
+      where: {
+        projectId: workspace.id,
+        integrationId: STRIPE_INTEGRATION_ID,
+      },
+    });
+
+    return true;
   });
 
-  await prisma.installedIntegration.deleteMany({
-    where: {
-      projectId: workspace.id,
-      integrationId: STRIPE_INTEGRATION_ID,
-    },
-  });
+  if (!disconnected) {
+    return {
+      response: `Workspace ${workspace.id} is no longer connected to Stripe Connect account ${stripeAccountId}. Skipping...`,
+    };
+  }
 
   return {
     response: `Stripe Connect account ${stripeAccountId} deauthorized for workspace ${workspace.id}`,

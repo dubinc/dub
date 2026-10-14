@@ -85,6 +85,7 @@ export const GET = withWorkspace(
     return NextResponse.json(bountySubmissions);
   },
   {
+    requiredPermissions: ["bounties.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
