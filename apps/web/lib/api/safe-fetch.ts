@@ -183,11 +183,13 @@ const DNS_NXDOMAIN = 3;
  */
 async function resolveHostnameToIps(
   hostname: string,
+  signal: AbortSignal,
 ): Promise<string[] | null> {
   const query = async (type: "A" | "AAAA"): Promise<string[] | null> => {
     try {
       const res = await fetch(
         `https://dns.google/resolve?name=${encodeURIComponent(hostname)}&type=${type}`,
+        { signal },
       );
       if (!res.ok) return null;
       const data = (await res.json()) as {
@@ -212,7 +214,7 @@ async function resolveHostnameToIps(
   return [...a, ...aaaa];
 }
 
-async function assertUrlIsSafe(url: URL): Promise<void> {
+async function assertUrlIsSafe(url: URL, signal: AbortSignal): Promise<void> {
   if (!ALLOWED_PROTOCOLS.has(url.protocol)) {
     throw new DubApiError({
       code: "unprocessable_entity",
@@ -231,7 +233,10 @@ async function assertUrlIsSafe(url: URL): Promise<void> {
     return;
   }
 
-  const ips = await resolveHostnameToIps(url.hostname);
+  const ips = await resolveHostnameToIps(url.hostname, signal);
+  if (signal.aborted) {
+    throw new Error("Request timed out");
+  }
   if (ips === null || ips.length === 0) {
     throw new DubApiError({
       code: "unprocessable_entity",
@@ -274,30 +279,39 @@ export async function safeFetch(
     });
   }
 
-  const deadline = Date.now() + timeoutMs;
+  // One deadline covers the DNS checks and the requests of every hop.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetchWithRedirects(
+      currentUrl,
+      init,
+      maxRedirects,
+      controller.signal,
+    );
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchWithRedirects(
+  url: URL,
+  init: RequestInit | undefined,
+  maxRedirects: number,
+  signal: AbortSignal,
+): Promise<Response> {
+  let currentUrl = url;
   let hops = 0;
 
   while (true) {
-    await assertUrlIsSafe(currentUrl);
+    await assertUrlIsSafe(currentUrl, signal);
 
-    const remaining = deadline - Date.now();
-    if (remaining <= 0) {
-      throw new Error("Request timed out");
-    }
-
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), remaining);
-
-    let response: Response;
-    try {
-      response = await fetch(currentUrl.toString(), {
-        ...init,
-        redirect: "manual",
-        signal: controller.signal,
-      });
-    } finally {
-      clearTimeout(timer);
-    }
+    const response = await fetch(currentUrl.toString(), {
+      ...init,
+      redirect: "manual",
+      signal,
+    });
 
     const isRedirect = response.status >= 300 && response.status < 400;
     const location = response.headers.get("location");
