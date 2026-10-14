@@ -17,7 +17,6 @@ import {
   Sheet,
   TooltipContent,
   useKeyboardShortcut,
-  useRouterStuff,
 } from "@dub/ui";
 import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import Link from "next/link";
@@ -219,12 +218,10 @@ export function ProgramApplicationReviewSheet({
   isOpen: boolean;
   nested?: boolean;
 }) {
-  const { queryParams } = useRouterStuff();
   return (
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: ["applicationId", "partnerId"] })}
       nested={nested}
       contentProps={{
         // 540px - 1170px width based on viewport
