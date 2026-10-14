@@ -211,7 +211,7 @@ function ProgramsGrid({
   countError?: unknown;
 }) {
   const { programEnrollments, isLoading, error, pagination, setPagination } =
-    useProgramsPage({ tab, search });
+    useProgramsPage({ tab, search, count });
 
   // like the table, since without the count the grid cannot show its pages
   if (error || countError) {

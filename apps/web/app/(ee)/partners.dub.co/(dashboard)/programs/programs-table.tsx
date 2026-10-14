@@ -53,6 +53,7 @@ export function ProgramsTable({
   } = useProgramsPage({
     tab,
     search,
+    count,
     includeInactiveDates: tab.id === "inactive",
   });
 
