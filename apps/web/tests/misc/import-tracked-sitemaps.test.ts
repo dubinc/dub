@@ -30,7 +30,7 @@ function makeFetchResponse(
 
 function dohResponseFor(ip: string, type: 1 | 28 = 1): Response {
   return makeFetchResponse(
-    Buffer.from(JSON.stringify({ Answer: [{ data: ip, type }] })),
+    Buffer.from(JSON.stringify({ Status: 0, Answer: [{ data: ip, type }] })),
   );
 }
 

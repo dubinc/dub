@@ -173,27 +173,42 @@ function ipLiteralFromHostname(hostname: string): string | null {
   return null;
 }
 
-async function resolveHostnameToIps(hostname: string): Promise<string[]> {
-  const query = async (type: "A" | "AAAA"): Promise<string[]> => {
+// DoH response codes. Any other status (SERVFAIL, REFUSED, ...) is a failed lookup.
+const DNS_NOERROR = 0;
+const DNS_NXDOMAIN = 3;
+
+/**
+ * Resolves A and AAAA records. Returns null if either lookup fails, so the
+ * caller can fail closed instead of checking only one address family.
+ */
+async function resolveHostnameToIps(
+  hostname: string,
+): Promise<string[] | null> {
+  const query = async (type: "A" | "AAAA"): Promise<string[] | null> => {
     try {
       const res = await fetch(
         `https://dns.google/resolve?name=${encodeURIComponent(hostname)}&type=${type}`,
       );
-      if (!res.ok) return [];
+      if (!res.ok) return null;
       const data = (await res.json()) as {
+        Status?: number;
         Answer?: { data: string; type: number }[];
       };
+      if (data.Status !== DNS_NOERROR && data.Status !== DNS_NXDOMAIN) {
+        return null;
+      }
       // Type 1 = A, type 28 = AAAA. Ignore CNAME / other intermediate records.
       const wantedType = type === "A" ? 1 : 28;
       return (data.Answer ?? [])
         .filter((a) => a.type === wantedType)
         .map((a) => a.data);
     } catch {
-      return [];
+      return null;
     }
   };
 
   const [a, aaaa] = await Promise.all([query("A"), query("AAAA")]);
+  if (a === null || aaaa === null) return null;
   return [...a, ...aaaa];
 }
 
@@ -217,7 +232,7 @@ async function assertUrlIsSafe(url: URL): Promise<void> {
   }
 
   const ips = await resolveHostnameToIps(url.hostname);
-  if (ips.length === 0) {
+  if (ips === null || ips.length === 0) {
     throw new DubApiError({
       code: "unprocessable_entity",
       message: `Could not resolve hostname: ${url.hostname}`,
