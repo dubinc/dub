@@ -4,14 +4,9 @@ import { useRouterStuff } from "@dub/ui";
 export function useEarningsPageHref(
   params: { groupBy?: "linkId" | "programId" } = {},
 ) {
-  const { searchParamsObj } = useRouterStuff();
-  const { interval, start, end } = searchParamsObj;
+  const { getQueryString } = useRouterStuff();
 
-  const query = new URLSearchParams(
-    Object.entries({ ...params, interval, start, end }).filter(
-      (entry): entry is [string, string] => Boolean(entry[1]),
-    ),
-  ).toString();
-
-  return `/earnings${query ? `?${query}` : ""}`;
+  return `/earnings${getQueryString(params, {
+    include: ["interval", "start", "end"],
+  })}`;
 }
