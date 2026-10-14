@@ -76,11 +76,26 @@ describe("isPrivateIp", () => {
     });
 
     it.each([
+      "::127.0.0.1", // IPv4-compatible loopback
+      "::7f00:1", // same address in hex form, as `new URL` writes it
+      "::a9fe:a9fe", // IPv4-compatible 169.254.169.254
+      "2002:7f00:1::", // 6to4 for 127.0.0.1
+      "2002:a9fe:a9fe::1", // 6to4 for 169.254.169.254
+      "2002:c0a8:101::", // 6to4 for 192.168.1.1
+      "64:ff9b:1::a00:1", // local-use NAT64 prefix
+      "64:ff9b:1:ffff::1",
+    ])("flags %s with an embedded private IPv4 as private", (ip) => {
+      expect(isPrivateIp(ip)).toBe(true);
+    });
+
+    it.each([
       "2606:4700:4700::1111", // Cloudflare DNS
       "2001:4860:4860::8888", // Google DNS
       "2620:fe::fe", // Quad9
       "::ffff:1.1.1.1", // IPv4-mapped public
       "::ffff:8.8.8.8",
+      "2002:808:808::", // 6to4 for 8.8.8.8
+      "64:ff9b:2::1", // just outside the local-use NAT64 prefix
     ])("does not flag %s as private", (ip) => {
       expect(isPrivateIp(ip)).toBe(false);
     });

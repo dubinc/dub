@@ -111,36 +111,41 @@ function expandIpv6(ip: string): number[] | null {
   return hextets;
 }
 
+/** Formats two hextets as the dotted IPv4 address they hold. */
+function hextetsToIpv4(hi: number, lo: number): string {
+  return `${hi >>> 8}.${hi & 0xff}.${lo >>> 8}.${lo & 0xff}`;
+}
+
 function isPrivateIpv6(ip: string): boolean {
   const g = expandIpv6(ip);
   if (g === null) return true;
 
-  // IPv4-mapped IPv6 (::ffff:0:0/96): unwrap the last 32 bits and re-check.
+  // IPv4-mapped (::ffff:0:0/96) and IPv4-compatible (::/96) addresses hold
+  // an IPv4 address in the last 32 bits. Unwrap it and re-check. This also
+  // covers ::/128 and ::1/128, which unwrap to 0.0.0.0/8.
   if (
     g[0] === 0 &&
     g[1] === 0 &&
     g[2] === 0 &&
     g[3] === 0 &&
     g[4] === 0 &&
-    g[5] === 0xffff
+    (g[5] === 0xffff || g[5] === 0)
   ) {
-    const v4Int = ((g[6] << 16) | g[7]) >>> 0;
-    const v4Str = `${(v4Int >>> 24) & 0xff}.${(v4Int >>> 16) & 0xff}.${
-      (v4Int >>> 8) & 0xff
-    }.${v4Int & 0xff}`;
-    return isPrivateIpv4(v4Str);
+    return isPrivateIpv4(hextetsToIpv4(g[6], g[7]));
   }
 
-  // ::/128 and ::1/128
-  if (g.every((h) => h === 0)) return true;
-  if (g[7] === 1 && g.slice(0, 7).every((h) => h === 0)) return true;
+  // 6to4 (2002::/16) holds an IPv4 address in bits 16-47.
+  if (g[0] === 0x2002) {
+    return isPrivateIpv4(hextetsToIpv4(g[1], g[2]));
+  }
 
   // fc00::/7 unique local, fe80::/10 link-local, ff00::/8 multicast
   if ((g[0] & 0xfe00) === 0xfc00) return true;
   if ((g[0] & 0xffc0) === 0xfe80) return true;
   if ((g[0] & 0xff00) === 0xff00) return true;
 
-  // 64:ff9b::/96 IPv4/IPv6 translation, 2001:db8::/32 documentation
+  // 64:ff9b::/96 well-known NAT64 prefix, 64:ff9b:1::/48 local-use NAT64
+  // prefix (RFC 8215), 2001:db8::/32 documentation
   if (
     g[0] === 0x64 &&
     g[1] === 0xff9b &&
@@ -151,6 +156,7 @@ function isPrivateIpv6(ip: string): boolean {
   ) {
     return true;
   }
+  if (g[0] === 0x64 && g[1] === 0xff9b && g[2] === 1) return true;
   if (g[0] === 0x2001 && g[1] === 0x0db8) return true;
 
   return false;
