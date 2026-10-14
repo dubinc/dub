@@ -74,9 +74,9 @@ export const FolderActions = ({
 
   useKeyboardShortcut(
     ["r", "e", "i", "x", "a", "s", "d"],
-    (e) => {
+    (_, key) => {
       setOpenPopover(false);
-      switch (e.key) {
+      switch (key) {
         case "a":
           if (!unsortedLinks) {
             router.push(
