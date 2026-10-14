@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { nanoid, NETWORK_PROGRAM_ID } from "@dub/utils";
 import { expect } from "@playwright/test";
 import { apiError } from "../../utils";
+import { PLAYWRIGHT_API_BASE } from "../constants";
 import { createBearerApiClient, test } from "../fixtures";
 import { createPartner, deletePartner } from "../partners/helpers";
 import { TEST_WORKSPACE } from "../setup-test-workspace";
@@ -684,6 +685,27 @@ test.describe("GET /partner-profile/earnings", () => {
         ),
       ).toMatchObject({ status: 404 });
     });
+  });
+
+  test("returns the OG image of all programs without a program", async ({
+    playwright,
+  }) => {
+    // the API client parses JSON, so read the PNG with a plain request
+    const context = await playwright.request.newContext({
+      baseURL: PLAYWRIGHT_API_BASE,
+      extraHTTPHeaders: { Authorization: `Bearer ${token}` },
+    });
+
+    try {
+      const response = await context.get(
+        "/api/og/partner-earnings?interval=all&timezone=UTC",
+      );
+
+      expect(response.status()).toEqual(200);
+      expect(response.headers()["content-type"]).toContain("image/png");
+    } finally {
+      await context.dispose();
+    }
   });
 
   test("rejects a workspace token", async ({ api }) => {
