@@ -10,15 +10,15 @@ import {
 } from "@/ui/partners/bounties/bounty-performance";
 import { BountyRewardCriteria } from "@/ui/partners/bounties/bounty-reward-criteria";
 import { BountySubmissionRequirements } from "@/ui/partners/bounties/bounty-submission-requirements";
-import { ChevronRight, Trophy } from "@dub/ui";
-import { cn, truncate } from "@dub/utils";
-import Link from "next/link";
-import { redirect, useParams } from "next/navigation";
 import {
   BountyRewardsTable,
   PartnerBountyCard,
   PartnerBountyCardSkeleton,
-} from "../bounty-card";
+} from "@/ui/partners/bounties/partner-bounty-card";
+import { ChevronRight, Trophy } from "@dub/ui";
+import { cn, truncate } from "@dub/utils";
+import Link from "next/link";
+import { redirect, useParams } from "next/navigation";
 import { BountySubmissionsTable } from "./bounty-submissions-table";
 
 export default function PartnerBountyPage() {

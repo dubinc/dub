@@ -469,9 +469,11 @@ function ClaimBountySheetContent({
         toast.success(
           isDraftSave ? "Bounty progress saved." : "Bounty submitted.",
         );
-        await mutatePrefix(
+        // the bounty lists, and this bounty on its program route
+        await mutatePrefix([
+          "/api/partner-profile/bounties",
           `/api/partner-profile/programs/${programEnrollment?.program.slug}/bounties`,
-        );
+        ]);
         setIsDraft(null);
         if (!isDraftSave) {
           setIsOpen(false);

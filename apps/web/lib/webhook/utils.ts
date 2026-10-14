@@ -3,6 +3,7 @@ import type { WorkspaceProps } from "@/lib/types";
 import { WebhookReceiver } from "@prisma/client";
 import {
   DEPRECATED_WEBHOOK_TRIGGERS,
+  EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER,
   PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
   WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
 } from "./constants";
@@ -59,7 +60,8 @@ export function getVisibleWebhookTriggers(
  *
  * - Always includes workspace-level events.
  * - Adds program-level events when the workspace has a program;
- *   `payout.confirmed` only for programs in `EXTERNAL_PAYOUTS_PROGRAM_IDS`.
+ *   `EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER` only for programs in
+ *   `EXTERNAL_PAYOUTS_PROGRAM_IDS`.
  * - When `supportedTriggers` is passed (integrations like Zapier or Slack),
  *   keeps only the events that integration supports.
  * - Applies legacy/current event visibility via `getVisibleWebhookTriggers`.
@@ -76,7 +78,7 @@ export function getAvailableWebhookTriggers({
   const programTriggers = defaultProgramId
     ? PROGRAM_LEVEL_WEBHOOK_TRIGGERS.filter(
         (trigger) =>
-          trigger !== "payout.confirmed" ||
+          trigger !== EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER ||
           EXTERNAL_PAYOUTS_PROGRAM_IDS.includes(defaultProgramId),
       )
     : [];

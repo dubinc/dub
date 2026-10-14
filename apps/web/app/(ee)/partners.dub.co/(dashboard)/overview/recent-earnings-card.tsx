@@ -1,5 +1,6 @@
 "use client";
 
+import { usePartnerDateRange } from "@/lib/analytics/use-partner-date-range";
 import { testIds } from "@/lib/e2e/test-ids";
 import { usePartnerProfileEarnings } from "@/lib/swr/use-partner-profile-earnings";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
@@ -14,10 +15,9 @@ import {
   OverviewCard,
   OverviewCardList,
 } from "./overview-card";
-import { useOverviewDateRange } from "./use-overview-date-range";
 
 export function RecentEarningsCard() {
-  const { start, end, interval } = useOverviewDateRange();
+  const { start, end, interval } = usePartnerDateRange();
 
   const { data: earnings, error } = usePartnerProfileEarnings({
     pageSize: 6,
