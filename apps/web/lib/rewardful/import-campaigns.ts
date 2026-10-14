@@ -21,7 +21,7 @@ import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
 
 const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { mode: "live" }),
+  mode: "live",
 });
 
 export async function importCampaigns(payload: RewardfulImportPayload) {

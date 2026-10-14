@@ -44,8 +44,6 @@ export async function getCustomerStripeInvoices({
     });
   }
 
-  const programId = getDefaultProgramIdOrThrow(workspace);
-
   const stripe = stripeAppClient({
     mode: workspace.stripeConnectMode,
   });

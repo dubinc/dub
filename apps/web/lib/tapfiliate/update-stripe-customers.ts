@@ -12,7 +12,7 @@ import { TapfiliateImportPayload } from "./types";
 const CUSTOMERS_PER_BATCH = 20;
 
 const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { mode: "live" }),
+  mode: "live",
 });
 
 export async function updateStripeCustomers(payload: TapfiliateImportPayload) {
