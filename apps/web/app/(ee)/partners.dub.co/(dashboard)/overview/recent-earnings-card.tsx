@@ -15,9 +15,11 @@ import {
   OverviewCard,
   OverviewCardList,
 } from "./overview-card";
+import { useEarningsPageHref } from "./use-earnings-page-href";
 
 export function RecentEarningsCard() {
   const { start, end, interval } = usePartnerDateRange();
+  const earningsPageHref = useEarningsPageHref();
 
   const { data: earnings, error } = usePartnerProfileEarnings({
     pageSize: 6,
@@ -29,6 +31,7 @@ export function RecentEarningsCard() {
   return (
     <OverviewCard
       title="Recent earnings"
+      viewAllHref={earningsPageHref}
       className="rounded-2xl"
       testId={testIds.partnerOverview.recentEarnings}
     >

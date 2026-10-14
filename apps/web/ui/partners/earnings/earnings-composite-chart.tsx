@@ -1,7 +1,6 @@
 "use client";
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
-import usePartnerLinks from "@/lib/swr/use-partner-links";
 import {
   usePartnerProfileEarningsCount,
   usePartnerProfileEarningsTimeseries,
@@ -9,11 +8,19 @@ import {
 import { LinkIcon } from "@/ui/links/link-icon";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
+import { ProgramLogo } from "@/ui/partners/program-logo";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { Filter, LoadingSpinner, ToggleGroup, useRouterStuff } from "@dub/ui";
+import {
+  Filter,
+  type Icon,
+  LoadingSpinner,
+  ToggleGroup,
+  useRouterStuff,
+} from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import {
   CircleDotted,
+  GridIcon,
   Hyperlink,
   MoneyBill2,
   Sliders,
@@ -23,14 +30,14 @@ import {
   capitalize,
   cn,
   currencyFormatter,
-  getPrettyUrl,
   linkConstructor,
   nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { CommissionType } from "@prisma/client";
+import { useParams } from "next/navigation";
 import { Fragment, useMemo, useState } from "react";
-import { useProgramEarningsFilters } from "./use-program-earnings-filters";
+import { usePartnerEarningsFilters } from "./use-partner-earnings-filters";
 
 const LINE_COLORS = [
   "text-teal-500",
@@ -51,22 +58,94 @@ const EVENT_TYPE_LINE_COLORS = {
 
 const MAX_LINES = LINE_COLORS.length;
 
+type EarningsGroupBy = "type" | "linkId" | "programId";
+
+// the chart groupings. Only the All programs page (no programSlug) groups by program.
+const GROUP_BY_OPTIONS: {
+  value: EarningsGroupBy;
+  label: string;
+  icon: Icon;
+  allProgramsOnly?: boolean;
+}[] = [
+  { value: "type", label: "Type", icon: Sliders },
+  { value: "linkId", label: "Link", icon: Hyperlink },
+  {
+    value: "programId",
+    label: "Program",
+    icon: GridIcon,
+    allProgramsOnly: true,
+  },
+];
+
+// a row of GET /api/partner-profile/earnings/count, grouped by link or by program
+type EarningsCountGroup = {
+  id: string;
+  domain?: string;
+  key?: string;
+  name?: string;
+  logo?: string | null;
+};
+
+// the program name, the short link, or the commission type of a chart line
+function getGroupLabel({
+  groupBy,
+  group,
+  id,
+}: {
+  groupBy: EarningsGroupBy;
+  group?: EarningsCountGroup;
+  id: string;
+}) {
+  if (groupBy === "programId" && group?.name) {
+    return group.name;
+  }
+
+  if (groupBy === "linkId" && group?.domain && group?.key) {
+    return linkConstructor({
+      domain: group.domain,
+      key: group.key,
+      pretty: true,
+    });
+  }
+
+  return capitalize(id);
+}
+
 export function EarningsCompositeChart() {
+  const { programSlug } = useParams<{ programSlug?: string }>();
   const { queryParams, searchParamsObj } = useRouterStuff();
 
-  const filters = useProgramEarningsFilters();
+  const filters = usePartnerEarningsFilters();
   const { start, end, interval } = filters;
 
-  const { groupBy = "type" } = searchParamsObj as {
-    groupBy?: "linkId" | "type";
-  };
-
-  const { links } = usePartnerLinks();
+  // no grouping by default, so the chart shows one line with the total
+  const groupByOptions = GROUP_BY_OPTIONS.filter(
+    ({ allProgramsOnly }) => !programSlug || !allProgramsOnly,
+  );
+  const groupBy = groupByOptions.find(
+    ({ value }) => value === searchParamsObj.groupBy,
+  )?.value;
+  const labelsGroupBy =
+    groupBy === "linkId" || groupBy === "programId" ? groupBy : undefined;
 
   const { data } = usePartnerProfileEarningsTimeseries({
     ...filters,
     groupBy,
   });
+
+  // the names of the links and programs in the tooltip
+  const { data: groups } = usePartnerProfileEarningsCount<EarningsCountGroup[]>(
+    {
+      ...filters,
+      groupBy: labelsGroupBy,
+      enabled: !!labelsGroupBy,
+    },
+  );
+
+  const groupsById = useMemo(
+    () => new Map(groups?.map((group) => [group.id, group])),
+    [groups],
+  );
 
   const total = useMemo(
     () => data?.reduce((acc, { earnings }) => acc + earnings, 0),
@@ -120,7 +199,7 @@ export function EarningsCompositeChart() {
     <div className="flex flex-col gap-4">
       <EarningsTableControls />
       <div className="rounded-lg border border-neutral-200 p-6">
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full flex-wrap items-center justify-between gap-3">
           <div className="flex flex-col gap-1">
             <span className="text-sm text-neutral-500">Total Earnings</span>
             <div className="mt-1">
@@ -145,32 +224,24 @@ export function EarningsCompositeChart() {
             className="flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100"
             optionClassName="h-8 px-2.5 flex items-center justify-center"
             indicatorClassName="border border-neutral-200 bg-white"
-            options={[
-              {
-                label: (
-                  <div className="flex items-center gap-1.5 text-neutral-600">
-                    <Sliders className="size-4" />
-                    <span className="text-sm">Type</span>
-                  </div>
-                ),
-                value: "type",
-              },
-              {
-                label: (
-                  <div className="flex items-center gap-1.5 text-neutral-600">
-                    <Hyperlink className="size-4" />
-                    <span className="text-sm">Link</span>
-                  </div>
-                ),
-                value: "linkId",
-              },
-            ]}
-            selected={groupBy}
-            selectAction={(option) => {
-              queryParams({
-                set: { groupBy: option },
-              });
-            }}
+            options={groupByOptions.map(({ value, label, icon: Icon }) => ({
+              value,
+              label: (
+                <div className="flex items-center gap-1.5 text-neutral-600">
+                  <Icon className="size-4" />
+                  <span className="text-sm">{label}</span>
+                </div>
+              ),
+            }))}
+            selected={groupBy ?? null}
+            // a click on the selected option goes back to the total
+            selectAction={(option) =>
+              queryParams(
+                option === groupBy
+                  ? { del: "groupBy" }
+                  : { set: { groupBy: option } },
+              )
+            }
           />
         </div>
         <div className="mt-5 h-80">
@@ -180,9 +251,22 @@ export function EarningsCompositeChart() {
               series={series}
               tooltipClassName="p-0"
               tooltipContent={(d) => {
+                // the groups without a line, so that the rows add up to the total
+                const otherEarnings =
+                  (d.values.total || 0) -
+                  series.reduce(
+                    (acc, { valueAccessor }) => acc + valueAccessor(d),
+                    0,
+                  );
+
                 return (
                   <>
-                    <div className="flex justify-between border-b border-neutral-200 p-3 text-xs">
+                    <div
+                      className={cn(
+                        "flex justify-between gap-6 p-3 text-xs",
+                        groupBy && "border-b border-neutral-200",
+                      )}
+                    >
                       <p className="font-medium leading-none text-neutral-900">
                         {formatDateTooltip(d.date, {
                           interval,
@@ -194,31 +278,53 @@ export function EarningsCompositeChart() {
                         {currencyFormatter(d.values.total || 0)}
                       </p>
                     </div>
-                    <div className="grid max-w-64 grid-cols-[minmax(0,1fr),min-content] gap-x-6 gap-y-2 px-4 py-3 text-xs">
-                      {series.map(({ id, colorClassName, valueAccessor }) => {
-                        const link = links?.find((link) => link.id === id);
-                        return (
-                          <Fragment key={id}>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={cn(
-                                  colorClassName,
-                                  "size-2 shrink-0 rounded-sm bg-current opacity-50 shadow-[inset_0_0_0_1px_#0003]",
+                    {groupBy && (
+                      <div className="grid max-w-64 grid-cols-[minmax(0,1fr),min-content] gap-x-6 gap-y-2 px-4 py-3 text-xs">
+                        {series.map(({ id, colorClassName, valueAccessor }) => {
+                          const group = groupsById.get(id);
+                          return (
+                            <Fragment key={id}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={cn(
+                                    colorClassName,
+                                    "size-2 shrink-0 rounded-sm bg-current opacity-50 shadow-[inset_0_0_0_1px_#0003]",
+                                  )}
+                                />
+                                {groupBy === "programId" && group?.name && (
+                                  <ProgramLogo
+                                    program={{
+                                      name: group.name,
+                                      logo: group.logo ?? null,
+                                    }}
+                                    className="size-3.5"
+                                  />
                                 )}
-                              />
+                                <span className="min-w-0 truncate font-medium text-neutral-700">
+                                  {getGroupLabel({ groupBy, group, id })}
+                                </span>
+                              </div>
+                              <p className="text-right text-neutral-500">
+                                {currencyFormatter(valueAccessor(d))}
+                              </p>
+                            </Fragment>
+                          );
+                        })}
+                        {otherEarnings !== 0 && (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <div className="size-2 shrink-0 rounded-sm bg-neutral-300 shadow-[inset_0_0_0_1px_#0003]" />
                               <span className="min-w-0 truncate font-medium text-neutral-700">
-                                {link?.shortLink
-                                  ? getPrettyUrl(link.shortLink)
-                                  : capitalize(id)}
+                                Other
                               </span>
                             </div>
                             <p className="text-right text-neutral-500">
-                              {currencyFormatter(valueAccessor(d))}
+                              {currencyFormatter(otherEarnings)}
                             </p>
-                          </Fragment>
-                        );
-                      })}
-                    </div>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </>
                 );
               }}
@@ -250,9 +356,24 @@ export function EarningsCompositeChart() {
 }
 
 function EarningsTableControls() {
+  const { programSlug } = useParams<{ programSlug?: string }>();
   const { queryParams, searchParamsObj } = useRouterStuff();
-  const earningsFilters = useProgramEarningsFilters();
+  const earningsFilters = usePartnerEarningsFilters();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+
+  const { data: programs } = usePartnerProfileEarningsCount<
+    { id: string; name?: string; logo?: string | null; _count: number }[]
+  >({
+    ...earningsFilters,
+    // the menu lists every program, also when one program is selected
+    programIdOrSlug: undefined,
+    groupBy: "programId",
+    enabled:
+      !programSlug &&
+      (selectedFilter === "programId" || searchParamsObj.programId
+        ? true
+        : false),
+  });
 
   const { data: links } = usePartnerProfileEarningsCount<
     { id: string; domain: string; key: string; url: string; _count: number }[]
@@ -285,6 +406,27 @@ function EarningsTableControls() {
 
   const filters = useMemo(
     () => [
+      ...(programSlug
+        ? []
+        : [
+            {
+              key: "programId",
+              icon: GridIcon,
+              label: "Program",
+              options:
+                programs?.map(({ id, name, logo, _count }) => ({
+                  value: id,
+                  label: name ?? id,
+                  icon: (
+                    <ProgramLogo
+                      program={{ name: name ?? id, logo: logo ?? null }}
+                      className="size-4"
+                    />
+                  ),
+                  right: nFormatter(_count, { full: true }),
+                })) ?? null,
+            },
+          ]),
       {
         key: "type",
         icon: Sliders,
@@ -346,19 +488,23 @@ function EarningsTableControls() {
           }) ?? null,
       },
     ],
-    [links, customers, statuses],
+    [programSlug, programs, links, customers, statuses],
   );
 
   const activeFilters = useMemo(() => {
-    const { type, linkId, customerId, status, payoutId } = searchParamsObj;
+    const { programId, type, linkId, customerId, status, payoutId } =
+      searchParamsObj;
     return [
+      ...(programId && !programSlug
+        ? [{ key: "programId", value: programId }]
+        : []),
       ...(type ? [{ key: "type", value: type }] : []),
       ...(linkId ? [{ key: "linkId", value: linkId }] : []),
       ...(customerId ? [{ key: "customerId", value: customerId }] : []),
       ...(status ? [{ key: "status", value: status }] : []),
       ...(payoutId ? [{ key: "payoutId", value: payoutId }] : []),
     ];
-  }, [searchParamsObj]);
+  }, [searchParamsObj, programSlug]);
 
   const onSelect = (key: string, value: any) =>
     queryParams({
@@ -375,7 +521,15 @@ function EarningsTableControls() {
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["linkId", "customerId", "status", "payoutId", "page"],
+      del: [
+        "programId",
+        "type",
+        "linkId",
+        "customerId",
+        "status",
+        "payoutId",
+        "page",
+      ],
     });
 
   return (
