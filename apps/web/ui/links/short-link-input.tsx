@@ -1,5 +1,6 @@
 "use client";
 
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
@@ -88,6 +89,7 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
       exceededAI,
       nextPlan,
       dotLinkClaimed,
+      environment,
     } = useWorkspace();
 
     const [lockKey, setLockKey] = useState(existingLink);
@@ -410,15 +412,17 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
             onChange={(domain) => onChange({ domain })}
           />
         )}
-        {!onboarding && !dotLinkClaimed && (
-          <AnimatedSizeContainer
-            height
-            transition={{ ease: "linear", duration: 0.1 }}
-            className="mt-2"
-          >
-            <FreeDotLinkBanner />
-          </AnimatedSizeContainer>
-        )}
+        {!onboarding &&
+          !dotLinkClaimed &&
+          isProductionEnvironment(environment) && (
+            <AnimatedSizeContainer
+              height
+              transition={{ ease: "linear", duration: 0.1 }}
+              className="mt-2"
+            >
+              <FreeDotLinkBanner />
+            </AnimatedSizeContainer>
+          )}
       </div>
     );
   },
