@@ -233,30 +233,43 @@ test.describe("GET /partner-profile/earnings", () => {
     });
   });
 
-  test("counts earnings grouped by program, also when one program is selected", async ({
+  test("counts earnings grouped by program, within the selected program", async ({
     playwright,
     program,
   }) => {
     await withPartnerApi(playwright, async (partnerApi) => {
-      for (const query of ["", `&programIdOrSlug=${programB.slug}`]) {
-        const { status, data } = await partnerApi.get<
-          { id: string; slug: string; _count: number }[]
-        >(`/api/partner-profile/earnings/count?groupBy=programId${query}`);
+      const all = await partnerApi.get<
+        { id: string; slug: string; _count: number }[]
+      >("/api/partner-profile/earnings/count?groupBy=programId");
 
-        expect(status).toEqual(200);
-        expect(data).toEqual([
-          expect.objectContaining({
-            id: program.id,
-            slug: programSlug,
-            _count: 2,
-          }),
-          expect.objectContaining({
-            id: programB.id,
-            slug: programB.slug,
-            _count: 1,
-          }),
-        ]);
-      }
+      expect(all.status).toEqual(200);
+      expect(all.data).toEqual([
+        expect.objectContaining({
+          id: program.id,
+          slug: programSlug,
+          _count: 2,
+        }),
+        expect.objectContaining({
+          id: programB.id,
+          slug: programB.slug,
+          _count: 1,
+        }),
+      ]);
+
+      const selected = await partnerApi.get<
+        { id: string; slug: string; _count: number }[]
+      >(
+        `/api/partner-profile/earnings/count?groupBy=programId&programIdOrSlug=${programB.slug}`,
+      );
+
+      expect(selected.status).toEqual(200);
+      expect(selected.data).toEqual([
+        expect.objectContaining({
+          id: programB.id,
+          slug: programB.slug,
+          _count: 1,
+        }),
+      ]);
     });
   });
 

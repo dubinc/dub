@@ -330,6 +330,8 @@ function EarningsTableControls() {
     { id: string; name?: string; logo?: string | null; _count: number }[]
   >({
     ...earningsFilters,
+    // the menu lists every program, also when one program is selected
+    programIdOrSlug: undefined,
     groupBy: "programId",
     enabled:
       !programSlug &&

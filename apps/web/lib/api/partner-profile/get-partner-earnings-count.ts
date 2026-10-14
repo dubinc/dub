@@ -44,10 +44,7 @@ export async function getPartnerEarningsCount({
     earnings: {
       not: 0,
     },
-    // the program filter options list every program, like the other grouped filters
-    programId: getEarningsProgramFilter(
-      groupBy === "programId" ? undefined : programId,
-    ),
+    programId: getEarningsProgramFilter(programId),
     partnerId,
     ...(payoutId && { payoutId }),
     createdAt: {
