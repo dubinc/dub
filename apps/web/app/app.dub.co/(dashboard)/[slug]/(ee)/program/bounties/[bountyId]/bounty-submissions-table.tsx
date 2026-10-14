@@ -4,6 +4,7 @@ import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";
@@ -504,7 +505,14 @@ function BountySubmissionFilters({
   isRefreshingStats: boolean;
   refreshStats: () => void;
 }) {
+  const { role } = useWorkspace();
   const { queryParams, searchParams } = useRouterStuff();
+
+  const refreshStatsError = clientAccessCheck({
+    action: "bounties.write",
+    role,
+    customPermissionDescription: "refresh bounty stats",
+  }).error;
   const {
     filters,
     activeFilters,
@@ -568,6 +576,7 @@ function BountySubmissionFilters({
               text="Refresh stats"
               loading={isRefreshingStats}
               onClick={refreshStats}
+              disabledTooltip={refreshStatsError}
               className="h-8 rounded-lg px-3"
             />
           </div>

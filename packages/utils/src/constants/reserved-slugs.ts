@@ -67,4 +67,5 @@ export const RESERVED_SLUGS = [
   "marketplace",
   "fraud",
   "overview",
+  "bounties",
 ];
