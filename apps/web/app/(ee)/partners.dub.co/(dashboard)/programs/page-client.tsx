@@ -1,6 +1,5 @@
 "use client";
 
-import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import useProgramEnrollmentsStatusCounts from "@/lib/swr/use-program-enrollments-status-counts";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -10,7 +9,12 @@ import { ProgramMarketplaceBanner } from "@/ui/program-marketplace/program-marke
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { formatTabBadgeCount, SheetTabs } from "@/ui/shared/sheet-tabs";
 import { SimpleEmptyState } from "@/ui/shared/simple-empty-state";
-import { ToggleGroup, useLocalStorage, useRouterStuff } from "@dub/ui";
+import {
+  PaginationControls,
+  ToggleGroup,
+  useLocalStorage,
+  useRouterStuff,
+} from "@dub/ui";
 import { GridIcon, HexadecagonStar, TableRows2 } from "@dub/ui/icons";
 import { useId } from "react";
 import {
@@ -19,6 +23,7 @@ import {
   ProgramTab,
 } from "./program-tabs";
 import { ProgramsTable } from "./programs-table";
+import { useProgramsPage } from "./use-programs-page";
 
 type ProgramsView = "grid" | "table";
 
@@ -175,7 +180,7 @@ function ProgramsTabContent({
       countError={countError}
     />
   ) : (
-    <ProgramsGrid tab={tab} search={search} />
+    <ProgramsGrid tab={tab} search={search} count={count} />
   );
 }
 
@@ -189,13 +194,17 @@ function ProgramsGridSkeleton() {
   );
 }
 
-function ProgramsGrid({ tab, search }: { tab: ProgramTab; search?: string }) {
-  const { programEnrollments, isLoading, error } = useProgramEnrollments({
-    // only the invite cards show the rewards and the discount
-    includeRewardsDiscounts: tab.id === "invitations",
-    status: tab.statuses.join(","),
-    search,
-  });
+function ProgramsGrid({
+  tab,
+  search,
+  count,
+}: {
+  tab: ProgramTab;
+  search?: string;
+  count?: number;
+}) {
+  const { programEnrollments, isLoading, error, pagination, setPagination } =
+    useProgramsPage({ tab, search });
 
   if (error) {
     return (
@@ -206,25 +215,37 @@ function ProgramsGrid({ tab, search }: { tab: ProgramTab; search?: string }) {
   }
 
   return (
-    <div className="@md/page:grid-cols-2 @3xl/page:grid-cols-3 grid gap-4 p-4">
-      {isLoading || !programEnrollments
-        ? Array.from({ length: 3 }).map((_, idx) => (
-            <ProgramCardSkeleton key={idx} />
-          ))
-        : programEnrollments.map((programEnrollment) =>
-            tab.id === "invitations" ? (
-              <ProgramInviteCard
-                key={programEnrollment.programId}
-                programEnrollment={programEnrollment}
-              />
-            ) : (
-              <ProgramCard
-                key={programEnrollment.programId}
-                programEnrollment={programEnrollment}
-              />
-            ),
-          )}
-    </div>
+    <>
+      <div className="@md/page:grid-cols-2 @3xl/page:grid-cols-3 grid gap-4 p-4">
+        {isLoading || !programEnrollments
+          ? Array.from({ length: 3 }).map((_, idx) => (
+              <ProgramCardSkeleton key={idx} />
+            ))
+          : programEnrollments.map((programEnrollment) =>
+              tab.id === "invitations" ? (
+                <ProgramInviteCard
+                  key={programEnrollment.programId}
+                  programEnrollment={programEnrollment}
+                />
+              ) : (
+                <ProgramCard
+                  key={programEnrollment.programId}
+                  programEnrollment={programEnrollment}
+                />
+              ),
+            )}
+      </div>
+      {/* like the table footer, but only when the tab has more than one page */}
+      {count !== undefined && count > pagination.pageSize && (
+        <PaginationControls
+          pagination={pagination}
+          setPagination={setPagination}
+          totalCount={count}
+          unit={(plural) => `${tab.resourceName}${plural ? "s" : ""}`}
+          className="border-border-subtle border-t px-4 py-3.5"
+        />
+      )}
+    </>
   );
 }
 
