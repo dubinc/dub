@@ -253,6 +253,14 @@ export function EarningsCompositeChart() {
               series={series}
               tooltipClassName="p-0"
               tooltipContent={(d) => {
+                // the groups without a line, so that the rows add up to the total
+                const otherEarnings =
+                  (d.values.total || 0) -
+                  series.reduce(
+                    (acc, { valueAccessor }) => acc + valueAccessor(d),
+                    0,
+                  );
+
                 return (
                   <>
                     <div
@@ -304,6 +312,19 @@ export function EarningsCompositeChart() {
                             </Fragment>
                           );
                         })}
+                        {otherEarnings !== 0 && (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <div className="size-2 shrink-0 rounded-sm bg-neutral-300 shadow-[inset_0_0_0_1px_#0003]" />
+                              <span className="min-w-0 truncate font-medium text-neutral-700">
+                                Other
+                              </span>
+                            </div>
+                            <p className="text-right text-neutral-500">
+                              {currencyFormatter(otherEarnings)}
+                            </p>
+                          </>
+                        )}
                       </div>
                     )}
                   </>
