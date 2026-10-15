@@ -3,6 +3,7 @@
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
+import { usePartnerDateRange } from "@/lib/analytics/use-partner-date-range";
 import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
 import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
@@ -10,14 +11,19 @@ import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
 import { getPartnerLinkDisplayRewards } from "@/lib/rewards/resolve-partner-link-rewards";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
-import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { usePartnerProfileEarningsTimeseries } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { GroupProps, PartnerProfileLinkProps } from "@/lib/types";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import { DiscountCodeTooltip } from "@/ui/partners/discounts/discount-code-tooltip";
+import { EarningsTablePartner } from "@/ui/partners/earnings/earnings-table";
+import {
+  ShareChartButton,
+  ShareEarningsModal,
+} from "@/ui/partners/earnings/share-earnings-modal";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -50,7 +56,6 @@ import {
   DiscountCode,
   InvoiceDollar,
   LoadingSpinner,
-  ReferredVia,
   UserPlus,
 } from "@dub/ui/icons";
 import {
@@ -63,7 +68,6 @@ import {
 } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
-import { endOfDay, startOfDay } from "date-fns";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
@@ -77,9 +81,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { EarningsTablePartner } from "./earnings/earnings-table";
 import { PayoutsCard } from "./payouts-card";
-import { ShareEarningsModal } from "./share-earnings-modal";
 
 const ProgramOverviewContext = createContext<{
   start?: Date;
@@ -91,8 +93,9 @@ const ProgramOverviewContext = createContext<{
 });
 
 export function PartnerProgramOverviewPageClient() {
-  const { getQueryString, searchParamsObj } = useRouterStuff();
+  const { getQueryString } = useRouterStuff();
   const { programSlug } = useParams();
+  const { start, end, interval } = usePartnerDateRange();
 
   const [hideDetails, _setHideDetails] = useSyncedLocalStorage(
     `hide-program-details:${programSlug}`,
@@ -100,16 +103,6 @@ export function PartnerProgramOverviewPageClient() {
   );
 
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
-
-  const {
-    start,
-    end,
-    interval = DUB_PARTNERS_ANALYTICS_INTERVAL,
-  } = searchParamsObj as {
-    start?: string;
-    end?: string;
-    interval?: IntervalOptions;
-  };
 
   const program = programEnrollment?.program;
 
@@ -143,8 +136,8 @@ export function PartnerProgramOverviewPageClient() {
       )}
       <ProgramOverviewContext.Provider
         value={{
-          start: start ? startOfDay(new Date(start)) : undefined,
-          end: end ? endOfDay(new Date(end)) : undefined,
+          start,
+          end,
           interval,
           color: programEnrollment.group?.brandColor ?? undefined,
         }}
@@ -205,7 +198,8 @@ function EarningsChart() {
 
   const { programEnrollment } = useProgramEnrollment();
 
-  const { data: timeseries, error } = usePartnerEarningsTimeseries({
+  const { data: timeseries, error } = usePartnerProfileEarningsTimeseries({
+    programIdOrSlug: programSlug as string,
     interval,
     start,
     end,
@@ -253,7 +247,6 @@ function EarningsChart() {
           start={start}
           end={end}
           interval={interval}
-          timeseries={timeseries}
         />
       )}
       <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
@@ -263,15 +256,7 @@ function EarningsChart() {
               <span className="block text-base font-semibold leading-none text-neutral-800">
                 Earnings
               </span>
-              <Tooltip content="Share chart">
-                <button
-                  type="button"
-                  onClick={() => setShowShareModal(true)}
-                  className="flex size-6 items-center justify-center rounded-md border border-transparent text-neutral-500 transition-colors hover:border-neutral-200 hover:bg-neutral-50 hover:text-neutral-700"
-                >
-                  <ReferredVia className="size-3.5" />
-                </button>
-              </Tooltip>
+              <ShareChartButton onClick={() => setShowShareModal(true)} />
             </div>
             <div className="flex items-baseline gap-2">
               {total !== undefined ? (

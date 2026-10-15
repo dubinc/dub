@@ -15,25 +15,42 @@ import { ProgramSchema } from "./programs";
 import { UserSchema } from "./users";
 import { centsSchema, parseDateSchema } from "./utils";
 
+const adminCommissionsTimeseriesSchema = z.array(
+  z.object({
+    start: parseDateSchema,
+    commissions: z.number(),
+  }),
+);
+
 export const adminCommissionsDataSchema = z.object({
-  programs: z.array(
-    z.object({
-      id: z.string(),
-      slug: z.string(),
-      name: z.string(),
-      url: z.string(),
-      logo: z.string(),
-      addedToMarketplaceAt: z.date().nullable(),
-      commissions: z.number(),
-      fees: z.number(),
-    }),
-  ),
-  timeseries: z.array(
-    z.object({
-      start: parseDateSchema,
-      commissions: z.number(),
-    }),
-  ),
+  programs: z
+    .array(
+      z.object({
+        id: z.string(),
+        slug: z.string(),
+        name: z.string(),
+        url: z.string(),
+        logo: z.string(),
+        addedToMarketplaceAt: z.date().nullable(),
+        commissions: z.number(),
+        fees: z.number(),
+      }),
+    )
+    .optional(),
+  partners: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        email: z.string().nullable(),
+        image: z.string().nullable(),
+        country: z.string().nullable(),
+        commissions: z.number(),
+        fees: z.number(),
+      }),
+    )
+    .optional(),
+  timeseries: adminCommissionsTimeseriesSchema,
 });
 
 export const adminNetworkPartnerSchema = EnrolledPartnerSchemaExtended.pick({

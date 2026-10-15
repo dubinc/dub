@@ -6,6 +6,7 @@ import { useChat } from "@ai-sdk/react";
 import { Combobox } from "@dub/ui";
 import { OfficeBuilding, PaperPlane, Users2, Xmark } from "@dub/ui/icons";
 import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { DefaultChatTransport, isFileUIPart, UIMessage } from "ai";
 import { Paperclip } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -27,7 +28,11 @@ import { extractSources, SourceCitations } from "./source-citations";
 import { StarterQuestions } from "./starter-questions";
 import { StatusIndicator } from "./status-indicator";
 import { TicketUpload } from "./ticket-upload";
-import { WorkspaceCombobox, WorkspaceSummary } from "./workspace-combobox";
+import {
+  DEFAULT_WORKSPACE_ENVIRONMENTS,
+  WorkspaceCombobox,
+  WorkspaceSummary,
+} from "./workspace-combobox";
 
 type AccountType = "workspace" | "partner";
 
@@ -91,10 +96,29 @@ export function ChatInterface({
 
   const effectiveAccountType = selection.accountType;
 
-  const { data: workspaces } = useSWR<WorkspaceSummary[]>(
+  const { data: workspaces } = useSWR<
+    (WorkspaceSummary & { environment: WorkspaceEnvironment })[]
+  >(
     effectiveAccountType === "workspace" ? "/api/workspaces" : null,
     fetcher,
   );
+  useEffect(() => {
+    if (!workspaces || !selection.selectedWorkspace) return;
+
+    const stillVisible = workspaces.some(
+      (workspace) =>
+        workspace.slug === selection.selectedWorkspace?.slug &&
+        DEFAULT_WORKSPACE_ENVIRONMENTS.includes(workspace.environment),
+    );
+
+    if (!stillVisible) {
+      setSelection((current) =>
+        current.selectedWorkspace
+          ? { ...current, selectedWorkspace: undefined }
+          : current,
+      );
+    }
+  }, [workspaces, selection.selectedWorkspace]);
 
   const { programEnrollments, isLoading: isLoadingPrograms } =
     useProgramEnrollments();
@@ -555,6 +579,7 @@ export function ChatInterface({
             <div className="mt-3 w-full max-w-72">
               <WorkspaceCombobox
                 workspaces={workspaces}
+                environments={DEFAULT_WORKSPACE_ENVIRONMENTS}
                 selectedSlug={selection.selectedWorkspace?.slug}
                 onSelect={handleWorkspaceSelect}
               />

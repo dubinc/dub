@@ -30,6 +30,6 @@ export const PATCH = withWorkspace(
     );
   },
   {
-    requiredRoles: ["owner", "member"],
+    requiredPermissions: ["commissions.write"],
   },
 );

@@ -1,3 +1,4 @@
+import { getPartnerBountyTab } from "@/lib/bounty/partner-bounty-tabs";
 import { PartnerBountyProps } from "@/lib/types";
 import { StatusBadge } from "@dub/ui";
 import { formatDate } from "@dub/utils";
@@ -24,9 +25,24 @@ function getBountyBadgeState(
     ? formatDate(bounty.endsAt, { month: "short" })
     : null;
 
-  const isExpired = endsAt !== null && endsAt < now;
+  const tab = getPartnerBountyTab(bounty);
 
-  if (isExpired) {
+  if (tab === "completed") {
+    const lastSubmission = bounty.submissions?.[0];
+    const isPendingReview =
+      bounty.type === "performance" && lastSubmission?.status === "submitted";
+
+    return {
+      status: "completed",
+      endsAtFormatted,
+      completedAtFormatted: formatDate(lastSubmission?.completedAt ?? now, {
+        month: "short",
+      }),
+      isPendingReview,
+    };
+  }
+
+  if (tab === "expired") {
     return {
       status: "expired",
       endsAtFormatted,
@@ -46,28 +62,6 @@ function getBountyBadgeState(
       status: "expiring_soon",
       endsAtFormatted,
       completedAtFormatted: null,
-    };
-  }
-
-  const isCompleted =
-    bounty.type === "performance"
-      ? (bounty.submissions?.[0]?.performanceCount ?? 0) >=
-        (bounty.performanceCondition?.value ?? 0)
-      : (bounty.submissions?.filter((s) => s.status !== "draft").length ?? 0) >=
-        (bounty.maxSubmissions ?? 1);
-
-  if (isCompleted) {
-    const lastSubmission = bounty.submissions?.[0];
-    const isPendingReview =
-      bounty.type === "performance" && lastSubmission?.status === "submitted";
-
-    return {
-      status: "completed",
-      endsAtFormatted,
-      completedAtFormatted: formatDate(lastSubmission?.completedAt ?? now, {
-        month: "short",
-      }),
-      isPendingReview,
     };
   }
 

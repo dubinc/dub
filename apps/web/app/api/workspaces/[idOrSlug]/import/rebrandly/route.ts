@@ -1,7 +1,9 @@
 import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
+import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
@@ -9,6 +11,22 @@ import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+const importRebrandlySchema = z.object({
+  selectedDomains: z.array(
+    z.object({
+      id: z.union([z.string(), z.number()]),
+      domain: z
+        .string()
+        .trim()
+        .refine(isValidDomainFormat, { message: "Invalid domain" }),
+    }),
+  ),
+  importTags: z.boolean().optional(),
+  folderId: z.string().nullish(),
+  createdAfter: z.string().nullish(),
+});
 
 // GET /api/workspaces/[idOrSlug]/import/rebrandly – get all Rebrandly domains for a workspace
 export const GET = withWorkspace(async ({ workspace }) => {
@@ -95,7 +113,7 @@ export const PUT = withWorkspace(
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
     const { selectedDomains, importTags, folderId, createdAfter } =
-      await req.json();
+      importRebrandlySchema.parse(await parseRequestBody(req));
 
     if (folderId) {
       await verifyFolderAccess({

@@ -1,5 +1,6 @@
 "use client";
 
+import { usePartnerDateRange } from "@/lib/analytics/use-partner-date-range";
 import { testIds } from "@/lib/e2e/test-ids";
 import { usePartnerProfileEarnings } from "@/lib/swr/use-partner-profile-earnings";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
@@ -14,10 +15,11 @@ import {
   OverviewCard,
   OverviewCardList,
 } from "./overview-card";
-import { useOverviewDateRange } from "./use-overview-date-range";
+import { useEarningsPageHref } from "./use-earnings-page-href";
 
 export function RecentEarningsCard() {
-  const { start, end, interval } = useOverviewDateRange();
+  const { start, end, interval } = usePartnerDateRange();
+  const earningsPageHref = useEarningsPageHref();
 
   const { data: earnings, error } = usePartnerProfileEarnings({
     pageSize: 6,
@@ -29,6 +31,7 @@ export function RecentEarningsCard() {
   return (
     <OverviewCard
       title="Recent earnings"
+      viewAllHref={earningsPageHref}
       className="rounded-2xl"
       testId={testIds.partnerOverview.recentEarnings}
     >

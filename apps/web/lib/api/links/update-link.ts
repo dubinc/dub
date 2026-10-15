@@ -1,3 +1,4 @@
+import { getOwnedLinkImageKey } from "@/lib/api/links/get-owned-link-image-key";
 import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";
@@ -175,6 +176,11 @@ export async function updateLink({
     },
   });
 
+  const previousImageKey =
+    oldLink.image && oldLink.image !== image
+      ? getOwnedLinkImageKey(oldLink.image, id)
+      : null;
+
   waitUntil(
     (async () => {
       const { partner, discount } = await getPartnerEnrollmentInfo({
@@ -228,11 +234,8 @@ export async function updateLink({
             },
           }),
 
-        // If there's a valid old image and it starts with the same link ID but is different from the new image, delete it
-        oldLink.image &&
-          oldLink.image.startsWith(`${R2_URL}/images/${id}`) &&
-          oldLink.image !== image &&
-          storage.delete({ key: oldLink.image.replace(`${R2_URL}/`, "") }),
+        // Delete the previous preview image when it belongs to this link and is being replaced.
+        previousImageKey && storage.delete({ key: previousImageKey }),
 
         // Schedule AB test completion
         changedTestCompletedAt &&

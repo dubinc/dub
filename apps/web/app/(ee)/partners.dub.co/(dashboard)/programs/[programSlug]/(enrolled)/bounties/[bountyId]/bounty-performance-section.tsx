@@ -5,14 +5,13 @@ import { PartnerAnalyticsFilters } from "@/lib/analytics/types";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
-import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
-import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
-  LeadEvent,
-  PartnerBountyProps,
-  PartnerEarningsResponse,
-  SaleEvent,
-} from "@/lib/types";
+  usePartnerProfileEarnings,
+  usePartnerProfileEarningsCount,
+  usePartnerProfileEarningsTimeseries,
+} from "@/lib/swr/use-partner-profile-earnings";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import { LeadEvent, PartnerBountyProps, SaleEvent } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
@@ -117,6 +116,7 @@ export function BountyPerformanceSection({
 
 function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
   const { programEnrollment } = useProgramEnrollment();
+  const { programSlug } = useParams<{ programSlug: string }>();
   const attribute = bounty.performanceCondition?.attribute as
     | PerformanceAttribute
     | undefined;
@@ -156,28 +156,19 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
     });
 
   const { data: earningsTimeseries, error: earningsError } =
-    usePartnerEarningsTimeseries({
-      interval: "30d",
-      ...(startDate && endDate && { start: startDate, end: endDate }),
+    usePartnerProfileEarningsTimeseries({
+      programIdOrSlug: programSlug,
+      start: startDate,
+      end: endDate,
       enabled: isCommissions,
     });
 
   const data = useMemo(() => {
     if (isCommissions) {
-      if (!earningsTimeseries) {
-        return undefined;
-      }
-
-      if (!Array.isArray(earningsTimeseries)) {
-        return [];
-      }
-
-      return earningsTimeseries.map(
-        ({ start, earnings }: { start: string; earnings: number }) => ({
-          date: new Date(start),
-          values: { main: earnings },
-        }),
-      );
+      return earningsTimeseries?.map(({ start, earnings }) => ({
+        date: new Date(start),
+        values: { main: earnings },
+      }));
     }
 
     if (!attribute) {
@@ -559,73 +550,44 @@ function BountyPerformanceCommissionsTable({
   const dateRangeStable =
     bounty.performanceScope === "new" || programEnrollment != null;
 
-  const { earningsParams, countParams } = useMemo<{
-    earningsParams: Record<string, string> | null;
-    countParams: Record<string, string> | null;
-  }>(() => {
-    if (!programSlug || !dateRangeStable) {
-      return {
-        earningsParams: null,
-        countParams: null,
-      };
+  const dateRange = useMemo(() => {
+    if (!dateRangeStable) {
+      return null;
     }
 
-    const startDate =
-      bounty.performanceScope === "new"
-        ? new Date(bounty.startsAt)
-        : new Date(programEnrollment?.createdAt ?? bounty.startsAt);
-
-    const endDate = bounty.endsAt ? new Date(bounty.endsAt) : new Date();
-
-    const baseParams: Record<string, string> = {
-      ...(startDate && { start: startDate.toISOString() }),
-      ...(endDate && { end: endDate.toISOString() }),
-    };
-
     return {
-      earningsParams: {
-        ...baseParams,
-        pageSize: String(PAGE_SIZE),
-        page: String(page),
-      },
-
-      countParams: {
-        ...baseParams,
-      },
+      start:
+        bounty.performanceScope === "new"
+          ? new Date(bounty.startsAt)
+          : new Date(programEnrollment?.createdAt ?? bounty.startsAt),
+      end: bounty.endsAt ? new Date(bounty.endsAt) : new Date(),
     };
   }, [
-    programSlug,
     dateRangeStable,
-    page,
     bounty.performanceScope,
     bounty.startsAt,
     bounty.endsAt,
     programEnrollment?.createdAt,
   ]);
 
-  const earningsUrl = useMemo(() => {
-    if (!programSlug || !earningsParams) return null;
-    return `/api/partner-profile/programs/${programSlug}/earnings?${new URLSearchParams(earningsParams).toString()}`;
-  }, [programSlug, earningsParams]);
-
-  const countUrl = useMemo(() => {
-    if (!programSlug || !countParams) return null;
-    return `/api/partner-profile/programs/${programSlug}/earnings/count?${new URLSearchParams(countParams).toString()}`;
-  }, [programSlug, countParams]);
-
   const {
     data: earnings,
     isLoading,
     error,
-  } = useSWR<PartnerEarningsResponse[]>(earningsUrl, fetcher, {
-    keepPreviousData: true,
+  } = usePartnerProfileEarnings({
+    programIdOrSlug: programSlug,
+    ...dateRange,
+    page,
+    pageSize: PAGE_SIZE,
+    enabled: dateRange !== null,
   });
 
-  const { data: earningsCount, isLoading: isLoadingCount } = useSWR<{
-    count: number;
-  }>(countUrl, fetcher, {
-    keepPreviousData: true,
-  });
+  const { data: earningsCount, isLoading: isLoadingCount } =
+    usePartnerProfileEarningsCount({
+      programIdOrSlug: programSlug,
+      ...dateRange,
+      enabled: dateRange !== null,
+    });
 
   const rows = useMemo<PerformanceRow[]>(
     () =>

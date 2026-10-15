@@ -133,6 +133,7 @@ async function main() {
         id: workspace.id,
         slug: workspace.slug,
         stripeConnectId,
+        defaultProgramId: programId,
       },
       programId,
       user: {
@@ -486,7 +487,12 @@ async function backfillCustomer({
   firstInvoiceCreated,
 }: Candidate & {
   stripe: Stripe;
-  workspace: { id: string; slug: string; stripeConnectId: string };
+  workspace: {
+    id: string;
+    slug: string;
+    stripeConnectId: string;
+    defaultProgramId: string;
+  };
   programId: string;
   user: { id: string; name: string; email: string; isMachine: boolean };
   stripeCustomerId: string;

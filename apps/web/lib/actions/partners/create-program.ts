@@ -27,6 +27,7 @@ import {
   isLegacyBusinessPlan,
   log,
   nanoid,
+  RESERVED_SLUGS,
 } from "@dub/utils";
 import { Program, Project, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -68,6 +69,14 @@ export const createProgram = async ({
   ) {
     throw new Error(
       "Your current plan does not have access to create a partner program. Please upgrade to a higher plan to proceed.",
+    );
+  }
+
+  // the program takes the workspace slug, and a workspace can have a slug that
+  // was reserved later for a partners.dub.co page (for example /earnings)
+  if (RESERVED_SLUGS.includes(workspace.slug)) {
+    throw new Error(
+      `The workspace slug "${workspace.slug}" is reserved. Change the workspace slug in your workspace settings, then create the program again.`,
     );
   }
 

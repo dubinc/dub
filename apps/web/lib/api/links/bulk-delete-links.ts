@@ -1,9 +1,10 @@
+import { getOwnedLinkImageKey } from "@/lib/api/links/get-owned-link-image-key";
 import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
-import { chunk, R2_URL } from "@dub/utils";
+import { chunk } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { linkCache } from "./cache";
 import { ExpandedLink } from "./utils";
@@ -54,13 +55,10 @@ export async function bulkDeleteLinks(
         recordLink(links, { deleted: true }),
 
         // For links that have an image, delete the image from R2
-        ...links
-          .filter((link) =>
-            link.image?.startsWith(`${R2_URL}/images/${link.id}`),
-          )
-          .map((link) =>
-            storage.delete({ key: link.image!.replace(`${R2_URL}/`, "") }),
-          ),
+        ...links.flatMap((link) => {
+          const key = getOwnedLinkImageKey(link.image, link.id);
+          return key ? [storage.delete({ key })] : [];
+        }),
 
         // Queue an index update if any of the deleted links are associated with a partner
         // The program enrollments outlives them, so the document is re-serialized without them.

@@ -20,6 +20,7 @@ export const GET = withSession(async ({ session, params }) => {
           name: true,
           slug: true,
           stripeId: true,
+          environment: true,
         },
       },
     },

@@ -253,7 +253,7 @@ export const POST = withWorkspace(
     );
   },
   {
+    requiredPermissions: ["customers.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );

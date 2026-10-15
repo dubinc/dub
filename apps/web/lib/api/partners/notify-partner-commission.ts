@@ -24,7 +24,10 @@ export async function notifyPartnerCommission({
   commission,
   isFirstCommission,
 }: {
-  program: Pick<Program, "name" | "slug" | "logo" | "supportEmail">;
+  program: Pick<
+    Program,
+    "name" | "slug" | "logo" | "supportEmail" | "environment"
+  >;
   group: Pick<PartnerGroup, "holdingPeriodDays">;
   workspace: Pick<Project, "id" | "slug" | "name">;
   commission: Pick<
@@ -117,6 +120,7 @@ export async function notifyPartnerCommission({
       slug: program.slug,
       logo: program.logo,
       supportEmail: program.supportEmail,
+      environment: program.environment,
     },
     group: {
       holdingPeriodDays: group.holdingPeriodDays,
