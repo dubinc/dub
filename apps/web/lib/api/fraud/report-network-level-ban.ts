@@ -89,5 +89,5 @@ export async function reportNetworkLevelBan({
     .filter((r): r is PromiseRejectedResult => r.status === "rejected")
     .forEach((r) => console.error("Failed to hold commissions:", r.reason));
 
-  return affectedProgramEnrollments.length;
+  return affectedGroups.length;
 }
