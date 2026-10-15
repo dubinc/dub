@@ -78,13 +78,11 @@ export async function POST(req: Request) {
           createdAt: {
             lt: oneDayAgo,
           },
-          // only delete partners that are enrolled in the Acme program and nowhere else,
+          // only delete partners with no enrollments outside the Acme program,
           // since bulkDeletePartners hard-deletes the Partner row and would leave
-          // their enrollments in other programs orphaned
+          // their enrollments in other programs orphaned. `every` also matches
+          // partners with no enrollments, so those are cleaned up too.
           programs: {
-            some: {
-              programId: ACME_PROGRAM_ID,
-            },
             every: {
               programId: ACME_PROGRAM_ID,
             },
