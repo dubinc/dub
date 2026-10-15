@@ -7,13 +7,17 @@ import {
   PartnerProfileEarningsAttributeGroupBy,
 } from "@/lib/types";
 import { AnalyticsCard } from "@/ui/analytics/analytics-card";
-import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
+import {
+  AnalyticsCardEmptyState,
+  AnalyticsCardLoadingState,
+} from "@/ui/analytics/analytics-card-states";
 import { BarList } from "@/ui/analytics/bar-list";
 import { ContinentIcon } from "@/ui/analytics/continent-icon";
+import { ReferrerIcon } from "@/ui/analytics/referrer-icon";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { ProgramLogo } from "@/ui/partners/program-logo";
 import { CountryFlag } from "@/ui/shared/country-flag";
-import { BlurImage, useRouterStuff, UTM_PARAMETERS } from "@dub/ui";
+import { useRouterStuff, UTM_PARAMETERS } from "@dub/ui";
 import {
   CircleDollar,
   FlagWavy,
@@ -23,12 +27,7 @@ import {
   MoneyBills2,
   Note,
 } from "@dub/ui/icons";
-import {
-  capitalize,
-  CONTINENTS,
-  COUNTRIES,
-  GOOGLE_FAVICON_URL,
-} from "@dub/utils";
+import { capitalize, CONTINENTS, COUNTRIES } from "@dub/utils";
 import { ReactNode, useCallback, useMemo, useState } from "react";
 import { usePartnerEarningsFilters } from "./use-partner-earnings-filters";
 
@@ -223,20 +222,16 @@ function EarningsBarList({
 }) {
   if (error || rows?.length === 0) {
     return (
-      <div className="flex h-[300px] items-center justify-center">
-        <p className="text-sm text-neutral-600">
-          {error ? "Failed to load earnings" : "No earnings in this date range"}
-        </p>
-      </div>
+      <AnalyticsCardEmptyState
+        message={
+          error ? "Failed to load earnings" : "No earnings in this date range"
+        }
+      />
     );
   }
 
   if (!rows) {
-    return (
-      <div className="absolute inset-0 flex h-[300px] w-full items-center justify-center bg-white/50">
-        <AnalyticsLoadingSpinner />
-      </div>
-    );
+    return <AnalyticsCardLoadingState />;
   }
 
   return (
@@ -370,13 +365,7 @@ function getAttributeRows(
               className="size-4 rounded-full border border-cyan-500"
             />
           ) : groupBy === "domain" ? (
-            <BlurImage
-              src={`${GOOGLE_FAVICON_URL}${value}`}
-              alt={value}
-              width={20}
-              height={20}
-              className="size-4 rounded-full"
-            />
+            <ReferrerIcon display={value} />
           ) : UTMIcon ? (
             <UTMIcon className="size-4" />
           ) : null,

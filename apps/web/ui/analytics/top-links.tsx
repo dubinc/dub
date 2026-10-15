@@ -7,7 +7,10 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { FolderIcon } from "../folders/folder-icon";
 import TagBadge from "../links/tag-badge";
 import { AnalyticsCard } from "./analytics-card";
-import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
+import {
+  AnalyticsCardEmptyState,
+  AnalyticsCardLoadingState,
+} from "./analytics-card-states";
 import { AnalyticsContext } from "./analytics-provider";
 import { BarList } from "./bar-list";
 import { useAnalyticsFilterOption } from "./utils";
@@ -259,14 +262,10 @@ export function TopLinks() {
               {...(limit && { limit })}
             />
           ) : (
-            <div className="flex h-[300px] items-center justify-center">
-              <p className="text-sm text-neutral-600">No data available</p>
-            </div>
+            <AnalyticsCardEmptyState />
           )
         ) : (
-          <div className="absolute inset-0 flex h-[300px] w-full items-center justify-center bg-white/50">
-            <AnalyticsLoadingSpinner />
-          </div>
+          <AnalyticsCardLoadingState />
         )
       }
     </AnalyticsCard>
