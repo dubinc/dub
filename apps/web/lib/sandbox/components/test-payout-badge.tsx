@@ -12,7 +12,9 @@ export function TestPayoutBadge({
   }
 
   return (
-    <Tooltip content="This is a test payout. No real money was sent.">
+    <Tooltip
+      content={`This is a test payout sent from a ${environment} program. No real money was sent. [Learn more](https://dub.co/docs/testing).`}
+    >
       <Badge
         variant={isStagingEnvironment(environment) ? "amber" : "blueGradient"}
         className="cursor-help"

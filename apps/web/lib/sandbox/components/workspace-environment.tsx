@@ -88,7 +88,7 @@ export function WorkspaceEnvironmentBanner() {
       <p className="hidden min-w-0 flex-1 text-center text-sm font-medium sm:block">
         No real money or payouts in {currentWorkspace.environment}.{" "}
         <a
-          href="https://dub.co/docs"
+          href="https://dub.co/docs/testing"
           target="_blank"
           rel="noopener noreferrer"
           className="underline underline-offset-2"

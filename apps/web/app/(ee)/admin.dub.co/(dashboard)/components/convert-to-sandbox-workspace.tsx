@@ -25,7 +25,7 @@ export function ConvertToSandboxWorkspace() {
           }
 
           try {
-            const res = await fetch("/api/admin/convert-to-sandbox", {
+            const res = await fetch("/api/admin/workspaces/convert-to-sandbox", {
               method: "POST",
               body: JSON.stringify({ slug }),
             });
