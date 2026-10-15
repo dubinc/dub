@@ -194,24 +194,29 @@ async function deleteOrphanedProgramEnrollment({
   });
   console.log(`Deleted ${deletedActivityLogs.count} activity logs`);
 
-  await prisma.programEnrollment.delete({
-    where: {
-      id,
-    },
-  });
-
-  if (workspaceId) {
-    await prisma.project.update({
+  // in one transaction, so a failed decrement cannot leave partnersUsage too high
+  // after the enrollment is gone and the next run can no longer find it
+  await prisma.$transaction([
+    prisma.programEnrollment.delete({
       where: {
-        id: workspaceId,
+        id,
       },
-      data: {
-        partnersUsage: {
-          decrement: 1,
-        },
-      },
-    });
-  }
+    }),
+    ...(workspaceId
+      ? [
+          prisma.project.update({
+            where: {
+              id: workspaceId,
+            },
+            data: {
+              partnersUsage: {
+                decrement: 1,
+              },
+            },
+          }),
+        ]
+      : []),
+  ]);
 }
 
 main();
