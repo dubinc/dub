@@ -1,4 +1,3 @@
-import { confirmPartnerFraudAlerts } from "@/lib/api/fraud/confirm-partner-fraud-alerts";
 import { reportNetworkLevelBan } from "@/lib/api/fraud/report-network-level-ban";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -49,37 +48,18 @@ export const POST = withAdmin(
     const anchorProgramId =
       networkEnrollment?.programId ?? activeEnrollments[0].programId;
 
-    const pendingAdminAlert = await prisma.fraudAlert.findFirst({
-      where: {
+    await prisma.fraudAlert.create({
+      data: {
         partnerId,
+        programId: anchorProgramId,
+        reason,
         source: "admin",
-        status: "pending",
+        status: "confirmed",
+        reviewedAt: new Date(),
+        reviewNote: reviewNote || null,
+        reviewedById: session.user.id,
       },
-      select: { id: true },
     });
-
-    if (!pendingAdminAlert) {
-      await prisma.fraudAlert.create({
-        data: {
-          partnerId,
-          programId: anchorProgramId,
-          reason,
-          source: "admin",
-        },
-      });
-    }
-
-    const { confirmedCount } = await confirmPartnerFraudAlerts({
-      partnerId,
-      reviewedById: session.user.id,
-      reviewNote,
-      skipCrossProgramReporting: true,
-      source: "admin",
-    });
-
-    if (confirmedCount === 0) {
-      return new Response("Failed to confirm fraud alert.", { status: 500 });
-    }
 
     try {
       const alertedProgramsCount = await reportNetworkLevelBan({
