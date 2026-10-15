@@ -7,6 +7,7 @@ import {
 } from "@/lib/api/links";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
+import { getOwnedLinkImageKey } from "@/lib/api/links/get-owned-link-image-key";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
@@ -28,7 +29,6 @@ import {
   bulkCreateLinksBodySchema,
   bulkUpdateLinksBodySchema,
 } from "@/lib/zod/schemas/links";
-import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -568,15 +568,12 @@ export const PATCH = withWorkspace(
       (async () => {
         if (data.proxy && data.image) {
           await Promise.allSettled(
-            links.map(async (link) => {
-              // delete old proxy image urls if exist and match the link ID
-              if (
-                link.image &&
-                link.image.startsWith(`${R2_URL}/images/${link.id}`) &&
-                link.image !== data.image
-              ) {
-                storage.delete({ key: link.image.replace(`${R2_URL}/`, "") });
+            links.map((link) => {
+              const key = getOwnedLinkImageKey(link.image, link.id);
+              if (key && link.image !== data.image) {
+                return storage.delete({ key });
               }
+              return null;
             }),
           );
         }
