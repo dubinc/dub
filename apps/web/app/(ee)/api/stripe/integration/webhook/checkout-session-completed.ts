@@ -30,6 +30,7 @@ import { getConnectedCustomer } from "./utils/get-connected-customer";
 import { getDubCustomerExternalIdFromMetadata } from "./utils/get-dub-customer-external-id-from-metadata";
 import { incrementLinkLeads } from "./utils/increment-link-leads";
 import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with-stripe-customer-id";
+import { updateDubIdCustomer } from "./utils/update-dub-id-customer";
 
 // Handle event "checkout.session.completed"
 export async function checkoutSessionCompleted({
@@ -142,10 +143,10 @@ export async function checkoutSessionCompleted({
     if (created) {
       customer = existingOrNewCustomer;
     } else {
-      customer = await prisma.customer.update({
-        where: {
-          id: existingOrNewCustomer.id,
-        },
+      customer = await updateDubIdCustomer({
+        customer: existingOrNewCustomer,
+        workspaceId: workspace.id,
+        stripeCustomerId,
         data: payload,
       });
     }
