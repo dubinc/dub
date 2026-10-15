@@ -44,7 +44,8 @@ const CACHE_KEY_PREFIX = "merge-partner-accounts";
  * 3. finalize-transfers: transfer bounty submissions + sync transferred links
  *    (Tinybird/cache) and total commissions.
  * 4. cleanup-source-account: delete the source partner's rewinds, source user,
- *    duplicate-account fraud events, and finally the source partner itself.
+ *    duplicate-account fraud events (resolving groups + releasing any hold
+ *    commissions), and finally the source partner itself.
  * 5. send-merged-emails: clear the verification cache + notify both accounts.
  */
 
@@ -139,9 +140,11 @@ export const { POST } = serve<Input>(
         logs.push(outputLog);
       }
 
-      // Clean up duplicate-account fraud events + resolve their groups
+      // Clean up duplicate-account fraud events + resolve their groups,
+      // releasing any commissions that were held for that risk.
       const { outputLog: fraudLog } = await cleanupFraudEvents({
         sourcePartnerId,
+        targetPartnerId,
       });
       logs.push(fraudLog);
 
@@ -932,8 +935,10 @@ async function deleteSourceUser({ sourceUserId }: { sourceUserId: string }) {
 
 async function cleanupFraudEvents({
   sourcePartnerId,
+  targetPartnerId,
 }: {
   sourcePartnerId: string;
+  targetPartnerId: string;
 }) {
   const fraudEventsToDelete = await prisma.fraudEvent.findMany({
     where: {
@@ -991,7 +996,13 @@ async function cleanupFraudEvents({
       type: FraudRuleType.partnerDuplicateAccount,
     },
     resolutionReason:
-      "Automatically resolved because partners with duplicate payout methods were merged. No other partners share this payout method.",
+      "Automatically resolved because the duplicate partner accounts were merged.",
+    // Commissions may have been held for the duplicate-account risk; release
+    // them now that the merge resolved those fraud groups. By this point
+    // commissions have already been transferred to the target partner, so
+    // release against the surviving account.
+    releaseHoldCommissions: true,
+    releasePartnerId: targetPartnerId,
   });
 
   return logAndReturn({

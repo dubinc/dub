@@ -8,11 +8,16 @@ export async function resolveFraudGroups({
   userId,
   resolutionReason,
   releaseHoldCommissions = false,
+  // When set, hold-commission release jobs run against this partner instead of
+  // each group's partnerId. Used by account merges where commissions have
+  // already been transferred to the surviving partner.
+  releasePartnerId,
 }: {
   where: Prisma.FraudEventGroupWhereInput;
   userId?: string;
   resolutionReason?: string;
   releaseHoldCommissions?: boolean;
+  releasePartnerId?: string;
 }) {
   const riskGroups = await prisma.fraudEventGroup.findMany({
     where: {
@@ -48,7 +53,7 @@ export async function resolveFraudGroups({
   console.info(`Resolved ${count} fraud event groups ${prettyPrint(where)}`);
 
   if (releaseHoldCommissions && count > 0) {
-    await queueReleaseHoldCommissions(riskGroupIds);
+    await queueReleaseHoldCommissions(riskGroupIds, { releasePartnerId });
   }
 
   return count;
