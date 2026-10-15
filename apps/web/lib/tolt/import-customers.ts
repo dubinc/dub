@@ -1,3 +1,4 @@
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { prisma } from "@/lib/prisma";
 import { chunk, nanoid, sleep } from "@dub/utils";
 import { Customer, Link, Project } from "@prisma/client";
@@ -242,6 +243,7 @@ async function createReferral({
             ? customer.email
             : customer.name,
         email: customer.email,
+        normalizedEmail: getNormalizedEmail(customer.email),
         projectId: workspace.id,
         projectConnectId: workspace.stripeConnectId,
         clickId: clickEvent.click_id,

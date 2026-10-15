@@ -163,6 +163,7 @@ export async function recreateCustomerForReattribution({
         id: newCustomerId,
         name: customer.name,
         email: customer.email,
+        normalizedEmail: customer.normalizedEmail,
         avatar: customer.avatar,
         externalId: customer.externalId,
         stripeCustomerId: customer.stripeCustomerId,

@@ -25,6 +25,10 @@ function getRowHref(row: EventDataProps, workspaceSlug?: string) {
     return `/${workspaceSlug}/program/customers?partnerId=${row.partner.id}&search=${extractEmailDomain(row.customer.email)}`;
   }
 
+  if (row.metadata?.matchType === CustomerEmailMatchType.SIMILAR_EMAIL_MATCH) {
+    return `/${workspaceSlug}/program/customers?partnerId=${row.partner.id}`;
+  }
+
   return `/${workspaceSlug}/events?event=leads&interval=all&customerId=${row.customer.id}`;
 }
 
@@ -32,6 +36,7 @@ const MATCH_TYPE_LABELS: Record<CustomerEmailMatchType, string> = {
   [CustomerEmailMatchType.EXACT]: "Exact email match",
   [CustomerEmailMatchType.DOMAIN_MATCH]: "Domain match",
   [CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH]: "Historical domain match",
+  [CustomerEmailMatchType.SIMILAR_EMAIL_MATCH]: "Similar email match",
 };
 
 export function FraudMatchingCustomerEmailTable({

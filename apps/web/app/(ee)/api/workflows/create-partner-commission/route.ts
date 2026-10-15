@@ -605,7 +605,7 @@ async function stepRunSideEffects(
 
   if (shouldRunRiskMonitoring) {
     const triggeredRules = await detectAndRecordFraudEvent({
-      program: { id: programId },
+      program: { id: programId, workspaceId: workspace.id },
       partner: pick(programEnrollment.partner, ["id", "email", "name"]),
       programEnrollment: pick(programEnrollment, [
         "status",

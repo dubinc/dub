@@ -1,6 +1,7 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { Session } from "@/lib/auth";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { prisma } from "@/lib/prisma";
@@ -486,6 +487,7 @@ async function createOrUpdateCustomer({
             id,
             name,
             email,
+            normalizedEmail: getNormalizedEmail(email),
             avatar,
             externalId,
             stripeCustomerId,
@@ -508,6 +510,9 @@ async function createOrUpdateCustomer({
         data: {
           name,
           email,
+          ...(email !== undefined && {
+            normalizedEmail: getNormalizedEmail(email),
+          }),
           avatar,
           country,
           stripeCustomerId,
