@@ -94,7 +94,10 @@ export function EarningsChart() {
             <h2 className="text-base font-semibold leading-6 text-neutral-800">
               Earnings
             </h2>
-            <ShareChartButton onClick={() => setShowShareModal(true)} />
+            <ShareChartButton
+              onClick={() => setShowShareModal(true)}
+              disabled={!timeseries}
+            />
           </div>
           <ViewAllButton href={earningsPageHref} />
         </div>

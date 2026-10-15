@@ -249,7 +249,10 @@ function EarningsChart() {
               <span className="block text-base font-semibold leading-none text-neutral-800">
                 Earnings
               </span>
-              <ShareChartButton onClick={() => setShowShareModal(true)} />
+              <ShareChartButton
+                onClick={() => setShowShareModal(true)}
+                disabled={!timeseries}
+              />
             </div>
             <div className="flex items-baseline gap-2">
               {total !== undefined ? (
