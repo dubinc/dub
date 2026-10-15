@@ -30,6 +30,7 @@ import { metadataQueryParser } from "./metadata-query-parser";
 import { EventsFilters } from "./types";
 import { formatUTCDateTimeClickhouse } from "./utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "./utils/get-start-end-dates";
+import { withTinybirdTimeout } from "./utils/with-tinybird-timeout";
 
 // Fetch data for /api/events
 export const getEvents = async (params: EventsFilters) => {
@@ -165,7 +166,7 @@ export const getEvents = async (params: EventsFilters) => {
     filters: allFilters.length > 0 ? JSON.stringify(allFilters) : undefined,
   };
 
-  const response = await pipe(tinybirdParams);
+  const response = await withTinybirdTimeout(pipe(tinybirdParams));
 
   const [linksMap, customersMap] = await Promise.all([
     getLinksMap(response.data.map((d) => d.link_id)),

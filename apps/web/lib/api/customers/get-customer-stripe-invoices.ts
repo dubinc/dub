@@ -44,6 +44,8 @@ export async function getCustomerStripeInvoices({
     });
   }
 
+  const programId = getDefaultProgramIdOrThrow(workspace);
+
   const stripe = stripeAppClient({
     mode: workspace.stripeConnectMode,
   });
@@ -96,8 +98,6 @@ export async function getCustomerStripeInvoices({
     // Stripe integration might be outdated and don't have charges.read permission
     console.warn(error);
   }
-
-  const programId = getDefaultProgramIdOrThrow(workspace);
 
   const commissions = await prisma.commission.findMany({
     where: {

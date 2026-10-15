@@ -7,11 +7,14 @@ import { endOfDay, startOfDay } from "date-fns";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 import { getCommissionsTimeseries } from "./get-commissions-timeseries";
+import { getTopPartnersByCommissions } from "./get-top-partners-by-commissions";
 import { getTopProgramsByCommissions } from "./get-top-program-by-commissions";
 
 const adminCommissionsQuerySchema = z
   .object({
     programId: z.string().optional(),
+    partnerId: z.string().optional(),
+    groupBy: z.enum(["programId", "partnerId"]).optional().default("programId"),
     timezone: z.string().optional().default("UTC"),
   })
   .extend(
@@ -21,6 +24,8 @@ const adminCommissionsQuerySchema = z
 export const GET = withAdmin(async ({ searchParams }) => {
   const {
     programId,
+    partnerId,
+    groupBy,
     interval = "mtd",
     start,
     end,
@@ -35,12 +40,30 @@ export const GET = withAdmin(async ({ searchParams }) => {
     timezone,
   });
 
+  const filters = { programId, partnerId, startDate, endDate };
+
+  if (groupBy === "partnerId") {
+    const [partners, timeseries] = await Promise.all([
+      getTopPartnersByCommissions(filters),
+      getCommissionsTimeseries({
+        ...filters,
+        granularity,
+        timezone,
+      }),
+    ]);
+
+    return NextResponse.json(
+      adminCommissionsDataSchema.parse({
+        partners,
+        timeseries,
+      }),
+    );
+  }
+
   const [programs, timeseries] = await Promise.all([
-    getTopProgramsByCommissions({ programId, startDate, endDate }),
+    getTopProgramsByCommissions(filters),
     getCommissionsTimeseries({
-      programId,
-      startDate,
-      endDate,
+      ...filters,
       granularity,
       timezone,
     }),

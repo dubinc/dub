@@ -1,5 +1,6 @@
 import { getConfigResponse } from "@/lib/api/domains/get-config-response";
 import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
+import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
 import { verifyDomain } from "@/lib/api/domains/verify-domain";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
@@ -51,27 +52,7 @@ export const GET = withCron(async () => {
   const results = await Promise.allSettled(
     domains.map(async (domain) => {
       const { slug, verified, primary, createdAt } = domain;
-      const [domainJson, configJson] = await Promise.all([
-        getDomainResponse(slug),
-        getConfigResponse(slug),
-      ]);
-
-      let newVerified;
-
-      if (domainJson?.error?.code === "not_found") {
-        newVerified = false;
-      } else if (!domainJson.verified) {
-        const verificationJson = await verifyDomain(slug);
-        if (verificationJson && verificationJson.verified) {
-          newVerified = true;
-        } else {
-          newVerified = false;
-        }
-      } else if (!configJson.misconfigured) {
-        newVerified = true;
-      } else {
-        newVerified = false;
-      }
+      const newVerified = await getVerificationStatus(slug);
 
       const prismaResponse = await prisma.domain.update({
         where: {
@@ -106,3 +87,27 @@ export const GET = withCron(async () => {
 
   return NextResponse.json(results);
 });
+
+async function getVerificationStatus(slug: string) {
+  // The Vercel helpers throw on these slugs, which would leave `lastChecked`
+  // unchanged and keep the row at the front of this queue on every run.
+  if (!isValidDomainFormat(slug)) {
+    return false;
+  }
+
+  const [domainJson, configJson] = await Promise.all([
+    getDomainResponse(slug),
+    getConfigResponse(slug),
+  ]);
+
+  if (domainJson?.error?.code === "not_found") {
+    return false;
+  }
+
+  if (!domainJson.verified) {
+    const verificationJson = await verifyDomain(slug);
+    return Boolean(verificationJson?.verified);
+  }
+
+  return !configJson.misconfigured;
+}

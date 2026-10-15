@@ -19,6 +19,11 @@ import { GroupProps, PartnerProfileLinkProps } from "@/lib/types";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import { DiscountCodeTooltip } from "@/ui/partners/discounts/discount-code-tooltip";
+import { EarningsTablePartner } from "@/ui/partners/earnings/earnings-table";
+import {
+  ShareChartButton,
+  ShareEarningsModal,
+} from "@/ui/partners/earnings/share-earnings-modal";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -51,7 +56,6 @@ import {
   DiscountCode,
   InvoiceDollar,
   LoadingSpinner,
-  ReferredVia,
   UserPlus,
 } from "@dub/ui/icons";
 import {
@@ -77,9 +81,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { EarningsTablePartner } from "./earnings/earnings-table";
 import { PayoutsCard } from "./payouts-card";
-import { ShareEarningsModal } from "./share-earnings-modal";
 
 const ProgramOverviewContext = createContext<{
   start?: Date;
@@ -245,7 +247,6 @@ function EarningsChart() {
           start={start}
           end={end}
           interval={interval}
-          timeseries={timeseries}
         />
       )}
       <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
@@ -255,15 +256,7 @@ function EarningsChart() {
               <span className="block text-base font-semibold leading-none text-neutral-800">
                 Earnings
               </span>
-              <Tooltip content="Share chart">
-                <button
-                  type="button"
-                  onClick={() => setShowShareModal(true)}
-                  className="flex size-6 items-center justify-center rounded-md border border-transparent text-neutral-500 transition-colors hover:border-neutral-200 hover:bg-neutral-50 hover:text-neutral-700"
-                >
-                  <ReferredVia className="size-3.5" />
-                </button>
-              </Tooltip>
+              <ShareChartButton onClick={() => setShowShareModal(true)} />
             </div>
             <div className="flex items-baseline gap-2">
               {total !== undefined ? (

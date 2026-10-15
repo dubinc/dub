@@ -2,10 +2,12 @@ import { prisma } from "@/lib/prisma";
 
 export async function getTopProgramsByCommissions({
   programId,
+  partnerId,
   startDate,
   endDate,
 }: {
   programId?: string;
+  partnerId?: string;
   startDate: Date;
   endDate: Date;
 }) {
@@ -26,6 +28,7 @@ export async function getTopProgramsByCommissions({
         environment: "production",
       },
       ...(programId ? { programId } : {}),
+      ...(partnerId ? { partnerId } : {}),
     },
     orderBy: {
       _sum: {

@@ -11,12 +11,14 @@ interface Commission {
 
 export async function getCommissionsTimeseries({
   programId,
+  partnerId,
   startDate,
   endDate,
   granularity,
   timezone,
 }: {
   programId?: string;
+  partnerId?: string;
   startDate: Date;
   endDate: Date;
   granularity: string;
@@ -38,6 +40,7 @@ export async function getCommissionsTimeseries({
             SELECT id FROM Program WHERE environment = ${WorkspaceEnvironment.production}
           )
           ${programId ? Prisma.sql`AND programId = ${programId}` : Prisma.sql``}
+          ${partnerId ? Prisma.sql`AND partnerId = ${partnerId}` : Prisma.sql``}
         GROUP BY start
         ORDER BY start ASC;`;
 

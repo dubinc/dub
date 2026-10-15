@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { nanoid, NETWORK_PROGRAM_ID } from "@dub/utils";
 import { expect } from "@playwright/test";
 import { apiError } from "../../utils";
+import { PLAYWRIGHT_API_BASE } from "../constants";
 import { createBearerApiClient, test } from "../fixtures";
 import { createPartner, deletePartner } from "../partners/helpers";
 import { TEST_WORKSPACE } from "../setup-test-workspace";
@@ -230,6 +231,46 @@ test.describe("GET /partner-profile/earnings", () => {
         expect(status).toEqual(200);
         expect(data.reduce((sum, group) => sum + group._count, 0)).toEqual(3);
       }
+    });
+  });
+
+  test("counts earnings grouped by program, within the selected program", async ({
+    playwright,
+    program,
+  }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      const all = await partnerApi.get<
+        { id: string; slug: string; _count: number }[]
+      >("/api/partner-profile/earnings/count?groupBy=programId");
+
+      expect(all.status).toEqual(200);
+      expect(all.data).toEqual([
+        expect.objectContaining({
+          id: program.id,
+          slug: programSlug,
+          _count: 2,
+        }),
+        expect.objectContaining({
+          id: programB.id,
+          slug: programB.slug,
+          _count: 1,
+        }),
+      ]);
+
+      const selected = await partnerApi.get<
+        { id: string; slug: string; _count: number }[]
+      >(
+        `/api/partner-profile/earnings/count?groupBy=programId&programIdOrSlug=${programB.slug}`,
+      );
+
+      expect(selected.status).toEqual(200);
+      expect(selected.data).toEqual([
+        expect.objectContaining({
+          id: programB.id,
+          slug: programB.slug,
+          _count: 1,
+        }),
+      ]);
     });
   });
 
@@ -644,6 +685,27 @@ test.describe("GET /partner-profile/earnings", () => {
         ),
       ).toMatchObject({ status: 404 });
     });
+  });
+
+  test("returns the OG image of all programs without a program", async ({
+    playwright,
+  }) => {
+    // the API client parses JSON, so read the PNG with a plain request
+    const context = await playwright.request.newContext({
+      baseURL: PLAYWRIGHT_API_BASE,
+      extraHTTPHeaders: { Authorization: `Bearer ${token}` },
+    });
+
+    try {
+      const response = await context.get(
+        "/api/og/partner-earnings?interval=all&timezone=UTC",
+      );
+
+      expect(response.status()).toEqual(200);
+      expect(response.headers()["content-type"]).toContain("image/png");
+    } finally {
+      await context.dispose();
+    }
   });
 
   test("rejects a workspace token", async ({ api }) => {
