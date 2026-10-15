@@ -103,7 +103,11 @@ export default async function ProgramInvitePage(props: {
     where: {
       slug: programSlug,
     },
-    include: {
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      logo: true,
       partners: {
         where: {
           partnerId,
