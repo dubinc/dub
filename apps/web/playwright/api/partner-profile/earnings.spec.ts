@@ -223,14 +223,31 @@ test.describe("GET /partner-profile/earnings", () => {
     playwright,
   }) => {
     await withPartnerApi(playwright, async (partnerApi) => {
-      for (const groupBy of ["linkId", "customerId"]) {
-        const { status, data } = await partnerApi.get<
-          { id: string | null; _count: number }[]
-        >(`/api/partner-profile/earnings/count?groupBy=${groupBy}`);
+      // commissions without a link/customer are omitted so filter menus have no empty option
+      const byLink = await partnerApi.get<{ id: string; _count: number }[]>(
+        "/api/partner-profile/earnings/count?groupBy=linkId",
+      );
+      expect(byLink.status).toEqual(200);
+      expect(byLink.data).toEqual([
+        expect.objectContaining({
+          id: programB.linkId,
+          domain: expect.any(String),
+          key: expect.any(String),
+          _count: 1,
+        }),
+      ]);
 
-        expect(status).toEqual(200);
-        expect(data.reduce((sum, group) => sum + group._count, 0)).toEqual(3);
-      }
+      const byCustomer = await partnerApi.get<
+        { id: string; _count: number }[]
+      >("/api/partner-profile/earnings/count?groupBy=customerId");
+      expect(byCustomer.status).toEqual(200);
+      expect(byCustomer.data).toEqual([
+        expect.objectContaining({
+          id: programB.customerId,
+          email: programB.customerEmail,
+          _count: 1,
+        }),
+      ]);
     });
   });
 

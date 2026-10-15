@@ -78,9 +78,13 @@ export async function getPartnerEarningsCount({
 
   if (groupBy === "customerId") {
     // grouped by program too, since customer data sharing is set per program enrollment
+    // exclude null customerId so the Customer filter has no empty option
     const counts = await prisma.commission.groupBy({
       by: ["customerId", "programId"],
-      where: groupedWhere,
+      where: {
+        ...groupedWhere,
+        customerId: { not: null },
+      },
       _count: true,
       _sum: {
         earnings: true,
@@ -149,7 +153,11 @@ export async function getPartnerEarningsCount({
 
   const counts = await prisma.commission.groupBy({
     by: [groupBy],
-    where: groupedWhere,
+    where: {
+      ...groupedWhere,
+      // exclude null linkId so the Link filter has no empty option
+      ...(groupBy === "linkId" && { linkId: { not: null } }),
+    },
     _count: true,
     _sum: {
       earnings: true,
@@ -180,16 +188,20 @@ export async function getPartnerEarningsCount({
 
     const linksById = new Map(links.map((l) => [l.id, l]));
 
-    return counts.map(({ linkId, _count, _sum }) => {
-      const link = linkId ? linksById.get(linkId) : undefined;
-      return {
-        id: linkId,
-        domain: link?.domain,
-        key: link?.key,
-        url: link?.url,
-        _count,
-        earnings: _sum.earnings ?? 0,
-      };
+    return counts.flatMap(({ linkId, _count, _sum }) => {
+      if (!linkId) return [];
+      const link = linksById.get(linkId);
+      if (!link) return [];
+      return [
+        {
+          id: linkId,
+          domain: link.domain,
+          key: link.key,
+          url: link.url,
+          _count,
+          earnings: _sum.earnings ?? 0,
+        },
+      ];
     });
   }
 
