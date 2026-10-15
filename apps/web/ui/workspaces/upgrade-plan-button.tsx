@@ -23,14 +23,15 @@ import { useSwitchTrialPlanModal } from "../modals/switch-trial-plan-modal";
 
 export function UpgradePlanButton({
   plan,
-  displayName,
+  hidePlanName,
   tier,
   period,
   ...rest
 }: {
   plan: string;
-  // Overrides the plan name in the button text (e.g. partners plans that check out as another plan)
-  displayName?: string;
+  // Leaves the plan and period out of the button text, for buttons that sit
+  // under their plan's name (e.g. the onboarding plan columns)
+  hidePlanName?: boolean;
   tier?: number;
   period: "monthly" | "yearly";
 } & Partial<ButtonProps>) {
@@ -192,8 +193,12 @@ export function UpgradePlanButton({
                 ? "Activate plan"
                 : "Current plan"
               : isEligibleForTrial({ workspace, session })
-                ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial · ${displayName ?? selectedPlan.name} ${capitalize(period)}`
-                : `Upgrade to ${displayName ?? selectedPlan.name} ${capitalize(period)}`
+                ? hidePlanName
+                  ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial`
+                  : `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
+                : hidePlanName
+                  ? "Upgrade"
+                  : `Upgrade to ${selectedPlan.name} ${capitalize(period)}`
         }
         loading={clicked || !currentPlan}
         disabled={!workspaceSlug || (isCurrentPlanAndPeriod && !isTrialActive)}
