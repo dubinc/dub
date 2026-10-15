@@ -35,6 +35,9 @@ async function requireInstalledIntegration(workspace: Workspace) {
       projectId: workspace.id,
       integrationId: STRIPE_INTEGRATION_ID,
     },
+    select: {
+      settings: true,
+    },
   });
 
   if (!installation) {
@@ -50,7 +53,6 @@ async function requireInstalledIntegration(workspace: Workspace) {
   );
 
   return {
-    ...installation,
     settings,
   };
 }
