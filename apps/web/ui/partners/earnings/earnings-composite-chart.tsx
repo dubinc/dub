@@ -26,15 +26,9 @@ import {
   Sliders,
   User,
 } from "@dub/ui/icons";
-import {
-  capitalize,
-  cn,
-  currencyFormatter,
-  linkConstructor,
-  nFormatter,
-} from "@dub/utils";
+import { capitalize, cn, currencyFormatter, linkConstructor } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { CommissionType } from "@prisma/client";
+import { CommissionStatus, CommissionType } from "@prisma/client";
 import { useParams } from "next/navigation";
 import { Fragment, useMemo, useState } from "react";
 import { usePartnerEarningsFilters } from "./use-partner-earnings-filters";
@@ -362,7 +356,7 @@ function EarningsTableControls() {
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
 
   const { data: programs } = usePartnerProfileEarningsCount<
-    { id: string; name?: string; logo?: string | null; _count: number }[]
+    { id: string; name?: string; logo?: string | null; earnings: number }[]
   >({
     ...earningsFilters,
     // the menu lists every program, also when one program is selected
@@ -375,8 +369,16 @@ function EarningsTableControls() {
         : false),
   });
 
+  const { data: types } = usePartnerProfileEarningsCount<
+    { type: CommissionType; earnings: number }[]
+  >({
+    ...earningsFilters,
+    groupBy: "type",
+    enabled: selectedFilter === "type" || searchParamsObj.type ? true : false,
+  });
+
   const { data: links } = usePartnerProfileEarningsCount<
-    { id: string; domain: string; key: string; url: string; _count: number }[]
+    { id: string; domain: string; key: string; url: string; earnings: number }[]
   >({
     ...earningsFilters,
     groupBy: "linkId",
@@ -385,18 +387,19 @@ function EarningsTableControls() {
   });
 
   const { data: customers } = usePartnerProfileEarningsCount<
-    { id: string; email: string; _count: number }[]
+    { id: string; email: string; earnings: number }[]
   >({
     ...earningsFilters,
     groupBy: "customerId",
     enabled:
-      selectedFilter === "customerId" || searchParamsObj.customerId
+      !!programSlug &&
+      (selectedFilter === "customerId" || searchParamsObj.customerId
         ? true
-        : false,
+        : false),
   });
 
   const { data: statuses } = usePartnerProfileEarningsCount<
-    { status: string; _count: number }[]
+    { status: CommissionStatus; earnings: number }[]
   >({
     ...earningsFilters,
     groupBy: "status",
@@ -414,7 +417,7 @@ function EarningsTableControls() {
               icon: GridIcon,
               label: "Program",
               options:
-                programs?.map(({ id, name, logo, _count }) => ({
+                programs?.map(({ id, name, logo, earnings }) => ({
                   value: id,
                   label: name ?? id,
                   icon: (
@@ -423,7 +426,7 @@ function EarningsTableControls() {
                       className="size-4"
                     />
                   ),
-                  right: nFormatter(_count, { full: true }),
+                  right: currencyFormatter(earnings),
                 })) ?? null,
             },
           ]),
@@ -431,11 +434,13 @@ function EarningsTableControls() {
         key: "type",
         icon: Sliders,
         label: "Type",
-        options: Object.values(CommissionType).map((type) => ({
-          value: type,
-          label: capitalize(type) as string,
-          icon: <CommissionTypeIcon type={type} />,
-        })),
+        options:
+          types?.map(({ type, earnings }) => ({
+            value: type,
+            label: capitalize(type) as string,
+            icon: <CommissionTypeIcon type={type} />,
+            right: currencyFormatter(earnings),
+          })) ?? null,
       },
       {
         key: "linkId",
@@ -445,7 +450,7 @@ function EarningsTableControls() {
           return <LinkIcon url={props.option?.data?.url} />;
         },
         options:
-          links?.map(({ id, domain, key, url }) => ({
+          links?.map(({ id, domain, key, url, earnings }) => ({
             value: id,
             label: linkConstructor({
               domain,
@@ -453,24 +458,31 @@ function EarningsTableControls() {
               pretty: true,
             }),
             data: { url },
+            right: currencyFormatter(earnings),
           })) ?? null,
       },
-      {
-        key: "customerId",
-        icon: User,
-        label: "Customer",
-        options:
-          customers?.map(({ id, email }) => ({
-            value: id,
-            label: email || id,
-          })) ?? null,
-      },
+      // the Customer filter is only on the Earnings page of one program
+      ...(programSlug
+        ? [
+            {
+              key: "customerId",
+              icon: User,
+              label: "Customer",
+              options:
+                customers?.map(({ id, email, earnings }) => ({
+                  value: id,
+                  label: email || id,
+                  right: currencyFormatter(earnings),
+                })) ?? null,
+            },
+          ]
+        : []),
       {
         key: "status",
         icon: CircleDotted,
         label: "Status",
         options:
-          statuses?.map(({ status, _count }) => {
+          statuses?.map(({ status, earnings }) => {
             const Icon = CommissionStatusBadges[status].icon;
             return {
               value: status,
@@ -483,12 +495,12 @@ function EarningsTableControls() {
                   )}
                 />
               ),
-              right: nFormatter(_count, { full: true }),
+              right: currencyFormatter(earnings),
             };
           }) ?? null,
       },
     ],
-    [programSlug, programs, links, customers, statuses],
+    [programSlug, programs, types, links, customers, statuses],
   );
 
   const activeFilters = useMemo(() => {
@@ -500,7 +512,9 @@ function EarningsTableControls() {
         : []),
       ...(type ? [{ key: "type", value: type }] : []),
       ...(linkId ? [{ key: "linkId", value: linkId }] : []),
-      ...(customerId ? [{ key: "customerId", value: customerId }] : []),
+      ...(customerId && programSlug
+        ? [{ key: "customerId", value: customerId }]
+        : []),
       ...(status ? [{ key: "status", value: status }] : []),
       ...(payoutId ? [{ key: "payoutId", value: payoutId }] : []),
     ];

@@ -3,8 +3,11 @@
   "globalDependencies": ["**/.env"],
   "pipeline": {
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "prisma:generate"],
       "outputs": ["!.next/cache/**", ".next/**", "dist/**"]
+    },
+    "prisma:generate": {
+      "cache": false
     },
     "dev": {
       "cache": false,

@@ -86,9 +86,7 @@ export function EarningsChart() {
       <ShareEarningsModal
         showModal={showShareModal}
         setShowModal={setShowShareModal}
-        start={start}
-        end={end}
-        interval={interval}
+        timeseries={timeseries}
       />
       <div className="px-5 py-4">
         <div className="flex items-start justify-between gap-2">
@@ -96,7 +94,10 @@ export function EarningsChart() {
             <h2 className="text-base font-semibold leading-6 text-neutral-800">
               Earnings
             </h2>
-            <ShareChartButton onClick={() => setShowShareModal(true)} />
+            <ShareChartButton
+              onClick={() => setShowShareModal(true)}
+              disabled={!timeseries}
+            />
           </div>
           <ViewAllButton href={earningsPageHref} />
         </div>
