@@ -78,22 +78,25 @@ async function main() {
     return;
   }
 
-  let deletedCount = 0;
+  const deletedEnrollmentIds: string[] = [];
 
-  // one enrollment at a time, since bulkDeleteLinks expects links from a single workspace
-  for (const programEnrollment of orphanedProgramEnrollments) {
-    await deleteOrphanedProgramEnrollment(programEnrollment);
-    deletedCount++;
+  try {
+    // one enrollment at a time, since bulkDeleteLinks expects links from a single workspace
+    for (const programEnrollment of orphanedProgramEnrollments) {
+      await deleteOrphanedProgramEnrollment(programEnrollment);
+      deletedEnrollmentIds.push(programEnrollment.id);
+    }
+  } finally {
+    // the sync job removes enrollments it cannot read back from the search index.
+    // Runs on failure too, so enrollments deleted before the error are synced.
+    await queuePartnerSearchSync({
+      enrollmentIds: deletedEnrollmentIds,
+    });
+
+    console.log(
+      `Deleted ${deletedEnrollmentIds.length} of ${orphanedProgramEnrollments.length} orphaned program enrollments.`,
+    );
   }
-
-  // the sync job removes enrollments it cannot read back from the search index
-  await queuePartnerSearchSync({
-    enrollmentIds: orphanedProgramEnrollments.map(({ id }) => id),
-  });
-
-  console.log(
-    `Deleted ${deletedCount} of ${orphanedProgramEnrollments.length} orphaned program enrollments.`,
-  );
 }
 
 async function deleteOrphanedProgramEnrollment({
