@@ -28,14 +28,22 @@ type ShareEarningsModalProps = {
 };
 
 // the share icon next to an earnings chart title
-export function ShareChartButton({ onClick }: { onClick: () => void }) {
+export function ShareChartButton({
+  onClick,
+  disabled,
+}: {
+  onClick: () => void;
+  // the modal draws the image from the chart values, so it needs them loaded
+  disabled?: boolean;
+}) {
   return (
     <Tooltip content="Share chart">
       <button
         type="button"
         aria-label="Share chart"
         onClick={onClick}
-        className="flex size-6 items-center justify-center rounded-md border border-transparent text-neutral-500 transition-colors hover:border-neutral-200 hover:bg-neutral-50 hover:text-neutral-700"
+        disabled={disabled}
+        className="flex size-6 items-center justify-center rounded-md border border-transparent text-neutral-500 transition-colors enabled:hover:border-neutral-200 enabled:hover:bg-neutral-50 enabled:hover:text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <ReferredVia className="size-3.5" />
       </button>
