@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { stripeAppClient } from "@/lib/stripe";
 import { StripeCustomerInvoiceSchema } from "@/lib/zod/schemas/customers";
+import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { Project } from "@prisma/client";
 import Stripe from "stripe";
 import { DubApiError } from "../errors";
@@ -26,7 +27,7 @@ export async function getCustomerStripeInvoices({
   stripeCustomerId: string;
   workspace: Pick<
     Project,
-    "stripeConnectId" | "stripeConnectMode" | "defaultProgramId"
+    "id" | "stripeConnectId" | "stripeConnectMode" | "defaultProgramId"
   >;
 }) {
   if (!workspace.stripeConnectId) {
@@ -34,6 +35,24 @@ export async function getCustomerStripeInvoices({
       code: "bad_request",
       message:
         "Your workspace isn't connected to Stripe yet. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
+    });
+  }
+
+  const installedIntegration = await prisma.installedIntegration.findFirst({
+    where: {
+      projectId: workspace.id,
+      integrationId: STRIPE_INTEGRATION_ID,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!installedIntegration) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "The Stripe integration is not installed on your workspace. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
     });
   }
 
