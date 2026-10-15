@@ -91,12 +91,14 @@ function ShareEarningsModalInner({
     setIsLoading(true);
     setBlob(null);
     fetch(imageUrl, { signal: abortController.signal })
-      .then((res) =>
-        res.blob().then((blob) => {
-          setBlob(blob);
-          setIsLoading(false);
-        }),
-      )
+      .then((res) => {
+        if (!res.ok) throw new Error(res.statusText);
+        return res.blob();
+      })
+      .then((blob) => {
+        setBlob(blob);
+        setIsLoading(false);
+      })
       .catch((err) => {
         if (err.name === "AbortError") return;
         toast.error("Failed to prepare chart image for sharing");
@@ -105,6 +107,21 @@ function ShareEarningsModalInner({
 
     return () => abortController.abort();
   }, [imageUrl]);
+
+  // show the fetched image, so that the route draws each image only once
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!blob) {
+      setBlobUrl(null);
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    setBlobUrl(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [blob]);
 
   const handleCopy = async () => {
     if (!blob) return;
@@ -124,9 +141,7 @@ function ShareEarningsModalInner({
   };
 
   const handleDownload = () => {
-    if (!blob) return;
-
-    const blobUrl = URL.createObjectURL(blob);
+    if (!blobUrl) return;
 
     const link = document.createElement("a");
     link.href = blobUrl;
@@ -136,7 +151,6 @@ function ShareEarningsModalInner({
     link.click();
 
     document.body.removeChild(link);
-    URL.revokeObjectURL(blobUrl);
   };
 
   return (
@@ -159,14 +173,11 @@ function ShareEarningsModalInner({
               <LoadingSpinner />
             </div>
           )}
-          {imageUrl && (
+          {blobUrl && (
             <img
-              src={imageUrl}
+              src={blobUrl}
               alt="Earnings chart"
-              className={cn(
-                "relative size-full rounded-xl object-contain",
-                isLoading && "opacity-0",
-              )}
+              className="relative size-full rounded-xl object-contain"
             />
           )}
         </div>
