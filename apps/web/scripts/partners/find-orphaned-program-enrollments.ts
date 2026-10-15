@@ -1,8 +1,9 @@
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { prisma } from "@/lib/prisma";
-import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 
-// Finds program enrollments whose partner no longer exists and deletes them by ID.
+// Finds program enrollments whose partner no longer exists and deletes them by ID,
+// together with their customers and links.
 // This can happen because the schema uses relationMode = "prisma" (no DB-level
 // foreign keys), so raw SQL deletes of Partner rows (e.g. bulkDeletePartners)
 // don't cascade to ProgramEnrollment.
@@ -11,7 +12,6 @@ import "dotenv-flow/config";
 // Set DRY_RUN to false to delete the orphaned enrollments.
 
 const DRY_RUN = true;
-const BATCH_SIZE = 100;
 
 type OrphanedProgramEnrollment = {
   id: string;
@@ -76,22 +76,50 @@ async function main() {
 
   let deletedCount = 0;
 
-  for (const batch of chunk(orphanedProgramEnrollments, BATCH_SIZE)) {
-    const { count } = await prisma.programEnrollment.deleteMany({
-      where: {
-        id: {
-          in: batch.map((pe) => pe.id),
-        },
-      },
-    });
-
-    deletedCount += count;
-    console.log(`Deleted ${count} program enrollments`);
+  // one enrollment at a time, since bulkDeleteLinks expects links from a single workspace
+  for (const programEnrollment of orphanedProgramEnrollments) {
+    await deleteOrphanedProgramEnrollment(programEnrollment);
+    deletedCount++;
   }
 
   console.log(
     `Deleted ${deletedCount} of ${orphanedProgramEnrollments.length} orphaned program enrollments.`,
   );
+}
+
+async function deleteOrphanedProgramEnrollment({
+  id,
+  partnerId,
+  programId,
+}: OrphanedProgramEnrollment) {
+  console.log(`Deleting program enrollment ${id}`);
+
+  const links = await prisma.link.findMany({
+    where: {
+      programId,
+      partnerId,
+    },
+  });
+
+  if (links.length > 0) {
+    const deletedCustomers = await prisma.customer.deleteMany({
+      where: {
+        linkId: {
+          in: links.map((link) => link.id),
+        },
+      },
+    });
+    console.log(`Deleted ${deletedCustomers.count} customers`);
+
+    const { deletedCount } = await bulkDeleteLinks(links);
+    console.log(`Deleted ${deletedCount} links`);
+  }
+
+  await prisma.programEnrollment.delete({
+    where: {
+      id,
+    },
+  });
 }
 
 main();
