@@ -22,6 +22,8 @@ const querySchema = z.object({
   // the earnings of each period in cents, comma separated
   earnings: z
     .string()
+    // whole numbers only, so an empty value (e.g. "0,") does not become 0
+    .regex(/^(-?\d+(,-?\d+)*)?$/, "Earnings must be comma-separated integers.")
     .optional()
     .default("")
     .transform((value) => (value ? value.split(",").map(Number) : []))

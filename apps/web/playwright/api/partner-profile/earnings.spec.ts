@@ -715,11 +715,14 @@ test.describe("GET /partner-profile/earnings", () => {
       expect(response.status()).toEqual(200);
       expect(response.headers()["content-type"]).toContain("image/png");
 
-      const invalidResponse = await context.get(
-        "/api/og/partner-earnings?earnings=0,abc",
-      );
+      // an empty value ("0," or "1,,2") must not become 0
+      for (const earnings of ["0,abc", "0,", "1,,2", "1e3"]) {
+        const invalidResponse = await context.get(
+          `/api/og/partner-earnings?earnings=${earnings}`,
+        );
 
-      expect(invalidResponse.status()).toEqual(422);
+        expect(invalidResponse.status()).toEqual(422);
+      }
     } finally {
       await context.dispose();
     }
