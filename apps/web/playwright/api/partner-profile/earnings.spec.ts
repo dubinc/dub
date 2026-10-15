@@ -715,6 +715,23 @@ test.describe("GET /partner-profile/earnings", () => {
       expect(response.status()).toEqual(200);
       expect(response.headers()["content-type"]).toContain("image/png");
 
+      // the image must come from the values in the URL, so other values draw another PNG
+      const responseBody = await response.body();
+
+      const changedEarningsResponse = await context.get(
+        "/api/og/partner-earnings?earnings=0,1500,42000&start=2026-08-01T00:00:00.000Z&end=2026-10-01T00:00:00.000Z",
+      );
+
+      expect(changedEarningsResponse.status()).toEqual(200);
+      expect(await changedEarningsResponse.body()).not.toEqual(responseBody);
+
+      const changedDatesResponse = await context.get(
+        "/api/og/partner-earnings?earnings=0,1500,4200&start=2026-07-01T00:00:00.000Z&end=2026-11-01T00:00:00.000Z",
+      );
+
+      expect(changedDatesResponse.status()).toEqual(200);
+      expect(await changedDatesResponse.body()).not.toEqual(responseBody);
+
       // an empty value ("0," or "1,,2") must not become 0
       for (const earnings of ["0,abc", "0,", "1,,2", "1e3"]) {
         const invalidResponse = await context.get(
