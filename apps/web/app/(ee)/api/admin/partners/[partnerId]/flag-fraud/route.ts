@@ -14,11 +14,27 @@ export const POST = withAdmin(
 
     const partner = await prisma.partner.findUnique({
       where: { id: partnerId },
-      select: { id: true },
+      select: {
+        id: true,
+        fraudAlerts: {
+          where: {
+            source: "admin",
+            status: "confirmed",
+          },
+          select: { id: true },
+          take: 1,
+        },
+      },
     });
 
     if (!partner) {
       return new Response("Partner not found.", { status: 404 });
+    }
+
+    if (partner.fraudAlerts.length > 0) {
+      return new Response("Partner has already been flagged for fraud.", {
+        status: 409,
+      });
     }
 
     const activeEnrollments = await prisma.programEnrollment.findMany({
@@ -48,6 +64,22 @@ export const POST = withAdmin(
     const anchorProgramId =
       networkEnrollment?.programId ?? activeEnrollments[0].programId;
 
+    // Alert the programs first, so that a retry after a failure is not blocked by the 409 above
+    let alertedProgramsCount: number;
+    try {
+      alertedProgramsCount = await reportNetworkLevelBan({
+        partnerId,
+        programId: NETWORK_PROGRAM_ID,
+        bannedReason: "fraud",
+        bannedAt: new Date(),
+      });
+    } catch {
+      return new Response(
+        "Alerting enrolled programs failed. Please try again.",
+        { status: 500 },
+      );
+    }
+
     await prisma.fraudAlert.create({
       data: {
         partnerId,
@@ -61,24 +93,10 @@ export const POST = withAdmin(
       },
     });
 
-    try {
-      const alertedProgramsCount = await reportNetworkLevelBan({
-        partnerId,
-        programId: NETWORK_PROGRAM_ID,
-        bannedReason: "fraud",
-        bannedAt: new Date(),
-      });
-
-      return NextResponse.json({
-        success: true,
-        alertedProgramsCount,
-      });
-    } catch {
-      return new Response(
-        "Fraud alert was confirmed but alerting enrolled programs failed. Please try again.",
-        { status: 500 },
-      );
-    }
+    return NextResponse.json({
+      success: true,
+      alertedProgramsCount,
+    });
   },
   {
     requiredRoles: ["owner"],
