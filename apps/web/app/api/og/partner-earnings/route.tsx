@@ -38,12 +38,8 @@ export const GET = withPartnerProfile(async ({ searchParams }) => {
 
   const total = earnings.reduce((acc, value) => acc + value, 0);
 
-  const startLabel = start
-    ? formatDate(new Date(start), { month: "short", year: "numeric" })
-    : "";
-  const endLabel = end
-    ? formatDate(new Date(end), { month: "short", year: "numeric" })
-    : "";
+  const startLabel = formatPeriodLabel(start);
+  const endLabel = formatPeriodLabel(end);
 
   const logoColor = background === "dark" ? "#ffffff" : "#000000";
 
@@ -152,6 +148,18 @@ export const GET = withPartnerProfile(async ({ searchParams }) => {
     },
   );
 });
+
+// the period start has the partner's offset (e.g. 2026-09-01T00:00:00.000+02:00), so format
+// its local date in UTC. Formatting the full time in UTC shows the day before for UTC+ offsets.
+function formatPeriodLabel(periodStart?: string) {
+  if (!periodStart) return "";
+
+  return formatDate(new Date(periodStart.slice(0, 10)), {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
 
 function Chart({
   data,
