@@ -237,9 +237,9 @@ test.describe("GET /partner-profile/earnings", () => {
         }),
       ]);
 
-      const byCustomer = await partnerApi.get<
-        { id: string; _count: number }[]
-      >("/api/partner-profile/earnings/count?groupBy=customerId");
+      const byCustomer = await partnerApi.get<{ id: string; _count: number }[]>(
+        "/api/partner-profile/earnings/count?groupBy=customerId",
+      );
       expect(byCustomer.status).toEqual(200);
       expect(byCustomer.data).toEqual([
         expect.objectContaining({
@@ -686,7 +686,7 @@ test.describe("GET /partner-profile/earnings", () => {
     }
   });
 
-  test("returns 404 from the per-program timeseries and the OG image for another program", async ({
+  test("returns 404 from the per-program timeseries for another program", async ({
     playwright,
   }) => {
     await withPartnerApi(playwright, async (partnerApi) => {
@@ -695,16 +695,10 @@ test.describe("GET /partner-profile/earnings", () => {
           "/api/partner-profile/earnings/timeseries?programIdOrSlug=prog_doesnotexist",
         ),
       ).toMatchObject({ status: 404 });
-
-      expect(
-        await partnerApi.get(
-          "/api/og/partner-earnings?programId=prog_doesnotexist",
-        ),
-      ).toMatchObject({ status: 404 });
     });
   });
 
-  test("returns the OG image of all programs without a program", async ({
+  test("returns the OG image from the chart values in the URL", async ({
     playwright,
   }) => {
     // the API client parses JSON, so read the PNG with a plain request
@@ -715,11 +709,17 @@ test.describe("GET /partner-profile/earnings", () => {
 
     try {
       const response = await context.get(
-        "/api/og/partner-earnings?interval=all&timezone=UTC",
+        "/api/og/partner-earnings?earnings=0,1500,4200&start=2026-08-01T00:00:00.000Z&end=2026-10-01T00:00:00.000Z",
       );
 
       expect(response.status()).toEqual(200);
       expect(response.headers()["content-type"]).toContain("image/png");
+
+      const invalidResponse = await context.get(
+        "/api/og/partner-earnings?earnings=0,abc",
+      );
+
+      expect(invalidResponse.status()).toEqual(422);
     } finally {
       await context.dispose();
     }

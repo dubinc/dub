@@ -1,6 +1,5 @@
 "use client";
 
-import { IntervalOptions } from "@/lib/analytics/types";
 import { Button, LoadingSpinner, Modal, Tooltip } from "@dub/ui";
 import { ReferredVia } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
@@ -24,11 +23,8 @@ type BackgroundType = (typeof BACKGROUND_OPTIONS)[number]["id"];
 type ShareEarningsModalProps = {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
-  // without a program, the image shows the earnings of all programs
-  programId?: string;
-  start?: Date;
-  end?: Date;
-  interval: IntervalOptions;
+  // the chart values, sent to the image route so that it needs no database query
+  timeseries?: { start: string; earnings: number }[];
 };
 
 // the share icon next to an earnings chart title
@@ -50,10 +46,7 @@ export function ShareChartButton({ onClick }: { onClick: () => void }) {
 export function ShareEarningsModal({
   showModal,
   setShowModal,
-  programId,
-  start,
-  end,
-  interval,
+  timeseries,
 }: ShareEarningsModalProps) {
   return (
     <Modal
@@ -63,10 +56,7 @@ export function ShareEarningsModal({
     >
       <ShareEarningsModalInner
         setShowModal={setShowModal}
-        programId={programId}
-        start={start}
-        end={end}
-        interval={interval}
+        timeseries={timeseries}
       />
     </Modal>
   );
@@ -74,28 +64,28 @@ export function ShareEarningsModal({
 
 function ShareEarningsModalInner({
   setShowModal,
-  programId,
-  start,
-  end,
-  interval,
+  timeseries,
 }: Omit<ShareEarningsModalProps, "showModal">) {
   const [background, setBackground] = useState<BackgroundType>("light");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [blob, setBlob] = useState<Blob | null>(null);
 
   const imageUrl = useMemo(() => {
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!timeseries) return null;
+
     return `/api/og/partner-earnings?${new URLSearchParams({
-      ...(programId && { programId }),
       background,
-      interval,
-      timezone,
-      ...(start && { start: start.toISOString() }),
-      ...(end && { end: end.toISOString() }),
+      earnings: timeseries.map(({ earnings }) => earnings).join(","),
+      ...(timeseries.length > 0 && {
+        start: timeseries[0].start,
+        end: timeseries[timeseries.length - 1].start,
+      }),
     }).toString()}`;
-  }, [programId, background, interval, start, end]);
+  }, [timeseries, background]);
 
   useEffect(() => {
+    if (!imageUrl) return;
+
     const abortController = new AbortController();
 
     setIsLoading(true);
