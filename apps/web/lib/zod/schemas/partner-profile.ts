@@ -237,8 +237,9 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
   folderId: true,
 });
 
-// GET /api/partner-profile/programs adds the reapplication timeframe, so that
-// a rejected program can say when the partner can apply again
+// GET /api/partner-profile/programs and /programs/[programId] add the
+// reapplication timeframe, so that a rejected program can say when the partner
+// can apply again
 export const PartnerProfileProgramEnrollmentSchema =
   ProgramEnrollmentSchema.extend({
     reapplicationTimeframe: z.enum(ReapplicationTimeframe).nullish(),

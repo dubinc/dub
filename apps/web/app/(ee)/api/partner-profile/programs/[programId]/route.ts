@@ -1,6 +1,6 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
+import { PartnerProfileProgramEnrollmentSchema } from "@/lib/zod/schemas/partner-profile";
 import { Reward } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -39,7 +39,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   ].filter((r): r is Reward => r !== null);
 
   return NextResponse.json(
-    ProgramEnrollmentSchema.parse({
+    PartnerProfileProgramEnrollmentSchema.parse({
       ...programEnrollment,
       rewards,
       group: programEnrollment.partnerGroup,
