@@ -234,6 +234,7 @@ test.describe("GET /partner-profile/earnings", () => {
           domain: expect.any(String),
           key: expect.any(String),
           _count: 1,
+          earnings: 4000,
         }),
       ]);
 
@@ -246,6 +247,7 @@ test.describe("GET /partner-profile/earnings", () => {
           id: programB.customerId,
           email: programB.customerEmail,
           _count: 1,
+          earnings: 4000,
         }),
       ]);
     });
@@ -257,25 +259,28 @@ test.describe("GET /partner-profile/earnings", () => {
   }) => {
     await withPartnerApi(playwright, async (partnerApi) => {
       const all = await partnerApi.get<
-        { id: string; slug: string; _count: number }[]
+        { id: string; slug: string; _count: number; earnings: number }[]
       >("/api/partner-profile/earnings/count?groupBy=programId");
 
+      // highest earnings first
       expect(all.status).toEqual(200);
       expect(all.data).toEqual([
-        expect.objectContaining({
-          id: program.id,
-          slug: programSlug,
-          _count: 2,
-        }),
         expect.objectContaining({
           id: programB.id,
           slug: programB.slug,
           _count: 1,
+          earnings: 4000,
+        }),
+        expect.objectContaining({
+          id: program.id,
+          slug: programSlug,
+          _count: 2,
+          earnings: 3500,
         }),
       ]);
 
       const selected = await partnerApi.get<
-        { id: string; slug: string; _count: number }[]
+        { id: string; slug: string; _count: number; earnings: number }[]
       >(
         `/api/partner-profile/earnings/count?groupBy=programId&programIdOrSlug=${programB.slug}`,
       );
@@ -286,8 +291,33 @@ test.describe("GET /partner-profile/earnings", () => {
           id: programB.id,
           slug: programB.slug,
           _count: 1,
+          earnings: 4000,
         }),
       ]);
+    });
+  });
+
+  test("sums earnings grouped by commission type and by status", async ({
+    playwright,
+  }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      expect(
+        await partnerApi.get(
+          "/api/partner-profile/earnings/count?groupBy=type",
+        ),
+      ).toMatchObject({
+        status: 200,
+        data: [{ type: "custom", _count: 3, earnings: 7500 }],
+      });
+
+      expect(
+        await partnerApi.get(
+          "/api/partner-profile/earnings/count?groupBy=status",
+        ),
+      ).toMatchObject({
+        status: 200,
+        data: [{ status: "pending", _count: 3, earnings: 7500 }],
+      });
     });
   });
 
