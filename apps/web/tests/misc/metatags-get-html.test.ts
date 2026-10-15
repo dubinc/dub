@@ -11,25 +11,30 @@ const URL = "https://example.com/";
 const CHUNK_BYTES = 64 * 1024;
 
 // Streams `totalBytes` of HTML in chunks and counts how many bytes were pulled.
-const htmlStream = (totalBytes: number) => {
+// With highWaterMark 0, the stream pulls nothing until the body is read.
+const htmlStream = (totalBytes: number, highWaterMark = 1) => {
   const stats = { bytesPulled: 0, cancelled: false };
   const chunk = new TextEncoder().encode("a".repeat(CHUNK_BYTES));
 
-  const stream = new ReadableStream<Uint8Array>({
-    pull(controller) {
-      const remaining = totalBytes - stats.bytesPulled;
-      if (remaining <= 0) {
-        controller.close();
-        return;
-      }
-      const next = remaining >= CHUNK_BYTES ? chunk : chunk.slice(0, remaining);
-      stats.bytesPulled += next.byteLength;
-      controller.enqueue(next);
+  const stream = new ReadableStream<Uint8Array>(
+    {
+      pull(controller) {
+        const remaining = totalBytes - stats.bytesPulled;
+        if (remaining <= 0) {
+          controller.close();
+          return;
+        }
+        const next =
+          remaining >= CHUNK_BYTES ? chunk : chunk.slice(0, remaining);
+        stats.bytesPulled += next.byteLength;
+        controller.enqueue(next);
+      },
+      cancel() {
+        stats.cancelled = true;
+      },
     },
-    cancel() {
-      stats.cancelled = true;
-    },
-  });
+    { highWaterMark },
+  );
 
   return { stream, stats };
 };
@@ -56,7 +61,7 @@ describe("getHtml response size cap", () => {
   });
 
   it("returns null before reading the body when Content-Length is too large", async () => {
-    const { stream, stats } = htmlStream(MAX_HTML_BYTES * 2);
+    const { stream, stats } = htmlStream(MAX_HTML_BYTES * 2, 0);
     vi.mocked(safeFetch).mockResolvedValue(
       new Response(stream, {
         headers: { "content-length": String(MAX_HTML_BYTES + 1) },
@@ -65,8 +70,7 @@ describe("getHtml response size cap", () => {
 
     await expect(getHtml(URL)).resolves.toBeNull();
     expect(stats.cancelled).toBe(true);
-    // The stream can pull one chunk ahead before the body is cancelled.
-    expect(stats.bytesPulled).toBeLessThanOrEqual(CHUNK_BYTES);
+    expect(stats.bytesPulled).toBe(0);
     expect(console.warn).toHaveBeenCalledWith(
       expect.stringContaining("Content-Length"),
     );
