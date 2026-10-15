@@ -178,15 +178,6 @@ export const createProgramApplicationAction = actionClient
             users: { some: { userId: session.user.id } },
           },
           include: {
-            programs: {
-              include: {
-                application: {
-                  select: {
-                    reviewedAt: true,
-                  },
-                },
-              },
-            },
             platforms: true,
             preferredEarningStructures: true,
             salesChannels: true,
@@ -269,25 +260,12 @@ async function createApplicationAndEnrollment({
   workspace: Pick<Project, "id" | "webhookEnabled">;
   program: Program;
   partner: Partner & {
-    programs: (ProgramEnrollment & {
-      application: Pick<ProgramApplication, "reviewedAt"> | null;
-    })[];
     platforms: PartnerPlatform[];
   };
   group: PartnerGroup;
   data: z.infer<typeof createProgramApplicationSchema>;
   inAppApplication?: boolean;
 }) {
-  const existingEnrollment = partner.programs.find(
-    (p) => p.programId === program.id,
-  );
-
-  throwIfApplicationBlocked({
-    enrollment: existingEnrollment,
-    groupId: group.id,
-    rejectedAt: existingEnrollment && getRejectedAt(existingEnrollment),
-  });
-
   const sanitizedData = sanitizeData(data, group);
 
   const result = evaluateApplicationRequirements({
