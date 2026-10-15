@@ -29,7 +29,7 @@ import {
   Note,
 } from "@dub/ui/icons";
 import { capitalize, CONTINENTS, COUNTRIES } from "@dub/utils";
-import { ReactNode, useCallback, useMemo, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { usePartnerEarningsFilters } from "./use-partner-earnings-filters";
 
 // the most groups the earnings analytics route returns. "View all" lists all of them
@@ -47,8 +47,14 @@ type BreakdownRow = {
   icon: ReactNode;
   title: string;
   value: number;
-  filterValue?: string; // the page filter that this row sets
-  href?: string; // sets the page filter for this row
+  filterValue?: string; // the page filter that a click on this row sets
+};
+
+// the page filter that the rows of a card set
+type BreakdownFilter = {
+  value: string | null;
+  set: (value: string) => void;
+  clear: () => void;
 };
 
 // the earnings of the All programs Earnings page, summed by program, link, type and location
@@ -64,8 +70,7 @@ export function EarningsBreakdown() {
 }
 
 function ProgramsCard() {
-  const { rows, error, filterValue, clearFilter } =
-    useEarningsBreakdown("programId");
+  const { rows, error, filter } = useEarningsBreakdown("programId");
 
   return (
     <AnalyticsCard
@@ -73,12 +78,13 @@ function ProgramsCard() {
       selectedTabId="programs"
       expandLimit={8}
       dataLength={rows?.length}
-      isFilterActive={!!filterValue}
-      onClearFilter={clearFilter}
+      isFilterActive={!!filter.value}
+      onClearFilter={filter.clear}
       metric={EARNINGS_METRIC}
     >
       {({ limit, setShowModal }) => (
         <EarningsBarList
+          filter={filter}
           tab="programs"
           rows={rows}
           error={error}
@@ -109,8 +115,7 @@ function LinksCard() {
 
   const subtabs = tab === "links" ? LINK_SUBTABS : UTM_SUBTABS;
 
-  const { rows, error, filterValue, clearFilter } =
-    useEarningsBreakdown(subtab);
+  const { rows, error, filter } = useEarningsBreakdown(subtab);
 
   return (
     <AnalyticsCard
@@ -131,12 +136,13 @@ function LinksCard() {
       }}
       expandLimit={8}
       dataLength={rows?.length}
-      isFilterActive={!!filterValue}
-      onClearFilter={clearFilter}
+      isFilterActive={!!filter.value}
+      onClearFilter={filter.clear}
       metric={EARNINGS_METRIC}
     >
       {({ limit, setShowModal }) => (
         <EarningsBarList
+          filter={filter}
           tab={tab === "links" ? "links" : "UTM parameters"}
           rows={rows}
           error={error}
@@ -151,8 +157,7 @@ function LinksCard() {
 }
 
 function TypeCard() {
-  const { rows, error, filterValue, clearFilter } =
-    useEarningsBreakdown("type");
+  const { rows, error, filter } = useEarningsBreakdown("type");
 
   return (
     <AnalyticsCard
@@ -160,12 +165,13 @@ function TypeCard() {
       selectedTabId="type"
       expandLimit={8}
       dataLength={rows?.length}
-      isFilterActive={!!filterValue}
-      onClearFilter={clearFilter}
+      isFilterActive={!!filter.value}
+      onClearFilter={filter.clear}
       metric={EARNINGS_METRIC}
     >
       {({ limit, setShowModal }) => (
         <EarningsBarList
+          filter={filter}
           tab="types"
           rows={rows}
           error={error}
@@ -215,6 +221,7 @@ function EarningsBarList({
   tab,
   rows,
   error,
+  filter,
   limit,
   setShowModal,
   barBackground,
@@ -223,6 +230,7 @@ function EarningsBarList({
   tab: string;
   rows?: BreakdownRow[];
   error?: unknown;
+  filter?: BreakdownFilter;
   limit?: number;
   setShowModal: (show: boolean) => void;
   barBackground: string;
@@ -251,6 +259,16 @@ function EarningsBarList({
       barBackground={barBackground}
       hoverBackground={hoverBackground}
       setShowModal={setShowModal}
+      {...(filter && {
+        activeFilterValues: filter.value ? [filter.value] : [],
+        onRowFilterItem: filter.set,
+        // the earnings filters take one value, so the modal applies the last selected row
+        onApplyFilterValues: (values: string[]) =>
+          values.length > 0
+            ? filter.set(values[values.length - 1])
+            : filter.clear(),
+        onClearFilter: filter.clear,
+      })}
       {...(limit && { limit })}
     />
   );
@@ -279,32 +297,31 @@ function useEarningsBreakdown(groupBy: BreakdownGroupBy) {
   });
 
   const filterKey = FILTER_KEYS[groupBy];
-  const filterValue = filterKey ? searchParams.get(filterKey) : null;
 
-  const clearFilter = useCallback(() => {
-    if (filterKey) {
-      queryParams({ del: [filterKey, "page"] });
-    }
-  }, [filterKey, queryParams]);
-
-  const rows = useMemo(
-    () =>
-      data &&
-      getBreakdownRows(groupBy, data).map((row) => ({
-        ...row,
-        href:
-          filterKey && row.filterValue
-            ? (queryParams({
-                set: { [filterKey]: row.filterValue },
-                del: "page",
-                getNewPath: true,
-              }) as string)
-            : undefined,
-      })),
-    [data, groupBy, filterKey, queryParams],
+  // set with queryParams, which keeps the scroll position of the page
+  const filter = useMemo<BreakdownFilter>(
+    () => ({
+      value: filterKey ? searchParams.get(filterKey) : null,
+      set: (value) => {
+        if (filterKey) {
+          queryParams({ set: { [filterKey]: value }, del: "page" });
+        }
+      },
+      clear: () => {
+        if (filterKey) {
+          queryParams({ del: [filterKey, "page"] });
+        }
+      },
+    }),
+    [filterKey, searchParams, queryParams],
   );
 
-  return { rows, error, filterValue, clearFilter };
+  const rows = useMemo(
+    () => data && getBreakdownRows(groupBy, data),
+    [data, groupBy],
+  );
+
+  return { rows, error, filter };
 }
 
 function getBreakdownRows<G extends BreakdownGroupBy>(
