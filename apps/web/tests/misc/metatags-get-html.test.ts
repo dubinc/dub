@@ -39,7 +39,7 @@ const htmlStream = (totalBytes: number, highWaterMark = 1) => {
   return { stream, stats };
 };
 
-describe("getHtml response size cap", () => {
+describe("getHtml response size limit", () => {
   beforeEach(() => {
     vi.mocked(safeFetch).mockReset();
     vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -60,36 +60,26 @@ describe("getHtml response size cap", () => {
     expect(html).toHaveLength(MAX_HTML_BYTES);
   });
 
-  it("returns null before reading the body when Content-Length is too large", async () => {
-    const { stream, stats } = htmlStream(MAX_HTML_BYTES * 2, 0);
-    vi.mocked(safeFetch).mockResolvedValue(
-      new Response(stream, {
-        headers: { "content-length": String(MAX_HTML_BYTES + 1) },
-      }),
-    );
-
-    await expect(getHtml(URL)).resolves.toBeNull();
-    expect(stats.cancelled).toBe(true);
-    expect(stats.bytesPulled).toBe(0);
-    expect(console.warn).toHaveBeenCalledWith(
-      expect.stringContaining("Content-Length"),
-    );
-  });
-
-  it("stops reading and returns null when a body without Content-Length passes the cap", async () => {
+  it("returns only the first MAX_HTML_BYTES of a larger body and stops reading", async () => {
     const { stream, stats } = htmlStream(MAX_HTML_BYTES * 4);
     vi.mocked(safeFetch).mockResolvedValue(new Response(stream));
 
-    await expect(getHtml(URL)).resolves.toBeNull();
+    const html = await getHtml(URL);
+    expect(html).toHaveLength(MAX_HTML_BYTES);
     expect(stats.cancelled).toBe(true);
-    // The body is 4x the cap. Reading stops one chunk past the cap, and the
-    // stream can pull one more chunk ahead before it is cancelled.
-    expect(stats.bytesPulled).toBeLessThanOrEqual(
-      MAX_HTML_BYTES + 2 * CHUNK_BYTES,
+    // The stream can pull one chunk ahead before it is cancelled.
+    expect(stats.bytesPulled).toBeLessThanOrEqual(MAX_HTML_BYTES + CHUNK_BYTES);
+  });
+
+  it("does not trust a Content-Length header that is too large", async () => {
+    const html = "<html><head><title>Dub</title></head></html>";
+    vi.mocked(safeFetch).mockResolvedValue(
+      new Response(html, {
+        headers: { "content-length": String(MAX_HTML_BYTES * 10) },
+      }),
     );
-    expect(console.warn).toHaveBeenCalledWith(
-      expect.stringContaining(`passed ${MAX_HTML_BYTES} bytes`),
-    );
+
+    await expect(getHtml(URL)).resolves.toBe(html);
   });
 
   it("decodes multi-byte characters split across chunks", async () => {
