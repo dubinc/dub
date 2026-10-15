@@ -234,6 +234,7 @@ test.describe("GET /partner-profile/earnings", () => {
           domain: expect.any(String),
           key: expect.any(String),
           _count: 1,
+          earnings: 4000,
         }),
       ]);
 
@@ -246,6 +247,7 @@ test.describe("GET /partner-profile/earnings", () => {
           id: programB.customerId,
           email: programB.customerEmail,
           _count: 1,
+          earnings: 4000,
         }),
       ]);
     });
