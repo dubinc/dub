@@ -40,7 +40,8 @@ vi.mock("@/lib/api/workflows/execute-workflows", () => ({
 }));
 
 vi.mock("@dub/utils", async () => {
-  const actual = await vi.importActual<typeof import("@dub/utils")>("@dub/utils");
+  const actual =
+    await vi.importActual<typeof import("@dub/utils")>("@dub/utils");
   return {
     ...actual,
     APP_DOMAIN_WITH_NGROK: "https://example.com",
