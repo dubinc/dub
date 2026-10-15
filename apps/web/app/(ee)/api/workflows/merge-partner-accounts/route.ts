@@ -16,8 +16,8 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { partnerMergedWebhookSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
-import { prettyPrint, R2_URL } from "@dub/utils";
-import { FraudRuleType } from "@prisma/client";
+import { pluck, prettyPrint, R2_URL } from "@dub/utils";
+import { FraudEventStatus, FraudRuleType } from "@prisma/client";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
 import { logAndReturn } from "../../cron/utils";
@@ -146,6 +146,7 @@ export const { POST } = serve<Input>(
         sourcePartnerId,
         targetPartnerId,
       });
+
       logs.push(fraudLog);
 
       const movedApplications = await prisma.programApplication.updateMany({
@@ -940,6 +941,7 @@ async function cleanupFraudEvents({
   sourcePartnerId: string;
   targetPartnerId: string;
 }) {
+  // Events that name the source as the duplicate, including the one in its own group.
   const fraudEventsToDelete = await prisma.fraudEvent.findMany({
     where: {
       partnerId: sourcePartnerId,
@@ -951,6 +953,7 @@ async function cleanupFraudEvents({
       fraudEventGroup: {
         select: {
           id: true,
+          partnerId: true,
           _count: {
             select: {
               fraudEvents: true,
@@ -961,6 +964,7 @@ async function cleanupFraudEvents({
     },
   });
 
+  // Remove those events so the source is no longer listed as a duplicate.
   if (fraudEventsToDelete.length > 0) {
     await prisma.fraudEvent.deleteMany({
       where: {
@@ -969,41 +973,82 @@ async function cleanupFraudEvents({
     });
   }
 
+  // A group that had exactly two events now has only the partner left, so it can be resolved.
   const fraudEventGroupsToResolve = fraudEventsToDelete.filter(
     // this is the count pre-deletion the fraud event, so if there are 2 fraud events
     // that means post-deletion will leave 1 fraud event in the group (no additional duplicates), hence can be resolved
     (e) => e.fraudEventGroup._count.fraudEvents === 2,
   );
 
-  await resolveFraudGroups({
+  const resolutionReason =
+    "Automatically resolved because the duplicate partner accounts were merged.";
+
+  // Move the source's pending groups onto the target, which now holds the commissions.
+  const sourceFraudGroups = await prisma.fraudEventGroup.findMany({
     where: {
-      OR: [
-        {
-          partnerId: sourcePartnerId,
-        },
-        ...(fraudEventGroupsToResolve.length > 0
-          ? [
-              {
-                id: {
-                  in: fraudEventGroupsToResolve.map(
-                    (e) => e.fraudEventGroup.id,
-                  ),
-                },
-              },
-            ]
-          : []),
-      ],
+      partnerId: sourcePartnerId,
       type: FraudRuleType.partnerDuplicateAccount,
+      status: FraudEventStatus.pending,
     },
-    resolutionReason:
-      "Automatically resolved because the duplicate partner accounts were merged.",
-    // Commissions may have been held for the duplicate-account risk; release
-    // them now that the merge resolved those fraud groups. By this point
-    // commissions have already been transferred to the target partner, so
-    // release against the surviving account.
-    releaseHoldCommissions: true,
-    releasePartnerId: targetPartnerId,
+    select: {
+      id: true,
+    },
   });
+
+  if (sourceFraudGroups.length > 0) {
+    await prisma.fraudEventGroup.updateMany({
+      where: {
+        id: {
+          in: pluck(sourceFraudGroups, "id"),
+        },
+        status: FraudEventStatus.pending,
+      },
+      data: {
+        partnerId: targetPartnerId,
+      },
+    });
+  }
+
+  // Bucket group ids by the partner whose held commissions should be released.
+  const groupIdsByPartnerId = new Map<string, string[]>();
+
+  if (sourceFraudGroups.length > 0) {
+    groupIdsByPartnerId.set(
+      targetPartnerId,
+      sourceFraudGroups.map((group) => group.id),
+    );
+  }
+
+  for (const event of fraudEventGroupsToResolve) {
+    const { id, partnerId } = event.fraudEventGroup;
+
+    if (partnerId === sourcePartnerId) {
+      continue;
+    }
+
+    const groupIds = groupIdsByPartnerId.get(partnerId) ?? [];
+
+    if (!groupIds.includes(id)) {
+      groupIds.push(id);
+    }
+
+    groupIdsByPartnerId.set(partnerId, groupIds);
+  }
+
+  // Resolve each partner's groups and release holds only for that partner.
+  for (const [partnerId, groupIds] of groupIdsByPartnerId) {
+    await resolveFraudGroups({
+      where: {
+        partnerId,
+        id: {
+          in: groupIds,
+        },
+        type: FraudRuleType.partnerDuplicateAccount,
+      },
+      resolutionReason,
+      releaseHoldCommissions: true,
+    });
+  }
 
   return logAndReturn({
     outputLog: `Deleted ${fraudEventsToDelete.length} duplicate-account fraud events`,

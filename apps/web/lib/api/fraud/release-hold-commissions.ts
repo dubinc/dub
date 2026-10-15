@@ -249,16 +249,7 @@ export async function releaseHoldCommissions({
 
 // Groups resolved/expired fraud groups by program+partner and enqueues a cron
 // job per pair so releaseHoldCommissions runs asynchronously via QStash.
-export async function queueReleaseHoldCommissions(
-  riskGroupIds: string[],
-  {
-    releasePartnerId,
-  }: {
-    // Override the partner whose hold commissions should be released. Used when
-    // commissions have already moved to a different partner (e.g. account merge).
-    releasePartnerId?: string;
-  } = {},
-) {
+export async function queueReleaseHoldCommissions(riskGroupIds: string[]) {
   if (riskGroupIds.length === 0) {
     return 0;
   }
@@ -289,8 +280,7 @@ export async function queueReleaseHoldCommissions(
   >();
 
   for (const riskGroup of riskGroups) {
-    const partnerId = releasePartnerId ?? riskGroup.partnerId;
-    const key = `${riskGroup.programId}:${partnerId}`;
+    const key = `${riskGroup.programId}:${riskGroup.partnerId}`;
     const existing = pairs.get(key);
 
     if (existing) {
@@ -298,7 +288,7 @@ export async function queueReleaseHoldCommissions(
     } else {
       pairs.set(key, {
         programId: riskGroup.programId,
-        partnerId,
+        partnerId: riskGroup.partnerId,
         resolvedGroupIds: [riskGroup.id],
       });
     }
