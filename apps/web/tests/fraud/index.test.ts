@@ -1,15 +1,23 @@
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { TrackLeadResponse } from "@/lib/types";
 import { CustomerEmailMatchType } from "@/lib/zod/schemas/fraud";
-import { randomCustomer } from "tests/utils/helpers";
+import { randomCustomer, randomId } from "tests/utils/helpers";
 import {
   E2E_FRAUD_PARTNER,
   E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN,
   E2E_TRACK_CLICK_HEADERS,
 } from "tests/utils/resource";
 import { verifyFraudEvent } from "tests/utils/verify-fraud-event";
-import { describe, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
+
+const randomEmailLocalPart = () =>
+  `e2e${randomId(12)
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toLowerCase()}`;
+
+const randomUniqueEmail = (domain: string) =>
+  `${randomEmailLocalPart()}@${domain}`;
 
 describe.concurrent("/fraud/**", async () => {
   const h = new IntegrationHarness();
@@ -72,9 +80,10 @@ describe.concurrent("/fraud/**", async () => {
 
     const partnerEmailDomain = extractEmailDomain(E2E_FRAUD_PARTNER.email)!;
 
-    const customer = randomCustomer({
-      emailDomain: partnerEmailDomain,
-    });
+    const customer = {
+      ...randomCustomer(),
+      email: randomUniqueEmail(partnerEmailDomain),
+    };
 
     await http.post<TrackLeadResponse>({
       path: "/track/lead",
@@ -110,7 +119,10 @@ describe.concurrent("/fraud/**", async () => {
 
     const trackedClickId = clickResponse.data.clickId;
 
-    const customer = randomCustomer({ emailDomain: "google.com" });
+    const customer = {
+      ...randomCustomer(),
+      email: randomUniqueEmail("google.com"),
+    };
 
     await http.post<TrackLeadResponse>({
       path: "/track/lead",
@@ -131,6 +143,52 @@ describe.concurrent("/fraud/**", async () => {
       ruleType: "customerEmailMatch",
       metadata: {
         matchType: CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH,
+      },
+    });
+  });
+
+  test("FraudRuleType = customerEmailMatch (similar email match)", async () => {
+    const clickLink = E2E_FRAUD_PARTNER.links.customerEmailMatch;
+    const localPart = randomEmailLocalPart();
+
+    const firstCustomer = {
+      ...randomCustomer(),
+      email: `${localPart}@gmail.com`,
+    };
+
+    const similarCustomer = {
+      ...randomCustomer(),
+      email: `${localPart.split("").join(".")}@gmail.com`,
+    };
+
+    for (const customer of [firstCustomer, similarCustomer]) {
+      const clickResponse = await http.post<{ clickId: string }>({
+        path: "/track/click",
+        headers: { ...E2E_TRACK_CLICK_HEADERS },
+        body: { domain: clickLink.domain, key: clickLink.key },
+      });
+
+      await http.post<TrackLeadResponse>({
+        path: "/track/lead",
+        body: {
+          eventName: "Signup",
+          clickId: clickResponse.data.clickId,
+          customerId: customer.externalId,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
+        },
+      });
+    }
+
+    await verifyFraudEvent({
+      http,
+      partner: E2E_FRAUD_PARTNER,
+      customer: similarCustomer,
+      ruleType: "customerEmailMatch",
+      metadata: {
+        matchType: CustomerEmailMatchType.SIMILAR_EMAIL_MATCH,
+        matchedCustomerId: expect.any(String),
       },
     });
   });

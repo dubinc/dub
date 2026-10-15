@@ -138,6 +138,11 @@ const jobLoaders = {
     import("./handlers/program-application-reminder-job").then(
       (m) => m.programApplicationReminderJob,
     ),
+
+  "backfill-customer-normalized-email-job": () =>
+    import("./handlers/backfill-customer-normalized-email-job").then(
+      (m) => m.backfillCustomerNormalizedEmailJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();
