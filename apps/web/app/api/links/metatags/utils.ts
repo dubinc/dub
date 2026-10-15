@@ -9,6 +9,56 @@ import { waitUntil } from "@vercel/functions";
 import he from "he";
 import { parse } from "node-html-parser";
 
+// Meta tags are in the <head>, which ends before 1 MB on real pages (the largest
+// head we checked was about 760 KB). Only this much of a page is read.
+export const MAX_HTML_BYTES = 2 * 1024 * 1024; // 2 MB
+
+const HEAD_END_REGEX = /<\/head\s*>/i;
+
+// Reads the body as UTF-8 text up to the end of the <head>, because getMetaTags
+// needs only the meta, title and link tags. Reads at most maxBytes, so a page
+// with no </head> near the start is cut at maxBytes.
+const readHtmlHead = async (response: Response, maxBytes: number) => {
+  if (!response.body) {
+    return "";
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let bytesRead = 0;
+  let text = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    const remaining = maxBytes - bytesRead;
+    const bytes =
+      value.byteLength > remaining ? value.subarray(0, remaining) : value;
+    bytesRead += bytes.byteLength;
+
+    const atLimit = bytesRead >= maxBytes;
+    // Search a few characters back, in case </head> is split across chunks.
+    const searchFrom = Math.max(0, text.length - "</head>".length);
+    text += decoder.decode(bytes, { stream: !atLimit });
+
+    const headEnd = HEAD_END_REGEX.exec(text.slice(searchFrom));
+    if (headEnd) {
+      await reader.cancel().catch(() => {});
+      return text.slice(0, searchFrom + headEnd.index + headEnd[0].length);
+    }
+
+    if (atLimit) {
+      await reader.cancel().catch(() => {});
+      return text;
+    }
+  }
+
+  return text + decoder.decode();
+};
+
 export const getHtml = async (url: string) => {
   try {
     const response = await safeFetch(url);
@@ -24,7 +74,15 @@ export const getHtml = async (url: string) => {
       return null;
     }
 
-    const text = await response.text();
+    // Cloudflare sets this header on its challenge pages. readHtmlHead reads only
+    // the <head>, so the text check below can miss a challenge page.
+    if (response.headers.get("cf-mitigated") === "challenge") {
+      await response.body?.cancel().catch(() => {});
+      console.warn(`Cloudflare challenge page detected for: ${url}`);
+      return null;
+    }
+
+    const text = await readHtmlHead(response, MAX_HTML_BYTES);
 
     // Check if the response contains Cloudflare's challenge page
     if (
