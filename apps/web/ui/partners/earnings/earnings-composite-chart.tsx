@@ -392,9 +392,10 @@ function EarningsTableControls() {
     ...earningsFilters,
     groupBy: "customerId",
     enabled:
-      selectedFilter === "customerId" || searchParamsObj.customerId
+      !!programSlug &&
+      (selectedFilter === "customerId" || searchParamsObj.customerId
         ? true
-        : false,
+        : false),
   });
 
   const { data: statuses } = usePartnerProfileEarningsCount<
@@ -460,17 +461,22 @@ function EarningsTableControls() {
             right: currencyFormatter(earnings),
           })) ?? null,
       },
-      {
-        key: "customerId",
-        icon: User,
-        label: "Customer",
-        options:
-          customers?.map(({ id, email, earnings }) => ({
-            value: id,
-            label: email || id,
-            right: currencyFormatter(earnings),
-          })) ?? null,
-      },
+      // the Customer filter is only on the Earnings page of one program
+      ...(programSlug
+        ? [
+            {
+              key: "customerId",
+              icon: User,
+              label: "Customer",
+              options:
+                customers?.map(({ id, email, earnings }) => ({
+                  value: id,
+                  label: email || id,
+                  right: currencyFormatter(earnings),
+                })) ?? null,
+            },
+          ]
+        : []),
       {
         key: "status",
         icon: CircleDotted,
@@ -506,7 +512,9 @@ function EarningsTableControls() {
         : []),
       ...(type ? [{ key: "type", value: type }] : []),
       ...(linkId ? [{ key: "linkId", value: linkId }] : []),
-      ...(customerId ? [{ key: "customerId", value: customerId }] : []),
+      ...(customerId && programSlug
+        ? [{ key: "customerId", value: customerId }]
+        : []),
       ...(status ? [{ key: "status", value: status }] : []),
       ...(payoutId ? [{ key: "payoutId", value: payoutId }] : []),
     ];
