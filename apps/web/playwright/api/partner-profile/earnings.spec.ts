@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { nanoid, NETWORK_PROGRAM_ID } from "@dub/utils";
 import { expect } from "@playwright/test";
 import { apiError } from "../../utils";
+import { PLAYWRIGHT_API_BASE } from "../constants";
 import { createBearerApiClient, test } from "../fixtures";
 import { createPartner, deletePartner } from "../partners/helpers";
 import { TEST_WORKSPACE } from "../setup-test-workspace";
@@ -222,14 +223,71 @@ test.describe("GET /partner-profile/earnings", () => {
     playwright,
   }) => {
     await withPartnerApi(playwright, async (partnerApi) => {
-      for (const groupBy of ["linkId", "customerId"]) {
-        const { status, data } = await partnerApi.get<
-          { id: string | null; _count: number }[]
-        >(`/api/partner-profile/earnings/count?groupBy=${groupBy}`);
+      // commissions without a link/customer are omitted so filter menus have no empty option
+      const byLink = await partnerApi.get<{ id: string; _count: number }[]>(
+        "/api/partner-profile/earnings/count?groupBy=linkId",
+      );
+      expect(byLink.status).toEqual(200);
+      expect(byLink.data).toEqual([
+        expect.objectContaining({
+          id: programB.linkId,
+          domain: expect.any(String),
+          key: expect.any(String),
+          _count: 1,
+        }),
+      ]);
 
-        expect(status).toEqual(200);
-        expect(data.reduce((sum, group) => sum + group._count, 0)).toEqual(3);
-      }
+      const byCustomer = await partnerApi.get<
+        { id: string; _count: number }[]
+      >("/api/partner-profile/earnings/count?groupBy=customerId");
+      expect(byCustomer.status).toEqual(200);
+      expect(byCustomer.data).toEqual([
+        expect.objectContaining({
+          id: programB.customerId,
+          email: programB.customerEmail,
+          _count: 1,
+        }),
+      ]);
+    });
+  });
+
+  test("counts earnings grouped by program, within the selected program", async ({
+    playwright,
+    program,
+  }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      const all = await partnerApi.get<
+        { id: string; slug: string; _count: number }[]
+      >("/api/partner-profile/earnings/count?groupBy=programId");
+
+      expect(all.status).toEqual(200);
+      expect(all.data).toEqual([
+        expect.objectContaining({
+          id: program.id,
+          slug: programSlug,
+          _count: 2,
+        }),
+        expect.objectContaining({
+          id: programB.id,
+          slug: programB.slug,
+          _count: 1,
+        }),
+      ]);
+
+      const selected = await partnerApi.get<
+        { id: string; slug: string; _count: number }[]
+      >(
+        `/api/partner-profile/earnings/count?groupBy=programId&programIdOrSlug=${programB.slug}`,
+      );
+
+      expect(selected.status).toEqual(200);
+      expect(selected.data).toEqual([
+        expect.objectContaining({
+          id: programB.id,
+          slug: programB.slug,
+          _count: 1,
+        }),
+      ]);
     });
   });
 
@@ -644,6 +702,27 @@ test.describe("GET /partner-profile/earnings", () => {
         ),
       ).toMatchObject({ status: 404 });
     });
+  });
+
+  test("returns the OG image of all programs without a program", async ({
+    playwright,
+  }) => {
+    // the API client parses JSON, so read the PNG with a plain request
+    const context = await playwright.request.newContext({
+      baseURL: PLAYWRIGHT_API_BASE,
+      extraHTTPHeaders: { Authorization: `Bearer ${token}` },
+    });
+
+    try {
+      const response = await context.get(
+        "/api/og/partner-earnings?interval=all&timezone=UTC",
+      );
+
+      expect(response.status()).toEqual(200);
+      expect(response.headers()["content-type"]).toContain("image/png");
+    } finally {
+      await context.dispose();
+    }
   });
 
   test("rejects a workspace token", async ({ api }) => {

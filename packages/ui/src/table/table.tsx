@@ -651,7 +651,13 @@ export function Table<T>({
                                 onMouseDown={header.getResizeHandler()}
                                 onTouchStart={header.getResizeHandler()}
                                 onClick={(e) => e.stopPropagation()}
-                                className={resizingClassName}
+                                className={cn(
+                                  resizingClassName,
+                                  // keep the last handle inside the table, so it does not widen the scroll area
+                                  header.index ===
+                                    headerGroup.headers.length - 1 &&
+                                    "mr-0 after:translate-x-0",
+                                )}
                               />
                             )}
                         </th>

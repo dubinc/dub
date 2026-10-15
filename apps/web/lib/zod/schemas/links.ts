@@ -1,4 +1,5 @@
 import { ErrorCode } from "@/lib/api/error-codes";
+import { urlPathHasRelativeSegments } from "@/lib/storage/assert-safe-storage-key";
 import { DUB_FOUNDING_DATE, formatDate, validDomainRegex } from "@dub/utils";
 import * as z from "zod/v4";
 import {
@@ -433,6 +434,9 @@ export const createLinkBodySchema = z.object({
   image: z
     .string()
     .nullish()
+    .refine((value) => value == null || !urlPathHasRelativeSegments(value), {
+      message: "Image URL must not contain relative path segments.",
+    })
     .describe(
       "The custom link preview image (og:image). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
     ),

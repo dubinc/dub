@@ -22,16 +22,21 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     ...filters
   } = getPartnerEarningsTimeseriesSchema
     .extend({
-      programId: z.string(),
+      // without a program, the image shows the earnings of all programs
+      programId: z.string().optional(),
       background: z.enum(["light", "dark"]).optional().default("light"),
     })
     .parse(searchParams);
 
-  const { programId } = await getProgramEnrollmentOrThrow({
-    partnerId: partner.id,
-    programId: programIdOrSlug,
-    include: {},
-  });
+  const programId = programIdOrSlug
+    ? (
+        await getProgramEnrollmentOrThrow({
+          partnerId: partner.id,
+          programId: programIdOrSlug,
+          include: {},
+        })
+      ).programId
+    : undefined;
 
   const [interSemibold, timeseries] = await Promise.all([
     loadGoogleFont("Inter:wght@600"),

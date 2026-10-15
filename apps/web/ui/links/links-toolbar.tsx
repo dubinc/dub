@@ -173,9 +173,9 @@ export const LinksToolbar = memo(
       bulkActions
         .map(({ keyboardShortcut }) => keyboardShortcut)
         .filter(Boolean) as string[],
-      (e) => {
+      (_, key) => {
         const action = bulkActions.find(
-          ({ keyboardShortcut }) => keyboardShortcut === e.key,
+          ({ keyboardShortcut }) => keyboardShortcut === key,
         );
         if (action && !action.disabledTooltip && hasAllFolderPermissions)
           action.action();

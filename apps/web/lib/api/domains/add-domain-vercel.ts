@@ -1,6 +1,6 @@
 import { getApexDomain, getDomainWithoutWWW } from "@dub/utils";
 import { getVercelDomainResponse } from "./get-domain-response";
-import { CustomResponse } from "./utils";
+import { assertValidDomainFormat, CustomResponse } from "./utils";
 
 export const addDomainToVercel = async (
   domain: string,
@@ -10,6 +10,7 @@ export const addDomainToVercel = async (
     redirectToApex?: boolean;
   } = {},
 ): Promise<CustomResponse> => {
+  assertValidDomainFormat(domain);
   domain = domain.toLowerCase();
 
   const apexDomain = getApexDomain(`https://${domain}`);

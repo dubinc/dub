@@ -17,7 +17,7 @@ model OAuthCode {
   userId              String // User who granted access
   projectId           String // Workspace that user granted access to
   code                String   @unique
-  scopes              String?
+  scopes              String?  @db.Text
   redirectUri         String
   codeChallenge       String?
   codeChallengeMethod String?
