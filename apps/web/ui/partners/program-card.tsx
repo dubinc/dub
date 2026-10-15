@@ -2,6 +2,7 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/program-applications/program-application-rejection";
+import { getReapplyStatus } from "@/lib/program-applications/reapplication";
 import { usePartnerProgramActivity } from "@/lib/swr/use-partner-profile-earnings";
 import {
   PartnerProfileProgramEnrollmentProps,
@@ -15,17 +16,13 @@ import {
   MiniAreaChart,
   Note,
 } from "@dub/ui";
-import {
-  cn,
-  formatDate,
-  getPrettyUrl,
-  STANDARD_REAPPLICATION_DAYS,
-} from "@dub/utils";
+import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, type SyntheticEvent } from "react";
 import { ProgramLogo } from "./program-logo";
+import { ProgramReapplyButton } from "./program-reapply-button";
 
 function RejectionTooltipRow({
   icon,
@@ -171,8 +168,7 @@ function ProgramCardStatus({
   programEnrollment: PartnerProfileProgramEnrollmentProps;
 }) {
   const router = useRouter();
-  const { status, createdAt, program, application, reapplicationTimeframe } =
-    programEnrollment;
+  const { status, createdAt, program, application } = programEnrollment;
 
   if (status === "pending") {
     return `Applied ${formatDate(createdAt, { month: "short" })}`;
@@ -180,33 +176,35 @@ function ProgramCardStatus({
 
   if (status === "rejected") {
     const tipContent = rejectedApplicationTooltipContent(application);
+    const { blockedReason } = getReapplyStatus(programEnrollment);
     const body = (
       <>
         Your application has been{" "}
         <span className="font-semibold text-neutral-700">rejected</span>.
         <br />
-        {reapplicationTimeframe === "never"
-          ? "You cannot re-apply to this program."
-          : `You can re-apply in ${STANDARD_REAPPLICATION_DAYS} days.`}
+        {blockedReason ?? "You can now reapply to this program."}
       </>
     );
 
-    if (tipContent) {
-      return (
-        <DynamicTooltipWrapper
-          tooltipProps={{
-            content: tipContent,
-            side: "top",
-          }}
-        >
-          <div className="cursor-help underline decoration-neutral-400 decoration-dotted underline-offset-2">
-            {body}
-          </div>
-        </DynamicTooltipWrapper>
-      );
-    }
-
-    return <div>{body}</div>;
+    return (
+      <div className="flex flex-col items-center gap-3">
+        {tipContent ? (
+          <DynamicTooltipWrapper
+            tooltipProps={{
+              content: tipContent,
+              side: "top",
+            }}
+          >
+            <div className="cursor-help underline decoration-neutral-400 decoration-dotted underline-offset-2">
+              {body}
+            </div>
+          </DynamicTooltipWrapper>
+        ) : (
+          <div>{body}</div>
+        )}
+        <ProgramReapplyButton programEnrollment={programEnrollment} />
+      </div>
+    );
   }
 
   const inactiveDescriptions: Partial<Record<typeof status, ReactNode>> = {

@@ -1,12 +1,13 @@
 import { withdrawProgramApplicationAction } from "@/lib/actions/partners/withdraw-program-application";
+import { getReapplyStatus } from "@/lib/program-applications/reapplication";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import { ProgramEnrollmentProps } from "@/lib/types";
+import { PartnerProfileProgramEnrollmentProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
+import { ProgramReapplyButton } from "@/ui/partners/program-reapply-button";
 import { Button, StatusBadge } from "@dub/ui";
-import { STANDARD_REAPPLICATION_DAYS } from "@dub/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode } from "react";
@@ -14,7 +15,7 @@ import { toast } from "sonner";
 
 const states: Record<
   string,
-  (programEnrollment: ProgramEnrollmentProps) => {
+  (programEnrollment: PartnerProfileProgramEnrollmentProps) => {
     title: string;
     description: ReactNode;
   }
@@ -33,16 +34,19 @@ const states: Record<
     title: "Program unavailable",
     description: "You have been banned from this program.",
   }),
-  rejected: () => ({
+  rejected: (programEnrollment) => ({
     title: "Application rejected",
-    description: `Your application has been rejected. You can re-apply in ${STANDARD_REAPPLICATION_DAYS} days.`,
+    description: `Your application has been rejected. ${
+      getReapplyStatus(programEnrollment).blockedReason ??
+      "You can now reapply to this program."
+    }`,
   }),
 };
 
 export function UnapprovedProgramPage({
   programEnrollment,
 }: {
-  programEnrollment: ProgramEnrollmentProps;
+  programEnrollment: PartnerProfileProgramEnrollmentProps;
 }) {
   const router = useRouter();
 
@@ -99,6 +103,11 @@ export function UnapprovedProgramPage({
               </>
             )}
           </p>
+
+          <ProgramReapplyButton
+            programEnrollment={programEnrollment}
+            className="mt-6"
+          />
 
           {/* Withdraw button - only show for pending applications */}
           {programEnrollment.status === "pending" && (
