@@ -1,5 +1,6 @@
 "use client";
 
+import { WorkspaceEnvironmentIndicator } from "@/lib/sandbox/components/workspace-environment-indicator";
 import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { WorkspaceProps } from "@/lib/types";
@@ -160,7 +161,7 @@ function WorkspaceList({ workspaces }: { workspaces: WorkspaceProps[] }) {
 }
 
 function WorkspaceRow({
-  workspace: { id, name, slug, logo, plan, disabledAt },
+  workspace: { id, name, slug, logo, plan, disabledAt, environment },
   onFocus,
 }: {
   workspace: WorkspaceProps;
@@ -185,8 +186,11 @@ function WorkspaceRow({
           className="size-6 shrink-0 overflow-hidden rounded-full"
           draggable={false}
         />
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-900">
-          {name}
+        <span className="flex min-w-0 flex-1 items-center gap-1.5">
+          <span className="min-w-0 truncate text-sm font-medium text-neutral-900">
+            {name}
+          </span>
+          <WorkspaceEnvironmentIndicator environment={environment} />
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
           {disabledAt && (

@@ -17,6 +17,12 @@ export function isProductionEnvironment(
   );
 }
 
+export function isSandboxEnvironment(
+  environment: WorkspaceEnvironment | null | undefined,
+) {
+  return Boolean(environment && environment === WorkspaceEnvironment.sandbox);
+}
+
 export function getPublishableKeyPrefix(
   environment: WorkspaceEnvironment | null | undefined,
 ) {
