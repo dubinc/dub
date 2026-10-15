@@ -86,9 +86,7 @@ export function EarningsChart() {
       <ShareEarningsModal
         showModal={showShareModal}
         setShowModal={setShowShareModal}
-        start={start}
-        end={end}
-        interval={interval}
+        timeseries={timeseries}
       />
       <div className="px-5 py-4">
         <div className="flex items-start justify-between gap-2">
