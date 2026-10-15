@@ -77,9 +77,13 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     icon: GridIcon,
     // the middleware sends "/" to /overview or /programs, depending on the partner's programs
     href: "/",
-    active: ["/overview", "/programs", "/marketplace", "/bounties"].some((p) =>
-      pathname.startsWith(p),
-    ),
+    active: [
+      "/overview",
+      "/programs",
+      "/marketplace",
+      "/earnings",
+      "/bounties",
+    ].some((p) => pathname.startsWith(p)),
   },
   {
     name: "Payouts",
@@ -133,6 +137,16 @@ const PROGRAMS_CONTENT = ({
         href: "/marketplace",
         isActive: (pathname) => pathname.startsWith("/marketplace"),
         badge: "New",
+      },
+    ],
+  },
+  {
+    name: "Insights",
+    items: [
+      {
+        name: "Earnings",
+        icon: CircleDollar,
+        href: "/earnings",
       },
     ],
   },

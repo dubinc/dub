@@ -11,6 +11,10 @@ import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
 import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { prisma } from "@/lib/prisma";
+import {
+  getPublishableKeyPrefix,
+  isValidPublishableKeyForEnvironment,
+} from "@/lib/sandbox/environment";
 import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { mergeSiteVisitTrackingSettings } from "@/lib/sitemaps/site-visit-tracking";
 import { storage } from "@/lib/storage";
@@ -104,6 +108,23 @@ export const PATCH = withWorkspace(
     assertNotStagingWorkspace(workspace, {
       when: !!(name || slug || logo),
     });
+
+    const isNewPublishableKey =
+      !!publishableKey && publishableKey !== workspace.publishableKey;
+
+    const matchesEnvironment =
+      !!publishableKey &&
+      isValidPublishableKeyForEnvironment(
+        publishableKey,
+        workspace.environment,
+      );
+
+    if (isNewPublishableKey && !matchesEnvironment) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Publishable keys for ${workspace.environment} workspaces must start with "${getPublishableKeyPrefix(workspace.environment)}".`,
+      });
+    }
 
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
       throw new DubApiError({

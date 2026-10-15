@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { createLink } from "@/lib/api/links";
 import { registerDomain } from "@/lib/dynadot/register-domain";
 import { prisma } from "@/lib/prisma";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { sendBatchEmail } from "@dub/email";
 import DomainClaimed from "@dub/email/templates/domain-claimed";
 import { DEFAULT_LINK_PROPS, isWorkspaceBillingTrialActive } from "@dub/utils";
@@ -21,11 +22,25 @@ export async function claimDotLinkDomain({
   domain: string;
   workspace: Pick<
     Project,
-    "id" | "slug" | "plan" | "stripeId" | "trialEndsAt" | "dotLinkClaimed"
+    | "id"
+    | "slug"
+    | "plan"
+    | "stripeId"
+    | "trialEndsAt"
+    | "dotLinkClaimed"
+    | "environment"
   >;
   userId: string;
   skipWorkspaceChecks?: boolean; // when used in /api/domains/register
 }) {
+  if (!isProductionEnvironment(workspace.environment)) {
+    throw new DubApiError({
+      code: "forbidden",
+      message:
+        "Free .link domains can only be claimed in production workspaces.",
+    });
+  }
+
   if (!skipWorkspaceChecks) {
     if (workspace.plan === "free")
       throw new DubApiError({

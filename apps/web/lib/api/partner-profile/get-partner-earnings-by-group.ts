@@ -10,7 +10,8 @@ import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { getEarningsProgramFilter } from "./get-earnings-program-id";
 
-const programSelect = {
+// the program fields that the partner earnings routes return with each group
+export const programSelect = {
   id: true,
   name: true,
   slug: true,

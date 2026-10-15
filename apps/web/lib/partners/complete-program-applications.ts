@@ -6,7 +6,6 @@ import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-frau
 import { notifyProgramApplication } from "../api/partners/notify-program-application";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { markApplicationEventSubmitted } from "../application-events/update-application-event";
-import { autoApproveProgramApplicationJob } from "../jobs/handlers/auto-approve-program-application-job";
 import { autoRejectProgramApplicationJob } from "../jobs/handlers/auto-reject-program-application-job";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import {
@@ -17,6 +16,7 @@ import {
   backfillPartnerPlatforms,
   mergeApplicationSocialPlatforms,
 } from "./backfill-partner-platforms";
+import { dispatchPartnerApplicationReview } from "./dispatch-partner-application-review";
 import { evaluateApplicationRequirements } from "./evaluate-application-requirements";
 import {
   formatApplicationFormData,
@@ -221,13 +221,15 @@ export async function completeProgramApplications(userEmail: string) {
                   application,
                 }),
 
-                // Auto-approve the partner if the group has auto-approval enabled
-                group?.autoApprovePartnersEnabledAt
-                  ? autoApproveProgramApplicationJob.dispatch(
-                      { applicationId: application.id },
-                      { label: partner.id },
-                    )
-                  : Promise.resolve(null),
+                dispatchPartnerApplicationReview({
+                  applicationId: application.id,
+                  programId: program.id,
+                  partnerId: partner.id,
+                  autoApprovePartnersEnabledAt:
+                    group?.autoApprovePartnersEnabledAt,
+                  applicationScreeningCriteria:
+                    program.applicationScreeningCriteria,
+                }),
 
                 // Send "partner.application_submitted" webhook (deprecated)
                 workspacesByProgramId.has(program.id) &&

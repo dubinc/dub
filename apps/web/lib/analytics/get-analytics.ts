@@ -22,6 +22,7 @@ import { metadataQueryParser } from "./metadata-query-parser";
 import { AnalyticsFilters } from "./types";
 import { formatUTCDateTimeClickhouse } from "./utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "./utils/get-start-end-dates";
+import { withTinybirdTimeout } from "./utils/with-tinybird-timeout";
 
 // Fetch data for /api/analytics
 export const getAnalytics = async (params: AnalyticsFilters) => {
@@ -193,7 +194,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     filters: allFilters.length > 0 ? JSON.stringify(allFilters) : undefined,
   };
 
-  const response = await pipe(tinybirdParams);
+  const response = await withTinybirdTimeout(pipe(tinybirdParams));
 
   if (groupBy === "count") {
     const { groupByField, ...rest } = response.data[0];
