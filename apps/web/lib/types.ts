@@ -1,5 +1,6 @@
 import type { SiteVisitTrackingSettingsValue } from "@/lib/sitemaps/site-visit-tracking";
 import {
+  PARTNER_PROFILE_EARNINGS_ATTRIBUTE_GROUP_BY,
   PartnerBountySchema,
   partnerBountySubmissionSchema,
   PartnerEarningsSchema,
@@ -541,10 +542,17 @@ export type PartnerProfileTypeEarnings = z.infer<
   typeof PartnerProfileTypeEarningsSchema
 >;
 
+export type PartnerProfileEarningsAttributeGroupBy =
+  (typeof PARTNER_PROFILE_EARNINGS_ATTRIBUTE_GROUP_BY)[number];
+
 export type PartnerProfileEarningsAnalyticsByGroup = {
   programId: PartnerProfileTopProgramEarnings[];
   linkId: PartnerProfileTopLinkEarnings[];
   type: PartnerProfileTypeEarnings[];
+} & {
+  [G in PartnerProfileEarningsAttributeGroupBy]: (Record<G, string> & {
+    earnings: number;
+  })[];
 };
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
