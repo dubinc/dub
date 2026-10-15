@@ -1,5 +1,6 @@
 "use client";
 
+import { WorkspaceEnvironmentIndicator } from "@/lib/sandbox/components/workspace-environment-indicator";
 import { WorkspaceEnvironmentSwitcher } from "@/lib/sandbox/components/workspace-environment";
 import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
@@ -16,6 +17,7 @@ import {
 } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
 import { cn, isLegacyBusinessPlan, pluralize } from "@dub/utils";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -69,6 +71,7 @@ export function WorkspaceDropdown() {
     image: string;
     plan: PlanProps;
     disabledAt?: Date | string | null;
+    environment?: WorkspaceEnvironment | null;
   };
 
   const [openPopover, setOpenPopover] = useState(false);
@@ -132,6 +135,7 @@ function WorkspaceList({
     image: string;
     plan: PlanProps;
     disabledAt?: Date | string | null;
+    environment?: WorkspaceEnvironment | null;
   };
   workspaces: WorkspaceProps[];
   setOpenPopover: (open: boolean) => void;
@@ -266,7 +270,7 @@ function WorkspaceList({
               .filter(
                 (workspace) => !isStagingEnvironment(workspace.environment),
               )
-              .map(({ id, name, slug, logo, disabledAt }) => {
+              .map(({ id, name, slug, logo, disabledAt, environment }) => {
                 const isActive = activeSlug === slug;
                 return (
                   <Link
@@ -292,6 +296,7 @@ function WorkspaceList({
                     <span className="min-w-0 flex-1 truncate text-base leading-5 text-neutral-900 sm:text-sm">
                       {name}
                     </span>
+                    <WorkspaceEnvironmentIndicator environment={environment} />
                     {disabledAt && (
                       <StatusBadge
                         variant="neutral"
