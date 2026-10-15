@@ -11,7 +11,7 @@ import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import { CircleCheck } from "@dub/ui";
-import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { OG_AVATAR_URL, cn, pick } from "@dub/utils";
 import { Reward } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { AcceptProgramInviteButton } from "./accept-program-invite-button";
@@ -103,7 +103,11 @@ export default async function ProgramInvitePage(props: {
     where: {
       slug: programSlug,
     },
-    include: {
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      logo: true,
       partners: {
         where: {
           partnerId,
@@ -192,8 +196,10 @@ export default async function ProgramInvitePage(props: {
           </p>
 
           <div className="mt-4 flex w-full justify-center gap-2">
-            <DeclineProgramInviteButton program={program} />
-            <AcceptProgramInviteButton program={program} />
+            <DeclineProgramInviteButton program={pick(program, ["id"])} />
+            <AcceptProgramInviteButton
+              program={pick(program, ["id", "slug"])}
+            />
           </div>
         </div>
       </div>
@@ -221,7 +227,11 @@ export default async function ProgramInvitePage(props: {
               {landerData.blocks.map((block, idx) => {
                 const Component = BLOCK_COMPONENTS[block.type];
                 return Component ? (
-                  <Component key={idx} block={block} group={group} />
+                  <Component
+                    key={idx}
+                    block={block}
+                    group={pick(group, ["logo"])}
+                  />
                 ) : null;
               })}
             </div>
