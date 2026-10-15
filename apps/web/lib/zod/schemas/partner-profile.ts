@@ -238,11 +238,12 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
 });
 
 // GET /api/partner-profile/programs and /programs/[programId] add the
-// reapplication timeframe, so that a rejected program can say when the partner
-// can apply again
+// reapplication timeframe and the group slug, so that a rejected program can say
+// when the partner can apply again and link to the group's application form
 export const PartnerProfileProgramEnrollmentSchema =
   ProgramEnrollmentSchema.extend({
     reapplicationTimeframe: z.enum(ReapplicationTimeframe).nullish(),
+    groupSlug: z.string().nullish(),
     inactiveAt: z
       .date()
       .nullish()

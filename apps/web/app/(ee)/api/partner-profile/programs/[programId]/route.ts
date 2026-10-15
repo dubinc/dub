@@ -43,6 +43,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       ...programEnrollment,
       rewards,
       group: programEnrollment.partnerGroup,
+      groupSlug: programEnrollment.partnerGroup?.slug ?? null,
       application: programEnrollment.application
         ? {
             rejectionReason: programEnrollment.application.rejectionReason,
