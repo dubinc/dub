@@ -991,12 +991,6 @@ async function cleanupFraudEvents({
     },
     select: {
       id: true,
-      type: true,
-      _count: {
-        select: {
-          fraudEvents: true,
-        },
-      },
     },
   });
 
@@ -1031,18 +1025,31 @@ async function cleanupFraudEvents({
   // Bucket group ids by the partner whose held commissions should be released.
   const groupIdsByPartnerId = new Map<string, string[]>();
 
-  // A source group with another partner still listed stays pending.
-  const sourceGroupIdsToResolve = pluck(
-    sourceFraudGroups.filter(
-      (group) =>
-        group.type === FraudRuleType.partnerDuplicateAccount &&
-        group._count.fraudEvents <= 1,
-    ),
+  // Groups already moved on a previous attempt are owned by the target, so
+  // look them up there. A group that still lists another partner stays pending.
+  const movedDuplicateGroups = await prisma.fraudEventGroup.findMany({
+    where: {
+      partnerId: targetPartnerId,
+      type: FraudRuleType.partnerDuplicateAccount,
+      status: FraudEventStatus.pending,
+    },
+    select: {
+      id: true,
+      _count: {
+        select: {
+          fraudEvents: true,
+        },
+      },
+    },
+  });
+
+  const targetGroupIdsToResolve = pluck(
+    movedDuplicateGroups.filter((group) => group._count.fraudEvents <= 1),
     "id",
   );
 
-  if (sourceGroupIdsToResolve.length > 0) {
-    groupIdsByPartnerId.set(targetPartnerId, sourceGroupIdsToResolve);
+  if (targetGroupIdsToResolve.length > 0) {
+    groupIdsByPartnerId.set(targetPartnerId, targetGroupIdsToResolve);
   }
 
   for (const event of fraudEventGroupsToResolve) {
