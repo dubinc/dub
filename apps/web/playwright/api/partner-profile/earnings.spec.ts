@@ -236,6 +236,7 @@ test.describe("GET /partner-profile/earnings", () => {
           domain: expect.any(String),
           key: expect.any(String),
           _count: 1,
+          earnings: 4000,
         }),
       ]);
 
@@ -248,6 +249,7 @@ test.describe("GET /partner-profile/earnings", () => {
           id: programB.customerId,
           email: programB.customerEmail,
           _count: 1,
+          earnings: 4000,
         }),
       ]);
     });
@@ -259,25 +261,28 @@ test.describe("GET /partner-profile/earnings", () => {
   }) => {
     await withPartnerApi(playwright, async (partnerApi) => {
       const all = await partnerApi.get<
-        { id: string; slug: string; _count: number }[]
+        { id: string; slug: string; _count: number; earnings: number }[]
       >("/api/partner-profile/earnings/count?groupBy=programId");
 
+      // highest earnings first
       expect(all.status).toEqual(200);
       expect(all.data).toEqual([
-        expect.objectContaining({
-          id: program.id,
-          slug: programSlug,
-          _count: 2,
-        }),
         expect.objectContaining({
           id: programB.id,
           slug: programB.slug,
           _count: 1,
+          earnings: 4000,
+        }),
+        expect.objectContaining({
+          id: program.id,
+          slug: programSlug,
+          _count: 2,
+          earnings: 3500,
         }),
       ]);
 
       const selected = await partnerApi.get<
-        { id: string; slug: string; _count: number }[]
+        { id: string; slug: string; _count: number; earnings: number }[]
       >(
         `/api/partner-profile/earnings/count?groupBy=programId&programIdOrSlug=${programB.slug}`,
       );
@@ -288,8 +293,33 @@ test.describe("GET /partner-profile/earnings", () => {
           id: programB.id,
           slug: programB.slug,
           _count: 1,
+          earnings: 4000,
         }),
       ]);
+    });
+  });
+
+  test("sums earnings grouped by commission type and by status", async ({
+    playwright,
+  }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      expect(
+        await partnerApi.get(
+          "/api/partner-profile/earnings/count?groupBy=type",
+        ),
+      ).toMatchObject({
+        status: 200,
+        data: [{ type: "custom", _count: 3, earnings: 7500 }],
+      });
+
+      expect(
+        await partnerApi.get(
+          "/api/partner-profile/earnings/count?groupBy=status",
+        ),
+      ).toMatchObject({
+        status: 200,
+        data: [{ status: "pending", _count: 3, earnings: 7500 }],
+      });
     });
   });
 
@@ -723,7 +753,7 @@ test.describe("GET /partner-profile/earnings", () => {
     }
   });
 
-  test("returns 404 from the per-program timeseries and the OG image for another program", async ({
+  test("returns 404 from the per-program timeseries for another program", async ({
     playwright,
   }) => {
     await withPartnerApi(playwright, async (partnerApi) => {
@@ -732,16 +762,10 @@ test.describe("GET /partner-profile/earnings", () => {
           "/api/partner-profile/earnings/timeseries?programIdOrSlug=prog_doesnotexist",
         ),
       ).toMatchObject({ status: 404 });
-
-      expect(
-        await partnerApi.get(
-          "/api/og/partner-earnings?programId=prog_doesnotexist",
-        ),
-      ).toMatchObject({ status: 404 });
     });
   });
 
-  test("returns the OG image of all programs without a program", async ({
+  test("returns the OG image from the chart values in the URL", async ({
     playwright,
   }) => {
     // the API client parses JSON, so read the PNG with a plain request
@@ -752,11 +776,37 @@ test.describe("GET /partner-profile/earnings", () => {
 
     try {
       const response = await context.get(
-        "/api/og/partner-earnings?interval=all&timezone=UTC",
+        "/api/og/partner-earnings?earnings=0,1500,4200&start=2026-08-01T00:00:00.000Z&end=2026-10-01T00:00:00.000Z",
       );
 
       expect(response.status()).toEqual(200);
       expect(response.headers()["content-type"]).toContain("image/png");
+
+      // the image must come from the values in the URL, so other values draw another PNG
+      const responseBody = await response.body();
+
+      const changedEarningsResponse = await context.get(
+        "/api/og/partner-earnings?earnings=0,1500,42000&start=2026-08-01T00:00:00.000Z&end=2026-10-01T00:00:00.000Z",
+      );
+
+      expect(changedEarningsResponse.status()).toEqual(200);
+      expect(await changedEarningsResponse.body()).not.toEqual(responseBody);
+
+      const changedDatesResponse = await context.get(
+        "/api/og/partner-earnings?earnings=0,1500,4200&start=2026-07-01T00:00:00.000Z&end=2026-11-01T00:00:00.000Z",
+      );
+
+      expect(changedDatesResponse.status()).toEqual(200);
+      expect(await changedDatesResponse.body()).not.toEqual(responseBody);
+
+      // an empty value ("0," or "1,,2") must not become 0
+      for (const earnings of ["0,abc", "0,", "1,,2", "1e3"]) {
+        const invalidResponse = await context.get(
+          `/api/og/partner-earnings?earnings=${earnings}`,
+        );
+
+        expect(invalidResponse.status()).toEqual(422);
+      }
     } finally {
       await context.dispose();
     }

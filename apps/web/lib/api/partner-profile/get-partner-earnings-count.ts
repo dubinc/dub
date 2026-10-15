@@ -67,6 +67,7 @@ export async function getPartnerEarningsCount({
     return { count };
   }
 
+  // each group has its count and its total earnings, highest earnings first
   const groupedWhere: Prisma.CommissionWhereInput = {
     ...where,
     ...(type && groupBy !== "type" && { type }),
@@ -85,9 +86,12 @@ export async function getPartnerEarningsCount({
         customerId: { not: null },
       },
       _count: true,
+      _sum: {
+        earnings: true,
+      },
       orderBy: {
-        _count: {
-          customerId: "desc",
+        _sum: {
+          earnings: "desc",
         },
       },
     });
@@ -129,7 +133,7 @@ export async function getPartnerEarningsCount({
       ]),
     );
 
-    return counts.map(({ customerId, programId, _count }) => {
+    return counts.map(({ customerId, programId, _count, _sum }) => {
       const customer = customerId ? customersById.get(customerId) : undefined;
       const customerDataSharingEnabledAt =
         dataSharingByProgramId.get(programId);
@@ -142,6 +146,7 @@ export async function getPartnerEarningsCount({
             : obfuscateCustomerEmail(customer.email)
           : customer?.name || generateRandomName(),
         _count,
+        earnings: _sum.earnings ?? 0,
       };
     });
   }
@@ -154,9 +159,12 @@ export async function getPartnerEarningsCount({
       ...(groupBy === "linkId" && { linkId: { not: null } }),
     },
     _count: true,
+    _sum: {
+      earnings: true,
+    },
     orderBy: {
-      _count: {
-        [groupBy]: "desc",
+      _sum: {
+        earnings: "desc",
       },
     },
   });
@@ -180,7 +188,7 @@ export async function getPartnerEarningsCount({
 
     const linksById = new Map(links.map((l) => [l.id, l]));
 
-    return counts.flatMap(({ linkId, _count }) => {
+    return counts.flatMap(({ linkId, _count, _sum }) => {
       if (!linkId) return [];
       const link = linksById.get(linkId);
       if (!link) return [];
@@ -191,6 +199,7 @@ export async function getPartnerEarningsCount({
           key: link.key,
           url: link.url,
           _count,
+          earnings: _sum.earnings ?? 0,
         },
       ];
     });
@@ -208,7 +217,7 @@ export async function getPartnerEarningsCount({
 
     const programsById = new Map(programs.map((p) => [p.id, p]));
 
-    return counts.map(({ programId, _count }) => {
+    return counts.map(({ programId, _count, _sum }) => {
       const program = programsById.get(programId);
       return {
         id: programId,
@@ -216,9 +225,13 @@ export async function getPartnerEarningsCount({
         slug: program?.slug,
         logo: program?.logo,
         _count,
+        earnings: _sum.earnings ?? 0,
       };
     });
   }
 
-  return counts;
+  return counts.map(({ _sum, ...group }) => ({
+    ...group,
+    earnings: _sum.earnings ?? 0,
+  }));
 }
