@@ -1,8 +1,11 @@
 import { MIN_PAYOUT_AMOUNT_FOR_REMINDERS } from "@/lib/constants/misc";
 import { PAYOUT_SUPPORTED_COUNTRIES } from "@/lib/constants/payouts-supported-countries";
 import { sendPayoutReminder } from "@/lib/payouts/send-payout-reminder";
-import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID } from "@dub/utils";
-import { PayoutStatus, ProgramPayoutMode } from "@prisma/client";
+import {
+  PayoutStatus,
+  ProgramPayoutMode,
+  WorkspaceEnvironment,
+} from "@prisma/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const BATCH_SIZE = 500;
@@ -73,26 +76,35 @@ const unsupportedCountry = "ZZ";
 
 type ReminderCandidate = {
   status: PayoutStatus;
-  programId: string;
   amount: number;
   payoutsEnabledAt: Date | null;
   country: string | null;
   connectPayoutsLastRemindedAt: Date | null;
+  program: {
+    deactivatedAt: Date | null;
+    environment: WorkspaceEnvironment;
+  };
 };
 
 const eligibleReminder: ReminderCandidate = {
   status: PayoutStatus.pending,
-  programId: "prog_real",
   amount: MIN_PAYOUT_AMOUNT_FOR_REMINDERS,
   payoutsEnabledAt: null,
   country: null,
   connectPayoutsLastRemindedAt: null,
+  program: {
+    deactivatedAt: null,
+    environment: WorkspaceEnvironment.production,
+  },
 };
 
 function matchesReminderFilters(
   where: {
     status?: { in?: PayoutStatus[] };
-    programId?: { notIn?: string[] };
+    program?: {
+      deactivatedAt?: Date | null;
+      environment?: WorkspaceEnvironment;
+    };
     amount?: { gte?: number };
     partner?: {
       payoutsEnabledAt?: Date | null;
@@ -114,11 +126,18 @@ function matchesReminderFilters(
     return false;
   }
 
-  if (!where.programId?.notIn) {
+  if (
+    !where.program ||
+    where.program.deactivatedAt !== null ||
+    where.program.environment !== WorkspaceEnvironment.production
+  ) {
     throw new Error("Missing program filter");
   }
 
-  if (where.programId.notIn.includes(candidate.programId)) {
+  if (
+    candidate.program.deactivatedAt !== null ||
+    candidate.program.environment !== WorkspaceEnvironment.production
+  ) {
     return false;
   }
 
@@ -284,13 +303,43 @@ describe("sendPayoutReminder", () => {
       included: false,
     },
     {
-      label: "Acme program",
-      patch: { programId: ACME_PROGRAM_ID },
+      label: "active production program",
+      patch: {
+        program: {
+          deactivatedAt: null,
+          environment: WorkspaceEnvironment.production,
+        },
+      },
+      included: true,
+    },
+    {
+      label: "deactivated program",
+      patch: {
+        program: {
+          deactivatedAt: NOW,
+          environment: WorkspaceEnvironment.production,
+        },
+      },
       included: false,
     },
     {
-      label: "demo program",
-      patch: { programId: DEMO_PROGRAM_ID },
+      label: "staging program",
+      patch: {
+        program: {
+          deactivatedAt: null,
+          environment: WorkspaceEnvironment.staging,
+        },
+      },
+      included: false,
+    },
+    {
+      label: "sandbox program",
+      patch: {
+        program: {
+          deactivatedAt: null,
+          environment: WorkspaceEnvironment.sandbox,
+        },
+      },
       included: false,
     },
     {

@@ -135,7 +135,7 @@ function ProgramPayoutSettingsSheetContent({
         </div>
       </div>
 
-      <div className="flex h-full flex-col gap-8 bg-neutral-50 p-4 sm:p-6">
+      <div className="flex flex-1 flex-col gap-8 overflow-y-auto bg-neutral-50 p-4 sm:p-6">
         {/* Minimum payout amount */}
         <div className="space-y-6">
           <div>

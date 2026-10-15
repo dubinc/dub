@@ -1,8 +1,7 @@
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { prisma } from "@/lib/prisma";
 import { TZDate } from "@date-fns/tz";
-import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { Prisma, WorkspaceEnvironment } from "@prisma/client";
 import { format } from "date-fns";
 
 interface Commission {
@@ -12,12 +11,14 @@ interface Commission {
 
 export async function getCommissionsTimeseries({
   programId,
+  partnerId,
   startDate,
   endDate,
   granularity,
   timezone,
 }: {
   programId?: string;
+  partnerId?: string;
   startDate: Date;
   endDate: Date;
   granularity: string;
@@ -35,7 +36,11 @@ export async function getCommissionsTimeseries({
           createdAt >= ${startDate}
           AND createdAt < ${endDate}
           AND status IN ("pending", "processed", "paid")
-          AND ${programId ? Prisma.sql`programId = ${programId}` : Prisma.sql`programId NOT IN (${ACME_PROGRAM_ID}, ${DEMO_PROGRAM_ID})`}
+          AND programId IN (
+            SELECT id FROM Program WHERE environment = ${WorkspaceEnvironment.production}
+          )
+          ${programId ? Prisma.sql`AND programId = ${programId}` : Prisma.sql``}
+          ${partnerId ? Prisma.sql`AND partnerId = ${partnerId}` : Prisma.sql``}
         GROUP BY start
         ORDER BY start ASC;`;
 

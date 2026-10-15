@@ -199,9 +199,9 @@ export function TagCard({
           {({ hovered }) => (
             <TagCardKeyboardShortcuts
               enabled={openPopover || (hovered && openMenuTagId === null)}
-              onKeyDown={(e) => {
+              onKeyDown={(_, key) => {
                 setOpenPopover(false);
-                switch (e.key) {
+                switch (key) {
                   case "e":
                     setShowAddEditTagModal(true);
                     break;
@@ -226,7 +226,7 @@ function TagCardKeyboardShortcuts({
   onKeyDown,
 }: {
   enabled: boolean;
-  onKeyDown: (e: KeyboardEvent) => void;
+  onKeyDown: (e: KeyboardEvent, pressedKey: string) => void;
 }) {
   useKeyboardShortcut(["e", "i", "x"], onKeyDown, {
     enabled,

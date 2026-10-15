@@ -1,5 +1,7 @@
 "use client";
 
+import { WorkspaceEnvironmentIndicator } from "@/lib/sandbox/components/workspace-environment-indicator";
+import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { WorkspaceProps } from "@/lib/types";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
@@ -16,6 +18,9 @@ import { ComponentType, SVGProps, useState } from "react";
 
 export default function WorkspacesPage() {
   const { workspaces, error } = useWorkspaces();
+  const visibleWorkspaces = workspaces?.filter(
+    (workspace) => !isStagingEnvironment(workspace.environment),
+  );
 
   return (
     <div className="flex min-h-[100dvh] w-full flex-col">
@@ -26,10 +31,10 @@ export default function WorkspacesPage() {
             title="Unable to load workspaces"
             description="Something went wrong while fetching your workspaces. Please refresh the page to try again."
           />
-        ) : !workspaces ? (
+        ) : !visibleWorkspaces ? (
           <WorkspaceListSkeleton />
-        ) : workspaces.length > 0 ? (
-          <WorkspaceList workspaces={workspaces} />
+        ) : visibleWorkspaces.length > 0 ? (
+          <WorkspaceList workspaces={visibleWorkspaces} />
         ) : (
           <NoWorkspaces />
         )}
@@ -156,7 +161,7 @@ function WorkspaceList({ workspaces }: { workspaces: WorkspaceProps[] }) {
 }
 
 function WorkspaceRow({
-  workspace: { id, name, slug, logo, plan, disabledAt },
+  workspace: { id, name, slug, logo, plan, disabledAt, environment },
   onFocus,
 }: {
   workspace: WorkspaceProps;
@@ -181,8 +186,11 @@ function WorkspaceRow({
           className="size-6 shrink-0 overflow-hidden rounded-full"
           draggable={false}
         />
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-900">
-          {name}
+        <span className="flex min-w-0 flex-1 items-center gap-1.5">
+          <span className="min-w-0 truncate text-sm font-medium text-neutral-900">
+            {name}
+          </span>
+          <WorkspaceEnvironmentIndicator environment={environment} />
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
           {disabledAt && (

@@ -4,13 +4,15 @@ import {
   partnerBountySubmissionSchema,
   PartnerEarningsSchema,
   partnerPayoutMethodSchema,
+  PartnerProfileBountySchema,
   PartnerProfileCustomerSchema,
+  partnerProfileEarningsAnalyticsQuerySchema,
   PartnerProfileEarningsSchema,
   PartnerProfileLinkSchema,
+  PartnerProfileProgramEnrollmentSchema,
   PartnerProfileTopLinkEarningsSchema,
   PartnerProfileTopProgramEarningsSchema,
   PartnerProfileTypeEarningsSchema,
-  partnerProfileEarningsAnalyticsQuerySchema,
   partnerSubmittedLeadsCountByStatusSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
@@ -637,6 +639,10 @@ export type ProgramApplicationFormFieldWithValues = z.infer<
   typeof programApplicationFormFieldWithValuesSchema
 >;
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
+
+export type PartnerProfileProgramEnrollmentProps = z.infer<
+  typeof PartnerProfileProgramEnrollmentSchema
+>;
 export type EligibilityConditionDB = z.infer<typeof eligibilityConditionSchema>;
 export type ApplicationRequirementsDB = z.infer<
   typeof applicationRequirementsSchema
@@ -748,6 +754,10 @@ export type BountyListProps = z.infer<typeof BountyListSchema>;
 export type GroupBountySummaryProps = z.infer<typeof GroupBountySummarySchema>;
 
 export type PartnerBountyProps = z.infer<typeof PartnerBountySchema>;
+
+export type PartnerProfileBountyProps = z.infer<
+  typeof PartnerProfileBountySchema
+>;
 
 export type BountySubmissionProps = z.infer<
   typeof BountySubmissionExtendedSchema

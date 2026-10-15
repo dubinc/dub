@@ -4,9 +4,9 @@ import { updateConfig } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import { domainKeySchema } from "@/lib/zod/schemas/links";
 import {
+  getDomainWithoutWWW,
   LEGAL_USER_ID,
   LEGAL_WORKSPACE_ID,
-  getDomainWithoutWWW,
 } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -14,6 +14,14 @@ import { NextResponse } from "next/server";
 export const DELETE = withAdmin(
   async ({ searchParams }) => {
     const { domain, key } = domainKeySchema.parse(searchParams);
+    const term = searchParams.term?.trim();
+
+    if (term && !/[a-z0-9]/i.test(term)) {
+      return NextResponse.json(
+        { error: "Invalid domain term" },
+        { status: 400 },
+      );
+    }
 
     const link = await prisma.link.findUnique({
       where: { domain_key: { domain, key } },
@@ -38,11 +46,17 @@ export const DELETE = withAdmin(
 
       linkCache.set({ ...link, projectId: LEGAL_WORKSPACE_ID }),
 
-      urlDomain &&
-        updateConfig({
-          key: "domains",
-          value: urlDomain,
-        }),
+      term
+        ? updateConfig({
+            key: "terms",
+            value: term,
+          })
+        : urlDomain
+          ? updateConfig({
+              key: "domains",
+              value: urlDomain,
+            })
+          : Promise.resolve(),
     ]);
 
     return NextResponse.json(response);

@@ -6,6 +6,15 @@ import { parseTrackedSitemaps } from "@/lib/sitemaps/site-visit-tracking";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { gzipSync } from "zlib";
 
+vi.mock("server-only", () => ({}));
+
+// Run the sitemap import through the Edge `safeFetch`, so the stubbed global
+// `fetch` below handles both the DoH lookups and the sitemap requests.
+vi.mock("@/lib/api/safe-fetch-node", async () => {
+  const { safeFetch } = await import("@/lib/api/safe-fetch");
+  return { safeFetchNode: safeFetch };
+});
+
 function toArrayBuffer(buf: Buffer): ArrayBuffer {
   const ab = new ArrayBuffer(buf.length);
   new Uint8Array(ab).set(buf);
@@ -22,11 +31,14 @@ function makeFetchResponse(
     status,
     headers: new Headers(headers),
     arrayBuffer: () => Promise.resolve(toArrayBuffer(body)),
+    json: () => Promise.resolve(JSON.parse(body.toString("utf8"))),
   } as unknown as Response;
 }
 
-function redirectResponse(location: string, status = 302): Response {
-  return makeFetchResponse(Buffer.alloc(0), status, { Location: location });
+function dohResponseFor(ip: string, type: 1 | 28 = 1): Response {
+  return makeFetchResponse(
+    Buffer.from(JSON.stringify({ Status: 0, Answer: [{ data: ip, type }] })),
+  );
 }
 
 const urlsetXml = (urls: string[]) =>
@@ -134,7 +146,15 @@ describe("parseTrackedSitemaps", () => {
 });
 
 describe("crawlSitemapUrls", () => {
-  const mockFetch = vi.fn();
+  const mockContentFetch = vi.fn();
+  const mockFetch = vi.fn((url: string | URL | Request) => {
+    const href = typeof url === "string" ? url : url.toString();
+    if (href.includes("dns.google/resolve")) {
+      // Return a public IP so safeFetch lets the request through.
+      return Promise.resolve(dohResponseFor("93.184.216.34"));
+    }
+    return mockContentFetch(href);
+  });
 
   beforeEach(() => {
     vi.stubGlobal("fetch", mockFetch);
@@ -151,7 +171,7 @@ describe("crawlSitemapUrls", () => {
         "https://example.com/page-1",
         "https://example.com/page-2",
       ];
-      mockFetch.mockResolvedValue(
+      mockContentFetch.mockResolvedValue(
         makeFetchResponse(Buffer.from(urlsetXml(pageUrls))),
       );
 
@@ -165,7 +185,7 @@ describe("crawlSitemapUrls", () => {
     });
 
     it("deduplicates URLs across multiple entries", async () => {
-      mockFetch.mockResolvedValue(
+      mockContentFetch.mockResolvedValue(
         makeFetchResponse(
           Buffer.from(
             urlsetXml([
@@ -186,7 +206,7 @@ describe("crawlSitemapUrls", () => {
 
   describe("sitemapindex", () => {
     it("does not fetch nested sitemaps from a sitemap index", async () => {
-      mockFetch.mockResolvedValueOnce(
+      mockContentFetch.mockResolvedValueOnce(
         makeFetchResponse(
           Buffer.from(
             sitemapindexXml([
@@ -203,11 +223,11 @@ describe("crawlSitemapUrls", () => {
 
       expect(urls).toEqual([]);
       expect(hadErrors).toBe(false);
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockContentFetch).toHaveBeenCalledTimes(1);
     });
 
     it("returns no page URLs when the index only references itself", async () => {
-      mockFetch.mockResolvedValue(
+      mockContentFetch.mockResolvedValue(
         makeFetchResponse(
           Buffer.from(sitemapindexXml(["https://example.com/sitemap.xml"])),
         ),
@@ -218,13 +238,13 @@ describe("crawlSitemapUrls", () => {
       );
 
       expect(urls).toEqual([]);
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockContentFetch).toHaveBeenCalledTimes(1);
     });
   });
 
   describe("nested xml in urlset", () => {
     it("skips .xml loc entries instead of treating them as pages", async () => {
-      mockFetch.mockResolvedValue(
+      mockContentFetch.mockResolvedValue(
         makeFetchResponse(
           Buffer.from(
             urlsetXml([
@@ -248,7 +268,7 @@ describe("crawlSitemapUrls", () => {
       const many = Array.from({ length: MAX_URLS_PER_SITEMAP + 50 }, (_, i) =>
         i === 0 ? "https://example.com/first" : `https://example.com/p/${i}`,
       );
-      mockFetch.mockResolvedValue(
+      mockContentFetch.mockResolvedValue(
         makeFetchResponse(Buffer.from(urlsetXml(many))),
       );
 
@@ -264,7 +284,7 @@ describe("crawlSitemapUrls", () => {
     it("decompresses a gzip-compressed sitemap response", async () => {
       const xml = urlsetXml(["https://example.com/page-1"]);
       const compressed = gzipSync(xml);
-      mockFetch.mockResolvedValue(makeFetchResponse(compressed));
+      mockContentFetch.mockResolvedValue(makeFetchResponse(compressed));
 
       const { urls } = await crawlSitemapUrls(
         "https://example.com/sitemap.xml.gz",
@@ -275,13 +295,31 @@ describe("crawlSitemapUrls", () => {
 
     it("handles a plain XML response without attempting decompression", async () => {
       const xml = urlsetXml(["https://example.com/page-1"]);
-      mockFetch.mockResolvedValue(makeFetchResponse(Buffer.from(xml)));
+      mockContentFetch.mockResolvedValue(makeFetchResponse(Buffer.from(xml)));
 
       const { urls } = await crawlSitemapUrls(
         "https://example.com/sitemap.xml",
       );
 
       expect(urls).toContain("https://example.com/page-1");
+    });
+  });
+
+  describe("non-2xx responses", () => {
+    it("reports hadErrors instead of parsing the body on a non-2xx response", async () => {
+      mockContentFetch.mockResolvedValue(
+        makeFetchResponse(
+          Buffer.from(urlsetXml(["https://example.com/page-1"])),
+          500,
+        ),
+      );
+
+      const { urls, hadErrors } = await crawlSitemapUrls(
+        "https://example.com/sitemap.xml",
+      );
+
+      expect(urls).toEqual([]);
+      expect(hadErrors).toBe(true);
     });
   });
 });

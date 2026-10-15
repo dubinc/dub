@@ -41,12 +41,22 @@ export default function useProgramEnrollment({
   return {
     programEnrollment,
     showDetailedAnalytics:
-      programEnrollment &&
-      (!LARGE_PROGRAM_IDS.includes(programEnrollment.programId) ||
-        (programEnrollment.status === "approved" &&
-          programEnrollment.totalCommissions >=
-            LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS)),
+      programEnrollment && getShowDetailedAnalytics(programEnrollment),
     error,
     loading: status === "loading" || isLoading,
   };
+}
+
+export function getShowDetailedAnalytics(
+  programEnrollment: Pick<
+    ProgramEnrollmentProps,
+    "programId" | "status" | "totalCommissions"
+  >,
+) {
+  return (
+    !LARGE_PROGRAM_IDS.includes(programEnrollment.programId) ||
+    (programEnrollment.status === "approved" &&
+      programEnrollment.totalCommissions >=
+        LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS)
+  );
 }

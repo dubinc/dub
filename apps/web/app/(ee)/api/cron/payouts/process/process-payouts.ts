@@ -47,7 +47,13 @@ interface ProcessPayoutsProps {
   >;
   program: Pick<
     Program,
-    "id" | "name" | "logo" | "url" | "minPayoutAmount" | "supportEmail"
+    | "id"
+    | "name"
+    | "logo"
+    | "url"
+    | "minPayoutAmount"
+    | "supportEmail"
+    | "environment"
   > & {
     payoutMode: ProgramPayoutMode;
   };
@@ -340,6 +346,7 @@ export async function processPayouts({
         workspace,
         program: {
           name: program.name,
+          environment: program.environment,
         },
         payout: {
           amount: totalPayoutAmount,

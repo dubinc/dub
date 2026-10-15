@@ -1,8 +1,9 @@
-import { CustomResponse } from "./utils";
+import { assertValidDomainFormat, CustomResponse } from "./utils";
 
 export const configureVercelNameservers = async (
   domain: string,
 ): Promise<CustomResponse> => {
+  assertValidDomainFormat(domain);
   return await fetch(
     `https://api.vercel.com/v3/domains/${domain}?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
