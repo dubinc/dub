@@ -1,5 +1,5 @@
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
-import { TrackLeadResponse } from "@/lib/types";
+import { Customer, TrackLeadResponse } from "@/lib/types";
 import { CustomerEmailMatchType } from "@/lib/zod/schemas/fraud";
 import { randomCustomer, randomId } from "tests/utils/helpers";
 import {
@@ -181,6 +181,13 @@ describe.concurrent("/fraud/**", async () => {
       });
     }
 
+    const { data: firstCustomers } = await http.get<Customer[]>({
+      path: "/customers",
+      query: { externalId: firstCustomer.externalId },
+    });
+
+    expect(firstCustomers.length).toBe(1);
+
     await verifyFraudEvent({
       http,
       partner: E2E_FRAUD_PARTNER,
@@ -188,7 +195,7 @@ describe.concurrent("/fraud/**", async () => {
       ruleType: "customerEmailMatch",
       metadata: {
         matchType: CustomerEmailMatchType.SIMILAR_EMAIL_MATCH,
-        matchedCustomerId: expect.any(String),
+        matchedCustomerId: firstCustomers[0].id,
       },
     });
   });

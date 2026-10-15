@@ -39,7 +39,10 @@ export const checkCustomerEmailMatch = defineFraudRule({
       !("isFirstConversion" in customer);
 
     // 2. Similar email match — customer's normalized email matches
-    // a previously referred customer from the same partner
+    // a previously referred customer from the same partner.
+    // Require the raw emails to differ so duplicate rows for the same
+    // address (e.g. created by importers or promo-code attribution)
+    // don't trigger; only actual variants do.
     if (shouldCheckHistoricalMatch) {
       const similarCustomer = await prisma.customer.findFirst({
         where: {
@@ -48,6 +51,9 @@ export const checkCustomerEmailMatch = defineFraudRule({
           partnerId: partner.id,
           id: {
             not: customer.id,
+          },
+          email: {
+            not: customer.email,
           },
         },
         select: {
