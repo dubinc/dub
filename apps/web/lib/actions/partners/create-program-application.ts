@@ -586,8 +586,8 @@ async function createApplicationAndEnrollment({
   };
 }
 
-// When a rejected enrollment was rejected. The cleanup cron uses updatedAt, so
-// it is the fallback for enrollments without a reviewed application.
+// The rejection date of a rejected enrollment. The cleanup cron uses updatedAt,
+// so it is the fallback for enrollments without a reviewed application.
 function getRejectedAt(
   enrollment: Pick<ProgramEnrollment, "status" | "updatedAt"> & {
     application: Pick<ProgramApplication, "reviewedAt"> | null;
