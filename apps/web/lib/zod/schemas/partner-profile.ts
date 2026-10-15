@@ -136,14 +136,19 @@ export const partnerProfileEarningsTimeseriesQuerySchema =
       ),
   });
 
-// the groups of the earnings analytics route that return a plain value: a field of the commission's link or customer
-export const PARTNER_PROFILE_EARNINGS_ATTRIBUTE_GROUP_BY = [
-  "domain",
+// the UTM fields of the commission's link that the earnings analytics route can group by
+export const PARTNER_PROFILE_EARNINGS_UTM_GROUP_BY = [
   "utm_source",
   "utm_medium",
   "utm_campaign",
   "utm_term",
   "utm_content",
+] as const;
+
+// the groups of the earnings analytics route that return a plain value: a field of the commission's link or customer
+export const PARTNER_PROFILE_EARNINGS_ATTRIBUTE_GROUP_BY = [
+  "domain",
+  ...PARTNER_PROFILE_EARNINGS_UTM_GROUP_BY,
   "country",
   "continent",
 ] as const;

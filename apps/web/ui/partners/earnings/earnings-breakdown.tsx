@@ -6,6 +6,7 @@ import {
   PartnerProfileEarningsAnalyticsGroupBy,
   PartnerProfileEarningsAttributeGroupBy,
 } from "@/lib/types";
+import { PARTNER_PROFILE_EARNINGS_UTM_GROUP_BY } from "@/lib/zod/schemas/partner-profile";
 import { AnalyticsCard } from "@/ui/analytics/analytics-card";
 import {
   AnalyticsCardEmptyState,
@@ -36,10 +37,17 @@ const EARNINGS_BREAKDOWN_LIMIT = 100;
 
 const EARNINGS_METRIC = { label: "Earnings", icon: CircleDollar };
 
+type BreakdownGroupBy = PartnerProfileEarningsAnalyticsGroupBy;
+
+// one group of the earnings analytics route
+type BreakdownGroup<G extends BreakdownGroupBy> =
+  PartnerProfileEarningsAnalyticsByGroup[G][number];
+
 type BreakdownRow = {
   icon: ReactNode;
   title: string;
   value: number;
+  filterValue?: string; // the page filter that this row sets
   href?: string; // sets the page filter for this row
 };
 
@@ -84,28 +92,25 @@ function ProgramsCard() {
   );
 }
 
-const LINK_SUBTABS = [
+const LINK_SUBTABS: { id: BreakdownGroupBy; label: string }[] = [
   { id: "domain", label: "Domain" },
   { id: "linkId", label: "URL" },
-] as const;
+];
 
-// the UTM fields of a link (UTM_PARAMETERS also has "ref")
-const UTM_SUBTABS = UTM_PARAMETERS.filter(({ key }) =>
-  key.startsWith("utm_"),
-).map(({ key, label }) => ({
-  id: key,
-  label,
-}));
+const UTM_SUBTABS: { id: BreakdownGroupBy; label: string }[] =
+  PARTNER_PROFILE_EARNINGS_UTM_GROUP_BY.map((key) => ({
+    id: key,
+    label: UTM_PARAMETERS.find((param) => param.key === key)?.label ?? key,
+  }));
 
 function LinksCard() {
   const [tab, setTab] = useState<"links" | "utms">("links");
-  const [subtab, setSubtab] = useState<string>("domain");
+  const [subtab, setSubtab] = useState<BreakdownGroupBy>("domain");
 
   const subtabs = tab === "links" ? LINK_SUBTABS : UTM_SUBTABS;
 
-  const { rows, error, filterValue, clearFilter } = useEarningsBreakdown(
-    subtab as PartnerProfileEarningsAnalyticsGroupBy,
-  );
+  const { rows, error, filterValue, clearFilter } =
+    useEarningsBreakdown(subtab);
 
   return (
     <AnalyticsCard
@@ -118,9 +123,12 @@ function LinksCard() {
         setTab(newTab);
         setSubtab(newTab === "links" ? "domain" : "utm_source");
       }}
-      subTabs={[...subtabs]}
+      subTabs={subtabs}
       selectedSubTabId={subtab}
-      onSelectSubTab={setSubtab}
+      onSelectSubTab={(id) => {
+        const selected = subtabs.find((option) => option.id === id);
+        if (selected) setSubtab(selected.id);
+      }}
       expandLimit={8}
       dataLength={rows?.length}
       isFilterActive={!!filterValue}
@@ -250,10 +258,7 @@ function EarningsBarList({
 
 // the page filter that a group sets when a row is clicked
 const FILTER_KEYS: Partial<
-  Record<
-    PartnerProfileEarningsAnalyticsGroupBy,
-    "programId" | "linkId" | "type"
-  >
+  Record<BreakdownGroupBy, "programId" | "linkId" | "type">
 > = {
   programId: "programId",
   linkId: "linkId",
@@ -261,7 +266,7 @@ const FILTER_KEYS: Partial<
 };
 
 // the earnings of one group, with the filters and date range of the page
-function useEarningsBreakdown(groupBy: PartnerProfileEarningsAnalyticsGroupBy) {
+function useEarningsBreakdown(groupBy: BreakdownGroupBy) {
   const filters = usePartnerEarningsFilters();
   const { queryParams, searchParams } = useRouterStuff();
 
@@ -285,98 +290,94 @@ function useEarningsBreakdown(groupBy: PartnerProfileEarningsAnalyticsGroupBy) {
   const rows = useMemo(
     () =>
       data &&
-      getBreakdownRows({
-        groupBy,
-        data,
-        getFilterHref: (value) =>
-          filterKey
+      getBreakdownRows(groupBy, data).map((row) => ({
+        ...row,
+        href:
+          filterKey && row.filterValue
             ? (queryParams({
-                set: { [filterKey]: value },
+                set: { [filterKey]: row.filterValue },
                 del: "page",
                 getNewPath: true,
               }) as string)
             : undefined,
-      }),
+      })),
     [data, groupBy, filterKey, queryParams],
   );
 
   return { rows, error, filterValue, clearFilter };
 }
 
-function getBreakdownRows({
-  groupBy,
-  data,
-  getFilterHref,
-}: {
-  groupBy: PartnerProfileEarningsAnalyticsGroupBy;
-  data: PartnerProfileEarningsAnalyticsByGroup[PartnerProfileEarningsAnalyticsGroupBy];
-  getFilterHref: (value: string) => string | undefined;
-}): BreakdownRow[] {
-  switch (groupBy) {
-    case "programId":
-      return (data as PartnerProfileEarningsAnalyticsByGroup["programId"]).map(
-        (program) => ({
-          icon: <ProgramLogo program={program} className="size-4" />,
-          title: program.name,
-          value: program.earnings,
-          href: getFilterHref(program.id),
-        }),
-      );
-    case "linkId":
-      return (data as PartnerProfileEarningsAnalyticsByGroup["linkId"]).map(
-        (link) => ({
-          icon: <ProgramLogo program={link.program} className="size-4" />,
-          title: link.shortLink,
-          value: link.earnings,
-          href: getFilterHref(link.id),
-        }),
-      );
-    case "type":
-      return (data as PartnerProfileEarningsAnalyticsByGroup["type"]).map(
-        ({ type, earnings }) => ({
-          icon: <CommissionTypeIcon type={type} />,
-          title: capitalize(type) ?? type,
-          value: earnings,
-          href: getFilterHref(type),
-        }),
-      );
-    default:
-      return getAttributeRows(groupBy, data);
-  }
+function getBreakdownRows<G extends BreakdownGroupBy>(
+  groupBy: G,
+  data: BreakdownGroup<G>[],
+) {
+  const toRow: (group: BreakdownGroup<G>) => BreakdownRow =
+    BREAKDOWN_ROWS[groupBy];
+
+  return data.map(toRow);
 }
 
-function getAttributeRows(
-  groupBy: PartnerProfileEarningsAttributeGroupBy,
-  data: PartnerProfileEarningsAnalyticsByGroup[PartnerProfileEarningsAnalyticsGroupBy],
-): BreakdownRow[] {
+// the row of each group
+const BREAKDOWN_ROWS: {
+  [G in BreakdownGroupBy]: (group: BreakdownGroup<G>) => BreakdownRow;
+} = {
+  programId: (program) => ({
+    icon: <ProgramLogo program={program} className="size-4" />,
+    title: program.name,
+    value: program.earnings,
+    filterValue: program.id,
+  }),
+  linkId: (link) => ({
+    icon: <ProgramLogo program={link.program} className="size-4" />,
+    title: link.shortLink,
+    value: link.earnings,
+    filterValue: link.id,
+  }),
+  type: ({ type, earnings }) => ({
+    icon: <CommissionTypeIcon type={type} />,
+    title: capitalize(type) ?? type,
+    value: earnings,
+    filterValue: type,
+  }),
+  domain: getAttributeRow("domain"),
+  utm_source: getAttributeRow("utm_source"),
+  utm_medium: getAttributeRow("utm_medium"),
+  utm_campaign: getAttributeRow("utm_campaign"),
+  utm_term: getAttributeRow("utm_term"),
+  utm_content: getAttributeRow("utm_content"),
+  country: getAttributeRow("country"),
+  continent: getAttributeRow("continent"),
+};
+
+function getAttributeRow<G extends PartnerProfileEarningsAttributeGroupBy>(
+  groupBy: G,
+) {
   const UTMIcon = UTM_PARAMETERS.find(({ key }) => key === groupBy)?.icon;
 
-  return (data as PartnerProfileEarningsAnalyticsByGroup[typeof groupBy]).map(
-    (group) => {
-      const value = (group as Record<string, string>)[groupBy];
+  return (group: Record<G, string> & { earnings: number }): BreakdownRow => {
+    const value = group[groupBy];
 
-      return {
-        icon:
-          groupBy === "country" ? (
-            <CountryFlag countryCode={value} />
-          ) : groupBy === "continent" ? (
-            <ContinentIcon
-              display={value}
-              className="size-4 rounded-full border border-cyan-500"
-            />
-          ) : groupBy === "domain" ? (
-            <ReferrerIcon display={value} />
-          ) : UTMIcon ? (
-            <UTMIcon className="size-4" />
-          ) : null,
-        title:
-          groupBy === "country"
-            ? COUNTRIES[value] ?? value
-            : groupBy === "continent"
-              ? CONTINENTS[value] ?? value
-              : value,
-        value: group.earnings,
-      };
-    },
-  );
+    return {
+      icon:
+        groupBy === "country" ? (
+          <CountryFlag countryCode={value} />
+        ) : groupBy === "continent" ? (
+          <ContinentIcon
+            display={value}
+            className="size-4 rounded-full border border-cyan-500"
+          />
+        ) : groupBy === "domain" ? (
+          <ReferrerIcon display={value} />
+        ) : UTMIcon ? (
+          <UTMIcon className="size-4" />
+        ) : null,
+      title:
+        groupBy === "country"
+          ? COUNTRIES[value] ?? value
+          : groupBy === "continent"
+            ? CONTINENTS[value] ?? value
+            : value,
+      value: group.earnings,
+    };
+  };
 }
