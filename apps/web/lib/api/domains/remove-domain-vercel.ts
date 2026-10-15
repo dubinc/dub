@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { STAGING_DUB_DOMAIN_SUFFIX } from "@/lib/sandbox/constants";
 import { getApexDomain } from "@dub/utils";
+import { assertValidDomainFormat } from "./utils";
 
 export const removeDomainFromVercel = async (domain: string) => {
   // Staging hosts are served by the `*.staging.dub.link` wildcard and were
@@ -8,6 +9,8 @@ export const removeDomainFromVercel = async (domain: string) => {
   if (domain.toLowerCase().endsWith(STAGING_DUB_DOMAIN_SUFFIX)) {
     return null;
   }
+
+  assertValidDomainFormat(domain);
 
   const apexDomain = getApexDomain(`https://${domain}`);
   const domains = await prisma.domain.findMany({

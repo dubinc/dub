@@ -1,4 +1,5 @@
 import { isPrivateIp } from "@/lib/api/is-private-ip";
+import { assertSafeStorageKey } from "@/lib/storage/assert-safe-storage-key";
 import { OG_AVATAR_URL, R2_URL, fetchWithTimeout } from "@dub/utils";
 import { AwsClient } from "aws4fetch";
 import { promises as dns } from "dns";
@@ -60,15 +61,14 @@ class StorageClient {
       headers["Content-Type"] = opts.contentType;
     }
 
+    const requestUrl = this.objectRequestUrl(key, bucket);
+
     try {
-      const response = await this.client.fetch(
-        `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
-        {
-          method: "PUT",
-          headers,
-          body: uploadBody,
-        },
-      );
+      const response = await this.client.fetch(requestUrl, {
+        method: "PUT",
+        headers,
+        body: uploadBody,
+      });
 
       if (!response.ok) {
         throw new Error(response.statusText);
@@ -90,13 +90,12 @@ class StorageClient {
     key: string;
     bucket?: BucketType;
   }) {
+    const requestUrl = this.objectRequestUrl(key, bucket);
+
     try {
-      const response = await this.client.fetch(
-        `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
-        {
-          method: "DELETE",
-        },
-      );
+      const response = await this.client.fetch(requestUrl, {
+        method: "DELETE",
+      });
 
       if (!response.ok) {
         throw new Error(response.statusText);
@@ -110,7 +109,7 @@ class StorageClient {
   // Fetch object metadata (Content-Type, size, eTag) without downloading the body
   async head({ key, bucket = "public" }: { key: string; bucket?: BucketType }) {
     const response = await this.client.fetch(
-      `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
+      this.objectRequestUrl(key, bucket),
       {
         method: "HEAD",
       },
@@ -148,7 +147,7 @@ class StorageClient {
     length?: number;
   }) {
     const response = await this.client.fetch(
-      `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
+      this.objectRequestUrl(key, bucket),
       {
         method: "GET",
         headers: {
@@ -183,9 +182,7 @@ class StorageClient {
     expiresIn: number;
     headers?: Record<string, string>;
   }) {
-    const url = new URL(
-      `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
-    );
+    const url = new URL(this.objectRequestUrl(key, bucket));
 
     url.searchParams.set("X-Amz-Expires", String(expiresIn));
 
@@ -362,6 +359,12 @@ class StorageClient {
       return new Blob([blob], { type: opts.contentType });
     }
     return blob;
+  }
+
+  private objectRequestUrl(key: string, bucket: BucketType) {
+    assertSafeStorageKey(key);
+
+    return `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`;
   }
 
   private _getBucketName(bucket: BucketType) {

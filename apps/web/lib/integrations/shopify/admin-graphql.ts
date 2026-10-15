@@ -1,3 +1,5 @@
+import { isValidShopifyStoreId } from "./store-id";
+
 const SHOPIFY_ADMIN_API_VERSION = "2025-04";
 
 export class ShopifyAdminGraphqlError extends Error {
@@ -24,6 +26,13 @@ export async function shopifyAdminGraphql<T>({
   query: string;
   variables?: Record<string, unknown>;
 }): Promise<T> {
+  if (!isValidShopifyStoreId(shopifyStoreId)) {
+    throw new ShopifyAdminGraphqlError(
+      "invalid_store",
+      "Invalid Shopify store domain.",
+    );
+  }
+
   const response = await fetch(
     `https://${shopifyStoreId}/admin/api/${SHOPIFY_ADMIN_API_VERSION}/graphql.json`,
     {

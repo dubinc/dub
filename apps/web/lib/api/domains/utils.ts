@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { DubApiError } from "../errors";
-import { isValidDomain } from "./is-valid-domain";
+import { isValidDomain, isValidDomainFormat } from "./is-valid-domain";
 import { validateDubLinkSubdomain } from "./validate-dub-link-subdomain";
 
 export const validateDomain = async (
@@ -28,6 +28,20 @@ export const validateDomain = async (
   }
   return { error: null };
 };
+
+// Subdomain checks request `*.apex`, which we build from the apex hostname.
+export function assertValidDomainFormat(domain: string) {
+  const hostname =
+    typeof domain === "string" && domain.startsWith("*.")
+      ? domain.slice(2)
+      : domain;
+  if (typeof hostname !== "string" || !isValidDomainFormat(hostname)) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "Invalid domain",
+    });
+  }
+}
 
 export const domainExists = async (domain: string) => {
   const response = await prisma.domain.findFirst({

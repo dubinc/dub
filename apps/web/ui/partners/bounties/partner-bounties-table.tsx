@@ -105,7 +105,7 @@ const COLUMNS: ColumnDef<PartnerBountyRow>[] = [
   },
   {
     id: "rewardAmount",
-    header: "Earnings",
+    header: "Reward",
     size: 160,
     cell: ({ row }) => <BountyEarnings bounty={row.original} />,
   },
