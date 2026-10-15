@@ -1,7 +1,7 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { EarningsCompositeChart } from "./earnings-composite-chart";
-import { EarningsTablePartner } from "./earnings-table";
+import { EarningsCompositeChart } from "@/ui/partners/earnings/earnings-composite-chart";
+import { EarningsTablePartner } from "@/ui/partners/earnings/earnings-table";
 
 export default function PartnerProgramEarningsPage() {
   return (

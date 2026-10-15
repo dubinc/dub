@@ -12,9 +12,11 @@ import {
   OverviewCard,
   OverviewCardList,
 } from "./overview-card";
+import { useEarningsPageHref } from "./use-earnings-page-href";
 
 export function TopLinksCard({ className }: { className?: string }) {
   const { start, end, interval } = usePartnerDateRange();
+  const earningsPageHref = useEarningsPageHref({ groupBy: "linkId" });
 
   const { data: links, error } = usePartnerProfileEarningsAnalytics({
     groupBy: "linkId",
@@ -27,6 +29,7 @@ export function TopLinksCard({ className }: { className?: string }) {
   return (
     <OverviewCard
       title="Top links by earnings"
+      viewAllHref={earningsPageHref}
       className={cn("rounded-2xl", className)}
       testId={testIds.partnerOverview.topLinks}
     >

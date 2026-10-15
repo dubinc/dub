@@ -1,5 +1,7 @@
 import { getReportingPeriod } from "@/lib/jobs/handlers/send-partner-program-summary-job";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("server-only", () => ({}));
 
 describe("getReportingPeriod", () => {
   it("returns UTC month bounds for a mid-year month", () => {

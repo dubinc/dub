@@ -1,7 +1,8 @@
 "use client";
 
 import { IntervalOptions } from "@/lib/analytics/types";
-import { Button, LoadingSpinner, Modal } from "@dub/ui";
+import { Button, LoadingSpinner, Modal, Tooltip } from "@dub/ui";
+import { ReferredVia } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { X } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -23,12 +24,28 @@ type BackgroundType = (typeof BACKGROUND_OPTIONS)[number]["id"];
 type ShareEarningsModalProps = {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
-  programId: string;
+  // without a program, the image shows the earnings of all programs
+  programId?: string;
   start?: Date;
   end?: Date;
   interval: IntervalOptions;
-  timeseries?: { start: string; earnings: number }[];
 };
+
+// the share icon next to an earnings chart title
+export function ShareChartButton({ onClick }: { onClick: () => void }) {
+  return (
+    <Tooltip content="Share chart">
+      <button
+        type="button"
+        aria-label="Share chart"
+        onClick={onClick}
+        className="flex size-6 items-center justify-center rounded-md border border-transparent text-neutral-500 transition-colors hover:border-neutral-200 hover:bg-neutral-50 hover:text-neutral-700"
+      >
+        <ReferredVia className="size-3.5" />
+      </button>
+    </Tooltip>
+  );
+}
 
 export function ShareEarningsModal({
   showModal,
@@ -37,7 +54,6 @@ export function ShareEarningsModal({
   start,
   end,
   interval,
-  timeseries,
 }: ShareEarningsModalProps) {
   return (
     <Modal
@@ -51,7 +67,6 @@ export function ShareEarningsModal({
         start={start}
         end={end}
         interval={interval}
-        timeseries={timeseries}
       />
     </Modal>
   );
@@ -63,7 +78,6 @@ function ShareEarningsModalInner({
   start,
   end,
   interval,
-  timeseries,
 }: Omit<ShareEarningsModalProps, "showModal">) {
   const [background, setBackground] = useState<BackgroundType>("light");
   const [isLoading, setIsLoading] = useState(false);
@@ -72,7 +86,7 @@ function ShareEarningsModalInner({
   const imageUrl = useMemo(() => {
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     return `/api/og/partner-earnings?${new URLSearchParams({
-      programId,
+      ...(programId && { programId }),
       background,
       interval,
       timezone,
@@ -82,8 +96,6 @@ function ShareEarningsModalInner({
   }, [programId, background, interval, start, end]);
 
   useEffect(() => {
-    if (!programId) return;
-
     const abortController = new AbortController();
 
     setIsLoading(true);
@@ -102,7 +114,7 @@ function ShareEarningsModalInner({
       });
 
     return () => abortController.abort();
-  }, [imageUrl, programId]);
+  }, [imageUrl]);
 
   const handleCopy = async () => {
     if (!blob) return;
