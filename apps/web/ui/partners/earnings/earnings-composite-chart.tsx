@@ -445,25 +445,38 @@ function EarningsTableControls() {
           return <LinkIcon url={props.option?.data?.url} />;
         },
         options:
-          links?.map(({ id, domain, key, url }) => ({
-            value: id,
-            label: linkConstructor({
-              domain,
-              key,
-              pretty: true,
-            }),
-            data: { url },
-          })) ?? null,
+          links
+            ?.flatMap(({ id, domain, key, url }) =>
+              id && domain && key
+                ? [
+                    {
+                      value: id,
+                      label: linkConstructor({
+                        domain,
+                        key,
+                        pretty: true,
+                      }),
+                      data: { url },
+                    },
+                  ]
+                : [],
+            ) ?? null,
       },
       {
         key: "customerId",
         icon: User,
         label: "Customer",
         options:
-          customers?.map(({ id, email }) => ({
-            value: id,
-            label: email || id,
-          })) ?? null,
+          customers?.flatMap(({ id, email }) =>
+            id
+              ? [
+                  {
+                    value: id,
+                    label: email || id,
+                  },
+                ]
+              : [],
+          ) ?? null,
       },
       {
         key: "status",
