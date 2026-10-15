@@ -1,34 +1,28 @@
 "use client";
 
 import { Button } from "@dub/ui";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-export function CTAButtons() {
+export function CTAButtons({ isAuthenticated }: { isAuthenticated: boolean }) {
   const { programSlug } = useParams();
-  const { status } = useSession();
 
   const slugPrefix = programSlug ? `/${programSlug}` : "";
 
   return (
     <>
-      <Link
-        href={
-          status === "authenticated" ? "/programs" : `${slugPrefix}/register`
-        }
-      >
+      <Link href={isAuthenticated ? "/programs" : `${slugPrefix}/register`}>
         <Button
           type="button"
           text={
-            status === "authenticated"
+            isAuthenticated
               ? "Continue to Dub Partners"
               : "Create your Dub Partners account"
           }
           className="border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
         />
       </Link>
-      {status === "unauthenticated" && (
+      {!isAuthenticated && (
         <Link href={`${slugPrefix}/login`}>
           <Button
             type="button"
