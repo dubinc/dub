@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getDomainsCountQuerySchema } from "@/lib/zod/schemas/domains";
 import { NextResponse } from "next/server";
 
-// GET /api/domains/count – get the number of domains for a workspace
+// GET /api/domains/count – get the number of domains in a workspace
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace }) => {
     const { archived, search } = getDomainsCountQuerySchema.parse(searchParams);
