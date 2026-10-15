@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
 // Finds program enrollments whose partner no longer exists and deletes them by ID,
-// together with their customers and links.
+// together with their customers, links, commissions, payouts and other related rows
+// (the same rows bulkDeletePartners deletes for Acme enrollments).
 // This can happen because the schema uses relationMode = "prisma" (no DB-level
 // foreign keys), so raw SQL deletes of Partner rows (e.g. bulkDeletePartners)
 // don't cascade to ProgramEnrollment.
@@ -114,6 +115,75 @@ async function deleteOrphanedProgramEnrollment({
     const { deletedCount } = await bulkDeleteLinks(links);
     console.log(`Deleted ${deletedCount} links`);
   }
+
+  const commissions = await prisma.commission.findMany({
+    where: {
+      programId,
+      partnerId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (commissions.length > 0) {
+    const commissionIds = commissions.map((commission) => commission.id);
+
+    const deletedCommissions = await prisma.commission.deleteMany({
+      where: {
+        id: {
+          in: commissionIds,
+        },
+      },
+    });
+    console.log(`Deleted ${deletedCommissions.count} commissions`);
+
+    const deletedActivityLogsForCommissions =
+      await prisma.activityLog.deleteMany({
+        where: {
+          resourceType: "commission",
+          resourceId: {
+            in: commissionIds,
+          },
+        },
+      });
+    console.log(
+      `Deleted ${deletedActivityLogsForCommissions.count} activity logs for commissions`,
+    );
+  }
+
+  const deletedPayouts = await prisma.payout.deleteMany({
+    where: {
+      programId,
+      partnerId,
+    },
+  });
+  console.log(`Deleted ${deletedPayouts.count} payouts`);
+
+  const deletedMessages = await prisma.message.deleteMany({
+    where: {
+      programId,
+      partnerId,
+    },
+  });
+  console.log(`Deleted ${deletedMessages.count} messages`);
+
+  const deletedBountySubmissions = await prisma.bountySubmission.deleteMany({
+    where: {
+      programId,
+      partnerId,
+    },
+  });
+  console.log(`Deleted ${deletedBountySubmissions.count} bounty submissions`);
+
+  const deletedActivityLogs = await prisma.activityLog.deleteMany({
+    where: {
+      programId,
+      resourceType: "partner",
+      resourceId: partnerId,
+    },
+  });
+  console.log(`Deleted ${deletedActivityLogs.count} activity logs`);
 
   await prisma.programEnrollment.delete({
     where: {
