@@ -81,6 +81,7 @@ export async function backfillCustomerNormalizedEmailBatch({
     END
     WHERE id IN (${Prisma.join(updates.map((u) => u.id))})
       AND normalizedEmail IS NULL
+      AND email IS NOT NULL
   `;
 
   return {
