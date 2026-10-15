@@ -6,6 +6,7 @@ import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { format } from "date-fns";
 import * as z from "zod/v4";
+import { getPartnerEarningsSqlWhere } from "./get-partner-earnings-where";
 
 export async function getPartnerEarningsTimeseries({
   partnerId,
@@ -70,17 +71,17 @@ export async function getPartnerEarningsTimeseries({
           ${groupByColumn ? Prisma.sql`${groupByColumn},` : Prisma.sql``}
           SUM(earnings) AS earnings
         FROM Commission
-        WHERE 
-          earnings != 0
-          ${programId ? Prisma.sql`AND programId = ${programId}` : Prisma.sql`AND programId != ${NETWORK_PROGRAM_ID}`}
-          AND partnerId = ${partnerId}
-          AND createdAt >= ${startDate}
-          AND createdAt < ${endDate}
-          ${type ? Prisma.sql`AND type = ${type}` : Prisma.sql``}
-          ${payoutId ? Prisma.sql`AND payoutId = ${payoutId}` : Prisma.sql``}
-          ${linkId ? Prisma.sql`AND linkId = ${linkId}` : Prisma.sql``}
-          ${customerId ? Prisma.sql`AND customerId = ${customerId}` : Prisma.sql``}
-          ${status ? Prisma.sql`AND status = ${status}` : Prisma.sql``}
+        WHERE ${getPartnerEarningsSqlWhere({
+          partnerId,
+          programId,
+          startDate,
+          endDate,
+          type,
+          status,
+          linkId,
+          customerId,
+          payoutId,
+        })}
           GROUP BY start${groupByColumn ? Prisma.sql`, ${groupByColumn}` : Prisma.sql``}
         ORDER BY start ASC;
       `;

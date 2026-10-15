@@ -7,10 +7,13 @@ import {
   PartnerProfileTopProgramEarningsSchema,
   PartnerProfileTypeEarningsSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { COUNTRIES_TO_CONTINENTS, NETWORK_PROGRAM_ID } from "@dub/utils";
+import { COUNTRIES_TO_CONTINENTS } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
-import { getEarningsProgramFilter } from "./get-earnings-program-id";
+import {
+  getPartnerEarningsSqlWhere,
+  getPartnerEarningsWhere,
+} from "./get-partner-earnings-where";
 
 // the program fields that the partner earnings routes return with each group
 export const programSelect = {
@@ -53,38 +56,27 @@ export async function getPartnerEarningsByGroup({
     timezone,
   });
 
+  const earningsFilters = {
+    partnerId,
+    programId,
+    startDate,
+    endDate,
+    type,
+    status,
+    linkId,
+    customerId,
+    payoutId,
+  };
+
   if (isAttributeGroupBy(groupBy)) {
     return getPartnerEarningsByAttribute({
-      partnerId,
-      programId,
       groupBy,
       limit,
-      type,
-      linkId,
-      customerId,
-      payoutId,
-      status,
-      startDate,
-      endDate,
+      sqlWhere: getPartnerEarningsSqlWhere(earningsFilters, "c"),
     });
   }
 
-  const where: Prisma.CommissionWhereInput = {
-    earnings: {
-      not: 0,
-    },
-    programId: getEarningsProgramFilter(programId),
-    partnerId,
-    ...(type && { type }),
-    ...(linkId && { linkId }),
-    ...(customerId && { customerId }),
-    ...(payoutId && { payoutId }),
-    ...(status && { status }),
-    createdAt: {
-      gte: startDate,
-      lte: endDate,
-    },
-  };
+  const where = getPartnerEarningsWhere(earningsFilters);
 
   if (groupBy === "programId") {
     const sums = await prisma.commission.groupBy({
@@ -213,26 +205,13 @@ const ATTRIBUTE_COLUMNS: Record<AttributeGroupBy, Prisma.Sql> = {
 
 // sums earnings by a field of the commission's link or customer. Commissions without one, or with an empty value, are left out
 async function getPartnerEarningsByAttribute({
-  partnerId,
-  programId,
   groupBy,
   limit,
-  type,
-  linkId,
-  customerId,
-  payoutId,
-  status,
-  startDate,
-  endDate,
-}: Pick<
-  z.infer<typeof partnerProfileEarningsAnalyticsQuerySchema>,
-  "limit" | "type" | "linkId" | "customerId" | "payoutId" | "status"
-> & {
-  partnerId: string;
-  programId?: string;
+  sqlWhere,
+}: {
   groupBy: AttributeGroupBy;
-  startDate: Date;
-  endDate: Date;
+  limit: number;
+  sqlWhere: Prisma.Sql; // the earnings conditions on Commission, with the alias "c"
 }) {
   const column = ATTRIBUTE_COLUMNS[groupBy];
   const isCustomerField = groupBy === "country" || groupBy === "continent";
@@ -244,16 +223,7 @@ async function getPartnerEarningsByAttribute({
     FROM Commission c
     ${isCustomerField ? Prisma.sql`INNER JOIN Customer cu ON cu.id = c.customerId` : Prisma.sql`INNER JOIN Link l ON l.id = c.linkId`}
     WHERE
-      c.earnings != 0
-      ${programId ? Prisma.sql`AND c.programId = ${programId}` : Prisma.sql`AND c.programId != ${NETWORK_PROGRAM_ID}`}
-      AND c.partnerId = ${partnerId}
-      AND c.createdAt >= ${startDate}
-      AND c.createdAt <= ${endDate}
-      ${type ? Prisma.sql`AND c.type = ${type}` : Prisma.sql``}
-      ${linkId ? Prisma.sql`AND c.linkId = ${linkId}` : Prisma.sql``}
-      ${customerId ? Prisma.sql`AND c.customerId = ${customerId}` : Prisma.sql``}
-      ${payoutId ? Prisma.sql`AND c.payoutId = ${payoutId}` : Prisma.sql``}
-      ${status ? Prisma.sql`AND c.status = ${status}` : Prisma.sql``}
+      ${sqlWhere}
       AND ${column} IS NOT NULL
       AND ${column} != ''
     GROUP BY groupValue
