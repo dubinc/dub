@@ -980,9 +980,6 @@ async function cleanupFraudEvents({
     (e) => e.fraudEventGroup._count.fraudEvents === 2,
   );
 
-  const resolutionReason =
-    "Automatically resolved because the duplicate partner accounts were merged.";
-
   // Move the source's pending groups onto the target, which now holds the commissions.
   const sourceFraudGroups = await prisma.fraudEventGroup.findMany({
     where: {
@@ -1013,15 +1010,13 @@ async function cleanupFraudEvents({
   const groupIdsByPartnerId = new Map<string, string[]>();
 
   if (sourceFraudGroups.length > 0) {
-    groupIdsByPartnerId.set(
-      targetPartnerId,
-      sourceFraudGroups.map((group) => group.id),
-    );
+    groupIdsByPartnerId.set(targetPartnerId, pluck(sourceFraudGroups, "id"));
   }
 
   for (const event of fraudEventGroupsToResolve) {
     const { id, partnerId } = event.fraudEventGroup;
 
+    // Already queued under the target; this partnerId is the pre-update value.
     if (partnerId === sourcePartnerId) {
       continue;
     }
@@ -1045,7 +1040,8 @@ async function cleanupFraudEvents({
         },
         type: FraudRuleType.partnerDuplicateAccount,
       },
-      resolutionReason,
+      resolutionReason:
+        "Automatically resolved because the duplicate partner accounts were merged.",
       releaseHoldCommissions: true,
     });
   }
