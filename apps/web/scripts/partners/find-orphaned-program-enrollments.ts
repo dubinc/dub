@@ -1,4 +1,5 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
@@ -19,6 +20,7 @@ type OrphanedProgramEnrollment = {
   partnerId: string;
   programId: string;
   programSlug: string | null;
+  workspaceId: string | null;
   status: string;
   createdAt: Date;
 };
@@ -32,6 +34,7 @@ async function main() {
       pe.partnerId,
       pe.programId,
       pr.slug AS programSlug,
+      pr.workspaceId,
       pe.status,
       pe.createdAt
     FROM ProgramEnrollment pe
@@ -83,6 +86,11 @@ async function main() {
     deletedCount++;
   }
 
+  // the sync job removes enrollments it cannot read back from the search index
+  await queuePartnerSearchSync({
+    enrollmentIds: orphanedProgramEnrollments.map(({ id }) => id),
+  });
+
   console.log(
     `Deleted ${deletedCount} of ${orphanedProgramEnrollments.length} orphaned program enrollments.`,
   );
@@ -92,6 +100,7 @@ async function deleteOrphanedProgramEnrollment({
   id,
   partnerId,
   programId,
+  workspaceId,
 }: OrphanedProgramEnrollment) {
   console.log(`Deleting program enrollment ${id}`);
 
@@ -190,6 +199,19 @@ async function deleteOrphanedProgramEnrollment({
       id,
     },
   });
+
+  if (workspaceId) {
+    await prisma.project.update({
+      where: {
+        id: workspaceId,
+      },
+      data: {
+        partnersUsage: {
+          decrement: 1,
+        },
+      },
+    });
+  }
 }
 
 main();
