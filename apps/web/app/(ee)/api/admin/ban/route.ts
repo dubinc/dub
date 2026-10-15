@@ -20,5 +20,3 @@ export const POST = withAdmin(
     requiredRoles: ["owner"],
   },
 );
-
-// Temporary line to trigger the DeepSec review. Revert before merge.
