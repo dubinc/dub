@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
+import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
@@ -173,6 +174,14 @@ const mapCsvRowToLink = (
       };
     }
     const domain = linkObj.hostname;
+
+    if (!isValidDomainFormat(domain)) {
+      return {
+        success: false,
+        error: `Invalid domain: ${domain}`,
+      };
+    }
+
     const key = linkObj.pathname.slice(1) || "_root";
 
     let urlObj: URL;
