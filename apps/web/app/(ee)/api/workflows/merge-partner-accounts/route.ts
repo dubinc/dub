@@ -989,6 +989,11 @@ async function cleanupFraudEvents({
     },
     select: {
       id: true,
+      _count: {
+        select: {
+          fraudEvents: true,
+        },
+      },
     },
   });
 
@@ -1009,8 +1014,14 @@ async function cleanupFraudEvents({
   // Bucket group ids by the partner whose held commissions should be released.
   const groupIdsByPartnerId = new Map<string, string[]>();
 
-  if (sourceFraudGroups.length > 0) {
-    groupIdsByPartnerId.set(targetPartnerId, pluck(sourceFraudGroups, "id"));
+  // A source group with another partner still listed stays pending.
+  const sourceGroupIdsToResolve = pluck(
+    sourceFraudGroups.filter((group) => group._count.fraudEvents <= 1),
+    "id",
+  );
+
+  if (sourceGroupIdsToResolve.length > 0) {
+    groupIdsByPartnerId.set(targetPartnerId, sourceGroupIdsToResolve);
   }
 
   for (const event of fraudEventGroupsToResolve) {
