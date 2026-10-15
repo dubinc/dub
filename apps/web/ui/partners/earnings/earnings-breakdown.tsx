@@ -29,7 +29,7 @@ import {
   Note,
 } from "@dub/ui/icons";
 import { capitalize, CONTINENTS, COUNTRIES } from "@dub/utils";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useMemo, useRef, useState } from "react";
 import { usePartnerEarningsFilters } from "./use-partner-earnings-filters";
 
 // the most groups the earnings analytics route returns. "View all" lists all of them
@@ -288,13 +288,19 @@ function useEarningsBreakdown(groupBy: BreakdownGroupBy) {
   const filters = usePartnerEarningsFilters();
   const { queryParams, searchParams } = useRouterStuff();
 
-  const { data, error } = usePartnerProfileEarningsAnalytics({
+  const { data, error, isLoading } = usePartnerProfileEarningsAnalytics({
     ...filters,
     groupBy,
     limit: EARNINGS_BREAKDOWN_LIMIT,
-    // the previous data can belong to another group of the same card
-    keepPreviousData: false,
   });
+
+  // SWR keeps the last data while the next request loads. Show it only when it is of the same group,
+  // so a filter or date change keeps the rows, and a tab change shows the spinner
+  const loadedGroupBy = useRef(groupBy);
+  if (data && !isLoading) {
+    loadedGroupBy.current = groupBy;
+  }
+  const groupData = loadedGroupBy.current === groupBy ? data : undefined;
 
   const filterKey = FILTER_KEYS[groupBy];
 
@@ -317,8 +323,8 @@ function useEarningsBreakdown(groupBy: BreakdownGroupBy) {
   );
 
   const rows = useMemo(
-    () => data && getBreakdownRows(groupBy, data),
-    [data, groupBy],
+    () => groupData && getBreakdownRows(groupBy, groupData),
+    [groupData, groupBy],
   );
 
   return { rows, error, filter };
