@@ -39,6 +39,7 @@ import {
   PartnerGroup,
   PartnerPlatform,
   Program,
+  ProgramApplication,
   ProgramApplicationStatus,
   ProgramEnrollment,
   ProgramEnrollmentStatus,
@@ -177,7 +178,15 @@ export const createProgramApplicationAction = actionClient
             users: { some: { userId: session.user.id } },
           },
           include: {
-            programs: true,
+            programs: {
+              include: {
+                application: {
+                  select: {
+                    reviewedAt: true,
+                  },
+                },
+              },
+            },
             platforms: true,
             preferredEarningStructures: true,
             salesChannels: true,
@@ -260,16 +269,23 @@ async function createApplicationAndEnrollment({
   workspace: Pick<Project, "id" | "webhookEnabled">;
   program: Program;
   partner: Partner & {
-    programs: ProgramEnrollment[];
+    programs: (ProgramEnrollment & {
+      application: Pick<ProgramApplication, "reviewedAt"> | null;
+    })[];
     platforms: PartnerPlatform[];
   };
   group: PartnerGroup;
   data: z.infer<typeof createProgramApplicationSchema>;
   inAppApplication?: boolean;
 }) {
+  const existingEnrollment = partner.programs.find(
+    (p) => p.programId === program.id,
+  );
+
   throwIfApplicationBlocked({
-    enrollment: partner.programs.find((p) => p.programId === program.id),
+    enrollment: existingEnrollment,
     groupId: group.id,
+    rejectedAt: existingEnrollment && getRejectedAt(existingEnrollment),
   });
 
   const sanitizedData = sanitizeData(data, group);
@@ -306,10 +322,17 @@ async function createApplicationAndEnrollment({
           },
         },
         select: {
+          id: true,
           status: true,
           groupId: true,
           createdAt: true,
+          updatedAt: true,
           reapplicationTimeframe: true,
+          application: {
+            select: {
+              reviewedAt: true,
+            },
+          },
         },
       });
 
@@ -320,7 +343,9 @@ async function createApplicationAndEnrollment({
         enrollment.groupId !== group.id &&
         enrollment.reapplicationTimeframe !== ReapplicationTimeframe.instant;
 
-      let rejectedAt: Date | null = null;
+      let rejectedAt: Date | null = enrollment
+        ? getRejectedAt(enrollment)
+        : null;
 
       // The stored timeframe belongs to the latest application reviewed since the
       // enrollment was created, and only applies if that review was a rejection.
@@ -387,6 +412,38 @@ async function createApplicationAndEnrollment({
         },
       });
 
+      const enrollmentData = {
+        status: ProgramEnrollmentStatus.pending,
+        applicationId,
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        referralRewardId: group.referralRewardId,
+        customRewardId: group.customRewardId,
+        discountId: group.discountId,
+      };
+
+      // A rejected partner past the reapplication window applies again, so the
+      // rejected enrollment goes back to pending. The new createdAt is the
+      // application date that the partner and the program see.
+      if (enrollment?.status === ProgramEnrollmentStatus.rejected) {
+        const programEnrollment = await tx.programEnrollment.update({
+          where: {
+            id: enrollment.id,
+          },
+          data: {
+            ...enrollmentData,
+            createdAt: new Date(),
+          },
+        });
+
+        return {
+          programApplication,
+          programEnrollment,
+        };
+      }
+
       const programEnrollment = await tx.programEnrollment.upsert({
         where: {
           partnerId_programId: {
@@ -395,18 +452,10 @@ async function createApplicationAndEnrollment({
           },
         },
         create: {
+          ...enrollmentData,
           id: enrollmentId,
           partnerId: partner.id,
           programId: program.id,
-          status: ProgramEnrollmentStatus.pending,
-          applicationId,
-          groupId: group.id,
-          clickRewardId: group.clickRewardId,
-          leadRewardId: group.leadRewardId,
-          saleRewardId: group.saleRewardId,
-          referralRewardId: group.referralRewardId,
-          customRewardId: group.customRewardId,
-          discountId: group.discountId,
         },
         update: {
           // don't update the enrollment if it already exists
@@ -535,6 +584,20 @@ async function createApplicationAndEnrollment({
       country: partner.country ?? data.country ?? undefined,
     },
   };
+}
+
+// When a rejected enrollment was rejected. The cleanup cron uses updatedAt, so
+// it is the fallback for enrollments without a reviewed application.
+function getRejectedAt(
+  enrollment: Pick<ProgramEnrollment, "status" | "updatedAt"> & {
+    application: Pick<ProgramApplication, "reviewedAt"> | null;
+  },
+) {
+  if (enrollment.status !== ProgramEnrollmentStatus.rejected) {
+    return null;
+  }
+
+  return enrollment.application?.reviewedAt ?? enrollment.updatedAt;
 }
 
 async function createApplication({
