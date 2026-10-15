@@ -3,6 +3,7 @@
 import { submitNetworkProfileAction } from "@/lib/actions/partners/submit-network-profile";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import { getReapplyStatus } from "@/lib/program-applications/reapplication";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
@@ -104,15 +105,19 @@ export function ProgramSidebar({
 
   const [justApplied, setJustApplied] = useState(false);
 
+  const { canReapply, blockedReason: reapplyBlockedReason } = programEnrollment
+    ? getReapplyStatus(programEnrollment)
+    : { canReapply: false, blockedReason: null };
+
   const applyDisabledTooltip: ReactNode =
     justApplied ? undefined : programEnrollment?.status === "pending" ? (
       "Your application is under review"
+    ) : reapplyBlockedReason ? (
+      reapplyBlockedReason
     ) : programEnrollment?.status &&
-      ["banned", "rejected", "deactivated"].includes(
-        programEnrollment.status,
-      ) ? (
+      ["banned", "deactivated"].includes(programEnrollment.status) ? (
       `You were ${programEnrollment.status} from this program`
-    ) : programEnrollment ? undefined : !isComplete ? (
+    ) : programEnrollment && !canReapply ? undefined : !isComplete ? (
       <div className="max-w-xs p-3 text-center">
         <div className="text-content-default text-pretty text-sm leading-5">
           Complete your profile to join the Dub Partner Network. Once approved,
@@ -185,6 +190,7 @@ export function ProgramSidebar({
   const buttonText = useMemo(() => {
     if (justApplied) return "Applied";
     if (!programEnrollment) return "Apply";
+    if (canReapply) return "Reapply";
 
     switch (programEnrollment.status) {
       case "pending":
@@ -194,7 +200,7 @@ export function ProgramSidebar({
       default:
         return capitalize(programEnrollment.status);
     }
-  }, [justApplied, programEnrollment]);
+  }, [justApplied, programEnrollment, canReapply]);
 
   const { programApplicationSheet, setIsOpen: setIsApplicationSheetOpen } =
     useProgramApplicationSheet({
@@ -274,7 +280,8 @@ export function ProgramSidebar({
         text={buttonText}
         icon={justApplied ? <CircleCheck className="size-4" /> : undefined}
         disabled={
-          !applyDisabledTooltip && (!!programEnrollment || justApplied)
+          !applyDisabledTooltip &&
+          ((!!programEnrollment && !canReapply) || justApplied)
             ? true
             : undefined
         }
