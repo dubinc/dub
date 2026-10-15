@@ -90,7 +90,10 @@ const LINK_SUBTABS = [
   { id: "linkId", label: "URL" },
 ] as const;
 
-const UTM_SUBTABS = UTM_PARAMETERS.map(({ key, label }) => ({
+// the UTM fields of a link (UTM_PARAMETERS also has "ref")
+const UTM_SUBTABS = UTM_PARAMETERS.filter(({ key }) =>
+  key.startsWith("utm_"),
+).map(({ key, label }) => ({
   id: key,
   label,
 }));
@@ -271,6 +274,8 @@ function useEarningsBreakdown(groupBy: PartnerProfileEarningsAnalyticsGroupBy) {
     ...filters,
     groupBy,
     limit: EARNINGS_BREAKDOWN_LIMIT,
+    // the previous data can belong to another group of the same card
+    keepPreviousData: false,
   });
 
   const filterKey = FILTER_KEYS[groupBy];
