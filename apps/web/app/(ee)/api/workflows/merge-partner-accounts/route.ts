@@ -980,15 +980,18 @@ async function cleanupFraudEvents({
     (e) => e.fraudEventGroup._count.fraudEvents === 2,
   );
 
-  // Move the source's pending groups onto the target, which now holds the commissions.
+  // Move every pending source group onto the target, which now holds the
+  // commissions. Customer-level groups and cross-program bans stay pending so
+  // the release check can still see them. Only cleared duplicate-account
+  // groups are resolved below.
   const sourceFraudGroups = await prisma.fraudEventGroup.findMany({
     where: {
       partnerId: sourcePartnerId,
-      type: FraudRuleType.partnerDuplicateAccount,
       status: FraudEventStatus.pending,
     },
     select: {
       id: true,
+      type: true,
       _count: {
         select: {
           fraudEvents: true,
@@ -998,12 +1001,26 @@ async function cleanupFraudEvents({
   });
 
   if (sourceFraudGroups.length > 0) {
+    const sourceFraudGroupIds = pluck(sourceFraudGroups, "id");
+
     await prisma.fraudEventGroup.updateMany({
       where: {
         id: {
-          in: pluck(sourceFraudGroups, "id"),
+          in: sourceFraudGroupIds,
         },
         status: FraudEventStatus.pending,
+      },
+      data: {
+        partnerId: targetPartnerId,
+      },
+    });
+
+    await prisma.fraudEvent.updateMany({
+      where: {
+        fraudEventGroupId: {
+          in: sourceFraudGroupIds,
+        },
+        partnerId: sourcePartnerId,
       },
       data: {
         partnerId: targetPartnerId,
@@ -1016,7 +1033,11 @@ async function cleanupFraudEvents({
 
   // A source group with another partner still listed stays pending.
   const sourceGroupIdsToResolve = pluck(
-    sourceFraudGroups.filter((group) => group._count.fraudEvents <= 1),
+    sourceFraudGroups.filter(
+      (group) =>
+        group.type === FraudRuleType.partnerDuplicateAccount &&
+        group._count.fraudEvents <= 1,
+    ),
     "id",
   );
 
