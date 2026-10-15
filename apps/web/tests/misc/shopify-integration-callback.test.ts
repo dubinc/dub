@@ -71,7 +71,13 @@ describe("PATCH /api/shopify/integration/callback", () => {
     mocks.updateProject.mockImplementation(async ({ data }) => data);
   });
 
-  it.each(["evil.com/x?", "169.254.169.254", "acme.myshopify.com.evil.com"])(
+  it.each([
+    "evil.com/x?",
+    "169.254.169.254",
+    "acme.myshopify.com.evil.com",
+    "acme-.myshopify.com",
+    `${"a".repeat(64)}.myshopify.com`,
+  ])(
     "rejects %s without contacting it or saving it",
     async (shopifyStoreId) => {
       await expect(connect(shopifyStoreId)).rejects.toThrow();

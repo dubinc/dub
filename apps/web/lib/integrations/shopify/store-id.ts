@@ -1,4 +1,4 @@
-const SHOPIFY_STORE_ID_REGEX = /^[a-z0-9][a-z0-9-]*\.myshopify\.com$/;
+const SHOPIFY_STORE_ID_REGEX = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.myshopify\.com$/;
 
 // Rejects store IDs that are not a `*.myshopify.com` domain. The store ID is
 // used as the Admin API hostname, so anything else could redirect the request.
