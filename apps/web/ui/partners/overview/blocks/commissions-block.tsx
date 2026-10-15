@@ -2,13 +2,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { ArrowRight, LoadingSpinner, StatusBadge } from "@dub/ui";
+import { LoadingSpinner, StatusBadge } from "@dub/ui";
 import { currencyFormatter, fetcher } from "@dub/utils";
-import Link from "next/link";
 import { useContext } from "react";
 import useSWR from "swr";
 import { CommissionStatusBadges } from "../../commission-status-badges";
 import { ProgramOverviewBlock } from "../program-overview-block";
+import { ProgramOverviewRow } from "../program-overview-row";
 
 export function CommissionsBlock() {
   const { slug: workspaceSlug } = useWorkspace();
@@ -27,8 +27,10 @@ export function CommissionsBlock() {
     <ProgramOverviewBlock
       title="Recent commissions"
       viewAllHref={`/${workspaceSlug}/program/commissions`}
+      className="pb-3.5"
+      contentClassName="px-3"
     >
-      <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
+      <div className="@2xl:h-[257px] flex h-auto flex-col">
         {isLoading ? (
           <div className="flex size-full items-center justify-center py-4">
             <LoadingSpinner />
@@ -46,15 +48,13 @@ export function CommissionsBlock() {
             const badge = CommissionStatusBadges[status];
 
             return (
-              <Link
+              <ProgramOverviewRow
                 key={id}
                 href={`/${workspaceSlug}/program/commissions/${id}`}
-                className="text-content-default group flex h-10 items-center justify-between text-xs font-medium"
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <PartnerAvatar partner={partner} className="size-4" />
                   <span className="min-w-0 truncate">{partner.name}</span>
-                  <ArrowRight className="text-content-emphasis size-2.5 -translate-x-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100 [&_*]:stroke-2" />
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -70,7 +70,7 @@ export function CommissionsBlock() {
                     {currencyFormatter(earnings)}
                   </span>
                 </div>
-              </Link>
+              </ProgramOverviewRow>
             );
           })
         )}

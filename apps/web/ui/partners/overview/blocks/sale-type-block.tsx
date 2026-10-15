@@ -89,7 +89,7 @@ export function SaleTypeBlock() {
             Failed to load data
           </div>
         ) : (
-          <div className="flex size-full flex-col gap-6 px-6 pb-6">
+          <div className="flex size-full flex-col gap-6 px-5 pb-5">
             <span className="text-content-emphasis block text-xl font-medium">
               {nFormatter(totalEvents, {
                 full: totalEvents < 99999,
