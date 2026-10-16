@@ -4,7 +4,7 @@ import { useDashboardBannerVisible } from "@/lib/hooks/use-dashboard-banner-visi
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { WorkspaceProps } from "@/lib/types";
-import { Button, IsolatedCube } from "@dub/ui";
+import { buttonVariants, IsolatedCube } from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
 import { WorkspaceEnvironment } from "@prisma/client";
 import { motion } from "motion/react";
@@ -97,12 +97,12 @@ export function WorkspaceEnvironmentBanner() {
       {liveWorkspace && (
         <Link
           href={pathname.replace(currentWorkspace.slug, liveWorkspace.slug)}
-          className="shrink-0"
+          className={cn(
+            buttonVariants({ variant: "primary" }),
+            "border-bg-inverted bg-bg-inverted flex h-6 shrink-0 items-center whitespace-nowrap rounded-md border px-1.5 text-xs font-medium",
+          )}
         >
-          <Button
-            text="Exit staging"
-            className="border-bg-inverted bg-bg-inverted h-6 w-fit rounded-md px-1.5 text-xs font-medium"
-          />
+          Exit staging
         </Link>
       )}
     </motion.div>

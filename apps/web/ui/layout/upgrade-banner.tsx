@@ -5,7 +5,13 @@ import { useDashboardBannerVisible } from "@/lib/hooks/use-dashboard-banner-visi
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRetryPaymentModal } from "@/ui/modals/retry-payment-modal";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
-import { Button, Crown, DynamicTooltipWrapper, TriangleWarning } from "@dub/ui";
+import {
+  Button,
+  buttonVariants,
+  Crown,
+  DynamicTooltipWrapper,
+  TriangleWarning,
+} from "@dub/ui";
 import {
   cn,
   getTrialLimitResourceForOverageBanner,
@@ -162,13 +168,13 @@ export function UpgradeBanner() {
           ) : (
             <Link
               href={`/${slug}/settings/billing/upgrade`}
-              className="shrink-0"
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex items-center whitespace-nowrap rounded-lg border",
+                customButtonClassname,
+              )}
             >
-              <Button
-                text="Upgrade"
-                variant="secondary"
-                className={customButtonClassname}
-              />
+              Upgrade
             </Link>
           )
         ) : (
