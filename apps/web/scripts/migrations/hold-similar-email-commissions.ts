@@ -6,12 +6,14 @@ import { getMergedFraudRules } from "@/lib/api/fraud/get-merged-fraud-rules";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { isGenericEmail } from "@/lib/email/is-generic-email";
 import { retallyPayoutsAmount } from "@/lib/payouts/retally-payouts-amount";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { CustomerEmailMatchType } from "@/lib/zod/schemas/fraud";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { chunk, groupBy } from "@dub/utils";
 import {
   CommissionStatus,
+  FraudEventStatus,
   FraudRuleType,
   PayoutStatus,
   Prisma,
@@ -27,13 +29,15 @@ import { readFileSync } from "fs";
 // array of customer IDs from the read-only variant email report. Every
 // customer is checked again here before anything is written.
 //
+// The fraud event is created before the hold, so a held commission always
+// has a group that can release it. A second run picks up a customer whose
+// event exists but whose commissions were not held yet.
+//
 // Usage: pnpm script migrations/hold-similar-email-commissions <customer-ids.json>
 
 const DRY_RUN = true;
 const FREE_EMAIL_ONLY = true; // Company domains are mostly the program team's own +tag tests
 const BATCH_SIZE = 50;
-
-const HOLD_ELIGIBLE_PLANS = ["advanced", "enterprise"];
 
 // Unpaid commissions that a hold can still stop. Commissions in a payout that
 // is already processing are left alone.
@@ -54,6 +58,8 @@ const holdEligibleWhere: Prisma.CommissionWhereInput = {
   ],
 };
 
+const normalizeRawEmail = (email: string) => email.toLowerCase().trim();
+
 async function main() {
   const inputPath = process.argv[2];
 
@@ -61,15 +67,24 @@ async function main() {
     throw new Error("Pass the path to a JSON array of customer IDs.");
   }
 
-  const customerIds: string[] = JSON.parse(readFileSync(inputPath, "utf8"));
+  const input: unknown = JSON.parse(readFileSync(inputPath, "utf8"));
+
+  if (
+    !Array.isArray(input) ||
+    !input.every((id) => typeof id === "string" && id.startsWith("cus_"))
+  ) {
+    throw new Error("The input must be a JSON array of customer IDs.");
+  }
+
+  const customerIds = [...new Set(input as string[])];
 
   console.log(
     `DRY_RUN=${DRY_RUN} FREE_EMAIL_ONLY=${FREE_EMAIL_ONLY} customers=${customerIds.length}`,
   );
 
   const skipped: Record<string, number> = {};
-  const skip = (reason: string) => {
-    skipped[reason] = (skipped[reason] ?? 0) + 1;
+  const skip = (reason: string, count = 1) => {
+    skipped[reason] = (skipped[reason] ?? 0) + count;
   };
 
   const summary: {
@@ -79,14 +94,12 @@ async function main() {
     programId: string;
     partnerId: string;
     commissions: number;
+    inPendingPayout: number;
     earnings: number;
+    held: number | null;
   }[] = [];
 
-  const payoutIdsToRetally = new Set<string>();
-  const pairsToSync = new Map<
-    string,
-    { programId: string; partnerId: string }
-  >();
+  const failed: { customerId: string; error: string }[] = [];
 
   for (const batch of chunk(customerIds, BATCH_SIZE)) {
     const customers = await prisma.customer.findMany({
@@ -106,6 +119,7 @@ async function main() {
         createdAt: true,
         program: {
           select: {
+            workspaceId: true,
             workspace: {
               select: {
                 plan: true,
@@ -123,8 +137,7 @@ async function main() {
       },
     });
 
-    skipped["not found"] =
-      (skipped["not found"] ?? 0) + batch.length - customers.length;
+    skip("not found", batch.length - customers.length);
 
     const candidates = customers.filter((customer) => {
       if (
@@ -144,11 +157,15 @@ async function main() {
         return false;
       }
 
-      if (!HOLD_ELIGIBLE_PLANS.includes(customer.program.workspace.plan)) {
+      if (
+        !getPlanCapabilities(customer.program.workspace.plan)
+          .canManageFraudEvents
+      ) {
         skip("plan cannot manage fraud events");
         return false;
       }
 
+      // Same enrollment checks as detectAndRecordFraudEvent
       if (
         INACTIVE_ENROLLMENT_STATUSES.includes(customer.programEnrollment.status)
       ) {
@@ -195,6 +212,14 @@ async function main() {
         programId: true,
         createdAt: true,
       },
+      orderBy: [
+        {
+          createdAt: "asc",
+        },
+        {
+          id: "asc",
+        },
+      ],
     });
 
     const membersByGroup = groupBy(
@@ -202,8 +227,6 @@ async function main() {
       (m) => `${m.programId}:${m.normalizedEmail}`,
     );
 
-    // A customer that already has a customerEmailMatch event was flagged
-    // before, maybe reviewed too, so it is not flagged again
     const existingEvents = await prisma.fraudEvent.findMany({
       where: {
         customerId: {
@@ -215,10 +238,16 @@ async function main() {
       },
       select: {
         customerId: true,
+        metadata: true,
+        fraudEventGroup: {
+          select: {
+            status: true,
+          },
+        },
       },
     });
 
-    const flaggedCustomerIds = new Set(existingEvents.map((e) => e.customerId));
+    const eventsByCustomer = groupBy(existingEvents, (e) => e.customerId!);
 
     const commissions = await prisma.commission.findMany({
       where: {
@@ -238,12 +267,6 @@ async function main() {
         linkId: true,
         eventId: true,
         payoutId: true,
-        createdAt: true,
-        program: {
-          select: {
-            workspaceId: true,
-          },
-        },
       },
       orderBy: {
         createdAt: "asc",
@@ -253,14 +276,18 @@ async function main() {
     const commissionsByCustomer = groupBy(commissions, (c) => c.customerId!);
 
     for (const customer of candidates) {
+      const email = customer.email!;
+      const programId = customer.programId!;
+      const partnerId = customer.partnerId!;
+
+      // Members are sorted by createdAt, so this is the earliest match
       const matchedCustomer = (
-        membersByGroup[`${customer.programId}:${customer.normalizedEmail}`] ??
-        []
+        membersByGroup[`${programId}:${customer.normalizedEmail}`] ?? []
       ).find(
         (m) =>
+          m.email &&
           m.createdAt < customer.createdAt &&
-          m.email?.toLowerCase().trim() !==
-            customer.email!.toLowerCase().trim(),
+          normalizeRawEmail(m.email) !== normalizeRawEmail(email),
       );
 
       if (!matchedCustomer) {
@@ -268,119 +295,141 @@ async function main() {
         continue;
       }
 
-      if (flaggedCustomerIds.has(customer.id)) {
-        skip("already has a customerEmailMatch event");
+      // A resolved or expired event means the program already reviewed this
+      // customer or let the hold lapse. A pending event of another match
+      // type is the live rule's decision. A pending similar email event can
+      // only come from this script or the live rule, so the hold continues.
+      const events = eventsByCustomer[customer.id] ?? [];
+
+      if (
+        events.some(
+          (e) => e.fraudEventGroup.status !== FraudEventStatus.pending,
+        )
+      ) {
+        skip("customerEmailMatch event already resolved or expired");
         continue;
       }
 
-      // A customer can only have commissions from its own partner, but the
-      // filter keeps the hold scoped to the fraud event's partner
+      if (
+        events.some(
+          (e) =>
+            (e.metadata as { matchType?: string } | null)?.matchType !==
+            CustomerEmailMatchType.SIMILAR_EMAIL_MATCH,
+        )
+      ) {
+        skip("pending customerEmailMatch event of another match type");
+        continue;
+      }
+
+      // Hold only the commissions of the partner in the fraud event
       const customerCommissions = (
         commissionsByCustomer[customer.id] ?? []
-      ).filter(
-        (c) =>
-          c.programId === customer.programId &&
-          c.partnerId === customer.partnerId,
-      );
+      ).filter((c) => c.programId === programId && c.partnerId === partnerId);
 
       if (customerCommissions.length === 0) {
         skip("no unpaid commissions");
         continue;
       }
 
-      const programId = customer.programId!;
-      const partnerId = customer.partnerId!;
       const firstCommission = customerCommissions[0];
 
-      summary.push({
+      const row: (typeof summary)[number] = {
         customerId: customer.id,
-        email: customer.email!,
+        email,
         matchedEmail: matchedCustomer.email!,
         programId,
         partnerId,
         commissions: customerCommissions.length,
+        inPendingPayout: customerCommissions.filter((c) => c.payoutId).length,
         earnings: customerCommissions.reduce((sum, c) => sum + c.earnings, 0),
-      });
+        held: null,
+      };
+
+      summary.push(row);
 
       if (DRY_RUN) {
         continue;
       }
 
-      await createFraudEvents([
-        {
+      try {
+        await createFraudEvents([
+          {
+            programId,
+            partnerId,
+            type: FraudRuleType.customerEmailMatch,
+            customerId: customer.id,
+            linkId: firstCommission.linkId ?? customer.linkId,
+            eventId: firstCommission.eventId,
+            metadata: {
+              matchType: CustomerEmailMatchType.SIMILAR_EMAIL_MATCH,
+              matchedCustomerId: matchedCustomer.id,
+            },
+          },
+        ]);
+
+        // Processed commissions leave their pending payout, like in
+        // holdProcessedCommissions. The guards skip rows that changed after
+        // they were read.
+        await prisma.commission.updateMany({
+          where: {
+            id: {
+              in: customerCommissions.map((c) => c.id),
+            },
+            ...holdEligibleWhere,
+          },
+          data: {
+            status: CommissionStatus.hold,
+            payoutId: null,
+          },
+        });
+
+        const heldCommissions = await prisma.commission.findMany({
+          where: {
+            id: {
+              in: customerCommissions.map((c) => c.id),
+            },
+            status: CommissionStatus.hold,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        const heldIds = new Set(heldCommissions.map(({ id }) => id));
+        const held = customerCommissions.filter((c) => heldIds.has(c.id));
+
+        row.held = held.length;
+
+        await trackCommissionStatusUpdate({
+          workspaceId: customer.program!.workspaceId,
+          programId,
+          commissions: held,
+          newStatus: CommissionStatus.hold,
+        });
+
+        // Payout amounts must match their commissions again, and a payout
+        // with no commissions left is deleted
+        await retallyPayoutsAmount([
+          ...new Set(held.flatMap((c) => (c.payoutId ? [c.payoutId] : []))),
+        ]);
+
+        await syncTotalCommissions({
           programId,
           partnerId,
-          type: FraudRuleType.customerEmailMatch,
+        });
+
+        console.log(
+          `Held ${held.length} of ${customerCommissions.length} commissions for customer ${customer.id}`,
+        );
+      } catch (error) {
+        console.error(`Failed for customer ${customer.id}:`, error);
+
+        failed.push({
           customerId: customer.id,
-          linkId: firstCommission.linkId ?? customer.linkId,
-          eventId: firstCommission.eventId,
-          metadata: {
-            matchType: CustomerEmailMatchType.SIMILAR_EMAIL_MATCH,
-            matchedCustomerId: matchedCustomer.id,
-          },
-        },
-      ]);
-
-      // Processed commissions leave their pending payout, like in
-      // holdProcessedCommissions. The status guards skip rows that changed
-      // after they were read.
-      await prisma.commission.updateMany({
-        where: {
-          id: {
-            in: customerCommissions.map((c) => c.id),
-          },
-          ...holdEligibleWhere,
-        },
-        data: {
-          status: CommissionStatus.hold,
-          payoutId: null,
-        },
-      });
-
-      const heldCommissions = await prisma.commission.findMany({
-        where: {
-          id: {
-            in: customerCommissions.map((c) => c.id),
-          },
-          status: CommissionStatus.hold,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      const heldIds = new Set(heldCommissions.map(({ id }) => id));
-      const held = customerCommissions.filter((c) => heldIds.has(c.id));
-
-      for (const { payoutId } of held) {
-        if (payoutId) payoutIdsToRetally.add(payoutId);
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
-
-      await trackCommissionStatusUpdate({
-        workspaceId: firstCommission.program.workspaceId,
-        programId,
-        commissions: held,
-        newStatus: CommissionStatus.hold,
-      });
-
-      pairsToSync.set(`${programId}:${partnerId}`, { programId, partnerId });
-
-      console.log(
-        `Held ${held.length} of ${customerCommissions.length} commissions for customer ${customer.id}`,
-      );
     }
-  }
-
-  if (!DRY_RUN) {
-    // Payout amounts must match their commissions again, and a payout with
-    // no commissions left is deleted
-    await retallyPayoutsAmount(Array.from(payoutIdsToRetally));
-
-    await Promise.allSettled(
-      Array.from(pairsToSync.values()).map((pair) =>
-        syncTotalCommissions(pair),
-      ),
-    );
   }
 
   console.table(
@@ -390,8 +439,13 @@ async function main() {
     })),
   );
   console.table(skipped);
+
+  if (failed.length > 0) {
+    console.table(failed);
+  }
+
   console.log(
-    `DRY_RUN=${DRY_RUN} ${DRY_RUN ? "would hold" : "held"} customers=${summary.length} commissions=${summary.reduce((sum, s) => sum + s.commissions, 0)} earnings=$${(summary.reduce((sum, s) => sum + s.earnings, 0) / 100).toFixed(2)} payoutsRetallied=${payoutIdsToRetally.size}`,
+    `DRY_RUN=${DRY_RUN} ${DRY_RUN ? "would hold" : "held"} customers=${summary.length} commissions=${summary.reduce((sum, s) => sum + (DRY_RUN ? s.commissions : s.held ?? 0), 0)} inPendingPayout=${summary.reduce((sum, s) => sum + s.inPendingPayout, 0)} earnings=$${(summary.reduce((sum, s) => sum + s.earnings, 0) / 100).toFixed(2)} failed=${failed.length}`,
   );
 }
 
