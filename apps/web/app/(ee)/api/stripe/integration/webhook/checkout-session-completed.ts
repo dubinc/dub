@@ -89,7 +89,8 @@ export async function checkoutSessionCompleted({
       externalId: stripeCustomerId || stripeCustomerEmail,
       projectId: workspace.id,
       projectConnectId: stripeAccountId,
-      stripeCustomerId,
+      // skip when null so that a guest checkout does not clear an existing stripeCustomerId
+      ...(stripeCustomerId && { stripeCustomerId }),
       clickId: clickEvent.click_id,
       linkId: clickEvent.link_id,
       country: clickEvent.country,
