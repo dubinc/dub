@@ -158,7 +158,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
   revenueDataSharingDisabled: z.boolean().optional(),
   updateAutoApprovePartnersForAllGroups: z.coerce.boolean().optional(),
   updateHoldingPeriodDaysForAllGroups: z.coerce.boolean().optional(),
-  updateRevenueDataSharingDisabledForAllGroups: z.coerce.boolean().optional(),
+  updateRevenueDataSharingDisabledForAllGroups: z.boolean().optional(),
   moveRules: workflowConditionsSchema.optional(),
 });
 
