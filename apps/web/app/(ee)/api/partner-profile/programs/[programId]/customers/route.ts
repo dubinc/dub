@@ -119,30 +119,27 @@ export const GET = withPartnerProfile(
 
     // Map customers with their data
     const customersWithData = customers.map((customer) => {
+      const transformed = transformCustomer({
+        ...customer,
+        firstSaleAt: customer.commissions[0]?.createdAt ?? null,
+        email: customer.email
+          ? customerDataSharingEnabledAt
+            ? customer.email
+            : obfuscateCustomerEmail(customer.email)
+          : customer.name || generateRandomName(),
+      });
+
       return PartnerProfileCustomerSchema.extend({
         ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
-      })
-        .omit({
-          ...(ltvExcluded && {
-            saleAmount: true,
-          }),
-        })
-        .parse({
-          ...transformCustomer({
-            ...customer,
-            firstSaleAt: customer.commissions[0]?.createdAt ?? null,
-            email: customer.email
-              ? customerDataSharingEnabledAt
-                ? customer.email
-                : obfuscateCustomerEmail(customer.email)
-              : customer.name || generateRandomName(),
-          }),
-          activity: {
-            ...customer,
-            events: [],
-            link: customer.link,
-          },
-        });
+      }).parse({
+        ...transformed,
+        ...(ltvExcluded && { saleAmount: 0 }),
+        activity: {
+          ...customer,
+          events: [],
+          link: customer.link,
+        },
+      });
     });
 
     return NextResponse.json(customersWithData);

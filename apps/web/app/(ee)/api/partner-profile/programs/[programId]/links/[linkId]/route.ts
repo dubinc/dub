@@ -5,6 +5,8 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { zeroSaleAmount } from "@/lib/partners/hide-partner-revenue";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
@@ -158,7 +160,13 @@ export const PATCH = withPartnerProfile(
       updatedLink: linkWithUtm,
     });
 
-    return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink));
+    const hidePartnerRevenue = isPartnerRevenueHidden(group);
+
+    return NextResponse.json(
+      PartnerProfileLinkSchema.parse(
+        hidePartnerRevenue ? zeroSaleAmount(partnerLink) : partnerLink,
+      ),
+    );
   },
 );
 

@@ -2,8 +2,8 @@ import { PartnerGroup } from "@prisma/client";
 
 /** Group shape used to decide whether sale dollar amounts are hidden from partners. */
 export type PartnerRevenueVisibilityGroup =
-  | Pick<PartnerGroup, "hideRevenueFromPartnersAt">
-  | { hideRevenueFromPartnersAt?: Date | string | null }
+  | Pick<PartnerGroup, "revenueDataSharingDisabledAt">
+  | { revenueDataSharingDisabledAt?: Date | string | null }
   | null
   | undefined;
 
@@ -11,5 +11,5 @@ export type PartnerRevenueVisibilityGroup =
 export function isPartnerRevenueHidden(
   group: PartnerRevenueVisibilityGroup,
 ): boolean {
-  return Boolean(group?.hideRevenueFromPartnersAt);
+  return Boolean(group?.revenueDataSharingDisabledAt);
 }

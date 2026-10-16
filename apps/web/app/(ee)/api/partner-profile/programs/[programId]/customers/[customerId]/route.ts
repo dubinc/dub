@@ -10,7 +10,7 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
-import { omitSaleAmount } from "@/lib/partners/hide-partner-revenue";
+import { zeroSaleAmount } from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma } from "@/lib/prisma";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
@@ -124,48 +124,43 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id) ||
     hidePartnerRevenue;
 
+  const transformed = transformCustomer({
+    ...customer,
+    firstSaleAt: customer.commissions[0]?.createdAt ?? null,
+    email: customer.email
+      ? customerDataSharingEnabledAt
+        ? customer.email
+        : obfuscateCustomerEmail(customer.email)
+      : customer.name || generateRandomName(),
+  });
+
   return NextResponse.json(
     PartnerProfileCustomerSchema.extend({
       ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
-    })
-      .omit({
-        ...(ltvExcluded && {
-          saleAmount: true,
-        }),
-      })
-      .parse({
-        ...transformCustomer({
-          ...customer,
-          firstSaleAt: customer.commissions[0]?.createdAt ?? null,
-          email: customer.email
-            ? customerDataSharingEnabledAt
-              ? customer.email
-              : obfuscateCustomerEmail(customer.email)
-            : customer.name || generateRandomName(),
-        }),
-        activity: {
-          ...customer,
-          events: hidePartnerRevenue
-            ? events.map((event) => {
-                if (event.event === "sale") {
-                  const { saleAmount: _, sale, link, ...rest } = event;
-                  const { amount: __, ...saleRest } = sale;
-
-                  return {
-                    ...rest,
-                    sale: saleRest,
-                    link: link ? omitSaleAmount(link) : link,
-                  };
-                }
-
+    }).parse({
+      ...transformed,
+      ...(ltvExcluded && { saleAmount: 0 }),
+      activity: {
+        ...customer,
+        events: hidePartnerRevenue
+          ? events.map((event) => {
+              if (event.event === "sale") {
                 return {
                   ...event,
-                  link: event.link ? omitSaleAmount(event.link) : event.link,
+                  saleAmount: 0,
+                  sale: { ...event.sale, amount: 0 },
+                  link: event.link ? zeroSaleAmount(event.link) : event.link,
                 };
-              })
-            : events,
-          link,
-        },
-      }),
+              }
+
+              return {
+                ...event,
+                link: event.link ? zeroSaleAmount(event.link) : event.link,
+              };
+            })
+          : events,
+        link,
+      },
+    }),
   );
 });

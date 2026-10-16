@@ -15,7 +15,7 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
-import { omitSaleAmount } from "@/lib/partners/hide-partner-revenue";
+import { zeroSaleAmount } from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
@@ -146,7 +146,7 @@ export const GET = withPartnerProfile(
 
         return formatted.map((row) =>
           row && typeof row === "object" && "saleAmount" in row
-            ? omitSaleAmount(row)
+            ? zeroSaleAmount(row)
             : row,
         );
       },

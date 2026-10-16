@@ -8,7 +8,7 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
-import { omitSaleAmount } from "@/lib/partners/hide-partner-revenue";
+import { zeroSaleAmount } from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { parseFilterValue, toCentsNumber } from "@dub/utils";
@@ -124,14 +124,14 @@ export const GET = withPartnerProfile(
       return NextResponse.json(
         response.map((row) =>
           row && typeof row === "object" && "saleAmount" in row
-            ? omitSaleAmount(row)
+            ? zeroSaleAmount(row)
             : row,
         ),
       );
     }
 
     if (response && typeof response === "object" && "saleAmount" in response) {
-      return NextResponse.json(omitSaleAmount(response));
+      return NextResponse.json(zeroSaleAmount(response));
     }
 
     return NextResponse.json(response);

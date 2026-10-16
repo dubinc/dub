@@ -5,6 +5,8 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { zeroSaleAmount } from "@/lib/partners/hide-partner-revenue";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma } from "@/lib/prisma";
 import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-rewards";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
@@ -25,6 +27,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     saleReward,
     customReward,
     discount,
+    partnerGroup: group,
   } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: params.programId,
@@ -35,6 +38,11 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       saleReward: true,
       customReward: true,
       discount: true,
+      partnerGroup: {
+        select: {
+          revenueDataSharingDisabledAt: true,
+        },
+      },
       links: {
         include: {
           linkReward: {
@@ -56,6 +64,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   );
 
   const enrollmentRewards = [clickReward, leadReward, saleReward, customReward];
+  const hidePartnerRevenue = isPartnerRevenueHidden(group);
 
   const result = links.map((link) => {
     const discountCode = linksByDiscountCode.get(link.id);
@@ -65,12 +74,14 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       enrollmentDiscount: discount,
     });
 
-    return {
+    const partnerLink = {
       ...link,
       ...resolvedRewards,
       discountCode: discountCode?.code,
       discountCodeDisabledAt: discountCode?.disabledAt ?? null,
     };
+
+    return hidePartnerRevenue ? zeroSaleAmount(partnerLink) : partnerLink;
   });
 
   return NextResponse.json(z.array(PartnerProfileLinkSchema).parse(result));
@@ -180,8 +191,15 @@ export const POST = withPartnerProfile(
 
     const partnerLink = await createLink(linkWithUtm);
 
-    return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink), {
-      status: 201,
-    });
+    const hidePartnerRevenue = isPartnerRevenueHidden(group);
+
+    return NextResponse.json(
+      PartnerProfileLinkSchema.parse(
+        hidePartnerRevenue ? zeroSaleAmount(partnerLink) : partnerLink,
+      ),
+      {
+        status: 201,
+      },
+    );
   },
 );
