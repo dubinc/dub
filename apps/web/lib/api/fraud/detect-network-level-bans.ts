@@ -132,7 +132,8 @@ export async function detectAndRecordNetworkLevelBans({
     await createFraudEvents(fraudEvents);
   } catch (error) {
     console.error(
-      `Failed to detect network-level bans for program ${programId}`,
+      "Failed to detect network-level bans for program",
+      programId,
       error,
     );
   }
