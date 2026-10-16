@@ -161,7 +161,7 @@ export default function IntegrationPageClient({
   }, [integration.id, integration.installed, stripeConnectMode]);
 
   const uninstallDisabledIntegrations = {
-    stripe: `https://dashboard.stripe.com/${stripeConnectId}/${stripeConnectionBannerConfig?.title === "Test Mode" ? "test/" : ""}apps/installed/dub.co`,
+    stripe: `https://dashboard.stripe.com/${stripeConnectId}/${stripeConnectMode === "test" ? "test/" : ""}apps/installed/dub.co`,
     intercom:
       "https://app.intercom.com/a/apps/_/settings/app-settings/app-store?app_package_code=dub-ejgb",
   };
