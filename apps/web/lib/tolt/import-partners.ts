@@ -3,6 +3,7 @@ import { sleep } from "@dub/utils";
 import { Partner, Program } from "@prisma/client";
 
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
 import { approveLinkedApplication } from "../program-applications/approve-linked-application";
@@ -96,6 +97,11 @@ export async function importPartners(payload: ToltImportPayload) {
         await queuePartnerSearchSync({
           partnerIds: partners.map((p) => p.id),
           programId,
+        });
+
+        await detectAndRecordNetworkLevelBans({
+          programId,
+          partnerIds: partners.map((p) => p.id),
         });
 
         await toltImporter.addPartners({
