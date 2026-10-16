@@ -31,7 +31,11 @@ import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
-import { ProgramEnrollmentSchema, ProgramSchema } from "./programs";
+import {
+  ProgramEnrollmentSchema,
+  ProgramPartnerLinkSchema,
+  ProgramSchema,
+} from "./programs";
 import { RewardSchema } from "./rewards";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
 import { centsSchema, parseUrlSchema } from "./utils";
@@ -41,6 +45,7 @@ export const PartnerEarningsSchema = CommissionSchema.omit({
   invoiceId: true,
   metadata: true,
 }).extend({
+  amount: z.number().nullable(),
   customer: z
     .object({
       id: z.string(),
@@ -224,6 +229,7 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   sales: true,
   saleAmount: true,
 }).extend({
+  saleAmount: centsSchema.nullable(),
   partnerLinkTitle: z.string().nullish().default(null),
   partnerLinkComments: z.string().nullish().default(null),
   createdAt: z.string().or(z.date()),
@@ -315,6 +321,11 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
   folderId: true,
 });
 
+export const PartnerProfileProgramPartnerLinkSchema =
+  ProgramPartnerLinkSchema.extend({
+    saleAmount: centsSchema.nullable(),
+  });
+
 // GET /api/partner-profile/programs adds the reapplication timeframe, so that
 // a rejected program can say when the partner can apply again
 export const PartnerProfileProgramEnrollmentSchema =
@@ -326,6 +337,10 @@ export const PartnerProfileProgramEnrollmentSchema =
       .describe(
         "When the program banned, deactivated or archived the partner. For deactivated and archived enrollments, only set when `includeInactiveDates=true`. Null for other statuses, and when the date is not known.",
       ),
+    links: z
+      .array(PartnerProfileProgramPartnerLinkSchema)
+      .nullable()
+      .describe("The partner's referral links in this program."),
   });
 
 export const partnerProfileProgramsQuerySchema = z.object({
@@ -395,7 +410,7 @@ export const PartnerBountySchema = BountySchema.omit({
     totalLeads: z.number(),
     totalConversions: z.number(),
     totalSales: z.number(),
-    totalSaleAmount: centsSchema,
+    totalSaleAmount: centsSchema.nullable(),
     totalCommissions: centsSchema,
   }),
 });

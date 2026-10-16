@@ -1,6 +1,7 @@
 "use client";
 
 import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import {
@@ -250,9 +251,10 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               : null,
         },
       },
-      // the All programs page always shows the sale amount
-      ...(!programSlug ||
-      programEnrollment?.rewards?.some((r) => r.event === "sale")
+      // the All programs page always shows the sale amount (unless the enrollment hides revenue)
+      ...(!isPartnerRevenueHidden(programEnrollment?.group) &&
+      (!programSlug ||
+        programEnrollment?.rewards?.some((r) => r.event === "sale"))
         ? [
             {
               id: "amount",

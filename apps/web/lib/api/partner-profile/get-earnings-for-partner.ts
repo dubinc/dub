@@ -2,6 +2,7 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { DubApiError } from "@/lib/api/errors";
 import { buildPaginationQuery } from "@/lib/api/pagination";
 import { generateRandomName } from "@/lib/names";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma } from "@/lib/prisma";
 import {
   getPartnerEarningsQuerySchema,
@@ -139,6 +140,11 @@ export async function getEarningsForPartner(
       programEnrollment: {
         select: {
           customerDataSharingEnabledAt: true,
+          partnerGroup: {
+            select: {
+              revenueDataSharingDisabledAt: true,
+            },
+          },
         },
       },
     },
@@ -183,7 +189,7 @@ export async function getEarningsForPartner(
       const customerEmail =
         e.customer?.email || e.customer?.name || generateRandomName();
 
-      return {
+      const earning = {
         ...e,
         link: e.link
           ? {
@@ -203,6 +209,10 @@ export async function getEarningsForPartner(
             }
           : null,
       };
+
+      return isPartnerRevenueHidden(programEnrollment.partnerGroup)
+        ? { ...earning, amount: null }
+        : earning;
     }),
   );
 }

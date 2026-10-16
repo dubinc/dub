@@ -5,6 +5,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { hidePartnerSaleAmount } from "@/lib/partners/hide-partner-revenue";
 import { prisma } from "@/lib/prisma";
 import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-rewards";
 import {
@@ -26,6 +27,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     saleReward,
     customReward,
     discount,
+    partnerGroup: group,
   } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: params.programId,
@@ -36,6 +38,11 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       saleReward: true,
       customReward: true,
       discount: true,
+      partnerGroup: {
+        select: {
+          revenueDataSharingDisabledAt: true,
+        },
+      },
       links: {
         include: {
           partnerLinkDetails: true,
@@ -67,12 +74,15 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       enrollmentDiscount: discount,
     });
 
-    return {
-      ...mapPartnerLinkDetails(link),
-      ...resolvedRewards,
-      discountCode: discountCode?.code,
-      discountCodeDisabledAt: discountCode?.disabledAt ?? null,
-    };
+    return hidePartnerSaleAmount(
+      {
+        ...mapPartnerLinkDetails(link),
+        ...resolvedRewards,
+        discountCode: discountCode?.code,
+        discountCodeDisabledAt: discountCode?.disabledAt ?? null,
+      },
+      group,
+    );
   });
 
   return NextResponse.json(z.array(PartnerProfileLinkSchema).parse(result));
@@ -183,11 +193,16 @@ export const POST = withPartnerProfile(
     const partnerLink = await createLink(linkWithUtm);
 
     return NextResponse.json(
-      PartnerProfileLinkSchema.parse({
-        ...partnerLink,
-        partnerLinkTitle: partnerLinkTitle ?? null,
-        partnerLinkComments: partnerLinkComments ?? null,
-      }),
+      PartnerProfileLinkSchema.parse(
+        hidePartnerSaleAmount(
+          {
+            ...partnerLink,
+            partnerLinkTitle: partnerLinkTitle ?? null,
+            partnerLinkComments: partnerLinkComments ?? null,
+          },
+          group,
+        ),
+      ),
       {
         status: 201,
       },

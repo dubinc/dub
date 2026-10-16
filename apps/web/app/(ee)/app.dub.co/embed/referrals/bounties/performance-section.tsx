@@ -3,6 +3,7 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import {
   LeadEvent,
   PartnerBountyProps,
@@ -33,6 +34,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { useEmbedToken } from "../../use-embed-token";
+import { useReferralsEmbedData } from "../page-client";
 
 type PerformanceAttribute = keyof typeof PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES;
 
@@ -96,6 +98,15 @@ export function EmbedBountyPerformanceSection({
   bounty: PartnerBountyProps;
   programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
 }) {
+  const { group } = useReferralsEmbedData();
+  const attribute = bounty.performanceCondition?.attribute as
+    | PerformanceAttribute
+    | undefined;
+
+  if (attribute === "totalSaleAmount" && isPartnerRevenueHidden(group)) {
+    return null;
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">

@@ -5,6 +5,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { hidePartnerSaleAmount } from "@/lib/partners/hide-partner-revenue";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import {
@@ -175,11 +176,16 @@ export const PATCH = withPartnerProfile(
     });
 
     return NextResponse.json(
-      PartnerProfileLinkSchema.parse({
-        ...partnerLink,
-        partnerLinkTitle: nextPartnerLinkTitle,
-        partnerLinkComments: nextPartnerLinkComments,
-      }),
+      PartnerProfileLinkSchema.parse(
+        hidePartnerSaleAmount(
+          {
+            ...partnerLink,
+            partnerLinkTitle: nextPartnerLinkTitle,
+            partnerLinkComments: nextPartnerLinkComments,
+          },
+          group,
+        ),
+      ),
     );
   },
 );

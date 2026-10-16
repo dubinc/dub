@@ -9,6 +9,7 @@ import {
 } from "@/lib/constants/partner-profile";
 import { qstash } from "@/lib/cron";
 import { formatPartnerCustomersForExport } from "@/lib/customers/api/format-partner-customers-export";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
 import { partnerCustomersExportQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { APP_DOMAIN_WITH_NGROK, toCentsNumber } from "@dub/utils";
@@ -23,14 +24,28 @@ export const GET = withPartnerProfile(
     const filters = partnerCustomersExportQuerySchema.parse(searchParams);
     const { search, country, linkId, sortBy, sortOrder, columns } = filters;
 
-    const { program, totalCommissions, customerDataSharingEnabledAt } =
-      await getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId: params.programId,
-        include: {
-          program: true,
+    const {
+      program,
+      totalCommissions,
+      customerDataSharingEnabledAt,
+      partnerGroup,
+    } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: params.programId,
+      include: {
+        program: {
+          select: {
+            id: true,
+            workspaceId: true,
+          },
         },
-      });
+        partnerGroup: {
+          select: {
+            revenueDataSharingDisabledAt: true,
+          },
+        },
+      },
+    });
 
     if (
       LARGE_PROGRAM_IDS.includes(program.id) &&
@@ -43,7 +58,9 @@ export const GET = withPartnerProfile(
       });
     }
 
-    const ltvExcluded = CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id);
+    const ltvExcluded =
+      CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id) ||
+      isPartnerRevenueHidden(partnerGroup);
 
     if (sortBy === "saleAmount" && ltvExcluded) {
       throw new DubApiError({

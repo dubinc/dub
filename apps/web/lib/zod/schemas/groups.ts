@@ -65,6 +65,7 @@ export const GroupSchema = z.object({
   brandColor: z.string().nullable(),
   holdingPeriodDays: z.number(),
   autoApprovePartnersEnabledAt: z.coerce.date().nullish(),
+  revenueDataSharingDisabledAt: z.coerce.date().nullish(),
   submittedLeadsEnabledAt: z.coerce.date().nullish(),
   clickReward: RewardSchema.nullish(),
   leadReward: RewardSchema.nullish(),
@@ -154,8 +155,10 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
     )
     .optional(),
   autoApprovePartners: z.coerce.boolean().optional(),
+  revenueDataSharingDisabled: z.boolean().optional(),
   updateAutoApprovePartnersForAllGroups: z.coerce.boolean().optional(),
   updateHoldingPeriodDaysForAllGroups: z.coerce.boolean().optional(),
+  updateRevenueDataSharingDisabledForAllGroups: z.boolean().optional(),
   moveRules: workflowConditionsSchema.optional(),
 });
 
