@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { CreateFraudEventInput, PartnerProps, ProgramProps } from "@/lib/types";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { FraudRuleType, ProgramEnrollmentStatus } from "@prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
 import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
+import { getNetworkBanDetails } from "./report-network-level-ban";
 
 interface FraudApplicationContext {
   program: Pick<ProgramProps, "id">;
@@ -144,14 +144,8 @@ export async function detectAndRecordFraudApplication({
     });
 
     for (const fraudAlert of confirmedFraudAlerts) {
-      const { programEnrollment } = fraudAlert;
-
-      // Use the same source and metadata as reportNetworkLevelBan for each ban path
-      const isAdminBan = fraudAlert.source === "admin";
-
-      const sourceProgramId = isAdminBan
-        ? NETWORK_PROGRAM_ID
-        : fraudAlert.programId;
+      const { sourceProgramId, bannedReason, bannedAt } =
+        getNetworkBanDetails(fraudAlert);
 
       if (sourceProgramId === program.id) {
         continue;
@@ -163,14 +157,8 @@ export async function detectAndRecordFraudApplication({
         type: FraudRuleType.partnerCrossProgramBan,
         sourceProgramId,
         metadata: {
-          bannedReason: isAdminBan
-            ? "fraud"
-            : programEnrollment.bannedReason ?? "fraud",
-          bannedAt: isAdminBan
-            ? fraudAlert.reviewedAt ?? fraudAlert.createdAt
-            : programEnrollment.bannedAt ??
-              programEnrollment.application?.reviewedAt ??
-              fraudAlert.createdAt,
+          bannedReason,
+          bannedAt,
         },
       });
     }
