@@ -177,7 +177,8 @@ export const getReferralsEmbedData = async (token: string) => {
       logo: group.logo,
       wordmark: group.wordmark,
       brandColor: group.brandColor,
-      additionalLinks: group.additionalLinks as PartnerGroupAdditionalLink[],
+      additionalLinks: (group.additionalLinks ??
+        []) as PartnerGroupAdditionalLink[],
       maxPartnerLinks: group.maxPartnerLinks,
       linkStructure: group.linkStructure,
       holdingPeriodDays: group.holdingPeriodDays,
