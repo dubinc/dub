@@ -333,6 +333,9 @@ export function LineItem({
 
   const percentage = Math.round((value / totalSum) * 1000) / 10;
   const isModalView = !limit;
+  // earnings and sale amounts are in cents
+  const isCurrency =
+    unit === "earnings" || (unit === "sales" && saleUnit === "saleAmount");
 
   const lineItem = (
     <div className="z-10 flex items-center space-x-4 overflow-hidden px-3">
@@ -472,11 +475,7 @@ export function LineItem({
         </div>
         <div className="z-10 flex items-center">
           <NumberFlow
-            value={
-              unit === "sales" && saleUnit === "saleAmount"
-                ? value / 100
-                : value
-            }
+            value={isCurrency ? value / 100 : value}
             className={cn(
               "z-10 px-2 text-sm text-neutral-600 transition-transform duration-300",
               isModalView ? "-translate-x-14" : "group-hover:-translate-x-14",
@@ -486,7 +485,7 @@ export function LineItem({
               transform: `translateX(var(--tw-translate-x, 0)) translateZ(0)`,
             }}
             format={
-              unit === "sales" && saleUnit === "saleAmount"
+              isCurrency
                 ? {
                     style: "currency",
                     currency: "USD",

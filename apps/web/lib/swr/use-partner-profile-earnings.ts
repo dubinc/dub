@@ -126,8 +126,8 @@ export function usePartnerProfileEarningsAnalytics<
 >({
   groupBy,
   limit,
-  ...dateRange
-}: DateRange & { groupBy: G; limit?: number }) {
+  ...query
+}: PartnerProfileEarningsQuery & { groupBy: G; limit?: number }) {
   return usePartnerProfileEarningsSWR<
     PartnerProfileEarningsAnalyticsByGroup[G]
   >(
@@ -136,7 +136,7 @@ export function usePartnerProfileEarningsAnalytics<
       groupBy,
       ...(limit !== undefined && { limit: String(limit) }),
     },
-    dateRange,
+    query,
   );
 }
 

@@ -8,9 +8,9 @@ import {
   getPartnerEarningsQuerySchema,
   PartnerProfileEarningsSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { CommissionType, Partner, Prisma } from "@prisma/client";
+import { CommissionType, Partner } from "@prisma/client";
 import * as z from "zod/v4";
-import { getEarningsProgramFilter } from "./get-earnings-program-id";
+import { getPartnerEarningsWhere } from "./get-partner-earnings-where";
 import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
 
 interface GetEarningsForPartnerParams
@@ -59,22 +59,17 @@ export async function getEarningsForPartner(
     sortOrder,
   });
 
-  const where: Prisma.CommissionWhereInput = {
-    earnings: {
-      not: 0,
-    },
-    programId: getEarningsProgramFilter(programId),
+  const where = getPartnerEarningsWhere({
     partnerId,
-    status,
+    programId,
+    startDate,
+    endDate,
     type,
+    status,
     linkId,
     customerId,
     payoutId,
-    createdAt: {
-      gte: startDate,
-      lte: endDate,
-    },
-  };
+  });
 
   // the cursor must match the same filters, because Prisma skips the first row after the cursor position
   // and would drop a valid earning when the cursor itself is not in the results
