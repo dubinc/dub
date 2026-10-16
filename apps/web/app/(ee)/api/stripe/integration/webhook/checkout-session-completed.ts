@@ -207,11 +207,14 @@ export async function checkoutSessionCompleted({
           - if no promotion code or attribution fails, we skip the event
   */
     if (dubCustomerExternalId) {
-      customer = await updateCustomerWithStripeCustomerId({
-        workspaceId: workspace.id,
-        dubCustomerExternalId,
-        stripeCustomerId,
-      });
+      // prefer the customer that already owns the Stripe customer ID (same as invoice.paid)
+      customer =
+        stripeCustomerOwner ??
+        (await updateCustomerWithStripeCustomerId({
+          workspaceId: workspace.id,
+          dubCustomerExternalId,
+          stripeCustomerId: linkableStripeCustomerId,
+        }));
 
       if (!customer) {
         if (promotionCodeId) {
@@ -270,7 +273,7 @@ export async function checkoutSessionCompleted({
           customer = await updateCustomerWithStripeCustomerId({
             workspaceId: workspace.id,
             dubCustomerExternalId,
-            stripeCustomerId,
+            stripeCustomerId: linkableStripeCustomerId,
           });
         }
 
