@@ -47,6 +47,7 @@ type Workspace = Pick<
   | "webhookEnabled"
   | "dotLinkClaimed"
   | "fastDirectDebitPayouts"
+  | "publishableKey"
 >;
 
 type DomainSeed = Pick<Domain, "id" | "slug" | "verified">;

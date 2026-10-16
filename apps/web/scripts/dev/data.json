@@ -21,7 +21,8 @@
     "conversionEnabled": true,
     "webhookEnabled": true,
     "dotLinkClaimed": true,
-    "fastDirectDebitPayouts": true
+    "fastDirectDebitPayouts": true,
+    "publishableKey": "dub_pk_acme_local_dev_000000000000"
   },
   "users": [
     {

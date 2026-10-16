@@ -39,6 +39,7 @@ export async function customersRedact({
       data: {
         name: generateRandomName(),
         email: null,
+        normalizedEmail: null,
       },
     });
   } catch (error) {
