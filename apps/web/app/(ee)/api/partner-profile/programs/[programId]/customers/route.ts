@@ -9,6 +9,7 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
 import {
   PartnerProfileCustomerSchema,
@@ -33,14 +34,28 @@ export const GET = withPartnerProfile(
       pageSize,
     } = getPartnerCustomersQuerySchema.parse(searchParams);
 
-    const { program, totalCommissions, customerDataSharingEnabledAt } =
-      await getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId: programId,
-        include: {
-          program: true,
+    const {
+      program,
+      totalCommissions,
+      customerDataSharingEnabledAt,
+      partnerGroup,
+    } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: programId,
+      include: {
+        program: {
+          select: {
+            id: true,
+            workspaceId: true,
+          },
         },
-      });
+        partnerGroup: {
+          select: {
+            revenueDataSharingDisabledAt: true,
+          },
+        },
+      },
+    });
 
     if (
       LARGE_PROGRAM_IDS.includes(program.id) &&
@@ -53,10 +68,11 @@ export const GET = withPartnerProfile(
       });
     }
 
-    if (
-      sortBy === "saleAmount" &&
-      CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id)
-    ) {
+    const ltvExcluded =
+      CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id) ||
+      isPartnerRevenueHidden(partnerGroup);
+
+    if (sortBy === "saleAmount" && ltvExcluded) {
       throw new DubApiError({
         code: "bad_request",
         message: "This feature is not available for your program.",
@@ -107,7 +123,7 @@ export const GET = withPartnerProfile(
         ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
       })
         .omit({
-          ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id) && {
+          ...(ltvExcluded && {
             saleAmount: true,
           }),
         })

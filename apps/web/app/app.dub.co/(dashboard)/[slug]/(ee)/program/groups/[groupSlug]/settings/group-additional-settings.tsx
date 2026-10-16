@@ -64,13 +64,13 @@ function GroupAdditionalSettingsForm({
     }
   }, [group]);
 
-  const handleHideRevenueToggle = async () => {
+  const handleRevenueDataSharingToggle = async () => {
     if (!group) return;
-    const currentValue = Boolean(group.hideRevenueFromPartnersAt);
+    const currentValue = Boolean(group.revenueDataSharingDisabledAt);
     await updateGroup(`/api/groups/${group.id}`, {
       method: "PATCH",
       body: {
-        hideRevenueFromPartners: !currentValue,
+        revenueDataSharingDisabled: !currentValue,
       },
       onSuccess: async () => {
         await mutatePrefix(`/api/groups/${group.slug}`);
@@ -277,8 +277,8 @@ function GroupAdditionalSettingsForm({
                   <label>
                     <div className="flex select-none items-center gap-2">
                       <Switch
-                        checked={Boolean(group!.hideRevenueFromPartnersAt)}
-                        fn={handleHideRevenueToggle}
+                        checked={Boolean(group!.revenueDataSharingDisabledAt)}
+                        fn={handleRevenueDataSharingToggle}
                         disabled={isSubmitting}
                         trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
                       />

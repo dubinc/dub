@@ -4,6 +4,7 @@ import {
   CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS,
   PARTNER_CUSTOMERS_MAX_PAGE_SIZE,
 } from "@/lib/constants/partner-profile";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import usePartnerCustomers from "@/lib/swr/use-partner-customers";
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -66,17 +67,18 @@ export default function PartnerProgramCustomersPage() {
     setSelectedFilter,
   } = usePartnerCustomerFilters();
 
+  const ltvExcluded =
+    CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
+      programEnrollment?.programId ?? "",
+    ) || isPartnerRevenueHidden(programEnrollment?.group);
+
   const customersColumns = {
     all: [
       "customer",
       "country",
       "link",
       "createdAt",
-      ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
-        programEnrollment?.programId ?? "",
-      )
-        ? []
-        : ["saleAmount"]),
+      ...(ltvExcluded ? [] : ["saleAmount"]),
       "firstSaleAt",
       "subscriptionCanceledAt",
     ],
@@ -85,11 +87,7 @@ export default function PartnerProgramCustomersPage() {
       "country",
       "link",
       "createdAt",
-      ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
-        programEnrollment?.programId ?? "",
-      )
-        ? []
-        : ["saleAmount"]),
+      ...(ltvExcluded ? [] : ["saleAmount"]),
       "firstSaleAt",
       "subscriptionCanceledAt",
     ],
@@ -178,9 +176,7 @@ export default function PartnerProgramCustomersPage() {
             </TimestampTooltip>
           ),
         },
-        ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
-          programEnrollment?.programId ?? "",
-        )
+        ...(ltvExcluded
           ? []
           : [
               {
@@ -249,7 +245,7 @@ export default function PartnerProgramCustomersPage() {
           header: () => <EditColumnsButton table={table} />,
         },
       ].filter((c) => c.id === "menu" || customersColumns.all.includes(c.id)),
-    [programSlug],
+    [programSlug, ltvExcluded],
   );
 
   const { table, ...tableProps } = useTable({
