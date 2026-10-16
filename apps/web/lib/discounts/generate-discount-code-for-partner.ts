@@ -13,6 +13,7 @@ export async function generateDiscountCodeForPartner({
     | "environment"
     | "webhookEnabled"
     | "stripeConnectId"
+    | "stripeConnectMode"
     | "shopifyStoreId"
   >;
   partner: Pick<EnrolledPartnerProps, "id" | "name" | "groupId">;

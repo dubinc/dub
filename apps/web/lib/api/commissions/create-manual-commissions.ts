@@ -41,7 +41,7 @@ type CreateCommissionsArgs = z.infer<
 > & {
   workspace: Pick<
     Project,
-    "id" | "slug" | "stripeConnectId" | "defaultProgramId"
+    "id" | "slug" | "stripeConnectId" | "stripeConnectMode" | "defaultProgramId"
   >;
   programId: string;
   user: Session["user"];
@@ -54,7 +54,10 @@ type ResolveLinkAndCustomerArgs = CreateCommissionsArgs & {
 };
 
 type RecordEventsArgs = CreateCommissionsArgs & {
-  workspace: Pick<Project, "id" | "stripeConnectId" | "defaultProgramId">;
+  workspace: Pick<
+    Project,
+    "id" | "stripeConnectId" | "stripeConnectMode" | "defaultProgramId"
+  >;
   partner: Pick<Partner, "id" | "email">;
   targetLink: Link;
   targetCustomer: Customer;
