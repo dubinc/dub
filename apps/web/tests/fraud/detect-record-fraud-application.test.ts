@@ -1,6 +1,6 @@
 import { detectAndRecordFraudApplication } from "@/lib/api/fraud/detect-record-fraud-application";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
-import { FraudRuleType } from "@prisma/client";
+import { FraudRuleType, ProgramEnrollmentStatus } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -85,6 +85,15 @@ describe("detectAndRecordFraudApplication", () => {
           partnerId: PARTNER_ID,
           programId: { not: PROGRAM_ID },
           status: "confirmed",
+          // Lifted program bans must not flag new applications
+          OR: [
+            { source: "admin" },
+            {
+              programEnrollment: {
+                status: ProgramEnrollmentStatus.banned,
+              },
+            },
+          ],
         }),
       }),
     );
