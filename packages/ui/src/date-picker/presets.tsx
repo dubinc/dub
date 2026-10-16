@@ -76,46 +76,44 @@ const Presets = <TPreset extends Preset, TValue>({
   };
 
   return (
-    <Command
-      className="w-full rounded ring-neutral-200 ring-offset-2 focus:outline-none"
-      tabIndex={0}
-      autoFocus
-      loop
-    >
-      <Command.List className="[&>*]:flex [&>*]:w-full [&>*]:items-start [&>*]:gap-x-2 [&>*]:gap-y-0.5 [&>*]:sm:flex-col">
-        {presets.map((preset, index) => {
-          return (
-            <Command.Item
-              key={index}
-              disabled={preset.requiresUpgrade}
-              onSelect={() => onSelect(preset)}
-              title={preset.label}
-              value={preset.id}
-              className={cn(
-                "group relative flex cursor-pointer items-center justify-between overflow-hidden text-ellipsis whitespace-nowrap rounded border border-neutral-200",
-                "px-2.5 py-1.5 text-left text-sm text-neutral-700 shadow-sm outline-none sm:w-full sm:border-none sm:py-2 sm:shadow-none",
-                "disabled:pointer-events-none disabled:opacity-50",
-                "sm:data-[selected=true]:bg-neutral-100",
-                matchesCurrent(preset) && "font-semibold text-neutral-800",
-              )}
-            >
-              <span>{preset.label}</span>
-              {preset.requiresUpgrade ? (
-                <Lock className="h-3.5 w-3.5" aria-hidden="true" />
-              ) : preset.shortcut ? (
-                <kbd className="text-neutral-4000 hidden rounded bg-neutral-100 px-2 py-0.5 text-xs font-light group-data-[selected=true]:bg-neutral-200 md:block">
-                  {preset.shortcut.toUpperCase()}
-                </kbd>
-              ) : null}
-              {preset.requiresUpgrade && preset.tooltipContent && (
-                <Tooltip side="bottom" content={preset.tooltipContent}>
-                  <div className="absolute inset-0 cursor-not-allowed"></div>
-                </Tooltip>
-              )}
-            </Command.Item>
-          );
-        })}
-      </Command.List>
+    <Command className="w-full rounded" loop>
+      {/* Take focus here, not on the cmdk root. When the root has focus, cmdk
+      moves focus to the list on hover, and the browser scrolls the list. */}
+      <div tabIndex={0} className="focus:outline-none">
+        <Command.List className="[&>*]:flex [&>*]:w-full [&>*]:items-start [&>*]:gap-x-2 [&>*]:gap-y-0.5 [&>*]:sm:flex-col">
+          {presets.map((preset, index) => {
+            return (
+              <Command.Item
+                key={index}
+                disabled={preset.requiresUpgrade}
+                onSelect={() => onSelect(preset)}
+                value={preset.id}
+                className={cn(
+                  "group relative flex cursor-pointer items-center justify-between overflow-hidden text-ellipsis whitespace-nowrap rounded border border-neutral-200",
+                  "px-2.5 py-1.5 text-left text-sm text-neutral-700 shadow-sm outline-none sm:w-full sm:border-none sm:py-2 sm:shadow-none",
+                  "disabled:pointer-events-none disabled:opacity-50",
+                  "sm:data-[selected=true]:bg-neutral-100",
+                  matchesCurrent(preset) && "font-semibold text-neutral-800",
+                )}
+              >
+                <span>{preset.label}</span>
+                {preset.requiresUpgrade ? (
+                  <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+                ) : preset.shortcut ? (
+                  <kbd className="text-neutral-4000 hidden rounded bg-neutral-100 px-2 py-0.5 text-xs font-light group-data-[selected=true]:bg-neutral-200 md:block">
+                    {preset.shortcut.toUpperCase()}
+                  </kbd>
+                ) : null}
+                {preset.requiresUpgrade && preset.tooltipContent && (
+                  <Tooltip side="bottom" content={preset.tooltipContent}>
+                    <div className="absolute inset-0 cursor-not-allowed"></div>
+                  </Tooltip>
+                )}
+              </Command.Item>
+            );
+          })}
+        </Command.List>
+      </div>
     </Command>
   );
 };
