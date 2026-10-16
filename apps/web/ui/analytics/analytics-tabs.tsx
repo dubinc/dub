@@ -26,6 +26,7 @@ export function AnalyticsTabs({
   setSaleUnit,
   requiresUpgrade,
   showPaywall,
+  hideSaleAmount,
 }: {
   showConversions?: boolean;
   totalEvents?: { [key in AnalyticsResponseOptions]: number };
@@ -35,6 +36,7 @@ export function AnalyticsTabs({
   setSaleUnit: (saleUnit: AnalyticsSaleUnit) => void;
   requiresUpgrade?: boolean;
   showPaywall?: boolean;
+  hideSaleAmount?: boolean;
 }) {
   const tabs = useMemo(
     () =>
@@ -142,7 +144,7 @@ export function AnalyticsTabs({
                   )}
                 </div>
               </Link>
-              {id === "sales" && (
+              {id === "sales" && !hideSaleAmount && (
                 <ToggleGroup
                   className="absolute right-3 top-3 hidden w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100 sm:flex"
                   optionClassName="size-8 p-0 flex items-center justify-center"

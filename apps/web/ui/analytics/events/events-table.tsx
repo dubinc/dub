@@ -157,6 +157,7 @@ export default function EventsTable({
     eventsApiPath,
     totalEvents,
     partnerPage,
+    hidePartnerRevenue,
   } = useContext(AnalyticsContext);
 
   const { programSlug } = useParams<{ programSlug: string }>();
@@ -694,7 +695,12 @@ export default function EventsTable({
           cell: ({ row }) => <RowMenuButton row={row} />,
         },
       ]
-        .filter((c) => c.id === "menu" || eventColumns[tab].all.includes(c.id))
+        .filter(
+          (c) =>
+            c.id === "menu" ||
+            (eventColumns[tab].all.includes(c.id) &&
+              !(hidePartnerRevenue && c.id === "saleAmount")),
+        )
         .map((col) => ({
           ...col,
           enableResizing: true,
@@ -702,7 +708,7 @@ export default function EventsTable({
           minSize: col.minSize || 100,
           maxSize: col.maxSize || 1000,
         })),
-    [tab, product, partnerPage],
+    [tab, product, partnerPage, hidePartnerRevenue],
   );
 
   const { pagination, setPagination } = usePagination();
