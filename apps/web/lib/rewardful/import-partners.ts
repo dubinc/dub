@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
 import { Program } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
 import { bulkCreateLinks } from "../api/links";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
@@ -140,6 +141,11 @@ export async function importPartners(payload: RewardfulImportPayload) {
         await queuePartnerSearchSync({
           partnerIds: filteredPartners.map((p) => p.dubPartnerId),
           programId: program.id,
+        });
+
+        await detectAndRecordNetworkLevelBans({
+          programId: program.id,
+          partnerIds: filteredPartners.map((p) => p.dubPartnerId),
         });
       }
     }
