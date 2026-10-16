@@ -6,7 +6,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   fraudRuleFindMany: vi.fn(),
   fraudAlertFindMany: vi.fn(),
-  partnerFindMany: vi.fn(),
   createFraudEvents: vi.fn(),
 }));
 
@@ -16,7 +15,6 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     fraudRule: { findMany: mocks.fraudRuleFindMany },
     fraudAlert: { findMany: mocks.fraudAlertFindMany },
-    partner: { findMany: mocks.partnerFindMany },
   },
 }));
 
