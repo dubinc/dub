@@ -313,6 +313,7 @@ describe.sequential("/groups/**", async () => {
       brandColor: group.brandColor,
       holdingPeriodDays: group.holdingPeriodDays,
       autoApprovePartnersEnabledAt: group.autoApprovePartnersEnabledAt,
+      revenueDataSharingDisabledAt: group.revenueDataSharingDisabledAt,
       submittedLeadsEnabledAt: group.submittedLeadsEnabledAt,
       totalPartners: 0,
       totalClicks: 0,
