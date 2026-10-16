@@ -217,6 +217,15 @@ export const createAndEnrollPartner = async ({
   // Queue an index update because a new enrollment was created.
   waitUntil(queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }));
 
+  // Check for a network-level ban before the default links are created,
+  // so a link failure does not skip it
+  waitUntil(
+    detectAndRecordNetworkLevelBans({
+      programId: program.id,
+      partnerIds: [existingOrNewPartner.id],
+    }),
+  );
+
   // Create the partner links based on group defaults
   const links = await createPartnerDefaultLinks({
     workspace: {
@@ -297,11 +306,6 @@ export const createAndEnrollPartner = async ({
           programId: program.id,
           partnerIds: [existingOrNewPartner.id],
         }),
-
-      detectAndRecordNetworkLevelBans({
-        programId: program.id,
-        partnerIds: [existingOrNewPartner.id],
-      }),
     ]),
   );
 

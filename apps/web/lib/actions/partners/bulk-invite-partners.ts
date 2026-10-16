@@ -176,6 +176,13 @@ export const bulkInvitePartnersAction = authActionClient
 
     waitUntil(
       (async () => {
+        // Check for network-level bans before the default links are created,
+        // so a link failure does not skip the check
+        await detectAndRecordNetworkLevelBans({
+          programId,
+          partnerIds: partners.map(({ id }) => id),
+        });
+
         // Create default links for the partners for each group default link
         for (const partnerGroupDefaultLink of partnerGroupDefaultLinks) {
           const links = await bulkCreateLinks({
@@ -206,11 +213,6 @@ export const bulkInvitePartnersAction = authActionClient
             `Created ${links.length} links for the partner for the default link ${partnerGroupDefaultLink.id}`,
           );
         }
-
-        await detectAndRecordNetworkLevelBans({
-          programId,
-          partnerIds: partners.map(({ id }) => id),
-        });
 
         // Queue an index update because the partners were enrolled. createMany
         // returns no IDs, so this passes partners and lets the job resolve
