@@ -96,6 +96,7 @@ export const withWorkspace = (
       let requestHeaders = await headers();
       let responseHeaders = new Headers();
       let workspace: WorkspaceWithUsers | undefined;
+      let expiredTokenWorkspace: { id: string } | undefined;
       let session: Session | undefined;
       let token: TokenCacheItem | null = null;
 
@@ -237,14 +238,26 @@ export const withWorkspace = (
             });
           }
 
-          if (token.expires && token.expires < new Date()) {
+          // Check if the known token is expired
+          const now = new Date();
+          const expiresAt = token.expires ? new Date(token.expires) : null;
+          const isExpired = !!expiresAt && expiresAt < now;
+
+          // 1. dub_ key, 2. tied to a workspace, 3. not an OAuth token
+          const isExpiredWorkspaceKey =
+            isExpired &&
+            !!isRestrictedToken &&
+            !!token.projectId &&
+            !token.installationId;
+
+          if (isExpired && !isExpiredWorkspaceKey) {
             throw new DubApiError({
               code: "unauthorized",
               message: "Unauthorized: Access token expired.",
             });
           }
 
-          if (!cachedToken) {
+          if (!cachedToken && !isExpiredWorkspaceKey) {
             waitUntil(
               tokenCache.set({
                 hashedKey,
@@ -280,6 +293,14 @@ export const withWorkspace = (
             throw new DubApiError({
               code: "rate_limit_exceeded",
               message: "Too many requests.",
+            });
+          }
+
+          if (isExpiredWorkspaceKey) {
+            expiredTokenWorkspace = { id: token.projectId! };
+            throw new DubApiError({
+              code: "unauthorized",
+              message: "Unauthorized: Access token expired.",
             });
           }
 
@@ -572,12 +593,16 @@ export const withWorkspace = (
           { headers: responseHeaders, status },
         );
 
-        if (workspace?.users?.length) {
+        const currentWorkspace = workspace?.users?.length
+          ? workspace
+          : expiredTokenWorkspace;
+
+        if (currentWorkspace) {
           waitUntil(
             captureRequestLog({
               req: reqForLog,
               response,
-              workspace,
+              workspace: currentWorkspace,
               session,
               token,
               url,
