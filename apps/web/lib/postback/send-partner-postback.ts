@@ -3,6 +3,7 @@ import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden
 import { POSTBACK_EVENT_ID_PREFIX } from "@/lib/postback/constants";
 import { prisma } from "@/lib/prisma";
 import { PostbackTrigger } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { nanoid } from "@dub/utils";
 import { PostbackCustomAdapter } from "./postback-adapter-custom";
 import { PostbackSlackAdapter } from "./postback-adapter-slack";
@@ -136,6 +137,19 @@ async function applyPostbackRevenueVisibility({
           revenueDataSharingDisabledAt: true,
         },
       },
+      program: {
+        select: {
+          groups: {
+            where: {
+              slug: DEFAULT_PARTNER_GROUP.slug,
+            },
+            select: {
+              revenueDataSharingDisabledAt: true,
+            },
+            take: 1,
+          },
+        },
+      },
     },
   });
 
@@ -143,7 +157,13 @@ async function applyPostbackRevenueVisibility({
     return null;
   }
 
-  if (!isPartnerRevenueHidden(enrollment.partnerGroup)) {
+  const group = enrollment.partnerGroup ?? enrollment.program.groups[0];
+
+  if (!group) {
+    return null;
+  }
+
+  if (!isPartnerRevenueHidden(group)) {
     return data;
   }
 
