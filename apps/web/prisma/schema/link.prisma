@@ -92,6 +92,7 @@ model Link {
   commissions               Commission[]
   fraudEvents               FraudEvent[]
   linkReward                LinkReward?
+  partnerLinkDetails        PartnerLinkDetails?
 
   @@unique([domain, key]) // for getting a link by domain and key
   @@unique([projectId, externalId]) // for getting a link by externalId
@@ -104,4 +105,16 @@ model Link {
   @@index(folderId) // used in /api/folders
   @@index(userId) // for relation to User table, used in /api/cron/cleanup/e2e-tests too
   @@index(partnerGroupDefaultLinkId)
+}
+
+// Partner-owned display label and notes. Only loaded by partner-profile APIs.
+model PartnerLinkDetails {
+  id        String   @id @default(cuid())
+  linkId    String   @unique
+  title     String?
+  comments  String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
 }

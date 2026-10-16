@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { PartnerGroup, Program } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
@@ -119,6 +120,8 @@ export async function importPartners(payload: TapfiliateImportPayload) {
       // Queue an index update because the imported partners were enrolled.
       // Queued per page rather than per partner.
       await queuePartnerSearchSync({ partnerIds, programId });
+
+      await detectAndRecordNetworkLevelBans({ programId, partnerIds });
 
       await tapfiliateImporter.trackImportedPartnerIds({
         programId,

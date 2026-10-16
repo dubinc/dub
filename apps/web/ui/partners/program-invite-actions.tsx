@@ -1,6 +1,6 @@
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import { ProgramEnrollmentProps } from "@/lib/types";
+import { PartnerProfileProgramEnrollmentProps } from "@/lib/types";
 import { Button, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -14,7 +14,7 @@ export function ProgramInviteActions({
   className,
   buttonClassName,
 }: {
-  programEnrollment: ProgramEnrollmentProps;
+  programEnrollment: PartnerProfileProgramEnrollmentProps;
   className?: string;
   buttonClassName?: string;
 }) {

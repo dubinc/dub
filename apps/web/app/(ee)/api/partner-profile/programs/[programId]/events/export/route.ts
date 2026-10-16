@@ -17,8 +17,9 @@ import {
 } from "@/lib/constants/partner-profile";
 import { qstash } from "@/lib/cron";
 import { generateRandomName } from "@/lib/names";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import {
-  PartnerProfileLinkSchema,
+  parsePartnerProfileEventLink,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
 import {
@@ -35,15 +36,44 @@ const MAX_EVENTS_TO_EXPORT = 1000;
 // GET /api/partner-profile/programs/[programId]/events/export – get export data for partner profile events
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams, session }) => {
-    const { program, links, totalCommissions, customerDataSharingEnabledAt } =
-      await getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId: params.programId,
-        include: {
-          program: true,
-          links: true,
+    const {
+      program,
+      links,
+      totalCommissions,
+      customerDataSharingEnabledAt,
+      partnerGroup,
+    } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: params.programId,
+      include: {
+        program: {
+          select: {
+            id: true,
+            workspaceId: true,
+            startedAt: true,
+            createdAt: true,
+          },
         },
-      });
+        links: {
+          select: {
+            id: true,
+            domain: true,
+            key: true,
+            partnerLinkDetails: {
+              select: {
+                title: true,
+                comments: true,
+              },
+            },
+          },
+        },
+        partnerGroup: {
+          select: {
+            revenueDataSharingDisabledAt: true,
+          },
+        },
+      },
+    });
 
     if (
       LARGE_PROGRAM_IDS.includes(program.id) &&
@@ -76,13 +106,15 @@ export const GET = withPartnerProfile(
 
     const { event, columns: columnsParam } = parsedParams;
 
+    const hidePartnerRevenue = isPartnerRevenueHidden(partnerGroup);
+
     // Default columns based on event type if not provided
     const defaultColumns: Record<string, string[]> = {
       clicks: ["timestamp", "link", "referer", "country", "device"],
       leads: ["timestamp", "event", "link", "customer", "referer"],
       sales: [
         "timestamp",
-        "saleAmount",
+        ...(hidePartnerRevenue ? [] : ["saleAmount"]),
         "event",
         "customer",
         "referer",
@@ -90,10 +122,11 @@ export const GET = withPartnerProfile(
       ],
     };
 
-    const columns =
+    const columns = (
       columnsParam.length > 0
         ? columnsParam
-        : defaultColumns[event] || defaultColumns.clicks;
+        : defaultColumns[event] || defaultColumns.clicks
+    ).filter((c) => !(hidePartnerRevenue && c === "saleAmount"));
 
     const { linkId, domain, key } = parsedParams;
 
@@ -211,7 +244,9 @@ export const GET = withPartnerProfile(
       return {
         ...eventRest,
         click: clickRest,
-        link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
+        link: event?.link
+          ? parsePartnerProfileEventLink(event.link, links)
+          : null,
         ...(customer && {
           customer: z
             .object({

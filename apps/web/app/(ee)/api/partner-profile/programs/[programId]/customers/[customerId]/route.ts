@@ -10,6 +10,8 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
+import { nullifyPartnerEventRevenue } from "@/lib/partners/hide-partner-revenue";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma } from "@/lib/prisma";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
 import { toCentsNumber } from "@dub/utils";
@@ -21,15 +23,37 @@ import * as z from "zod/v4";
 export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { customerId, programId } = params;
 
-  const { program, links, totalCommissions, customerDataSharingEnabledAt } =
-    await getProgramEnrollmentOrThrow({
-      partnerId: partner.id,
-      programId: programId,
-      include: {
-        program: true,
-        links: true,
+  const {
+    program,
+    links,
+    totalCommissions,
+    customerDataSharingEnabledAt,
+    partnerGroup,
+  } = await getProgramEnrollmentOrThrow({
+    partnerId: partner.id,
+    programId: programId,
+    include: {
+      program: {
+        select: {
+          id: true,
+          workspaceId: true,
+        },
       },
-    });
+      links: {
+        select: {
+          id: true,
+          domain: true,
+          key: true,
+          shortLink: true,
+        },
+      },
+      partnerGroup: {
+        select: {
+          revenueDataSharingDisabledAt: true,
+        },
+      },
+    },
+  });
 
   if (
     LARGE_PROGRAM_IDS.includes(program.id) &&
@@ -95,30 +119,34 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   // get the partner link that this customer interacted with
   const link = links.find((link) => link.id === attributedPartnerLinkId);
 
+  const hidePartnerRevenue = isPartnerRevenueHidden(partnerGroup);
+  const ltvExcluded =
+    CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id) ||
+    hidePartnerRevenue;
+
+  const transformed = transformCustomer({
+    ...customer,
+    firstSaleAt: customer.commissions[0]?.createdAt ?? null,
+    email: customer.email
+      ? customerDataSharingEnabledAt
+        ? customer.email
+        : obfuscateCustomerEmail(customer.email)
+      : customer.name || generateRandomName(),
+  });
+
   return NextResponse.json(
     PartnerProfileCustomerSchema.extend({
       ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
-    })
-      .omit({
-        ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id) && {
-          saleAmount: true,
-        }),
-      })
-      .parse({
-        ...transformCustomer({
-          ...customer,
-          firstSaleAt: customer.commissions[0]?.createdAt ?? null,
-          email: customer.email
-            ? customerDataSharingEnabledAt
-              ? customer.email
-              : obfuscateCustomerEmail(customer.email)
-            : customer.name || generateRandomName(),
-        }),
-        activity: {
-          ...customer,
-          events,
-          link,
-        },
-      }),
+    }).parse({
+      ...transformed,
+      ...(ltvExcluded && { saleAmount: null }),
+      activity: {
+        ...customer,
+        events: hidePartnerRevenue
+          ? events.map(nullifyPartnerEventRevenue)
+          : events,
+        link,
+      },
+    }),
   );
 });

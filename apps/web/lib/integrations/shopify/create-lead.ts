@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { generateRandomName } from "@/lib/names";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
@@ -82,6 +83,7 @@ export async function createShopifyLead({
       externalId,
       name,
       email,
+      normalizedEmail: getNormalizedEmail(email),
       projectId: workspaceId,
       programId: partnerLink.programId,
       partnerId: partnerLink.partnerId,

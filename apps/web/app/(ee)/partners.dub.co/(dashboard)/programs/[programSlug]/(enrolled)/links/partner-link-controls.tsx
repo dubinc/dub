@@ -44,7 +44,8 @@ export function PartnerLinkControls({
     !link.partnerGroupDefaultLinkId &&
     link.clicks === 0 &&
     link.leads === 0 &&
-    link.saleAmount === 0;
+    // saleAmount is null when the group hides revenue, so fall back to the sales count
+    (link.saleAmount ?? link.sales) === 0;
 
   const { setShowDeletePartnerLinkModal, DeletePartnerLinkModal } =
     useDeletePartnerLinkModal({

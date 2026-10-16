@@ -5,6 +5,13 @@ import { env } from "../utils/env";
 import { IntegrationHarnessOld } from "../utils/integration-old";
 import { E2E_PARTNER, E2E_PROGRAM } from "../utils/resource";
 
+// the partner-profile route adds the partner's private link title to each row
+const partnerTopLinksSchema = analyticsResponse.top_links
+  .extend({
+    partnerLinkTitle: z.string().nullable(),
+  })
+  .strict();
+
 describe
   .runIf(env.CI)
   .sequential(
@@ -22,9 +29,7 @@ describe
         });
 
         expect(status).toEqual(200);
-        const parsed = z
-          .array(analyticsResponse.top_links.strict())
-          .safeParse(data);
+        const parsed = z.array(partnerTopLinksSchema).safeParse(data);
         expect(parsed.success).toBeTruthy();
         expect(
           parsed.data?.every((item) => item.partnerId === E2E_PARTNER.id),
@@ -41,9 +46,7 @@ describe
         });
 
         expect(status).toEqual(200);
-        const parsed = z
-          .array(analyticsResponse.top_links.strict())
-          .safeParse(data);
+        const parsed = z.array(partnerTopLinksSchema).safeParse(data);
         expect(parsed.success).toBeTruthy();
         expect(
           parsed.data?.every((item) => item.partnerId === E2E_PARTNER.id),
@@ -64,9 +67,7 @@ describe
         });
 
         expect(status).toEqual(200);
-        const parsed = z
-          .array(analyticsResponse.top_links.strict())
-          .safeParse(data);
+        const parsed = z.array(partnerTopLinksSchema).safeParse(data);
         expect(parsed.success).toBeTruthy();
         expect(
           parsed.data?.every((item) => item.partnerId === E2E_PARTNER.id),
@@ -86,9 +87,7 @@ describe
         });
 
         expect(status).toEqual(200);
-        const parsed = z
-          .array(analyticsResponse.top_links.strict())
-          .safeParse(data);
+        const parsed = z.array(partnerTopLinksSchema).safeParse(data);
         expect(parsed.success).toBeTruthy();
         // need to make sure all returned links still belong to the partner
         expect(

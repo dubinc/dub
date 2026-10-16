@@ -458,6 +458,16 @@ async function createApplicationAndEnrollment({
         applications: [programApplication],
       });
 
+      // Detect and record fraud events for the partner when they apply to a program
+      const fraudDetection = detectAndRecordFraudApplication({
+        context: {
+          program,
+          partner,
+        },
+      }).catch((error) =>
+        console.error("Failed to detect application fraud", error),
+      );
+
       await Promise.allSettled([
         notifyProgramApplication({
           partner,
@@ -469,15 +479,18 @@ async function createApplicationAndEnrollment({
         ...(result.reason === "requirementsNotMet"
           ? []
           : [
-              dispatchPartnerApplicationReview({
-                applicationId: programApplication.id,
-                programId: program.id,
-                partnerId: partner.id,
-                autoApprovePartnersEnabledAt:
-                  group.autoApprovePartnersEnabledAt,
-                applicationScreeningCriteria:
-                  program.applicationScreeningCriteria,
-              }),
+              // Wait for fraud detection, so the review job sees the new fraud events
+              fraudDetection.then(() =>
+                dispatchPartnerApplicationReview({
+                  applicationId: programApplication.id,
+                  programId: program.id,
+                  partnerId: partner.id,
+                  autoApprovePartnersEnabledAt:
+                    group.autoApprovePartnersEnabledAt,
+                  applicationScreeningCriteria:
+                    program.applicationScreeningCriteria,
+                }),
+              ),
             ]),
 
         // Send "partner.application_submitted" webhook (deprecated)
@@ -507,13 +520,7 @@ async function createApplicationAndEnrollment({
           }),
         }),
 
-        // Detect and record fraud events for the partner when they apply to a program
-        detectAndRecordFraudApplication({
-          context: {
-            program,
-            partner,
-          },
-        }),
+        fraudDetection,
 
         markApplicationEventSubmitted({
           programId: program.id,

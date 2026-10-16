@@ -154,7 +154,10 @@ export async function approveProgramApplication({
       throwIfPartnersLimitExceeded(program.workspace);
     }
 
-    const programEnrollment: Partial<ProgramEnrollment> = {
+    // the JSON column needs a Prisma input type, and approval never sets it
+    const programEnrollment: Partial<
+      Omit<ProgramEnrollment, "partnerPreferences">
+    > = {
       applicationId: programApplication.id,
       ...(isNewEnrollment && {
         status: ProgramEnrollmentStatus.approved,
