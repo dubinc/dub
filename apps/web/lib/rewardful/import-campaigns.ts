@@ -52,6 +52,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
     brandColor,
     holdingPeriodDays,
     autoApprovePartnersEnabledAt,
+    hideRevenueFromPartnersAt,
     additionalLinks,
     maxPartnerLinks,
     linkStructure,
@@ -106,6 +107,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         brandColor,
         holdingPeriodDays,
         autoApprovePartnersEnabledAt,
+        hideRevenueFromPartnersAt,
         submittedLeadsEnabledAt,
         ...(additionalLinks && {
           additionalLinks: sanitizeAdditionalLinks(additionalLinks),

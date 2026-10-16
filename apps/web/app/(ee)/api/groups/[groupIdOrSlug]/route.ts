@@ -62,6 +62,7 @@ export const PATCH = withWorkspace(
       landerData,
       holdingPeriodDays,
       autoApprovePartners,
+      hideRevenueFromPartners,
       updateAutoApprovePartnersForAllGroups,
       updateHoldingPeriodDaysForAllGroups,
       moveRules,
@@ -153,6 +154,11 @@ export const PATCH = withWorkspace(
                 ? new Date()
                 : null,
             }),
+          ...(hideRevenueFromPartners !== undefined && {
+            hideRevenueFromPartnersAt: hideRevenueFromPartners
+              ? new Date()
+              : null,
+          }),
         },
         include: {
           clickReward: true,

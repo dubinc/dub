@@ -64,6 +64,23 @@ function GroupAdditionalSettingsForm({
     }
   }, [group]);
 
+  const handleHideRevenueToggle = async () => {
+    if (!group) return;
+    const currentValue = Boolean(group.hideRevenueFromPartnersAt);
+    await updateGroup(`/api/groups/${group.id}`, {
+      method: "PATCH",
+      body: {
+        hideRevenueFromPartners: !currentValue,
+      },
+      onSuccess: async () => {
+        await mutatePrefix(`/api/groups/${group.slug}`);
+        toast.success(
+          `Partners in this group will ${currentValue ? "now see" : "no longer see"} sale amounts`,
+        );
+      },
+    });
+  };
+
   const handleAutoApproveConfirm = async ({
     applyToAllGroups,
   }: {
@@ -244,6 +261,29 @@ function GroupAdditionalSettingsForm({
                       />
                       <span className="text-content-emphasis text-sm">
                         Enable auto-approve
+                      </span>
+                    </div>
+                  </label>
+                )}
+              </GroupSettingsRow>
+
+              <GroupSettingsRow
+                heading="Hide revenue from partners"
+                description="Partners in this group will not see sale amounts. They will still see clicks, leads, sales, and commissions."
+              >
+                {isLoading ? (
+                  <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
+                ) : (
+                  <label>
+                    <div className="flex select-none items-center gap-2">
+                      <Switch
+                        checked={Boolean(group!.hideRevenueFromPartnersAt)}
+                        fn={handleHideRevenueToggle}
+                        disabled={isSubmitting}
+                        trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
+                      />
+                      <span className="text-content-emphasis text-sm">
+                        Hide sale amounts
                       </span>
                     </div>
                   </label>
