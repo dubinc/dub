@@ -6,6 +6,7 @@ import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
+import { useWorkspaceTransition } from "@/ui/layout/workspace-transition";
 import { ModalContext } from "@/ui/modals/modal-provider";
 import { getUserAvatarUrl } from "@/ui/users/user-avatar";
 import {
@@ -141,6 +142,7 @@ function WorkspaceList({
   setOpenPopover: (open: boolean) => void;
 }) {
   const { setShowAddWorkspaceModal } = useContext(ModalContext);
+  const { startWorkspaceTransition } = useWorkspaceTransition();
   const { link, programId } = useParams() as {
     link: string | string[];
     programId?: string;
@@ -283,7 +285,10 @@ function WorkspaceList({
                     )}
                     href={href(slug)}
                     shallow={false}
-                    onClick={() => setOpenPopover(false)}
+                    onClick={() => {
+                      startWorkspaceTransition(slug);
+                      setOpenPopover(false);
+                    }}
                   >
                     <BlurImage
                       src={logo || `https://avatar.vercel.sh/${id}`}
