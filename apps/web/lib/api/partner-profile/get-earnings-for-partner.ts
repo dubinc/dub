@@ -122,6 +122,11 @@ export async function getEarningsForPartner(
           id: true,
           shortLink: true,
           url: true,
+          partnerLinkDetails: {
+            select: {
+              title: true,
+            },
+          },
         },
       },
       program: {
@@ -186,6 +191,14 @@ export async function getEarningsForPartner(
 
       const earning = {
         ...e,
+        link: e.link
+          ? {
+              id: e.link.id,
+              shortLink: e.link.shortLink,
+              url: e.link.url,
+              partnerLinkTitle: e.link.partnerLinkDetails?.title ?? null,
+            }
+          : e.link,
         customer: e.customer
           ? {
               ...e.customer,

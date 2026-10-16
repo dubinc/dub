@@ -19,7 +19,7 @@ import { qstash } from "@/lib/cron";
 import { generateRandomName } from "@/lib/names";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import {
-  PartnerProfileLinkSchema,
+  parsePartnerProfileEventLink,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
 import {
@@ -59,6 +59,12 @@ export const GET = withPartnerProfile(
             id: true,
             domain: true,
             key: true,
+            partnerLinkDetails: {
+              select: {
+                title: true,
+                comments: true,
+              },
+            },
           },
         },
         partnerGroup: {
@@ -238,7 +244,9 @@ export const GET = withPartnerProfile(
       return {
         ...eventRest,
         click: clickRest,
-        link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
+        link: event?.link
+          ? parsePartnerProfileEventLink(event.link, links)
+          : null,
         ...(customer && {
           customer: z
             .object({

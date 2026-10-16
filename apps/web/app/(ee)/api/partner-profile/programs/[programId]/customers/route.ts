@@ -12,8 +12,9 @@ import { generateRandomName } from "@/lib/names";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
 import {
-  PartnerProfileCustomerSchema,
   getPartnerCustomersQuerySchema,
+  mapPartnerLinkDetails,
+  PartnerProfileCustomerSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { toCentsNumber } from "@dub/utils";
 import { CommissionType } from "@prisma/client";
@@ -98,7 +99,11 @@ export const GET = withPartnerProfile(
           : {}),
       },
       include: {
-        link: true,
+        link: {
+          include: {
+            partnerLinkDetails: true,
+          },
+        },
         commissions: {
           where: {
             partnerId: partner.id,
@@ -137,7 +142,9 @@ export const GET = withPartnerProfile(
         activity: {
           ...customer,
           events: [],
-          link: customer.link,
+          link: customer.link
+            ? mapPartnerLinkDetails(customer.link)
+            : customer.link,
         },
       });
     });

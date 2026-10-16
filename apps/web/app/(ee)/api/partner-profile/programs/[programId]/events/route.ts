@@ -13,7 +13,7 @@ import { generateRandomName } from "@/lib/names";
 import { nullifyPartnerEventRevenue } from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import {
-  PartnerProfileLinkSchema,
+  parsePartnerProfileEventLink,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { parseFilterValue, toCentsNumber } from "@dub/utils";
@@ -46,6 +46,12 @@ export const GET = withPartnerProfile(
             id: true,
             domain: true,
             key: true,
+            partnerLinkDetails: {
+              select: {
+                title: true,
+                comments: true,
+              },
+            },
           },
         },
         partnerGroup: {
@@ -145,7 +151,9 @@ export const GET = withPartnerProfile(
       const mapped = {
         ...eventRest,
         click: clickRest,
-        link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
+        link: event?.link
+          ? parsePartnerProfileEventLink(event.link, links)
+          : null,
         ...(customer && {
           customer: z
             .object({

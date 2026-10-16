@@ -16,8 +16,8 @@ import { generateRandomName } from "@/lib/names";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma } from "@/lib/prisma";
 import {
+  parsePartnerProfileEventLink,
   partnerProfileEventsQuerySchema,
-  PartnerProfileLinkSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
@@ -89,6 +89,12 @@ export async function POST(req: Request) {
               id: true,
               domain: true,
               key: true,
+              partnerLinkDetails: {
+                select: {
+                  title: true,
+                  comments: true,
+                },
+              },
             },
           },
           partnerGroup: {
@@ -178,7 +184,9 @@ export async function POST(req: Request) {
         return {
           ...eventRest,
           click: clickRest,
-          link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
+          link: event?.link
+            ? parsePartnerProfileEventLink(event.link, links)
+            : null,
           ...(customer && {
             customer: z
               .object({

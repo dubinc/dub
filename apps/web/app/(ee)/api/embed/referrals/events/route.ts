@@ -50,6 +50,7 @@ export const GET = withReferralsEmbedToken(
       const mapped = {
         ...eventRest,
         click: clickRest,
+        // the embed token comes from the workspace, so no private partner link details
         link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
         ...(customer && {
           customer: z

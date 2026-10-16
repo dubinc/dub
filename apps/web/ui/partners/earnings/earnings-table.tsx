@@ -2,6 +2,7 @@
 
 import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import {
   usePartnerProfileEarnings,
@@ -76,6 +77,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
       ? programEnrollment
       : programEnrollmentsById.get(row.program.id);
   const { queryParams, searchParamsObj } = useRouterStuff();
+  const { displayProperties } = usePartnerLinksDisplay();
   const filters = usePartnerEarningsFilters();
 
   const { sortBy = "createdAt", sortOrder = "desc" } = searchParamsObj as {
@@ -173,15 +175,23 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
             row.original.link ? { linkId: row.original.link.id } : null,
         },
         cell: ({ row }) => {
-          const referralLink = row.original.link
+          const link = row.original.link;
+          const referralLink = link
             ? {
-                apexDomain: getApexDomain(row.original.link.url),
-                shortLink: row.original.link.shortLink,
+                apexDomain: getApexDomain(link.url),
+                shortLink: link.shortLink,
+                label:
+                  displayProperties.includes("title") && link.partnerLinkTitle
+                    ? link.partnerLinkTitle
+                    : getPrettyUrl(link.shortLink),
               }
             : row.original.type === CommissionType.referral && partner?.username
               ? {
                   apexDomain: "dub.co",
                   shortLink: `https://partners.dub.co/${row.original.program.slug}/apply?via=${partner.username}`,
+                  label: getPrettyUrl(
+                    `https://partners.dub.co/${row.original.program.slug}/apply?via=${partner.username}`,
+                  ),
                 }
               : null;
 
@@ -198,8 +208,8 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
                 successMessage="Copied link to clipboard!"
                 className="truncate"
               >
-                <span className="truncate" title={referralLink.shortLink}>
-                  {getPrettyUrl(referralLink.shortLink)}
+                <span className="truncate" title={referralLink.label}>
+                  {referralLink.label}
                 </span>
               </CopyText>
             </div>

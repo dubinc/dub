@@ -74,8 +74,21 @@ export async function updateLink({
     testVariants,
     testStartedAt,
     testCompletedAt,
+    partnerLinkTitle,
+    partnerLinkComments,
     ...rest
   } = updatedLink;
+
+  const partnerLinkDetailsProvided =
+    partnerLinkTitle !== undefined || partnerLinkComments !== undefined;
+  const partnerLinkDetailsTitle =
+    typeof partnerLinkTitle === "string" && partnerLinkTitle.trim()
+      ? truncate(partnerLinkTitle.trim(), 120)
+      : null;
+  const partnerLinkDetailsComments =
+    typeof partnerLinkComments === "string" && partnerLinkComments.trim()
+      ? partnerLinkComments
+      : null;
   const changedTestCompletedAt = testCompletedAt !== oldLink.testCompletedAt;
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
@@ -158,6 +171,24 @@ export async function updateLink({
         },
       }),
 
+      ...(partnerLinkDetailsProvided &&
+      (partnerLinkDetailsTitle || partnerLinkDetailsComments)
+        ? {
+            partnerLinkDetails: {
+              upsert: {
+                create: {
+                  title: partnerLinkDetailsTitle,
+                  comments: partnerLinkDetailsComments,
+                },
+                update: {
+                  title: partnerLinkDetailsTitle,
+                  comments: partnerLinkDetailsComments,
+                },
+              },
+            },
+          }
+        : {}),
+
       // Shared dashboard
       ...(publicStats && {
         dashboard: {
@@ -175,6 +206,16 @@ export async function updateLink({
       webhooks: webhookIds ? true : false,
     },
   });
+
+  if (
+    partnerLinkDetailsProvided &&
+    !partnerLinkDetailsTitle &&
+    !partnerLinkDetailsComments
+  ) {
+    await prisma.partnerLinkDetails.deleteMany({
+      where: { linkId: id },
+    });
+  }
 
   const previousImageKey =
     oldLink.image && oldLink.image !== image
