@@ -25,8 +25,12 @@ function getRowHref(row: EventDataProps, workspaceSlug?: string) {
     return `/${workspaceSlug}/program/customers?partnerId=${row.partner.id}&search=${extractEmailDomain(row.customer.email)}`;
   }
 
-  if (row.metadata?.matchType === CustomerEmailMatchType.SIMILAR_EMAIL_MATCH) {
-    return `/${workspaceSlug}/program/customers?partnerId=${row.partner.id}`;
+  // The matched customer can belong to another partner in the program
+  if (
+    row.metadata?.matchType === CustomerEmailMatchType.SIMILAR_EMAIL_MATCH &&
+    row.metadata.matchedCustomerId
+  ) {
+    return `/${workspaceSlug}/program/customers/${row.metadata.matchedCustomerId}`;
   }
 
   return `/${workspaceSlug}/events?event=leads&interval=all&customerId=${row.customer.id}`;
