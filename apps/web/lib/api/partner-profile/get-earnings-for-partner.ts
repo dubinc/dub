@@ -17,6 +17,7 @@ interface GetEarningsForPartnerParams
   extends z.infer<typeof getPartnerEarningsQuerySchema> {
   partnerId: string;
   programId?: string; // if not provided, earnings across all programs (except the network program) are returned
+  includePartnerLinkTitle?: boolean; // only for partner-profile routes, because the workspace creates embed tokens
 }
 
 export async function getEarningsForPartner(
@@ -40,6 +41,7 @@ export async function getEarningsForPartner(
     timezone,
     programId,
     partnerId,
+    includePartnerLinkTitle = false,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -122,11 +124,13 @@ export async function getEarningsForPartner(
           id: true,
           shortLink: true,
           url: true,
-          partnerLinkDetails: {
-            select: {
-              title: true,
+          ...(includePartnerLinkTitle && {
+            partnerLinkDetails: {
+              select: {
+                title: true,
+              },
             },
-          },
+          }),
         },
       },
       program: {
@@ -196,7 +200,9 @@ export async function getEarningsForPartner(
               id: e.link.id,
               shortLink: e.link.shortLink,
               url: e.link.url,
-              partnerLinkTitle: e.link.partnerLinkDetails?.title ?? null,
+              ...(includePartnerLinkTitle && {
+                partnerLinkTitle: e.link.partnerLinkDetails?.title ?? null,
+              }),
             }
           : e.link,
         customer: e.customer
