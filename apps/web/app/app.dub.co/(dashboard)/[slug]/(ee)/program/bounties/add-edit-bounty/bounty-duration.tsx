@@ -3,8 +3,13 @@
 import {
   BOUNTY_DURATION_DAYS,
   BOUNTY_DURATION_PRESETS,
+  BOUNTY_DURATION_UNIT_DAYS,
+  BOUNTY_DURATION_UNITS,
+  BOUNTY_MAX_ENDS_AFTER_DAYS,
+  BountyDurationUnit,
   DurationPreset,
   EndPreset,
+  formatEndsAfterDays,
   resolveBountyTiming,
   StartPreset,
 } from "@/lib/bounty/bounty-period";
@@ -20,9 +25,10 @@ import {
   DatePickerContext,
   Label,
 } from "@dub/ui";
-import { cn, formatDate } from "@dub/utils";
+import { cn, formatDate, pluralize } from "@dub/utils";
 import { BountyStartMode } from "@prisma/client";
 import { addDays, addMonths, addWeeks } from "date-fns";
+import { ChevronDown } from "lucide-react";
 import { useParams } from "next/navigation";
 import { ReactNode, useContext, useEffect, useState } from "react";
 
@@ -59,8 +65,21 @@ const END_OPTIONS = [
     value: p,
     label: DURATION_LABELS[p].end,
   })),
-  { value: "custom", label: "custom" },
+  { value: "customDuration", label: "custom duration" },
+  { value: "custom", label: "custom date" },
 ] satisfies PresetOption<EndPreset>[];
+
+// Applied when "custom duration" is picked and no number has been typed
+const DEFAULT_CUSTOM_DURATION = { amount: 3, unit: "month" } as const;
+
+// What's typed into the custom duration input. Only the day count is saved,
+// so this keeps the typed unit for labels while the form is open.
+type DurationDraft = { amount: string; unit: BountyDurationUnit };
+
+const DEFAULT_DURATION_DRAFT: DurationDraft = {
+  amount: "",
+  unit: DEFAULT_CUSTOM_DURATION.unit,
+};
 
 const START_DURATION_DATES: Record<DurationPreset, (now: Date) => Date> = {
   twoWeeks: (now) => addWeeks(now, 2),
@@ -91,6 +110,18 @@ function findDurationPresetByDays(days: number): DurationPreset | null {
       ([, durationDays]) => durationDays === days,
     )?.[0] ?? null
   );
+}
+
+function parseEndsAfterDays(
+  endsAfterDays: number,
+): Pick<ParsedPresets, "endPreset" | "customEndsAt" | "customEndsAfterDays"> {
+  const durationPreset = findDurationPresetByDays(endsAfterDays);
+
+  return {
+    endPreset: durationPreset ?? "customDuration",
+    customEndsAt: null,
+    customEndsAfterDays: durationPreset ? null : endsAfterDays,
+  };
 }
 
 function getPresetLabel<T extends string>(
@@ -138,17 +169,11 @@ function parsePresets(value: BountyTimingInput): ParsedPresets {
   let customEndsAt: Date | null;
 
   if (value.endsAfterDays != null) {
-    const durationPreset = findDurationPresetByDays(value.endsAfterDays);
-
-    if (durationPreset) {
-      return {
-        startPreset,
-        endPreset: durationPreset,
-        customStartsAt,
-        customEndsAt: null,
-        customEndsAfterDays: null,
-      };
-    }
+    return {
+      startPreset,
+      customStartsAt,
+      ...parseEndsAfterDays(value.endsAfterDays),
+    };
   }
 
   if (!value.endsAt) {
@@ -188,24 +213,10 @@ function parsePresetsForEdit(value: BountyTimingInput): ParsedPresets {
     const customStartsAt = null;
 
     if (value.endsAfterDays != null) {
-      const durationPreset = findDurationPresetByDays(value.endsAfterDays);
-
-      if (durationPreset) {
-        return {
-          startPreset,
-          endPreset: durationPreset,
-          customStartsAt,
-          customEndsAt: null,
-          customEndsAfterDays: null,
-        };
-      }
-
       return {
         startPreset,
-        endPreset: "never",
         customStartsAt,
-        customEndsAt: null,
-        customEndsAfterDays: value.endsAfterDays,
+        ...parseEndsAfterDays(value.endsAfterDays),
       };
     }
 
@@ -272,37 +283,44 @@ function mergeDateWithTime(date: Date, previous: Date | null | undefined) {
   return merged;
 }
 
+function getPickerView(preset: string | undefined) {
+  if (preset === "custom") return "calendar";
+  if (preset === "customDuration") return "duration";
+  return "presets";
+}
+
 function BountyDatePickerContent<T extends string>({
   calendar,
+  durationContent,
   options,
   selectedPreset,
   onSelectPreset,
 }: {
   calendar: ReactNode;
+  durationContent?: ReactNode;
   options: PresetOption<T>[];
   selectedPreset: T | undefined;
   onSelectPreset: (preset: T) => void;
 }) {
   const { isOpen, setIsOpen } = useContext(DatePickerContext);
-  const [showCustomCalendar, setShowCustomCalendar] = useState(
-    selectedPreset === "custom",
-  );
+  const [view, setView] = useState(() => getPickerView(selectedPreset));
 
   useEffect(() => {
     if (!isOpen) return;
-    if (selectedPreset === "custom") {
-      setShowCustomCalendar(true);
+    const nextView = getPickerView(selectedPreset);
+    if (nextView !== "presets") {
+      setView(nextView);
     }
   }, [isOpen, selectedPreset]);
 
   return (
     <InlineBadgePopoverContext.Provider value={{ isOpen, setIsOpen }}>
       <AnimatedSizeContainer height width>
-        {showCustomCalendar ? (
+        {view !== "presets" ? (
           <div className="flex flex-col">
             <button
               type="button"
-              onClick={() => setShowCustomCalendar(false)}
+              onClick={() => setView("presets")}
               className={cn(
                 "group mx-2 mt-1.5 flex w-fit items-center gap-0.5 rounded-md px-1.5 py-1",
                 "text-neutral-500 transition-colors",
@@ -312,26 +330,26 @@ function BountyDatePickerContent<T extends string>({
               <ChevronLeft className="size-3.5 transition-transform duration-100 group-hover:-translate-x-0.5" />
               <span className="text-xs font-medium">Presets</span>
             </button>
-            {calendar}
+            {view === "duration" ? (
+              <div className="px-3 pb-3 pt-1">{durationContent}</div>
+            ) : (
+              calendar
+            )}
           </div>
         ) : (
           <div className="p-1">
             <InlineBadgePopoverMenu
               selectedValue={selectedPreset}
               onSelect={(preset) => {
-                if (preset === "custom") {
-                  setShowCustomCalendar(true);
-                  onSelectPreset(preset);
-                  return;
-                }
-
-                setShowCustomCalendar(false);
+                setView(getPickerView(preset));
                 onSelectPreset(preset);
               }}
               items={options.map((option) => ({
                 value: option.value,
                 text: option.label,
-                ...(option.value === "custom" ? { preventClose: true } : {}),
+                ...(getPickerView(option.value) !== "presets"
+                  ? { preventClose: true }
+                  : {}),
               }))}
             />
           </div>
@@ -346,6 +364,7 @@ function BountyDatePicker<T extends string>({
   options,
   selectedPreset,
   customDate,
+  durationContent,
   onSelectPreset,
   onSelectDate,
 }: {
@@ -353,6 +372,7 @@ function BountyDatePicker<T extends string>({
   options: PresetOption<T>[];
   selectedPreset: T | undefined;
   customDate: Date | null | undefined;
+  durationContent?: ReactNode;
   onSelectPreset: (preset: T) => void;
   onSelectDate: (date: Date) => void;
 }) {
@@ -377,12 +397,103 @@ function BountyDatePicker<T extends string>({
       renderContent={({ calendar }) => (
         <BountyDatePickerContent
           calendar={calendar}
+          durationContent={durationContent}
           options={options}
           selectedPreset={selectedPreset}
           onSelectPreset={onSelectPreset}
         />
       )}
     />
+  );
+}
+
+function clampDurationAmount(amount: number, unit: BountyDurationUnit) {
+  return Math.max(
+    1,
+    Math.min(
+      amount,
+      Math.floor(BOUNTY_MAX_ENDS_AFTER_DAYS / BOUNTY_DURATION_UNIT_DAYS[unit]),
+    ),
+  );
+}
+
+function getDraftFromDays(days: number | null): DurationDraft {
+  return days != null
+    ? { amount: days.toString(), unit: "day" }
+    : DEFAULT_DURATION_DRAFT;
+}
+
+// An empty amount falls back to the placeholder; null while it isn't a number
+function getDraftAmount(draft: DurationDraft) {
+  if (draft.amount === "") return DEFAULT_CUSTOM_DURATION.amount;
+  const parsed = parseInt(draft.amount, 10);
+  return isNaN(parsed) ? null : clampDurationAmount(parsed, draft.unit);
+}
+
+function getDraftDays(draft: DurationDraft) {
+  const amount = getDraftAmount(draft);
+  return amount == null ? null : amount * BOUNTY_DURATION_UNIT_DAYS[draft.unit];
+}
+
+function BountyCustomDurationInput({
+  draft,
+  onChange,
+}: {
+  draft: DurationDraft;
+  onChange: (draft: DurationDraft) => void;
+}) {
+  const { setIsOpen } = useContext(DatePickerContext);
+  const amount = getDraftAmount(draft) ?? DEFAULT_CUSTOM_DURATION.amount;
+
+  return (
+    <div className="flex w-fit rounded-md border border-neutral-300 shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
+      <input
+        type="number"
+        min="1"
+        step="1"
+        autoFocus
+        aria-label="Duration"
+        placeholder={DEFAULT_CUSTOM_DURATION.amount.toString()}
+        value={draft.amount}
+        className="block w-10 rounded-l-md border-none py-1 pl-2 pr-0 text-neutral-900 placeholder-neutral-400 [appearance:textfield] focus:outline-none focus:ring-0 sm:text-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        onChange={(e) => onChange({ ...draft, amount: e.target.value })}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            setIsOpen(false);
+          }
+        }}
+      />
+      {/* The native <select> is stretched invisibly over the label so the unit
+          sits right-aligned against the chevron at a fixed width */}
+      <div className="relative flex shrink-0 items-center gap-1.5 rounded-r-md py-1 pl-1 pr-2 text-sm text-neutral-600">
+        <span className="grid text-right" aria-hidden>
+          {/* Widest label reserves the width for every unit */}
+          <span className="invisible col-start-1 row-start-1">months</span>
+          <span className="col-start-1 row-start-1">
+            {pluralize(draft.unit, amount)}
+          </span>
+        </span>
+        <ChevronDown className="size-3.5 text-neutral-500" aria-hidden />
+        <select
+          aria-label="Duration unit"
+          value={draft.unit}
+          className="absolute inset-0 size-full cursor-pointer opacity-0"
+          onChange={(e) =>
+            onChange({
+              ...draft,
+              unit: e.target.value as BountyDurationUnit,
+            })
+          }
+        >
+          {BOUNTY_DURATION_UNITS.map((u) => (
+            <option key={u} value={u}>
+              {pluralize(u, amount)}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
   );
 }
 
@@ -416,13 +527,40 @@ export function BountyDuration({ value, onChange }: BountyDurationProps) {
     initialPresets.customEndsAfterDays,
   );
 
+  const [durationDraft, setDurationDraft] = useState<DurationDraft>(() =>
+    getDraftFromDays(initialPresets.customEndsAfterDays),
+  );
+
   useEffect(() => {
     const presets = parsePresetsFromValue(value, isEditing);
+
+    // Keep a typed duration while the value still matches it. Otherwise it
+    // re-parses as a preset (e.g. 30 days → "1 month"), or as a date on a
+    // fixed-start bounty, where it's stored as endsAt.
+    const keepsCustomDuration =
+      endPreset === "customDuration" &&
+      customEndsAfterDays != null &&
+      (value.endsAfterDays === customEndsAfterDays ||
+        (value.endsAt != null &&
+          datesAreClose(
+            value.endsAt,
+            addDays(value.startsAt, customEndsAfterDays),
+          )));
+
+    if (
+      presets.customEndsAfterDays != null &&
+      presets.customEndsAfterDays !== getDraftDays(durationDraft)
+    ) {
+      setDurationDraft(getDraftFromDays(presets.customEndsAfterDays));
+    }
+
     setStartPreset(presets.startPreset);
-    setEndPreset(presets.endPreset);
+    setEndPreset(keepsCustomDuration ? "customDuration" : presets.endPreset);
     setCustomStartsAt(presets.customStartsAt);
-    setCustomEndsAt(presets.customEndsAt);
-    setCustomEndsAfterDays(presets.customEndsAfterDays);
+    setCustomEndsAt(keepsCustomDuration ? null : presets.customEndsAt);
+    setCustomEndsAfterDays(
+      keepsCustomDuration ? customEndsAfterDays : presets.customEndsAfterDays,
+    );
   }, [
     isEditing,
     value.startMode,
@@ -436,11 +574,13 @@ export function BountyDuration({ value, onChange }: BountyDurationProps) {
     nextEndPreset = endPreset,
     nextCustomStartsAt = customStartsAt,
     nextCustomEndsAt = customEndsAt,
+    nextCustomEndsAfterDays = customEndsAfterDays,
   }: {
     nextStartPreset?: StartPreset;
     nextEndPreset?: EndPreset;
     nextCustomStartsAt?: Date | null;
     nextCustomEndsAt?: Date | null;
+    nextCustomEndsAfterDays?: number | null;
   } = {}) => {
     onChange(
       resolveBountyTiming({
@@ -448,9 +588,35 @@ export function BountyDuration({ value, onChange }: BountyDurationProps) {
         endPreset: nextEndPreset,
         customStartsAt: nextCustomStartsAt,
         customEndsAt: nextCustomEndsAt,
+        customEndsAfterDays: nextCustomEndsAfterDays,
       }),
     );
   };
+
+  const applyDurationDraft = (draft: DurationDraft) => {
+    const amount = getDraftAmount(draft);
+    const nextDraft =
+      amount != null && draft.amount !== ""
+        ? { ...draft, amount: amount.toString() }
+        : draft;
+    setDurationDraft(nextDraft);
+
+    const days = getDraftDays(nextDraft);
+    if (days == null) return;
+
+    setEndPreset("customDuration");
+    setCustomEndsAt(null);
+    setCustomEndsAfterDays(days);
+    applyTiming({
+      nextEndPreset: "customDuration",
+      nextCustomEndsAt: null,
+      nextCustomEndsAfterDays: days,
+    });
+  };
+
+  const isRelative = value.startMode === BountyStartMode.relative;
+  const hasCustomEndsAfterDays =
+    endPreset === "customDuration" && customEndsAfterDays != null;
 
   const startLabel = getPresetLabel(
     startPreset,
@@ -459,20 +625,24 @@ export function BountyDuration({ value, onChange }: BountyDurationProps) {
     "today",
   );
 
-  const endLabel =
-    customEndsAfterDays != null
-      ? `${customEndsAfterDays} days`
-      : getPresetLabel(
-          endPreset,
-          END_OPTIONS,
-          customEndsAt ?? value.endsAt,
-          "never",
-        );
+  const draftAmount = getDraftAmount(durationDraft);
+  const endLabel = hasCustomEndsAfterDays
+    ? draftAmount != null && getDraftDays(durationDraft) === customEndsAfterDays
+      ? `${draftAmount} ${pluralize(durationDraft.unit, draftAmount)}`
+      : formatEndsAfterDays(customEndsAfterDays)
+    : getPresetLabel(
+        endPreset,
+        END_OPTIONS,
+        customEndsAt ?? value.endsAt,
+        "never",
+      );
 
   const endSuffix =
-    customEndsAfterDays != null ||
-    (endPreset !== "never" && endPreset !== "custom")
-      ? value.startMode === BountyStartMode.relative
+    hasCustomEndsAfterDays ||
+    (endPreset !== "never" &&
+      endPreset !== "custom" &&
+      endPreset !== "customDuration")
+      ? isRelative
         ? "after joining"
         : "from start date"
       : null;
@@ -517,11 +687,22 @@ export function BountyDuration({ value, onChange }: BountyDurationProps) {
           <BountyDatePicker
             label={endLabel ?? "never"}
             options={END_OPTIONS}
-            selectedPreset={customEndsAfterDays != null ? undefined : endPreset}
+            selectedPreset={endPreset}
             customDate={
               customEndsAt ?? value.endsAt ?? addWeeks(value.startsAt, 2)
             }
+            durationContent={
+              <BountyCustomDurationInput
+                draft={durationDraft}
+                onChange={applyDurationDraft}
+              />
+            }
             onSelectPreset={(preset) => {
+              if (preset === "customDuration") {
+                if (!hasCustomEndsAfterDays) applyDurationDraft(durationDraft);
+                return;
+              }
+
               setEndPreset(preset);
               setCustomEndsAfterDays(null);
 
@@ -532,11 +713,15 @@ export function BountyDuration({ value, onChange }: BountyDurationProps) {
                 applyTiming({
                   nextEndPreset: "custom",
                   nextCustomEndsAt,
+                  nextCustomEndsAfterDays: null,
                 });
                 return;
               }
 
-              applyTiming({ nextEndPreset: preset });
+              applyTiming({
+                nextEndPreset: preset,
+                nextCustomEndsAfterDays: null,
+              });
             }}
             onSelectDate={(date) => {
               setEndPreset("custom");
@@ -545,6 +730,7 @@ export function BountyDuration({ value, onChange }: BountyDurationProps) {
               applyTiming({
                 nextEndPreset: "custom",
                 nextCustomEndsAt: date,
+                nextCustomEndsAfterDays: null,
               });
             }}
           />
