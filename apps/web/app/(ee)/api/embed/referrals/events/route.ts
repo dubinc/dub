@@ -2,6 +2,8 @@ import { getEvents } from "@/lib/analytics/get-events";
 import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { generateRandomName } from "@/lib/names";
+import { nullPartnerEventRevenue } from "@/lib/partners/hide-partner-revenue";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import {
   partnerProfileEventsQuerySchema,
   PartnerProfileLinkSchema,
@@ -22,7 +24,7 @@ const querySchema = partnerProfileEventsQuerySchema.pick({
 
 // GET /api/embed/referrals/events – get paginated events for a partner
 export const GET = withReferralsEmbedToken(
-  async ({ links, program, programEnrollment, searchParams }) => {
+  async ({ links, program, programEnrollment, group, searchParams }) => {
     if (links.length === 0) {
       return NextResponse.json([]);
     }
@@ -37,6 +39,7 @@ export const GET = withReferralsEmbedToken(
     });
 
     const { customerDataSharingEnabledAt } = programEnrollment;
+    const hidePartnerRevenue = isPartnerRevenueHidden(group);
 
     const response = events.map((event) => {
       // don't return ip address for partner profile
@@ -44,7 +47,7 @@ export const GET = withReferralsEmbedToken(
       const { ip, click, customer, ...eventRest } = event;
       const { ip: _, ...clickRest } = click;
 
-      return {
+      const mapped = {
         ...eventRest,
         click: clickRest,
         link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
@@ -68,6 +71,8 @@ export const GET = withReferralsEmbedToken(
             }),
         }),
       };
+
+      return hidePartnerRevenue ? nullPartnerEventRevenue(mapped) : mapped;
     });
 
     return NextResponse.json(response);

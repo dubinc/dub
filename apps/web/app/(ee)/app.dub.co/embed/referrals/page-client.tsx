@@ -115,6 +115,7 @@ type ReferralsEmbedData = {
     | "maxPartnerLinks"
     | "linkStructure"
     | "holdingPeriodDays"
+    | "revenueDataSharingDisabledAt"
   >;
   links: ReferralsEmbedLink[];
   rewards: RewardProps[];
