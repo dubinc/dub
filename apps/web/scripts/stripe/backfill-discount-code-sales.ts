@@ -80,6 +80,7 @@ async function main() {
       id: true,
       slug: true,
       stripeConnectId: true,
+      stripeConnectMode: true,
       defaultProgramId: true,
     },
   });
@@ -133,6 +134,7 @@ async function main() {
         id: workspace.id,
         slug: workspace.slug,
         stripeConnectId,
+        stripeConnectMode: workspace.stripeConnectMode,
         defaultProgramId: programId,
       },
       programId,
@@ -491,6 +493,7 @@ async function backfillCustomer({
     id: string;
     slug: string;
     stripeConnectId: string;
+    stripeConnectMode: StripeMode | null;
     defaultProgramId: string;
   };
   programId: string;

@@ -109,6 +109,12 @@ test.describe("Partner All programs Overview", () => {
         },
       });
 
+      // other tests create bounties in the shared test program, so the bounties are mocked here
+      let bounties: object[] = [];
+      await page.route("**/api/partner-profile/bounties", (route) =>
+        route.fulfill({ json: bounties }),
+      );
+
       await logIn(page, email, password);
       await page.goto("/overview");
 
@@ -119,10 +125,15 @@ test.describe("Partner All programs Overview", () => {
       const messagesTask = tasks.getByRole("link", {
         name: /Respond to programs/,
       });
+      const bountiesTask = tasks.getByRole("link", {
+        name: /Complete bounties/,
+      });
 
       await expect(tasks).toBeVisible();
       await expect(invitationsTask).toHaveText(/^Review new invitations\s*1$/);
       await expect(messagesTask).toHaveText(/^Respond to programs\s*0$/);
+      await expect(bountiesTask).toHaveText(/^Complete bounties\s*0$/);
+      await expect(bountiesTask).toHaveAttribute("href", "/bounties");
 
       await page.setViewportSize(MOBILE_VIEWPORT);
       await expect(tasks).toBeVisible();
@@ -153,6 +164,9 @@ test.describe("Partner All programs Overview", () => {
         page.waitForResponse((res) =>
           res.url().includes("/api/partner-profile/messages/count?unread=true"),
         ),
+        page.waitForResponse((res) =>
+          res.url().endsWith("/api/partner-profile/bounties"),
+        ),
       ]);
       await page.reload();
       await countsLoaded;
@@ -166,6 +180,20 @@ test.describe("Partner All programs Overview", () => {
       await expect(tasks).toBeVisible();
       await expect(invitationsTask).toHaveText(/^Review new invitations\s*0$/);
       await expect(messagesTask).toHaveText(/^Respond to programs\s*0$/);
+      await expect(bountiesTask).toHaveText(/^Complete bounties\s*0$/);
+
+      // an active bounty is an action, so mobile shows the card again
+      bounties = [
+        {
+          type: "submission",
+          submissions: [],
+          maxSubmissions: 1,
+          endsAt: null,
+        },
+      ];
+      await page.setViewportSize(MOBILE_VIEWPORT);
+      await page.reload();
+      await expect(bountiesTask).toHaveText(/^Complete bounties\s*1$/);
     } finally {
       if (userId) await prisma.user.delete({ where: { id: userId } });
       await deletePartner(partnerId);
