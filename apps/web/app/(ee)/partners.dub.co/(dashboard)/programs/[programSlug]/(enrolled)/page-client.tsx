@@ -196,8 +196,6 @@ function EarningsChart() {
   const { start, end, interval } = useContext(ProgramOverviewContext);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  const { programEnrollment } = useProgramEnrollment();
-
   const { data: timeseries, error } = usePartnerProfileEarningsTimeseries({
     programIdOrSlug: programSlug as string,
     interval,
@@ -239,16 +237,11 @@ function EarningsChart() {
 
   return (
     <div>
-      {programEnrollment?.program && (
-        <ShareEarningsModal
-          showModal={showShareModal}
-          setShowModal={setShowShareModal}
-          programId={programEnrollment.program.id}
-          start={start}
-          end={end}
-          interval={interval}
-        />
-      )}
+      <ShareEarningsModal
+        showModal={showShareModal}
+        setShowModal={setShowShareModal}
+        timeseries={timeseries}
+      />
       <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
         <div className="flex items-center gap-0">
           <div>
@@ -256,7 +249,10 @@ function EarningsChart() {
               <span className="block text-base font-semibold leading-none text-neutral-800">
                 Earnings
               </span>
-              <ShareChartButton onClick={() => setShowShareModal(true)} />
+              <ShareChartButton
+                onClick={() => setShowShareModal(true)}
+                disabled={!timeseries}
+              />
             </div>
             <div className="flex items-baseline gap-2">
               {total !== undefined ? (
