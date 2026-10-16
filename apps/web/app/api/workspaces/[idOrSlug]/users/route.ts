@@ -174,7 +174,7 @@ export const DELETE = withWorkspace(
 
     const now = new Date();
 
-    const [workspaceKeys, installations] = await Promise.all([
+    const [workspaceTokens, installations] = await Promise.all([
       prisma.restrictedToken.findMany({
         where: {
           projectId: workspace.id,
@@ -183,7 +183,6 @@ export const DELETE = withWorkspace(
           ...activeRestrictedTokenWhere(now),
         },
         select: {
-          hashedKey: true,
           lastUsed: true,
         },
       }),
@@ -204,13 +203,15 @@ export const DELETE = withWorkspace(
       }),
     ]);
 
-    const activeWorkspaceKeys = workspaceKeys.filter((token) => token.lastUsed);
+    const activeWorkspaceTokens = workspaceTokens.filter(
+      (token) => token.lastUsed,
+    );
 
-    if (activeWorkspaceKeys.length > 0) {
-      const tokenTense = pluralize("token", activeWorkspaceKeys.length);
+    if (activeWorkspaceTokens.length > 0) {
+      const tokenTense = pluralize("token", activeWorkspaceTokens.length);
       throw new DubApiError({
         code: "bad_request",
-        message: `This user has ${activeWorkspaceKeys.length} active restricted ${tokenTense}. Please remove the ${tokenTense} first before removing the user from the workspace.`,
+        message: `This user has ${activeWorkspaceTokens.length} active restricted ${tokenTense}. Please remove the ${tokenTense} first before removing the user from the workspace.`,
       });
     }
 
@@ -282,12 +283,27 @@ export const DELETE = withWorkspace(
         : []),
     ]);
 
-    const hashedKeys = [
-      ...pluck(workspaceKeys, "hashedKey"),
-      ...installations.flatMap((installation) =>
-        pluck(installation.accessTokens, "hashedKey"),
-      ),
-    ];
+    // Re-read after the transaction so cache expiry covers every key updateMany
+    // soft-deleted — including keys created after the pre-tx findMany.
+    const expiredWorkspaceKeys = await prisma.restrictedToken.findMany({
+      where: {
+        projectId: workspace.id,
+        userId,
+        installationId: null,
+        expires: now,
+      },
+      select: {
+        hashedKey: true,
+      },
+    });
+
+    const hashedKeys = pluck(
+      [
+        ...expiredWorkspaceKeys,
+        ...installations.flatMap(({ accessTokens }) => accessTokens),
+      ],
+      "hashedKey",
+    );
 
     if (hashedKeys.length > 0) {
       waitUntil(

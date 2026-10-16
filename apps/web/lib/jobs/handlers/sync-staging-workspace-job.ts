@@ -157,34 +157,20 @@ async function syncMember({
 
   const now = new Date();
 
-  const [workspaceKeys, installations] = await Promise.all([
-    prisma.restrictedToken.findMany({
-      where: {
-        projectId: workspace.stagingWorkspaceId,
-        userId,
-        installationId: null,
-        ...activeRestrictedTokenWhere(now),
-      },
-      select: {
-        hashedKey: true,
-      },
-    }),
-
-    prisma.installedIntegration.findMany({
-      where: {
-        projectId: workspace.stagingWorkspaceId,
-        userId,
-      },
-      select: {
-        id: true,
-        accessTokens: {
-          select: {
-            hashedKey: true,
-          },
+  const installations = await prisma.installedIntegration.findMany({
+    where: {
+      projectId: workspace.stagingWorkspaceId,
+      userId,
+    },
+    select: {
+      id: true,
+      accessTokens: {
+        select: {
+          hashedKey: true,
         },
       },
-    }),
-  ]);
+    },
+  });
 
   await prisma.$transaction([
     prisma.projectUsers.deleteMany({
@@ -224,12 +210,27 @@ async function syncMember({
     }),
   ]);
 
-  const hashedKeys = [
-    ...pluck(workspaceKeys, "hashedKey"),
-    ...installations.flatMap((installation) =>
-      pluck(installation.accessTokens, "hashedKey"),
-    ),
-  ];
+  // Re-read after the transaction so cache expiry covers every key updateMany
+  // soft-deleted — including keys created after any pre-tx snapshot.
+  const expiredWorkspaceKeys = await prisma.restrictedToken.findMany({
+    where: {
+      projectId: workspace.stagingWorkspaceId,
+      userId,
+      installationId: null,
+      expires: now,
+    },
+    select: {
+      hashedKey: true,
+    },
+  });
+
+  const hashedKeys = pluck(
+    [
+      ...expiredWorkspaceKeys,
+      ...installations.flatMap(({ accessTokens }) => accessTokens),
+    ],
+    "hashedKey",
+  );
 
   if (hashedKeys.length > 0) {
     await tokenCache.expireMany({
