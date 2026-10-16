@@ -4,7 +4,7 @@ import { useDashboardBannerVisible } from "@/lib/hooks/use-dashboard-banner-visi
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { WorkspaceProps } from "@/lib/types";
-import { IsolatedCube } from "@dub/ui";
+import { Button, IsolatedCube } from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
 import { WorkspaceEnvironment } from "@prisma/client";
 import { motion } from "motion/react";
@@ -27,19 +27,16 @@ export function ProgramEnvironmentBanner({
   return (
     <div
       className={cn(
-        "fixed left-0 right-0 top-0 z-50 flex h-12 items-center justify-between gap-4 overflow-hidden px-6 text-neutral-800",
+        // Below sm the sentence stacks under the label, so the banner is 52px (two 20px lines + padding)
+        "fixed left-0 right-0 top-0 z-50 grid h-[52px] grid-cols-[auto_minmax(0,1fr)] content-center items-center gap-x-2 overflow-hidden px-2 text-sm text-neutral-800 sm:flex sm:h-9 sm:px-4",
         isStagingEnvironment(environment) ? "bg-amber-200" : "bg-blue-200",
       )}
     >
-      <div className="flex shrink-0 items-center gap-2">
-        <IsolatedCube className="size-4 shrink-0" />
-        <span className="truncate text-sm font-semibold">
-          {capitalize(environment)}
-        </span>
-      </div>
-
-      <p className="text-sm font-medium">
-        No real money or payouts in {environment}
+      {/* Glyph spans 0.9–15.1 around (8, 8), so a 16×16 viewBox centers it */}
+      <IsolatedCube viewBox="0 0 16 16" className="size-4 shrink-0" />
+      <span className="truncate font-semibold">{capitalize(environment)}</span>
+      <p className="col-start-2 truncate font-medium">
+        No real money or payouts in {environment}.
       </p>
     </div>
   );
@@ -72,40 +69,41 @@ export function WorkspaceEnvironmentBanner() {
       initial={{ transform: "translateY(-100%)" }}
       animate={{ transform: "translateY(0)" }}
       className={cn(
-        "fixed left-0 right-0 top-0 z-30 flex h-12 items-center justify-between gap-4 overflow-hidden px-6 text-neutral-800",
+        "fixed left-0 right-0 top-0 z-30 flex h-9 items-center justify-between gap-4 overflow-hidden px-2 text-sm text-neutral-800 sm:px-4",
         isStagingEnvironment(currentWorkspace.environment)
           ? "bg-amber-200"
           : "bg-blue-200",
       )}
     >
-      <div className="flex min-w-0 shrink-0 items-center gap-2">
-        <IsolatedCube className="size-4 shrink-0" />
-        <span className="truncate text-sm font-semibold">
+      <div className="flex min-w-0 items-center gap-2">
+        {/* Glyph spans 0.9–15.1 around (8, 8), so a 16×16 viewBox centers it */}
+        <IsolatedCube viewBox="0 0 16 16" className="size-4 shrink-0" />
+        <span className="shrink-0 font-semibold">
           {capitalize(currentWorkspace.environment)} workspace
         </span>
+        <p className="hidden min-w-0 truncate font-medium sm:block">
+          No real money or payouts in {currentWorkspace.environment}.{" "}
+          <a
+            href="https://dub.co/docs/testing"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            Learn more
+          </a>
+        </p>
       </div>
 
-      <p className="hidden min-w-0 flex-1 text-center text-sm font-medium sm:block">
-        No real money or payouts in {currentWorkspace.environment}.{" "}
-        <a
-          href="https://dub.co/docs/testing"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline underline-offset-2"
-        >
-          Learn more
-        </a>
-      </p>
-
-      {liveWorkspace ? (
+      {liveWorkspace && (
         <Link
           href={pathname.replace(currentWorkspace.slug, liveWorkspace.slug)}
-          className="bg-bg-inverted text-content-inverted shrink-0 rounded-md p-2 text-xs font-medium"
+          className="shrink-0"
         >
-          Exit staging
+          <Button
+            text="Exit staging"
+            className="border-bg-inverted bg-bg-inverted h-6 w-fit rounded-md px-1.5 text-xs font-medium"
+          />
         </Link>
-      ) : (
-        <span className="w-[88px] shrink-0" />
       )}
     </motion.div>
   );
