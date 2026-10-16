@@ -35,6 +35,9 @@ async function main() {
         email: {
           not: null,
         },
+        NOT: {
+          email: "",
+        },
         normalizedEmail: null,
         ...(startingAfter && {
           id: {
