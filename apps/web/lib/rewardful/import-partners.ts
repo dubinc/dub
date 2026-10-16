@@ -116,15 +116,26 @@ export async function importPartners(payload: RewardfulImportPayload) {
         }),
       );
 
+      const importedPartners = results.flatMap((result) =>
+        result.status === "fulfilled" && result.value ? [result.value] : [],
+      );
+
       // Coupon import reads this map to create partner links. A preserved ban
       // must not gain those links, but still needs a search update.
-      const partnersToMap = results.flatMap((result) =>
-        result.status === "fulfilled" &&
-        result.value &&
-        !result.value.preservedBan
-          ? [result.value]
-          : [],
-      );
+      const partnersToMap = importedPartners.filter((p) => !p.preservedBan);
+
+      // Also remove a preserved ban that an earlier, unfinished import mapped,
+      // so coupon import cannot use that stale field.
+      const bannedAffiliateIds = importedPartners
+        .filter((p) => p.preservedBan)
+        .map((p) => p.rewardfulAffiliateId);
+
+      if (bannedAffiliateIds.length > 0) {
+        await redis.hdel(
+          `rewardful:affiliates:${program.id}`,
+          ...bannedAffiliateIds,
+        );
+      }
 
       if (partnersToMap.length > 0) {
         await redis.hset(

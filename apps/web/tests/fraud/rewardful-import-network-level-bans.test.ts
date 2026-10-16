@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   detectAndRecordNetworkLevelBans: vi.fn(),
   logImportError: vi.fn(),
   redisHset: vi.fn(),
+  redisHdel: vi.fn(),
   listPartners: vi.fn(),
   getCredentials: vi.fn(),
   queue: vi.fn(),
@@ -50,7 +51,7 @@ vi.mock("@/lib/tinybird/log-import-error", () => ({
 }));
 
 vi.mock("@/lib/upstash", () => ({
-  redis: { hset: mocks.redisHset },
+  redis: { hset: mocks.redisHset, hdel: mocks.redisHdel },
 }));
 
 vi.mock("@/lib/rewardful/api", () => ({
@@ -207,5 +208,52 @@ describe("Rewardful importPartners network-level ban check", () => {
     expect(mocks.queue).toHaveBeenCalledWith(
       expect.objectContaining({ action: "import-affiliate-coupons" }),
     );
+  });
+
+  it("removes a preserved ban from the coupon map but still ban-checks it", async () => {
+    mocks.listPartners
+      .mockResolvedValueOnce([affiliate("healthy"), affiliate("banned")])
+      .mockResolvedValueOnce([]);
+    mocks.bulkCreateLinks.mockResolvedValue([]);
+    mocks.upsertImportedProgramEnrollment.mockImplementation(({ partnerId }) =>
+      Promise.resolve({
+        enrollment: {
+          id: `pge_${partnerId}`,
+          partnerId,
+          applicationId: null,
+          groupId: "grp_1",
+          discountId: null,
+          links: [],
+        },
+        preservedBan: partnerId === "pn_banned",
+      }),
+    );
+
+    await importPartners(payload);
+
+    expect(mocks.redisHdel).toHaveBeenCalledTimes(1);
+    expect(mocks.redisHdel).toHaveBeenCalledWith(
+      `rewardful:affiliates:${PROGRAM_ID}`,
+      "banned",
+    );
+    expect(mocks.redisHset).toHaveBeenCalledWith(
+      `rewardful:affiliates:${PROGRAM_ID}`,
+      { healthy: expect.objectContaining({ partnerId: "pn_healthy" }) },
+    );
+    expect(mocks.detectAndRecordNetworkLevelBans).toHaveBeenCalledWith({
+      programId: PROGRAM_ID,
+      partnerIds: expect.arrayContaining(["pn_healthy", "pn_banned"]),
+    });
+  });
+
+  it("does not call hdel when no ban was preserved", async () => {
+    mocks.listPartners
+      .mockResolvedValueOnce([affiliate("healthy")])
+      .mockResolvedValueOnce([]);
+    mocks.bulkCreateLinks.mockResolvedValue([]);
+
+    await importPartners(payload);
+
+    expect(mocks.redisHdel).not.toHaveBeenCalled();
   });
 });
