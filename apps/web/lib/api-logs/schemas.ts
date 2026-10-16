@@ -128,7 +128,11 @@ export const getApiLogsTimeseriesQuerySchema = getApiLogsCountQuerySchema.omit({
   groupBy: true,
 });
 
-export const apiLogTimeseriesGranularitySchema = z.enum(["minute", "hour", "day"]);
+export const apiLogTimeseriesGranularitySchema = z.enum([
+  "minute",
+  "hour",
+  "day",
+]);
 
 export const apiLogTimeseriesFilterSchemaTB = apiLogFilterSchemaTB
   .omit({

@@ -257,3 +257,20 @@ export const PUBLISHABLE_KEY_ACTOR = {
   email: null,
   image: null,
 };
+
+// Critical API endpoints monitored for auth failures.
+// Keep in sync with packages/tinybird/pipes/dub_critical_api_logs_pipe.pipe
+export const CRITICAL_API_ROUTES = [
+  "/track/lead",
+  "/track/sale",
+  "/commissions",
+  ...PUBLISHABLE_KEY_REQUEST_PATHS,
+] as const;
+
+export const CRITICAL_API_FAILURE_STATUS_CODES = [401, 403] as const;
+
+// Min auth failures in an hour (with zero 2xx) before alerting.
+export const CRITICAL_API_FAILURE_THRESHOLD = 3;
+
+// Don't re-alert the same workspace within this window.
+export const CRITICAL_API_ALERT_COOLDOWN_SECONDS = 60 * 60 * 6;
