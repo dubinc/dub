@@ -1,5 +1,8 @@
+import { activeRestrictedTokenWhere } from "@/lib/api/tokens/active-restricted-token";
+import { tokenCache } from "@/lib/auth/token-cache";
 import { prisma } from "@/lib/prisma";
 import { getPreferredStagingSlug } from "@/lib/sandbox/staging-slug";
+import { pluck } from "@dub/utils";
 import { Project } from "@prisma/client";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
@@ -152,7 +155,39 @@ async function syncMember({
     return;
   }
 
-  await Promise.all([
+  const now = new Date();
+
+  const [workspaceKeys, installations] = await Promise.all([
+    prisma.restrictedToken.findMany({
+      where: {
+        projectId: workspace.stagingWorkspaceId,
+        userId,
+        installationId: null,
+        ...activeRestrictedTokenWhere(now),
+      },
+      select: {
+        id: true,
+        hashedKey: true,
+      },
+    }),
+
+    prisma.installedIntegration.findMany({
+      where: {
+        projectId: workspace.stagingWorkspaceId,
+        userId,
+      },
+      select: {
+        id: true,
+        accessTokens: {
+          select: {
+            hashedKey: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  await prisma.$transaction([
     prisma.projectUsers.deleteMany({
       where: {
         userId,
@@ -160,13 +195,51 @@ async function syncMember({
       },
     }),
 
-    prisma.restrictedToken.deleteMany({
+    ...(workspaceKeys.length > 0
+      ? [
+          prisma.restrictedToken.updateMany({
+            where: {
+              id: {
+                in: pluck(workspaceKeys, "id"),
+              },
+            },
+            data: {
+              expires: now,
+            },
+          }),
+        ]
+      : []),
+
+    // delete() instead of deleteMany: relationMode is "prisma", so onDelete
+    // cascades (access tokens, refresh tokens, webhooks) run per delete only.
+    ...installations.map((installation) =>
+      prisma.installedIntegration.delete({
+        where: {
+          id: installation.id,
+        },
+      }),
+    ),
+
+    prisma.oAuthCode.deleteMany({
       where: {
         projectId: workspace.stagingWorkspaceId,
         userId,
       },
     }),
   ]);
+
+  const hashedKeys = [
+    ...pluck(workspaceKeys, "hashedKey"),
+    ...installations.flatMap((installation) =>
+      pluck(installation.accessTokens, "hashedKey"),
+    ),
+  ];
+
+  if (hashedKeys.length > 0) {
+    await tokenCache.expireMany({
+      hashedKeys,
+    });
+  }
 }
 
 async function syncWorkspace({
