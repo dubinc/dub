@@ -79,7 +79,7 @@ export function SaleTypeBlock() {
       className="pb-0"
       contentClassName="px-0 mt-1"
     >
-      <div className="divide-border-subtle @2xl:h-72 flex h-auto flex-col divide-y">
+      <div className="@2xl:h-72 flex h-auto flex-col">
         {isLoading ? (
           <div className="flex size-full items-center justify-center py-4">
             <LoadingSpinner />
