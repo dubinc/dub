@@ -1,5 +1,6 @@
 import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { sanitizeTimezone } from "@/lib/analytics/utils/sanitize-timezone";
 import { prisma } from "@/lib/prisma";
 import { usageQuerySchema, usageResponse } from "@/lib/zod/schemas/usage";
 import * as z from "zod/v4";
@@ -39,6 +40,8 @@ export async function getWorkspaceUsage({
   end,
   timezone = "UTC",
 }: GetWorkspaceUsageParams) {
+  timezone = sanitizeTimezone(timezone);
+
   const { startDate, endDate, granularity } = getStartEndDates({
     interval,
     start,
