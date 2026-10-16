@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { nanoid } from "@dub/utils";
+import { isRejected, nanoid } from "@dub/utils";
 import { Program } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
@@ -77,7 +77,11 @@ export async function importPartners(payload: RewardfulImportPayload) {
     }
 
     if (activeAffiliates.length > 0) {
-      const partners = await Promise.all(
+      // Filled as soon as each enrollment is saved, so a partner whose later
+      // step throws still reaches the search sync and the ban check.
+      const enrolledPartnerIds: string[] = [];
+
+      const results = await Promise.allSettled(
         activeAffiliates.map((affiliate) => {
           const groupId = campaignIdToGroupMap[affiliate.campaign.id];
           const group = program.groups.find((group) => group.id === groupId);
@@ -94,6 +98,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
             program,
             affiliate,
             userId,
+            enrolledPartnerIds,
             defaultGroupAttributes: {
               groupId: group.id,
               clickRewardId: group.clickRewardId,
@@ -111,42 +116,49 @@ export async function importPartners(payload: RewardfulImportPayload) {
         }),
       );
 
-      const filteredPartners = partners.filter(
-        (p): p is NonNullable<typeof p> => p !== undefined,
+      // Coupon import reads this map to create partner links. A preserved ban
+      // must not gain those links, but still needs a search update.
+      const partnersToMap = results.flatMap((result) =>
+        result.status === "fulfilled" &&
+        result.value &&
+        !result.value.preservedBan
+          ? [result.value]
+          : [],
       );
 
-      if (filteredPartners.length > 0) {
-        // Coupon import reads this map to create partner links. A preserved
-        // ban must not gain those links, but still needs a search update.
-        const partnersToMap = filteredPartners.filter((p) => !p.preservedBan);
+      if (partnersToMap.length > 0) {
+        await redis.hset(
+          `rewardful:affiliates:${program.id}`,
+          Object.fromEntries(
+            partnersToMap.map((p) => [
+              p.rewardfulAffiliateId,
+              {
+                partnerId: p.dubPartnerId,
+                groupId: p.dubPartnerGroupId,
+                discountId: p.dubDiscountId,
+              },
+            ]),
+          ),
+        );
+      }
 
-        if (partnersToMap.length > 0) {
-          await redis.hset(
-            `rewardful:affiliates:${program.id}`,
-            Object.fromEntries(
-              partnersToMap.map((p) => [
-                p.rewardfulAffiliateId,
-                {
-                  partnerId: p.dubPartnerId,
-                  groupId: p.dubPartnerGroupId,
-                  discountId: p.dubDiscountId,
-                },
-              ]),
-            ),
-          );
-        }
+      // Queue an index update because the imported partners were enrolled.
+      // Queued per page rather than per partner.
+      await queuePartnerSearchSync({
+        partnerIds: enrolledPartnerIds,
+        programId: program.id,
+      });
 
-        // Queue an index update because the imported partners were enrolled.
-        // Queued per page rather than per partner.
-        await queuePartnerSearchSync({
-          partnerIds: filteredPartners.map((p) => p.dubPartnerId),
-          programId: program.id,
-        });
+      await detectAndRecordNetworkLevelBans({
+        programId: program.id,
+        partnerIds: enrolledPartnerIds,
+      });
 
-        await detectAndRecordNetworkLevelBans({
-          programId: program.id,
-          partnerIds: filteredPartners.map((p) => p.dubPartnerId),
-        });
+      // Fail the page so QStash retries the partners that threw
+      const rejected = results.find(isRejected);
+
+      if (rejected) {
+        throw rejected.reason;
       }
     }
 
@@ -179,12 +191,14 @@ async function createPartnerAndLinks({
   program,
   affiliate,
   userId,
+  enrolledPartnerIds,
   defaultGroupAttributes,
   partnerGroupDefaultLinkId,
 }: {
   program: Program;
   affiliate: RewardfulAffiliate;
   userId: string;
+  enrolledPartnerIds: string[];
   defaultGroupAttributes: {
     groupId: string;
     saleRewardId: string | null;
@@ -223,6 +237,8 @@ async function createPartnerAndLinks({
         links: true,
       },
     });
+
+  enrolledPartnerIds.push(partner.id);
 
   if (!preservedBan) {
     await approveLinkedApplication({
