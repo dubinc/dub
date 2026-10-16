@@ -62,6 +62,9 @@ export async function completeProgramApplications(userEmail: string) {
     const programApplications = await prisma.programApplication.findMany({
       where: {
         email: userEmail,
+        // Reviewed applications are skipped. An instant rejection deletes the
+        // enrollment, and relinking would block the partner from reapplying.
+        status: "pending",
         enrollment: null,
         // Exclude any applications for programs the user is already enrolled in
         programId: {

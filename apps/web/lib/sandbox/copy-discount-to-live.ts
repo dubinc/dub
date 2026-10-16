@@ -49,6 +49,7 @@ export const copyDiscountToLiveAction = authActionClient
                   id: true,
                   environment: true,
                   stripeConnectId: true,
+                  stripeConnectMode: true,
                   shopifyStoreId: true,
                   stagingWorkspaceId: true,
                   users: {

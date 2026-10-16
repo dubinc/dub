@@ -1,3 +1,4 @@
+import { getSession } from "@/lib/auth";
 import { getProgram } from "@/lib/fetchers/get-program";
 import { prisma } from "@/lib/prisma";
 import { ProgramEnvironmentBanner } from "@/lib/sandbox/components/workspace-environment";
@@ -54,10 +55,13 @@ export default async function SuccessPage(props: {
 
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
-  const program = await getProgram({
-    slug: programSlug,
-    groupSlug: partnerGroupSlug,
-  });
+  const [program, session] = await Promise.all([
+    getProgram({
+      slug: programSlug,
+      groupSlug: partnerGroupSlug,
+    }),
+    getSession(),
+  ]);
 
   if (
     !program ||
@@ -159,7 +163,7 @@ export default async function SuccessPage(props: {
 
         {/* Buttons */}
         <div className="mt-12 flex flex-col gap-3">
-          <CTAButtons />
+          <CTAButtons isAuthenticated={!!session?.user} />
         </div>
 
         {/* Screenshot */}
