@@ -1,4 +1,3 @@
-import { releaseHoldCommissions } from "@/lib/api/fraud/release-hold-commissions";
 import { prisma } from "@/lib/prisma";
 import {
   CommissionStatus,
@@ -109,6 +108,12 @@ async function main() {
     console.log("Dry run. Pass --execute to release these hold commissions.");
     return;
   }
+
+  // Import after dotenv-flow loads the env. The QStash clients read the token
+  // when their module loads, and the release triggers QStash jobs.
+  const { releaseHoldCommissions } = await import(
+    "@/lib/api/fraud/release-hold-commissions"
+  );
 
   let totalReleased = 0;
 
