@@ -25,6 +25,7 @@ import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
+import { findCustomerByStripeCustomerIdOrEmail } from "./utils/find-customer-by-stripe-customer-id-or-email";
 import { getCheckoutSessionProducts } from "./utils/get-checkout-session-products";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 import { getDubCustomerExternalIdFromMetadata } from "./utils/get-dub-customer-external-id-from-metadata";
@@ -229,23 +230,10 @@ export async function checkoutSessionCompleted({
         }
       }
     } else {
-      // find customer by stripeCustomerId or email
-      const existingCustomer = await prisma.customer.findFirst({
-        where: {
-          OR: [
-            {
-              stripeCustomerId,
-            },
-            ...(stripeCustomerEmail
-              ? [
-                  {
-                    projectId: workspace.id,
-                    email: stripeCustomerEmail,
-                  },
-                ]
-              : []),
-          ],
-        },
+      const existingCustomer = await findCustomerByStripeCustomerIdOrEmail({
+        workspaceId: workspace.id,
+        stripeCustomerId,
+        email: stripeCustomerEmail,
       });
 
       if (existingCustomer) {
