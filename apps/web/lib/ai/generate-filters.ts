@@ -1,61 +1,115 @@
 "use server";
 
-import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
+import {
+  INTERVAL_DISPLAYS,
+  TRIGGER_TYPES,
+  VALID_ANALYTICS_FILTERS,
+} from "@/lib/analytics/constants";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { anthropic } from "@ai-sdk/anthropic";
-import { createStreamableValue } from "@ai-sdk/rsc";
-import { Output, streamText } from "ai";
-import * as z from "zod/v4";
+import { CONTINENTS, COUNTRIES } from "@dub/utils";
+import { experimental_evaluate as evaluate } from "ai";
+import {
+  phraseChoiceQuestions,
+  pickChoice,
+  questionsFromZodSchema,
+  withNone,
+} from "./evaluate-helpers";
 
-function getDescription(schema: z.ZodTypeAny): string {
-  const s = schema as { description?: string; _def?: { description?: string } };
-  return s.description ?? s._def?.description ?? "";
+/** Closed-set values that live outside the Zod enum (ISO maps, trigger types, interval labels). */
+const CHOICE_CRITERIA: Record<string, Record<string, string>> = {
+  country: COUNTRIES,
+  continent: CONTINENTS,
+  trigger: Object.fromEntries(TRIGGER_TYPES.map((value) => [value, value])),
+  interval: Object.fromEntries(
+    INTERVAL_DISPLAYS.map(({ value, display }) => [value, display]),
+  ),
+};
+
+const { closed: CLOSED_QUESTIONS, open: OPEN_FIELDS } = questionsFromZodSchema(
+  analyticsQuerySchema,
+  {
+    keys: VALID_ANALYTICS_FILTERS,
+    skipKeys: ["start", "end"],
+    extraCriteria: CHOICE_CRITERIA,
+  },
+);
+
+const OPEN_CRITERIA = withNone(
+  OPEN_FIELDS,
+  "Not a filter value, or already covered by another question.",
+);
+
+function extractPhrases(prompt: string) {
+  const tokens = prompt.match(
+    /https?:\/\/[^\s,]+|\b(?:[a-z0-9-]+\.)+[a-z]{2,}\b/gi,
+  );
+  const clauses = prompt
+    .split(/,|\s+and\s+/i)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  return [...new Set([...(tokens ?? []), ...clauses])].slice(0, 5);
 }
 
-/** Schema for AI filter generation: same keys as analytics filters but all string (no parseFilterValue transform). */
-function buildAIFilterSchema() {
-  const shape = analyticsQuerySchema.shape as Record<string, z.ZodTypeAny>;
-  const entries = VALID_ANALYTICS_FILTERS.filter(
-    (key) => shape[key] != null,
-  ).map((key) => {
-    return [
-      key,
-      z.string().optional().describe(getDescription(shape[key])),
-    ] as const;
-  });
-  return z.object(Object.fromEntries(entries));
+function setFilter(
+  filters: Record<string, string>,
+  key: string,
+  value: string | undefined,
+) {
+  if (!value || !VALID_ANALYTICS_FILTERS.includes(key)) {
+    return;
+  }
+
+  filters[key] = filters[key] ? `${filters[key]},${value}` : value;
 }
-
-const AI_FILTER_SCHEMA = buildAIFilterSchema();
-
-const SYSTEM_PROMPT = `You are an analytics filter assistant. Extract or infer filter parameters from the user's request.
-
-Output format: every filter value must use the advanced filtering syntax as a single string:
-- Single value: \`dub.co\`
-- Multiple values (comma-separated): \`dub.co,google.com\`
-- Exclusion (prefix with -): \`-spam.com\`
-
-Only include fields that are clearly requested or implied. Omit optional fields when not relevant. For dates use ISO 8601 (e.g. 2024-01-15).`;
 
 export async function generateFilters(prompt: string) {
-  const stream = createStreamableValue();
+  const request = prompt.trim();
+  if (!request) {
+    return {};
+  }
 
-  (async () => {
-    const { partialOutputStream } = streamText({
-      model: anthropic("claude-sonnet-4-6"),
-      output: Output.object({ schema: AI_FILTER_SCHEMA }),
-      system: SYSTEM_PROMPT,
-      prompt,
-      temperature: 0.4,
+  const phrases = extractPhrases(request);
+
+  try {
+    const result = await evaluate({
+      model: "typesafe-ai/jev",
+      state: {
+        request,
+        today: new Date().toISOString().slice(0, 10),
+      },
+      questions: {
+        ...CLOSED_QUESTIONS,
+        ...phraseChoiceQuestions({
+          phrases,
+          criteria: OPEN_CRITERIA,
+          instructions: (phrase) =>
+            `If "${phrase.replaceAll('"', "'")}" is an analytics filter value, which filter is it for?`,
+        }),
+      },
+      providerOptions: {
+        gateway: {
+          zeroDataRetention: true,
+        },
+      },
     });
 
-    for await (const partialObject of partialOutputStream) {
-      const parsed = AI_FILTER_SCHEMA.safeParse(partialObject);
-      if (parsed.success) stream.update(parsed.data);
+    const filters: Record<string, string> = {};
+
+    for (const key of Object.keys(CLOSED_QUESTIONS)) {
+      setFilter(filters, key, pickChoice(result.answers[key]));
     }
 
-    stream.done();
-  })();
+    phrases.forEach((phrase, index) => {
+      const key = pickChoice(result.answers[`open${index}`]);
+      if (key && filters[key] == null) {
+        setFilter(filters, key, phrase);
+      }
+    });
 
-  return { object: stream.value };
+    return filters;
+  } catch (error) {
+    console.error("[generateFilters] failed", error);
+    return {};
+  }
 }
