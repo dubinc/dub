@@ -6,8 +6,10 @@ import { FraudEventContext } from "@/lib/types";
 import { CustomerEmailMatchType } from "@/lib/zod/schemas/fraud";
 import { defineFraudRule } from "../define-fraud-rule";
 
-// Partner's email matches a customer's email, shares the same email domain,
-// or the customer's domain matches a previously referred customer.
+// Partner's email matches a customer's email, the customer's email is a
+// variant of a customer referred in the same program, the partner and the
+// customer share an email domain, or the customer's domain matches a
+// previously referred customer.
 export const checkCustomerEmailMatch = defineFraudRule({
   type: "customerEmailMatch",
   evaluate: async ({ program, partner, customer }: FraudEventContext) => {
@@ -38,17 +40,17 @@ export const checkCustomerEmailMatch = defineFraudRule({
       ("isFirstConversion" in customer && customer.isFirstConversion) ||
       !("isFirstConversion" in customer);
 
-    // 2. Similar email match — customer's normalized email matches
-    // a previously referred customer from the same partner.
-    // Require the raw emails to differ so duplicate rows for the same
-    // address (e.g. created by importers or promo-code attribution)
-    // don't trigger; only actual variants do.
+    // 2. Similar email match: the customer's normalized email matches a
+    // customer referred by any partner in the same program, because variants
+    // of one inbox can come through different partners.
+    // Require the raw emails to differ. Importers and promo-code attribution
+    // can create duplicate rows for one address, and those should not count.
     if (shouldCheckHistoricalMatch) {
       const similarCustomer = await prisma.customer.findFirst({
         where: {
           projectId: program.workspaceId,
           normalizedEmail: normalizedCustomerEmail,
-          partnerId: partner.id,
+          programId: program.id,
           id: {
             not: customer.id,
           },

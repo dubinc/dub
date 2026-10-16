@@ -5,6 +5,7 @@ import { randomCustomer, randomId } from "tests/utils/helpers";
 import {
   E2E_FRAUD_PARTNER,
   E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN,
+  E2E_PARTNERS,
   E2E_TRACK_CLICK_HEADERS,
 } from "tests/utils/resource";
 import { verifyFraudEvent } from "tests/utils/verify-fraud-event";
@@ -166,6 +167,64 @@ describe.concurrent("/fraud/**", async () => {
         path: "/track/click",
         headers: { ...E2E_TRACK_CLICK_HEADERS },
         body: { domain: clickLink.domain, key: clickLink.key },
+      });
+
+      await http.post<TrackLeadResponse>({
+        path: "/track/lead",
+        body: {
+          eventName: "Signup",
+          clickId: clickResponse.data.clickId,
+          customerId: customer.externalId,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerAvatar: customer.avatar,
+        },
+      });
+    }
+
+    const { data: firstCustomers } = await http.get<Customer[]>({
+      path: "/customers",
+      query: { externalId: firstCustomer.externalId },
+    });
+
+    expect(firstCustomers.length).toBe(1);
+
+    await verifyFraudEvent({
+      http,
+      partner: E2E_FRAUD_PARTNER,
+      customer: similarCustomer,
+      ruleType: "customerEmailMatch",
+      metadata: {
+        matchType: CustomerEmailMatchType.SIMILAR_EMAIL_MATCH,
+        matchedCustomerId: firstCustomers[0].id,
+      },
+    });
+  });
+
+  test("FraudRuleType = customerEmailMatch (similar email match across partners)", async () => {
+    const localPart = randomEmailLocalPart();
+
+    // Referred by another partner in the same program
+    const firstCustomer = {
+      ...randomCustomer(),
+      email: `${localPart}@gmail.com`,
+      clickLink: E2E_PARTNERS[0].shortLink,
+    };
+
+    const similarCustomer = {
+      ...randomCustomer(),
+      email: `${localPart}+2@gmail.com`,
+      clickLink: E2E_FRAUD_PARTNER.links.customerEmailMatch,
+    };
+
+    for (const customer of [firstCustomer, similarCustomer]) {
+      const clickResponse = await http.post<{ clickId: string }>({
+        path: "/track/click",
+        headers: { ...E2E_TRACK_CLICK_HEADERS },
+        body: {
+          domain: customer.clickLink.domain,
+          key: customer.clickLink.key,
+        },
       });
 
       await http.post<TrackLeadResponse>({
