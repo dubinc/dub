@@ -1,4 +1,3 @@
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@/lib/prisma";
 import { stripeAppClient } from "@/lib/stripe";
 import { StripeCustomerInvoiceSchema } from "@/lib/zod/schemas/customers";
@@ -26,7 +25,10 @@ export async function getCustomerStripeInvoices({
   workspace,
 }: {
   stripeCustomerId: string;
-  workspace: Pick<Project, "id" | "stripeConnectId" | "defaultProgramId">;
+  workspace: Pick<
+    Project,
+    "id" | "stripeConnectId" | "stripeConnectMode" | "defaultProgramId"
+  >;
 }) {
   if (!workspace.stripeConnectId) {
     throw new DubApiError({
@@ -42,17 +44,17 @@ export async function getCustomerStripeInvoices({
       integrationId: STRIPE_INTEGRATION_ID,
     },
     select: {
-      settings: true,
+      id: true,
     },
   });
 
   if (!installedIntegration) {
-    throw new Error("Stripe integration is not installed on your workspace.");
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "The Stripe integration is not installed on your workspace. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
+    });
   }
-
-  const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-    installedIntegration.settings || {},
-  );
 
   if (!stripeCustomerId.startsWith("cus_")) {
     throw new DubApiError({
@@ -64,7 +66,7 @@ export async function getCustomerStripeInvoices({
   const programId = getDefaultProgramIdOrThrow(workspace);
 
   const stripe = stripeAppClient({
-    mode: stripeIntegrationSettings.stripeMode,
+    mode: workspace.stripeConnectMode,
   });
 
   let data: Stripe.Invoice[];
