@@ -1,0 +1,50 @@
+DESCRIPTION >
+	Workspaces with critical API auth failures (401/403) in a given hour,
+	with at least 3 failures and zero 2xx responses on that method + route.
+
+
+NODE endpoint
+SQL >
+
+%
+    SELECT
+        workspace_id AS workspaceId,
+        method,
+        route_pattern AS routePattern,
+        status_code AS statusCode,
+        sum(request_count) AS failureCount
+    FROM dub_critical_api_logs_mv
+    WHERE
+        hour = {{ DateTime(hour, '2026-01-01 00:00:00') }}
+        AND status_code IN (401, 403)
+        AND (workspace_id, method, route_pattern) IN (
+            SELECT
+                workspace_id,
+                method,
+                route_pattern
+            FROM dub_critical_api_logs_mv
+            WHERE hour = {{ DateTime(hour, '2026-01-01 00:00:00') }}
+            GROUP BY
+                workspace_id,
+                method,
+                route_pattern
+            HAVING
+                sumIf(request_count, status_code IN (401, 403)) >= 3
+                AND sumIf(
+                    request_count,
+                    status_code >= 200 AND status_code < 300
+                ) = 0
+        )
+    GROUP BY
+        workspace_id,
+        method,
+        route_pattern,
+        status_code
+    HAVING failureCount > 0
+    ORDER BY
+        workspace_id,
+        method,
+        route_pattern,
+        status_code
+
+TYPE ENDPOINT

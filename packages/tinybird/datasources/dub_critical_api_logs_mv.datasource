@@ -1,0 +1,15 @@
+# Data Source created from Pipe 'dub_critical_api_logs_pipe'
+# Hourly request counts for critical API routes (2xx / 401 / 403).
+
+SCHEMA >
+    `hour` DateTime,
+    `workspace_id` String,
+    `method` LowCardinality(String),
+    `route_pattern` LowCardinality(String),
+    `status_code` UInt16,
+    `request_count` UInt64
+
+ENGINE "SummingMergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(hour)"
+ENGINE_SORTING_KEY "hour, workspace_id, method, route_pattern, status_code"
+ENGINE_TTL "hour + toIntervalDay(90)"
