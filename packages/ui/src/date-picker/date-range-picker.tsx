@@ -146,8 +146,8 @@ const DateRangePickerInner = ({
     (presets
       ?.filter((preset) => preset.shortcut)
       .map((preset) => preset.shortcut) as string[]) ?? [],
-    (e) => {
-      const preset = presets?.find((preset) => preset.shortcut === e.key);
+    (_, key) => {
+      const preset = presets?.find((preset) => preset.shortcut === key);
       if (preset) onPresetSelected(preset);
     },
   );

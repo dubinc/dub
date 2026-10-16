@@ -266,6 +266,7 @@ export const createReferralCommission = async (
       slug: true,
       logo: true,
       supportEmail: true,
+      environment: true,
       groups: true,
       workspace: {
         select: {

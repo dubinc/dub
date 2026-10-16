@@ -29,6 +29,7 @@ export const GET = withCron(async () => {
         gt: 0,
       },
       deactivatedAt: null,
+      environment: "production",
     },
   });
 
@@ -44,6 +45,7 @@ export const GET = withCron(async () => {
           notIn: programsWithCustomMinPayouts.map((p) => p.id),
         },
         deactivatedAt: null,
+        environment: "production",
       },
       partner: {
         payoutsEnabledAt: {

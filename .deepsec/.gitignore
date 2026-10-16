@@ -1,0 +1,20 @@
+# Credentials and the dedicated Vercel project link
+.env.local
+.vercel/
+
+# Reproducible scan state (INFO.md stays tracked)
+data/*/setup/
+data/*/files/
+data/*/runs/
+data/*/reports/
+data/*/project.json
+data/*/tech.json
+
+# Dependencies
+node_modules/
+
+# Local / CI exports
+findings/
+findings.json
+comment.md
+pr-files.txt

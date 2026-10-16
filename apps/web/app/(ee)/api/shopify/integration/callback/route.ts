@@ -3,6 +3,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { encrypt } from "@/lib/encryption";
 import { installIntegration } from "@/lib/integrations/install";
+import { isValidShopifyStoreId } from "@/lib/integrations/shopify/store-id";
+import { verifyShopifyStoreOwnership } from "@/lib/integrations/shopify/verify-store-ownership";
 import { prisma } from "@/lib/prisma";
 import { SHOPIFY_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -11,7 +13,13 @@ import * as z from "zod/v4";
 const requestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("connect"),
-    shopifyStoreId: z.string().min(1),
+    shopifyStoreId: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .refine(isValidShopifyStoreId, {
+        message: "Invalid Shopify store domain.",
+      }),
     accessToken: z.string().min(1),
     scope: z.string().min(1),
   }),
@@ -26,6 +34,13 @@ const requestSchema = z.discriminatedUnion("action", [
 export const PATCH = withWorkspace(
   async ({ req, workspace, session }) => {
     const body = requestSchema.parse(await parseRequestBody(req));
+
+    if (body.action === "connect") {
+      await verifyShopifyStoreOwnership({
+        shopifyStoreId: body.shopifyStoreId,
+        accessToken: body.accessToken,
+      });
+    }
 
     try {
       const response = await prisma.project.update({

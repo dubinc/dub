@@ -12,7 +12,9 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
+import { EnvironmentBanner } from "../components/environment-banner";
 import { Footer } from "../components/footer";
+import { WorkspaceEnvironment } from "../types";
 
 export default function ProgramPayoutThankYou({
   email = "panic@thedis.co",
@@ -21,6 +23,7 @@ export default function ProgramPayoutThankYou({
   },
   program = {
     name: "Acme",
+    environment: "production",
   },
   payout = {
     amount: 450000000,
@@ -33,6 +36,7 @@ export default function ProgramPayoutThankYou({
   };
   program: {
     name: string;
+    environment?: WorkspaceEnvironment;
   };
   payout: {
     amount: number; // in cents
@@ -65,6 +69,11 @@ export default function ProgramPayoutThankYou({
       <Tailwind>
         <Body className="mx-auto my-auto bg-neutral-100 font-sans">
           <Container className="mx-auto my-0 max-w-[600px] py-0">
+            {program.environment && program.environment !== "production" && (
+              <Section className="px-6 pt-6">
+                <EnvironmentBanner environment={program.environment} />
+              </Section>
+            )}
             <Section className="mb-8 mt-0 text-center">
               <Img
                 src="https://assets.dub.co/misc/payout-thank-you-header.jpg"

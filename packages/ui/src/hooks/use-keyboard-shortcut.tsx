@@ -43,7 +43,7 @@ export function KeyboardShortcutProvider({
 
 export function useKeyboardShortcut(
   key: KeyboardShortcutListener["key"],
-  callback: (e: KeyboardEvent) => void,
+  callback: (e: KeyboardEvent, pressedKey: string) => void,
   options: Pick<
     KeyboardShortcutListener,
     "enabled" | "priority" | "modal" | "sheet"
@@ -81,7 +81,8 @@ export function useKeyboardShortcut(
         ...(e.metaKey ? ["meta"] : []),
         ...(e.ctrlKey ? ["ctrl"] : []),
         ...(e.altKey ? ["alt"] : []),
-        e.key,
+        // Normalize single characters so shortcuts work with Caps Lock on
+        e.key.length === 1 ? e.key.toLowerCase() : e.key,
       ].join("+");
 
       // Ignore shortcut if it doesn't match this listener
@@ -111,7 +112,7 @@ export function useKeyboardShortcut(
       if (topListener.id !== id) return;
 
       e.preventDefault();
-      callback(e);
+      callback(e, pressedKey);
     },
     [
       key,
