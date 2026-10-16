@@ -1,6 +1,5 @@
 import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
 import { withAxiom } from "@/lib/axiom/server";
-import { prisma } from "@/lib/prisma";
 import { isStripeRateLimitError, stripe } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
 import { waitUntil } from "@vercel/functions";
@@ -15,6 +14,7 @@ import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { invoicePaid } from "./invoice-paid";
 import { promotionCodeUpdated } from "./promotion-code-updated";
 import { WebhookHandlerResponse } from "./types";
+import { getWorkspaceForStripeAccount } from "./utils/get-workspace-for-stripe-account";
 import { syncCustomer } from "./utils/sync-customer";
 
 export const dynamic = "force-dynamic";
@@ -105,17 +105,9 @@ export const POST = withAxiom(async (req: Request) => {
   }
 
   // Find the workspace
-  const workspace = await prisma.project.findUnique({
-    where: {
-      stripeConnectId: event.account,
-    },
-    select: {
-      id: true,
-      stripeConnectId: true,
-      defaultProgramId: true,
-      webhookEnabled: true,
-      environment: true,
-    },
+  const workspace = await getWorkspaceForStripeAccount({
+    stripeAccountId: event.account,
+    mode,
   });
 
   if (!workspace) {

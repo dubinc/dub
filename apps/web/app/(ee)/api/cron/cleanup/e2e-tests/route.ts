@@ -6,7 +6,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
-import { log } from "@dub/utils";
+import { ACME_PROGRAM_ID, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -78,6 +78,15 @@ export async function POST(req: Request) {
           createdAt: {
             lt: oneDayAgo,
           },
+          // only delete partners with no enrollments outside the Acme program,
+          // since bulkDeletePartners hard-deletes the Partner row and would leave
+          // their enrollments in other programs orphaned. `every` also matches
+          // partners with no enrollments, so those are cleaned up too.
+          programs: {
+            every: {
+              programId: ACME_PROGRAM_ID,
+            },
+          },
         },
         select: {
           id: true,
@@ -91,6 +100,21 @@ export async function POST(req: Request) {
           },
           createdAt: {
             lt: oneDayAgo,
+          },
+          // skip users linked to a partner that is enrolled in a program other than Acme
+          // (e.g. a dev's sandbox/staging program) so we don't orphan that partner profile
+          partners: {
+            none: {
+              partner: {
+                programs: {
+                  some: {
+                    programId: {
+                      not: ACME_PROGRAM_ID,
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       }),

@@ -18,6 +18,19 @@ export const SCOPES = [
   "webhooks.write",
   "groups.read",
   "groups.write",
+  "partners.read",
+  "partners.write",
+  "program_applications.read",
+  "program_applications.write",
+  "customers.read",
+  "customers.write",
+  "discount_codes.read",
+  "discount_codes.write",
+  "commissions.read",
+  "commissions.write",
+  "bounties.read",
+  "bounties.write",
+  "payouts.read",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
 ] as const;
@@ -25,7 +38,7 @@ export const SCOPES = [
 export type Scope = (typeof SCOPES)[number];
 
 // Scopes available for Workspace API keys
-export const RESOURCE_SCOPES: {
+const RESOURCE_SCOPES: {
   scope: Scope;
   roles: WorkspaceRole[];
   permissions: PermissionAction[];
@@ -103,6 +116,97 @@ export const RESOURCE_SCOPES: {
     resource: "groups",
   },
   {
+    scope: "partners.read",
+    roles: ["owner", "member", "viewer", "billing"],
+    permissions: ["partners.read"],
+    type: "read",
+    resource: "partners",
+  },
+  {
+    scope: "partners.write",
+    roles: ["owner", "member"],
+    permissions: ["partners.write", "partners.read"],
+    type: "write",
+    resource: "partners",
+  },
+  {
+    scope: "program_applications.read",
+    roles: ["owner", "member", "viewer", "billing"],
+    permissions: ["program_applications.read"],
+    type: "read",
+    resource: "program_applications",
+  },
+  {
+    scope: "program_applications.write",
+    roles: ["owner", "member"],
+    permissions: ["program_applications.write", "program_applications.read"],
+    type: "write",
+    resource: "program_applications",
+  },
+  {
+    scope: "customers.read",
+    roles: ["owner", "member", "viewer", "billing"],
+    permissions: ["customers.read"],
+    type: "read",
+    resource: "customers",
+  },
+  {
+    scope: "customers.write",
+    roles: ["owner", "member"],
+    permissions: ["customers.write", "customers.read"],
+    type: "write",
+    resource: "customers",
+  },
+  {
+    scope: "discount_codes.read",
+    roles: ["owner", "member", "viewer", "billing"],
+    permissions: ["discount_codes.read"],
+    type: "read",
+    resource: "discount_codes",
+  },
+  {
+    scope: "discount_codes.write",
+    roles: ["owner", "member"],
+    permissions: ["discount_codes.write", "discount_codes.read"],
+    type: "write",
+    resource: "discount_codes",
+  },
+  {
+    scope: "commissions.read",
+    roles: ["owner", "member", "viewer", "billing"],
+    permissions: ["commissions.read"],
+    type: "read",
+    resource: "commissions",
+  },
+  {
+    scope: "commissions.write",
+    roles: ["owner", "member"],
+    permissions: ["commissions.write", "commissions.read"],
+    type: "write",
+    resource: "commissions",
+  },
+  {
+    scope: "bounties.read",
+    roles: ["owner", "member", "viewer", "billing"],
+    permissions: ["bounties.read"],
+    type: "read",
+    resource: "bounties",
+  },
+  {
+    scope: "bounties.write",
+    roles: ["owner", "member"],
+    permissions: ["bounties.write", "bounties.read"],
+    type: "write",
+    resource: "bounties",
+  },
+  {
+    scope: "payouts.read",
+    roles: ["owner", "member", "viewer", "billing"],
+    permissions: ["payouts.read"],
+    type: "read",
+    resource: "payouts",
+  },
+  {
     scope: "workspaces.read",
     roles: ["owner", "member", "viewer", "billing"],
     permissions: ["workspaces.read"],
@@ -148,6 +252,13 @@ export const RESOURCE_SCOPES: {
       "workspaces.read",
       "analytics.read",
       "groups.read",
+      "partners.read",
+      "program_applications.read",
+      "customers.read",
+      "discount_codes.read",
+      "commissions.read",
+      "bounties.read",
+      "payouts.read",
     ],
   },
   {
@@ -167,36 +278,65 @@ export const RESOURCE_SCOPES: {
       "analytics.read",
       "groups.read",
       "groups.write",
+      "partners.read",
+      "partners.write",
+      "program_applications.read",
+      "program_applications.write",
+      "customers.read",
+      "customers.write",
+      "discount_codes.read",
+      "discount_codes.write",
+      "commissions.read",
+      "commissions.write",
+      "bounties.read",
+      "bounties.write",
+      "payouts.read",
     ],
   },
 ];
 
-export const SCOPES_BY_RESOURCE = RESOURCE_SCOPES.reduce((acc, scope) => {
-  if (!scope.resource || !scope.type) {
-    return acc;
-  }
+export type LegacyScopeGrant = {
+  enforcedAt: Date;
+  permissions: readonly PermissionAction[];
+};
 
-  if (!acc[scope.resource]) {
-    acc[scope.resource] = [];
-  }
+// Keys and OAuth installations created before this date were made before the
+// partner program scopes existed.
+export const PARTNER_SCOPES_ENFORCED_AT = new Date("2026-10-13T18:35:00.000Z");
 
-  acc[scope.resource].push({
-    scope: scope.scope,
-    type: scope.type,
-    roles: scope.roles,
-  });
-
-  return acc;
-}, {});
+// Scopes introduced after API keys already existed. A key or OAuth installation
+// created before `enforcedAt` keeps these permissions without selecting the scope.
+// Keep permissions that share a cutoff in one entry. Add a new entry when a
+// scope needs a different cutoff.
+export const LEGACY_SCOPE_GRANTS: LegacyScopeGrant[] = [
+  {
+    enforcedAt: PARTNER_SCOPES_ENFORCED_AT,
+    permissions: [
+      "partners.read",
+      "partners.write",
+      "program_applications.read",
+      "program_applications.write",
+      "customers.read",
+      "customers.write",
+      "discount_codes.read",
+      "discount_codes.write",
+      "commissions.read",
+      "commissions.write",
+      "bounties.read",
+      "bounties.write",
+      "payouts.read",
+    ],
+  },
+];
 
 // Scope to permissions mapping
-export const SCOPE_PERMISSIONS_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
+const SCOPE_PERMISSIONS_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   acc[scope.scope] = scope.permissions;
   return acc;
 }, {});
 
 // WorkspaceRole to scopes mapping
-export const ROLE_SCOPES_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
+const ROLE_SCOPES_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   scope.roles.forEach((role) => {
     if (!acc[role]) {
       acc[role] = [];
@@ -219,6 +359,53 @@ export const mapScopesToPermissions = (scopes: Scope[]) => {
   });
 
   return permissions;
+};
+
+// Grants permissions from `grants` when the key or installation predates the
+// grant's cutoff. A missing date is treated as legacy so cached tokens from
+// before this field existed keep working. Routes can pass extra grants that
+// apply only to that route.
+export const grantLegacyScopePermissions = ({
+  permissions,
+  createdAt,
+  grants = LEGACY_SCOPE_GRANTS,
+}: {
+  permissions: PermissionAction[];
+  createdAt?: Date | string | null;
+  grants?: readonly LegacyScopeGrant[];
+}): PermissionAction[] => {
+  const createdAtMs = createdAt == null ? null : new Date(createdAt).getTime();
+
+  const legacyPermissions = grants.flatMap((grant) =>
+    createdAtMs != null && createdAtMs >= grant.enforcedAt.getTime()
+      ? []
+      : grant.permissions,
+  );
+
+  if (legacyPermissions.length === 0) {
+    return permissions;
+  }
+
+  return [...new Set<PermissionAction>([...permissions, ...legacyPermissions])];
+};
+
+// True when the legacy grant gives a key permissions that its own scopes do
+// not include, so the key has more access than the dashboard shows. "All
+// access" keys already have every permission and return false.
+export const hasLegacyScopeGrant = ({
+  scopes,
+  createdAt,
+}: {
+  scopes: string[];
+  createdAt: Date | string;
+}) => {
+  const permissions = new Set(mapScopesToPermissions(scopes as Scope[]));
+
+  return (
+    new Set(
+      grantLegacyScopePermissions({ permissions: [...permissions], createdAt }),
+    ).size > permissions.size
+  );
 };
 
 // Get SCOPES_BY_RESOURCE based on user role in a workspace
@@ -293,12 +480,12 @@ export const validateScopesForRole = (scopes: Scope[], role: WorkspaceRole) => {
 };
 
 // Get the scopes for a role
-export const getScopesForRole = (role: WorkspaceRole) => {
+const getScopesForRole = (role: WorkspaceRole) => {
   return ROLE_SCOPES_MAP[role];
 };
 
 // Consolidate scopes to avoid duplication and show only the most permissive scope
-export const consolidateScopes = (scopes: string[]) => {
+const consolidateScopes = (scopes: string[]) => {
   const consolidated = new Set();
 
   scopes.forEach((scope) => {

@@ -1,6 +1,7 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { Session } from "@/lib/auth";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { prisma } from "@/lib/prisma";
@@ -39,7 +40,10 @@ import { executeWorkflows } from "../workflows/execute-workflows";
 type CreateCommissionsArgs = z.infer<
   typeof createManualCommissionBodySchema
 > & {
-  workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
+  workspace: Pick<
+    Project,
+    "id" | "slug" | "stripeConnectId" | "stripeConnectMode" | "defaultProgramId"
+  >;
   programId: string;
   user: Session["user"];
 };
@@ -51,7 +55,10 @@ type ResolveLinkAndCustomerArgs = CreateCommissionsArgs & {
 };
 
 type RecordEventsArgs = CreateCommissionsArgs & {
-  workspace: Pick<Project, "id" | "stripeConnectId">;
+  workspace: Pick<
+    Project,
+    "id" | "stripeConnectId" | "stripeConnectMode" | "defaultProgramId"
+  >;
   partner: Pick<Partner, "id" | "email">;
   targetLink: Link;
   targetCustomer: Customer;
@@ -483,6 +490,7 @@ async function createOrUpdateCustomer({
             id,
             name,
             email,
+            normalizedEmail: getNormalizedEmail(email),
             avatar,
             externalId,
             stripeCustomerId,
@@ -505,6 +513,9 @@ async function createOrUpdateCustomer({
         data: {
           name,
           email,
+          ...(email !== undefined && {
+            normalizedEmail: getNormalizedEmail(email),
+          }),
           avatar,
           country,
           stripeCustomerId,
@@ -552,7 +563,7 @@ async function recordEvents(args: RecordEventsArgs) {
   let stripeCustomerInvoices: Awaited<
     ReturnType<typeof getCustomerStripeInvoices>
   > = [];
-  const { workspace, programId, targetLink, targetCustomer } = args;
+  const { workspace, targetLink, targetCustomer } = args;
 
   if (type === "lead") {
     finalLeadEventDate = args.date ?? args.leadEventDate ?? new Date();
@@ -561,8 +572,7 @@ async function recordEvents(args: RecordEventsArgs) {
 
     stripeCustomerInvoices = await getCustomerStripeInvoices({
       stripeCustomerId: targetCustomer.stripeCustomerId!,
-      stripeConnectId: workspace.stripeConnectId!,
-      programId,
+      workspace,
     });
 
     if (stripeInvoicesToImport === "all") {

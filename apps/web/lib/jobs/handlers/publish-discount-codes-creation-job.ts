@@ -30,6 +30,7 @@ export const publishDiscountCodesCreationJob = defineJob({
               select: {
                 id: true,
                 stripeConnectId: true,
+                stripeConnectMode: true,
                 shopifyStoreId: true,
                 environment: true,
               },

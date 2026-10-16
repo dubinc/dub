@@ -173,9 +173,9 @@ export function TemplateCard({
           {({ hovered }) => (
             <TemplateCardKeyboardShortcuts
               enabled={openPopover || (hovered && openMenuTemplateId === null)}
-              onKeyDown={(e) => {
+              onKeyDown={(_, key) => {
                 setOpenPopover(false);
-                switch (e.key) {
+                switch (key) {
                   case "e":
                     setShowAddEditUtmTemplateModal(true);
                     break;
@@ -197,7 +197,7 @@ function TemplateCardKeyboardShortcuts({
   onKeyDown,
 }: {
   enabled: boolean;
-  onKeyDown: (e: KeyboardEvent) => void;
+  onKeyDown: (e: KeyboardEvent, pressedKey: string) => void;
 }) {
   useKeyboardShortcut(["e", "x"], onKeyDown, {
     enabled,

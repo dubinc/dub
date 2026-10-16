@@ -150,9 +150,9 @@ export function LinkControls({
 
   useKeyboardShortcut(
     options.map((o) => OPTIONS[o]),
-    (e) => {
+    (_, key) => {
       setOpenPopover(false);
-      switch (e.key) {
+      switch (key) {
         case "e":
           canManageLink && openLinkBuilder();
           break;

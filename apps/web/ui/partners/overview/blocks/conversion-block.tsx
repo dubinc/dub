@@ -3,7 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { FunnelChart } from "@dub/ui/charts";
-import { nFormatter } from "@dub/utils";
+import { formatPercentage } from "@dub/utils";
 import { useContext, useMemo } from "react";
 import { ExceededEventsLimit } from "../exceeded-events-limit";
 import { ProgramOverviewBlock } from "../program-overview-block";
@@ -70,7 +70,7 @@ export function ConversionBlock() {
           </div>
         ) : (
           <div className="flex size-full flex-col">
-            <div className="px-6">
+            <div className="px-5">
               <span className="text-content-emphasis block text-xl font-medium">
                 {formatPercentage(
                   (steps.at(
@@ -86,7 +86,7 @@ export function ConversionBlock() {
               {steps.map((step) => (
                 <div
                   key={step.id}
-                  className="flex flex-col px-6 text-xs font-medium"
+                  className="flex flex-col px-5 text-xs font-medium"
                 >
                   <div className="text-content-muted">{step.label}</div>
                   <span className="text-content-emphasis">
@@ -109,9 +109,3 @@ export function ConversionBlock() {
     </ProgramOverviewBlock>
   );
 }
-
-const formatPercentage = (value: number) => {
-  return value > 0 && value < 0.01
-    ? "< 0.01"
-    : nFormatter(value, { digits: 2 });
-};

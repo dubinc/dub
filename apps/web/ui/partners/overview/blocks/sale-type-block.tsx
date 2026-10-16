@@ -3,7 +3,7 @@ import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
-import { cn, fetcher, nFormatter } from "@dub/utils";
+import { cn, fetcher, formatPercentage, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useContext, useMemo, useState } from "react";
 import useSWR from "swr";
@@ -79,7 +79,7 @@ export function SaleTypeBlock() {
       className="pb-0"
       contentClassName="px-0 mt-1"
     >
-      <div className="divide-border-subtle @2xl:h-72 flex h-auto flex-col divide-y">
+      <div className="@2xl:h-72 flex h-auto flex-col">
         {isLoading ? (
           <div className="flex size-full items-center justify-center py-4">
             <LoadingSpinner />
@@ -89,7 +89,7 @@ export function SaleTypeBlock() {
             Failed to load data
           </div>
         ) : (
-          <div className="flex size-full flex-col gap-6 px-6 pb-6">
+          <div className="flex size-full flex-col gap-6 px-5 pb-5">
             <span className="text-content-emphasis block text-xl font-medium">
               {nFormatter(totalEvents, {
                 full: totalEvents < 99999,
@@ -173,9 +173,3 @@ export function SaleTypeBlock() {
     </ProgramOverviewBlock>
   );
 }
-
-const formatPercentage = (value: number) => {
-  return value > 0 && value < 0.01
-    ? "< 0.01"
-    : nFormatter(value, { digits: 2 });
-};

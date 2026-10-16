@@ -183,6 +183,7 @@ export const { POST } = serve<Input>(
           environment: true,
           webhookEnabled: true,
           stripeConnectId: true,
+          stripeConnectMode: true,
           shopifyStoreId: true,
         },
       });

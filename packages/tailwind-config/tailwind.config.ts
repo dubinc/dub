@@ -214,6 +214,10 @@ const config: Config = {
         },
       },
       colors: {
+        // Merged into Tailwind's default neutral scale
+        neutral: {
+          150: "#ededed",
+        },
         brown: {
           50: "#fdf8f6",
           100: "#f2e8e5",

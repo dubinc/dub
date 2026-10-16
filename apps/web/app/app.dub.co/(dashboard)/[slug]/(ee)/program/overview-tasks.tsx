@@ -51,6 +51,8 @@ export function OverviewTasks() {
       },
       {
         icon: UserCheck,
+        // UserCheck is drawn on a 14px grid, so its strokes render thicker than the 18px icons
+        iconClassName: "[&_path]:[stroke-width:1.17]",
         label: "Review new applications",
         count: applicationsCount,
         href: `/${slug}/program/partners/applications`,
@@ -69,25 +71,31 @@ export function OverviewTasks() {
   );
 
   return (
-    <ProgramOverviewCard className="py-4">
-      <h2 className="text-content-emphasis px-4 text-sm font-medium">Tasks</h2>
-      <div className="mt-4 flex flex-col px-2">
+    <ProgramOverviewCard>
+      <div className="flex h-12 items-center pl-4 pr-3">
+        <h2 className="text-content-emphasis text-sm font-semibold">Tasks</h2>
+      </div>
+      <div className="flex flex-col px-2 pb-2">
         {tasks.map((task) => (
           <Link
             key={task.label}
             href={task.href}
-            className="hover:bg-bg-inverted/5 active:bg-bg-inverted/10 flex items-center justify-between gap-2 rounded-lg p-2 pl-3 text-sm font-semibold transition-colors"
+            className="hover:bg-bg-inverted/5 active:bg-bg-inverted/10 flex items-center justify-between gap-2.5 rounded-lg p-2 text-sm font-medium transition-colors"
           >
             <div className="flex min-w-0 items-center gap-2.5">
-              <task.icon className="size-4 shrink-0" />
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-neutral-200">
+                <task.icon
+                  className={cn("size-[18px] shrink-0", task.iconClassName)}
+                />
+              </div>
               <span className="min-w-0 truncate">{task.label}</span>
             </div>
 
             <div
               className={cn(
-                "flex h-8 min-w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 px-1.5 text-sm font-semibold text-blue-600",
+                "flex h-9 min-w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 px-1.5 text-sm font-semibold text-blue-600",
                 !(task.count && task.count > 0) &&
-                  "bg-neutral-100 text-neutral-500",
+                  "bg-neutral-100 text-neutral-400",
                 task.loading && "w-10 animate-pulse",
               )}
             >

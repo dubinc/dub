@@ -5,7 +5,6 @@ import { LinkProps } from "@/lib/types";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
 import { useCompletion } from "@ai-sdk/react";
 import {
-  AnimatedSizeContainer,
   ArrowTurnRight2,
   ButtonTooltip,
   Combobox,
@@ -411,13 +410,9 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
           />
         )}
         {!onboarding && !dotLinkClaimed && (
-          <AnimatedSizeContainer
-            height
-            transition={{ ease: "linear", duration: 0.1 }}
-            className="mt-2"
-          >
+          <div className="mt-2">
             <FreeDotLinkBanner />
-          </AnimatedSizeContainer>
+          </div>
         )}
       </div>
     );

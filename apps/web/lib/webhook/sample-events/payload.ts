@@ -1,9 +1,11 @@
+import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
 import type { WebhookTrigger } from "@/lib/webhook/types";
 import bountyCreated from "./bounty-created.json";
 import bountyUpdated from "./bounty-updated.json";
 import commissionCreated from "./commission-created.json";
 import discountCodeCreated from "./discount-code-created.json";
 import discountCodeDeleted from "./discount-code-deleted.json";
+import externalPayoutConfirmed from "./external-payout-confirmed.json";
 import leadCreated from "./lead-created.json";
 import linkClicked from "./link-clicked.json";
 import linkCreated from "./link-created.json";
@@ -11,7 +13,6 @@ import linkDeleted from "./link-deleted.json";
 import linkUpdated from "./link-updated.json";
 import partnerEnrolled from "./partner-enrolled.json";
 import partnerMerged from "./partner-merged.json";
-import payoutConfirmed from "./payout-confirmed.json";
 import programApplicationCreated from "./program-application-created.json";
 import programApplicationSubmitted from "./program-application-submitted.json";
 import saleCreated from "./sale-created.json";
@@ -30,7 +31,7 @@ export const samplePayload: Record<WebhookTrigger, any> = {
   "commission.created": commissionCreated,
   "bounty.created": bountyCreated,
   "bounty.updated": bountyUpdated,
-  "payout.confirmed": payoutConfirmed,
+  [EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER]: externalPayoutConfirmed,
   "discount_code.created": discountCodeCreated,
   "discount_code.deleted": discountCodeDeleted,
 };

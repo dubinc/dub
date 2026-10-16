@@ -68,7 +68,8 @@ export type ProgramTab = (typeof PROGRAM_TABS)[number];
 
 export type ProgramTabId = ProgramTab["id"];
 
-export const PROGRAMS_TABLE_PAGE_SIZE = 50;
+// divides by 2 and 3, so a full page fills every row of the grid
+export const PROGRAMS_PAGE_SIZE = 48;
 
 // without a saved view, the page starts on the table for partners with more
 // active programs than this

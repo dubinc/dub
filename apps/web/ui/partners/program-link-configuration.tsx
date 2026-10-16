@@ -1,4 +1,5 @@
 import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useDomains from "@/lib/swr/use-domains";
@@ -140,7 +141,7 @@ export function ProgramLinkConfiguration({
 }
 
 function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
-  const { slug, trialEndsAt } = useWorkspace();
+  const { slug, trialEndsAt, environment } = useWorkspace();
   const { allWorkspaceDomains: domains, loading: isLoadingDomains } =
     useDomains();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
@@ -182,29 +183,36 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
         },
         loading: isLoadingDomains,
       },
-      trialActive
-        ? {
-            icon: <Wordmark className="h-3 text-neutral-900" />,
-            title: "Use .dub.link subdomain",
-            badge: "Instant setup",
-            badgeClassName: "bg-bg-inverted/10 text-neutral-800",
-            description:
-              "A fast way to launch. Switch to a custom domain later.",
-            onSelect: () => setShowSubdomainModal(true),
-          }
-        : {
-            icon: "https://assets.dub.co/icons/crown.webp",
-            title: "Claim a free .link domain",
-            badge: "No setup",
-            badgeClassName: "bg-green-100 text-green-800",
-            description: "Free for one year with your paid account.",
-            onSelect: () => setShowRegisterDomainModal(true),
-          },
+      ...(trialActive
+        ? [
+            {
+              icon: <Wordmark className="h-3 text-neutral-900" />,
+              title: "Use .dub.link subdomain",
+              badge: "Instant setup",
+              badgeClassName: "bg-bg-inverted/10 text-neutral-800",
+              description:
+                "A fast way to launch. Switch to a custom domain later.",
+              onSelect: () => setShowSubdomainModal(true),
+            },
+          ]
+        : isProductionEnvironment(environment)
+          ? [
+              {
+                icon: "https://assets.dub.co/icons/crown.webp",
+                title: "Claim a free .link domain",
+                badge: "No setup",
+                badgeClassName: "bg-green-100 text-green-800",
+                description: "Free for one year with your paid account.",
+                onSelect: () => setShowRegisterDomainModal(true),
+              },
+            ]
+          : []),
     ],
     [
       domains,
       isLoadingDomains,
       trialActive,
+      environment,
       setShowAddEditDomainModal,
       setShowRegisterDomainModal,
       setShowSubdomainModal,

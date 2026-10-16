@@ -2,14 +2,15 @@
 
 import { testIds } from "@/lib/e2e/test-ids";
 import { useProgramMessagesCount } from "@/lib/messages/hooks/use-program-messages-count";
+import { usePartnerProfileBounties } from "@/lib/swr/use-partner-profile-bounties";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useMediaQuery, type Icon } from "@dub/ui";
-import { Msgs, UserCheck } from "@dub/ui/icons";
+import { Msgs, Trophy, UserCheck } from "@dub/ui/icons";
 import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { OverviewCard } from "./overview-card";
 
-export function TasksCard() {
+export function TasksCard({ className }: { className?: string }) {
   const { isMobile } = useMediaQuery();
 
   const { count: unreadMessagesCount } = useProgramMessagesCount({
@@ -19,6 +20,9 @@ export function TasksCard() {
   const { count: invitationsCount } = useProgramEnrollmentsCount({
     status: "invited",
   });
+
+  // the same request as the Bounties badge in the sidebar
+  const { bountiesCount } = usePartnerProfileBounties();
 
   const tasks = [
     {
@@ -33,10 +37,15 @@ export function TasksCard() {
       href: "/programs?tab=invitations",
       count: invitationsCount ?? 0,
     },
+    {
+      icon: Trophy,
+      label: "Complete bounties",
+      href: "/bounties",
+      count: bountiesCount.active,
+    },
   ];
 
   // only on mobile: hide the card when no action is needed
-  // so that Recent payouts fills the column
   const incompleteTasks = tasks.filter(
     (task): task is typeof task & { count: number } => !!task.count,
   );
@@ -45,7 +54,11 @@ export function TasksCard() {
   }
 
   return (
-    <OverviewCard title="Tasks" testId={testIds.partnerOverview.tasks}>
+    <OverviewCard
+      title="Tasks"
+      className={className}
+      testId={testIds.partnerOverview.tasks}
+    >
       <div className="flex flex-col px-2 pb-2">
         {tasks.map((task) => (
           <TaskRow key={task.href} {...task} />

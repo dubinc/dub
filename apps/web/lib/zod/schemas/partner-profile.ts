@@ -120,6 +120,9 @@ export const partnerProfileEarningsQuerySchema =
 export const partnerProfileEarningsCountQuerySchema =
   getPartnerEarningsCountQuerySchema.extend({
     programIdOrSlug: programIdOrSlugSchema,
+    groupBy: z
+      .enum(["linkId", "customerId", "status", "type", "programId"])
+      .optional(),
   });
 
 export const partnerProfileEarningsTimeseriesQuerySchema =
@@ -239,10 +242,18 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
 export const PartnerProfileProgramEnrollmentSchema =
   ProgramEnrollmentSchema.extend({
     reapplicationTimeframe: z.enum(ReapplicationTimeframe).nullish(),
+    inactiveAt: z
+      .date()
+      .nullish()
+      .describe(
+        "When the program banned, deactivated or archived the partner. For deactivated and archived enrollments, only set when `includeInactiveDates=true`. Null for other statuses, and when the date is not known.",
+      ),
   });
 
 export const partnerProfileProgramsQuerySchema = z.object({
   includeRewardsDiscounts: booleanQuerySchema.optional(),
+  // looks up when deactivated and archived enrollments became inactive
+  includeInactiveDates: booleanQuerySchema.optional(),
   // one status or a comma-separated list, for example "pending,rejected"
   status: z
     .string()
@@ -309,6 +320,20 @@ export const PartnerBountySchema = BountySchema.omit({
     totalSaleAmount: centsSchema,
     totalCommissions: centsSchema,
   }),
+});
+
+// used in GET /partner-profile/bounties, for all programs or for one program
+export const PartnerProfileBountySchema = PartnerBountySchema.extend({
+  program: PartnerProfileEarningsProgramSchema,
+});
+
+export const partnerProfileBountiesQuerySchema = z.object({
+  programIdOrSlug: z
+    .string()
+    .optional()
+    .describe(
+      "The ID or slug of the program to filter bounties by. If not provided, bounties across all active programs are returned.",
+    ),
 });
 
 export const invitePartnerUserSchema = z.object({

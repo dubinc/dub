@@ -3,9 +3,12 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { adminCommissionsDataSchema } from "@/lib/zod/schemas/admin";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
+  CopyText,
   CrownSmall,
   Filter,
   Table,
@@ -15,9 +18,10 @@ import {
   useTable,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { GridIcon, Shop } from "@dub/ui/icons";
+import { Globe, GridIcon, Shop, Users } from "@dub/ui/icons";
 import {
   cn,
+  COUNTRIES,
   currencyFormatter,
   DUB_FOUNDING_DATE,
   fetcher,
@@ -25,6 +29,7 @@ import {
   OG_AVATAR_URL,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
+import { ColumnDef } from "@tanstack/react-table";
 import { Fragment, Suspense, useCallback, useMemo } from "react";
 import useSWR from "swr";
 import * as z from "zod/v4";
@@ -38,15 +43,202 @@ export default function CommissionsPage() {
 }
 
 type AdminCommissionsData = z.infer<typeof adminCommissionsDataSchema>;
+type ProgramCommission = NonNullable<AdminCommissionsData["programs"]>[number];
+type PartnerCommission = NonNullable<AdminCommissionsData["partners"]>[number];
+
+function positionColumn<T>(): ColumnDef<T, any> {
+  return {
+    id: "position",
+    header: "Position",
+    size: 12,
+    minSize: 12,
+    maxSize: 12,
+    cell: ({ row }) => {
+      return (
+        <div className="flex w-28 items-center justify-start gap-2 tabular-nums">
+          {row.index + 1}
+          {row.index <= 2 && (
+            <CrownSmall
+              className={cn("size-4", {
+                "text-amber-400": row.index === 0,
+                "text-neutral-400": row.index === 1,
+                "text-yellow-900": row.index === 2,
+              })}
+            />
+          )}
+        </div>
+      );
+    },
+  };
+}
+
+const programColumns: ColumnDef<ProgramCommission, any>[] = [
+  positionColumn<ProgramCommission>(),
+  {
+    id: "program",
+    header: "Program",
+    cell: ({ row }) => (
+      <div className="flex items-center gap-1.5 text-sm font-medium">
+        <img
+          src={row.original.logo}
+          alt={row.original.name}
+          width={20}
+          height={20}
+          className="size-4 rounded-full"
+        />
+        <span className="text-sm font-medium">{row.original.name}</span>•
+        <a
+          className="text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-800"
+          href={row.original.url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {getDomainWithoutWWW(row.original.url)}
+        </a>
+        {row.original.addedToMarketplaceAt && (
+          <Tooltip
+            content={
+              <div className="max-w-[220px] px-3 py-2.5 text-center">
+                <p className="text-sm font-medium text-neutral-900">
+                  Dub Marketplace
+                </p>
+                <p className="mt-1 text-xs leading-snug text-neutral-500">
+                  Listed since{" "}
+                  {new Intl.DateTimeFormat("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  }).format(new Date(row.original.addedToMarketplaceAt))}
+                </p>
+                <p className="mt-2 text-xs font-medium text-teal-700">
+                  Click to open listing ↗
+                </p>
+              </div>
+            }
+          >
+            <a
+              href={`https://partners.dub.co/marketplace/${row.original.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "ml-1 inline-flex size-6 shrink-0 items-center justify-center rounded-md",
+                "border border-teal-200/90 bg-gradient-to-br from-white to-teal-50/90",
+                "text-teal-700 shadow-sm ring-1 ring-inset ring-white",
+                "transition-[box-shadow,transform] duration-150 hover:shadow-md active:scale-[0.97]",
+                "outline-none focus-visible:ring-2 focus-visible:ring-teal-400/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+              )}
+              aria-label={`View ${row.original.name} on Dub Marketplace (opens in new tab)`}
+            >
+              <Shop className="size-3.5 shrink-0" aria-hidden />
+            </a>
+          </Tooltip>
+        )}
+      </div>
+    ),
+    meta: {
+      filterParams: ({ row }) => ({
+        programId: row.original.id,
+      }),
+    },
+  },
+  {
+    id: "commissions",
+    header: "Commissions",
+    accessorKey: "commissions",
+    cell: ({ row }) => currencyFormatter(row.original.commissions),
+  },
+  {
+    id: "fees",
+    header: "Fees",
+    accessorKey: "fees",
+    cell: ({ row }) => currencyFormatter(row.original.fees),
+  },
+];
+
+const partnerColumns: ColumnDef<PartnerCommission, any>[] = [
+  positionColumn<PartnerCommission>(),
+  {
+    id: "partner",
+    header: "Partner",
+    cell: ({ row }) => (
+      <div className="flex items-center gap-1.5 text-sm font-medium">
+        <PartnerAvatar partner={row.original} className="size-4" />
+        <span className="text-sm font-medium">{row.original.name}</span>
+        {row.original.email && (
+          <>
+            •
+            <CopyText
+              value={row.original.email}
+              successMessage="Copied email to clipboard!"
+              className="text-sm font-medium text-neutral-500"
+            >
+              {row.original.email}
+            </CopyText>
+          </>
+        )}
+      </div>
+    ),
+    meta: {
+      filterParams: ({ row }) => ({
+        partnerId: row.original.id,
+      }),
+    },
+  },
+  {
+    id: "country",
+    header: "Country",
+    minSize: 160,
+    cell: ({ row }) => {
+      const country = row.original.country;
+
+      if (!country) {
+        return (
+          <div className="flex items-center gap-3">
+            <Globe className="size-4 shrink-0" />
+            <span className="text-sm text-neutral-900">Unknown</span>
+          </div>
+        );
+      }
+
+      return (
+        <div
+          className="flex items-center gap-3"
+          title={COUNTRIES[country] ?? country}
+        >
+          <CountryFlag countryCode={country} />
+          <span className="truncate text-sm text-neutral-900">
+            {COUNTRIES[country] ?? country}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    id: "commissions",
+    header: "Commissions",
+    accessorKey: "commissions",
+    cell: ({ row }) => currencyFormatter(row.original.commissions),
+  },
+  {
+    id: "fees",
+    header: "Fees",
+    accessorKey: "fees",
+    cell: ({ row }) => currencyFormatter(row.original.fees),
+  },
+];
 
 function CommissionsPageClient() {
-  const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
-  const { interval, start, end, programId } = searchParamsObj;
+  const { queryParams, getQueryString, searchParamsObj, pathname } =
+    useRouterStuff();
+  const { interval, start, end, programId, partnerId } = searchParamsObj;
+  const groupBy = pathname.endsWith("/partners") ? "partnerId" : "programId";
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  const { data: { programs: allPrograms } = {} } = useSWR<AdminCommissionsData>(
+  const { data: { programs: allPrograms } = {}, } = useSWR<AdminCommissionsData>(
     `/api/admin/commissions${getQueryString(
       {
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timezone,
+        groupBy: "programId",
       },
       { exclude: ["programId"] },
     )}`,
@@ -56,16 +248,35 @@ function CommissionsPageClient() {
     },
   );
 
-  const { data: { programs, timeseries } = {}, isLoading } =
-    useSWR<AdminCommissionsData>(
-      `/api/admin/commissions${getQueryString({
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      })}`,
-      fetcher,
+  const { data: { partners: allPartners } = {} } = useSWR<AdminCommissionsData>(
+    `/api/admin/commissions${getQueryString(
       {
-        keepPreviousData: true,
+        timezone,
+        groupBy: "partnerId",
       },
-    );
+      { exclude: ["partnerId"] },
+    )}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
+  const {
+    data: { programs, partners, timeseries } = {},
+    isLoading,
+  } = useSWR<AdminCommissionsData>(
+    `/api/admin/commissions${getQueryString({
+      timezone,
+      groupBy,
+    })}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
+  const ranking = groupBy === "partnerId" ? partners : programs;
 
   // Filter configuration
   const filters = useMemo(
@@ -88,13 +299,36 @@ function CommissionsPageClient() {
             right: currencyFormatter(program.commissions),
           })) ?? null,
       },
+      {
+        key: "partnerId",
+        icon: Users,
+        label: "Partner",
+        options:
+          allPartners?.map((partner) => ({
+            value: partner.id,
+            label: partner.email
+              ? `${partner.name} · ${partner.email}`
+              : partner.name,
+            icon: (
+              <img
+                src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
+                alt={`${partner.name} image`}
+                className="size-4 rounded-full"
+              />
+            ),
+            right: currencyFormatter(partner.commissions),
+          })) ?? null,
+      },
     ],
-    [programs],
+    [allPrograms, allPartners],
   );
 
   const activeFilters = useMemo(() => {
-    return [...(programId ? [{ key: "programId", value: programId }] : [])];
-  }, [programId]);
+    return [
+      ...(programId ? [{ key: "programId", value: programId }] : []),
+      ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
+    ];
+  }, [programId, partnerId]);
 
   const onSelect = useCallback(
     (key: string, value: any) =>
@@ -118,7 +352,7 @@ function CommissionsPageClient() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["programId"],
+        del: ["programId", "partnerId"],
       }),
     [queryParams],
   );
@@ -160,140 +394,12 @@ function CommissionsPageClient() {
           (acc, { commissions }) => acc + (commissions || 0),
           0,
         ) ?? 0,
-      fees: programs?.reduce((acc, { fees }) => acc + (fees || 0), 0) ?? 0,
+      fees: ranking?.reduce((acc, { fees }) => acc + (fees || 0), 0) ?? 0,
     };
-  }, [timeseries, programs]);
-
-  const { pagination, setPagination } = usePagination();
-
-  const { table, ...tableProps } = useTable({
-    data: programs ?? [],
-    columns: [
-      {
-        id: "position",
-        header: "Position",
-        size: 12,
-        minSize: 12,
-        maxSize: 12,
-        cell: ({ row }) => {
-          return (
-            <div className="flex w-28 items-center justify-start gap-2 tabular-nums">
-              {row.index + 1}
-              {row.index <= 2 && (
-                <CrownSmall
-                  className={cn("size-4", {
-                    "text-amber-400": row.index === 0,
-                    "text-neutral-400": row.index === 1,
-                    "text-yellow-900": row.index === 2,
-                  })}
-                />
-              )}
-            </div>
-          );
-        },
-      },
-      {
-        id: "program",
-        header: "Program",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1.5 text-sm font-medium">
-            <img
-              src={row.original.logo}
-              alt={row.original.name}
-              width={20}
-              height={20}
-              className="size-4 rounded-full"
-            />
-            <span className="text-sm font-medium">{row.original.name}</span>•
-            <a
-              className="text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-800"
-              href={row.original.url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {getDomainWithoutWWW(row.original.url)}
-            </a>
-            {row.original.addedToMarketplaceAt && (
-              <Tooltip
-                content={
-                  <div className="max-w-[220px] px-3 py-2.5 text-center">
-                    <p className="text-sm font-medium text-neutral-900">
-                      Dub Marketplace
-                    </p>
-                    <p className="mt-1 text-xs leading-snug text-neutral-500">
-                      Listed since{" "}
-                      {new Intl.DateTimeFormat("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      }).format(new Date(row.original.addedToMarketplaceAt))}
-                    </p>
-                    <p className="mt-2 text-xs font-medium text-teal-700">
-                      Click to open listing ↗
-                    </p>
-                  </div>
-                }
-              >
-                <a
-                  href={`https://partners.dub.co/marketplace/${row.original.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cn(
-                    "ml-1 inline-flex size-6 shrink-0 items-center justify-center rounded-md",
-                    "border border-teal-200/90 bg-gradient-to-br from-white to-teal-50/90",
-                    "text-teal-700 shadow-sm ring-1 ring-inset ring-white",
-                    "transition-[box-shadow,transform] duration-150 hover:shadow-md active:scale-[0.97]",
-                    "outline-none focus-visible:ring-2 focus-visible:ring-teal-400/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
-                  )}
-                  aria-label={`View ${row.original.name} on Dub Marketplace (opens in new tab)`}
-                >
-                  <Shop className="size-3.5 shrink-0" aria-hidden />
-                </a>
-              </Tooltip>
-            )}
-          </div>
-        ),
-        meta: {
-          filterParams: ({ row }) => ({
-            programId: row.original.id,
-          }),
-        },
-      },
-      {
-        id: "commissions",
-        header: "Commissions",
-        accessorKey: "commissions",
-        cell: ({ row }) => currencyFormatter(row.original.commissions),
-      },
-      {
-        id: "fees",
-        header: "Fees",
-        accessorKey: "fees",
-        cell: ({ row }) => currencyFormatter(row.original.fees),
-      },
-    ],
-    pagination,
-    onPaginationChange: setPagination,
-    resourceName: (plural) => `program${plural ? "s" : ""}`,
-    rowCount: programs?.length ?? 0,
-    loading: isLoading,
-    cellRight: (cell) => {
-      const meta = cell.column.columnDef.meta as
-        | {
-            filterParams?: any;
-          }
-        | undefined;
-
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
-    },
-  });
+  }, [timeseries, ranking]);
 
   return (
-    <div className="mx-auto grid w-full min-w-0 max-w-screen-xl gap-3 overflow-x-hidden p-3 lg:px-10">
+    <div className="grid w-full min-w-0 gap-3 overflow-x-hidden">
       <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-center">
         <Filter.Select
           className="w-full md:w-fit"
@@ -329,7 +435,7 @@ function CommissionsPageClient() {
                   });
                 }}
                 className={cn(
-                  "border-box relative block h-full min-w-0 w-full flex-none overflow-hidden px-4 py-3 sm:px-8 sm:py-6",
+                  "border-box relative block h-full w-full min-w-0 flex-none overflow-hidden px-4 py-3 sm:px-8 sm:py-6",
                   "ring-inset ring-neutral-500 focus-visible:ring-1 sm:first:rounded-tl-xl",
                   disabled
                     ? "cursor-not-allowed"
@@ -374,7 +480,7 @@ function CommissionsPageClient() {
         </div>
         <div className="min-w-0 overflow-hidden p-5 sm:p-10">
           <div className="flex h-96 w-full min-w-0 items-center justify-center">
-            {chartData ? (
+            {chartData && !isLoading ? (
               chartData.length > 0 ? (
                 <TimeSeriesChart
                   data={chartData}
@@ -450,9 +556,64 @@ function CommissionsPageClient() {
           </div>
         </div>
       </div>
-      <div className="w-full min-w-0 overflow-x-auto">
-        <Table {...tableProps} table={table} />
-      </div>
+      {groupBy === "partnerId" ? (
+        <CommissionsRankingsTable
+          data={partners ?? []}
+          columns={partnerColumns}
+          loading={isLoading}
+          resourceName={(plural) => `partner${plural ? "s" : ""}`}
+        />
+      ) : (
+        <CommissionsRankingsTable
+          data={programs ?? []}
+          columns={programColumns}
+          loading={isLoading}
+          resourceName={(plural) => `program${plural ? "s" : ""}`}
+        />
+      )}
+    </div>
+  );
+}
+
+function CommissionsRankingsTable<T>({
+  data,
+  columns,
+  loading,
+  resourceName,
+}: {
+  data: T[];
+  columns: ColumnDef<T, any>[];
+  loading: boolean;
+  resourceName: (plural: boolean) => string;
+}) {
+  const { pagination, setPagination } = usePagination();
+
+  const { table, ...tableProps } = useTable({
+    data,
+    columns,
+    pagination,
+    onPaginationChange: setPagination,
+    resourceName,
+    rowCount: data.length,
+    loading,
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
+    },
+  });
+
+  return (
+    <div className="w-full min-w-0 overflow-x-auto">
+      <Table {...tableProps} table={table} />
     </div>
   );
 }

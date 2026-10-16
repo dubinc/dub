@@ -1,4 +1,5 @@
 import {
+  FraudAlertSource,
   FraudAlertStatus,
   PartnerNetworkStatus,
   ProgramEnrollmentStatus,
@@ -8,6 +9,7 @@ import { getPaginationQuerySchema, planSchema } from "./misc";
 import { partnerProfileChangeHistoryLogSchema } from "./partner-profile";
 import {
   EnrolledPartnerSchemaExtended,
+  MAX_FRAUD_REASON_LENGTH,
   partnerPlatformSchema,
   PartnerSchema,
 } from "./partners";
@@ -15,25 +17,42 @@ import { ProgramSchema } from "./programs";
 import { UserSchema } from "./users";
 import { centsSchema, parseDateSchema } from "./utils";
 
+const adminCommissionsTimeseriesSchema = z.array(
+  z.object({
+    start: parseDateSchema,
+    commissions: z.number(),
+  }),
+);
+
 export const adminCommissionsDataSchema = z.object({
-  programs: z.array(
-    z.object({
-      id: z.string(),
-      slug: z.string(),
-      name: z.string(),
-      url: z.string(),
-      logo: z.string(),
-      addedToMarketplaceAt: z.date().nullable(),
-      commissions: z.number(),
-      fees: z.number(),
-    }),
-  ),
-  timeseries: z.array(
-    z.object({
-      start: parseDateSchema,
-      commissions: z.number(),
-    }),
-  ),
+  programs: z
+    .array(
+      z.object({
+        id: z.string(),
+        slug: z.string(),
+        name: z.string(),
+        url: z.string(),
+        logo: z.string(),
+        addedToMarketplaceAt: z.date().nullable(),
+        commissions: z.number(),
+        fees: z.number(),
+      }),
+    )
+    .optional(),
+  partners: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        email: z.string().nullable(),
+        image: z.string().nullable(),
+        country: z.string().nullable(),
+        commissions: z.number(),
+        fees: z.number(),
+      }),
+    )
+    .optional(),
+  timeseries: adminCommissionsTimeseriesSchema,
 });
 
 export const adminNetworkPartnerSchema = EnrolledPartnerSchemaExtended.pick({
@@ -120,10 +139,16 @@ export const adminNetworkPartnerQuerySchema = z
   })
   .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
+export const adminFlagFraudSchema = z.object({
+  reason: z.string().trim().min(1).max(MAX_FRAUD_REASON_LENGTH),
+  reviewNote: z.string().trim().max(MAX_FRAUD_REASON_LENGTH).optional(),
+});
+
 export const adminFraudAlertSchema = z.object({
   id: z.string(),
   reason: z.string(),
   status: z.enum(FraudAlertStatus),
+  source: z.enum(FraudAlertSource),
   reviewedAt: z.date().nullable(),
   reviewNote: z.string().nullable(),
   createdAt: z.date(),

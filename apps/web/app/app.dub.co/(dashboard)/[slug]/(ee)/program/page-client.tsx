@@ -168,13 +168,13 @@ export default function ProgramOverviewPageClient() {
           totalEventsLoading,
         }}
       >
-        <div className="@4xl:grid-cols-[minmax(0,1fr)_400px] grid grid-cols-1 gap-6 rounded-2xl bg-neutral-100 p-4">
+        <div className="@4xl:grid-cols-[minmax(0,1fr)_400px] grid grid-cols-1 gap-3 rounded-2xl bg-neutral-100 p-3">
           {/* Chart */}
-          <ProgramOverviewCard className="@4xl:h-full h-96 p-6">
+          <ProgramOverviewCard className="@4xl:h-full h-96 p-5">
             <OverviewChart />
           </ProgramOverviewCard>
 
-          <div className="@4xl:grid-cols-1 @2xl:grid-cols-2 grid grid-cols-1 gap-6">
+          <div className="@4xl:grid-cols-1 @2xl:grid-cols-2 grid grid-cols-1 gap-3">
             {/* Tasks */}
             <OverviewTasks />
 
