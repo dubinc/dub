@@ -38,6 +38,7 @@ const context = {
 };
 
 const programBanAlert = {
+  partnerId: PARTNER_ID,
   programId: BANNING_PROGRAM_ID,
   source: "program",
   reviewedAt: REVIEWED_AT,
@@ -50,6 +51,7 @@ const programBanAlert = {
 };
 
 const adminBanAlert = {
+  partnerId: PARTNER_ID,
   programId: BANNING_PROGRAM_ID,
   source: "admin",
   reviewedAt: REVIEWED_AT,
@@ -80,7 +82,7 @@ describe("detectAndRecordFraudApplication", () => {
     expect(mocks.fraudAlertFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          partnerId: PARTNER_ID,
+          partnerId: { in: [PARTNER_ID] },
           status: "confirmed",
           // Lifted program bans must not flag new applications
           OR: [

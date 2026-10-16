@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { CreateFraudEventInput, PartnerProps, ProgramProps } from "@/lib/types";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { FraudRuleType, ProgramEnrollmentStatus } from "@prisma/client";
+import { FraudRuleType } from "@prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
+import { getNetworkLevelBanEvents } from "./detect-network-level-bans";
 import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
-import { getNetworkBanDetails } from "./report-network-level-ban";
 
 interface FraudApplicationContext {
   program: Pick<ProgramProps, "id">;
@@ -40,7 +40,10 @@ export async function detectAndRecordFraudApplication({
       fraudRules,
       ruleType: FraudRuleType.partnerCrossProgramBan,
     })
-      ? detectNetworkLevelBans(context)
+      ? getNetworkLevelBanEvents({
+          programId: context.program.id,
+          partnerIds: [context.partner.id],
+        })
       : [],
   ]);
 
@@ -115,73 +118,6 @@ async function detectDuplicateAccounts({
         },
       });
     }
-  }
-
-  return fraudEvents;
-}
-
-// Check if the partner has a confirmed network-level ban from another program.
-// reportNetworkLevelBan only alerts programs the partner was enrolled in at ban time,
-// so a program the partner applies to later must be alerted here.
-async function detectNetworkLevelBans({
-  program,
-  partner,
-}: FraudApplicationContext) {
-  const fraudEvents: CreateFraudEventInput[] = [];
-
-  const confirmedFraudAlerts = await prisma.fraudAlert.findMany({
-    where: {
-      partnerId: partner.id,
-      status: "confirmed",
-      // An unban removes the cross-program ban events from that program,
-      // so skip program bans that were lifted
-      OR: [
-        { source: "admin" },
-        {
-          programEnrollment: {
-            status: ProgramEnrollmentStatus.banned,
-          },
-        },
-      ],
-    },
-    select: {
-      programId: true,
-      source: true,
-      reviewedAt: true,
-      createdAt: true,
-      programEnrollment: {
-        select: {
-          bannedReason: true,
-          bannedAt: true,
-          application: {
-            select: {
-              reviewedAt: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  for (const fraudAlert of confirmedFraudAlerts) {
-    const { sourceProgramId, bannedReason, bannedAt } =
-      getNetworkBanDetails(fraudAlert);
-
-    // Skip bans issued by the applying program. Admin bans come from the network program.
-    if (sourceProgramId === program.id) {
-      continue;
-    }
-
-    fraudEvents.push({
-      programId: program.id,
-      partnerId: partner.id,
-      type: FraudRuleType.partnerCrossProgramBan,
-      sourceProgramId,
-      metadata: {
-        bannedReason,
-        bannedAt,
-      },
-    });
   }
 
   return fraudEvents;
