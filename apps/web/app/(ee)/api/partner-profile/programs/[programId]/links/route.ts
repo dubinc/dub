@@ -5,8 +5,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { zeroSaleAmount } from "@/lib/partners/hide-partner-revenue";
-import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
+import { hidePartnerSaleAmount } from "@/lib/partners/hide-partner-revenue";
 import { prisma } from "@/lib/prisma";
 import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-rewards";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
@@ -64,7 +63,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   );
 
   const enrollmentRewards = [clickReward, leadReward, saleReward, customReward];
-  const hidePartnerRevenue = isPartnerRevenueHidden(group);
 
   const result = links.map((link) => {
     const discountCode = linksByDiscountCode.get(link.id);
@@ -74,14 +72,15 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       enrollmentDiscount: discount,
     });
 
-    const partnerLink = {
-      ...link,
-      ...resolvedRewards,
-      discountCode: discountCode?.code,
-      discountCodeDisabledAt: discountCode?.disabledAt ?? null,
-    };
-
-    return hidePartnerRevenue ? zeroSaleAmount(partnerLink) : partnerLink;
+    return hidePartnerSaleAmount(
+      {
+        ...link,
+        ...resolvedRewards,
+        discountCode: discountCode?.code,
+        discountCodeDisabledAt: discountCode?.disabledAt ?? null,
+      },
+      group,
+    );
   });
 
   return NextResponse.json(z.array(PartnerProfileLinkSchema).parse(result));
@@ -191,11 +190,9 @@ export const POST = withPartnerProfile(
 
     const partnerLink = await createLink(linkWithUtm);
 
-    const hidePartnerRevenue = isPartnerRevenueHidden(group);
-
     return NextResponse.json(
       PartnerProfileLinkSchema.parse(
-        hidePartnerRevenue ? zeroSaleAmount(partnerLink) : partnerLink,
+        hidePartnerSaleAmount(partnerLink, group),
       ),
       {
         status: 201,

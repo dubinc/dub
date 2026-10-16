@@ -41,6 +41,7 @@ export const PartnerEarningsSchema = CommissionSchema.omit({
   invoiceId: true,
   metadata: true,
 }).extend({
+  amount: z.number().nullable(),
   customer: z
     .object({
       id: z.string(),
@@ -195,6 +196,7 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   saleAmount: true,
   comments: true,
 }).extend({
+  saleAmount: centsSchema.nullable(),
   createdAt: z.string().or(z.date()),
   partnerGroupDefaultLinkId: z.string().nullish(),
   clickReward: RewardSchema.nullable().default(null),
@@ -317,7 +319,7 @@ export const PartnerBountySchema = BountySchema.omit({
     totalLeads: z.number(),
     totalConversions: z.number(),
     totalSales: z.number(),
-    totalSaleAmount: centsSchema,
+    totalSaleAmount: centsSchema.nullable(),
     totalCommissions: centsSchema,
   }),
 });

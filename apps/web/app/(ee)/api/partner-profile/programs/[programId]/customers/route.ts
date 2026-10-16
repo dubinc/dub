@@ -9,6 +9,7 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
+import { nullSaleAmount } from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
 import {
@@ -132,8 +133,7 @@ export const GET = withPartnerProfile(
       return PartnerProfileCustomerSchema.extend({
         ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
       }).parse({
-        ...transformed,
-        ...(ltvExcluded && { saleAmount: 0 }),
+        ...(ltvExcluded ? nullSaleAmount(transformed) : transformed),
         activity: {
           ...customer,
           events: [],

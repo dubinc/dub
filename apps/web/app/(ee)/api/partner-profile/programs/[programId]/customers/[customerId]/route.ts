@@ -10,7 +10,10 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
-import { zeroSaleAmount } from "@/lib/partners/hide-partner-revenue";
+import {
+  nullPartnerEventRevenue,
+  nullSaleAmount,
+} from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma } from "@/lib/prisma";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
@@ -138,26 +141,11 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     PartnerProfileCustomerSchema.extend({
       ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
     }).parse({
-      ...transformed,
-      ...(ltvExcluded && { saleAmount: 0 }),
+      ...(ltvExcluded ? nullSaleAmount(transformed) : transformed),
       activity: {
         ...customer,
         events: hidePartnerRevenue
-          ? events.map((event) => {
-              if (event.event === "sale") {
-                return {
-                  ...event,
-                  saleAmount: 0,
-                  sale: { ...event.sale, amount: 0 },
-                  link: event.link ? zeroSaleAmount(event.link) : event.link,
-                };
-              }
-
-              return {
-                ...event,
-                link: event.link ? zeroSaleAmount(event.link) : event.link,
-              };
-            })
+          ? events.map(nullPartnerEventRevenue)
           : events,
         link,
       },

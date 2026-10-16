@@ -10,7 +10,7 @@ import {
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
-import { zeroSaleAmount } from "@/lib/partners/hide-partner-revenue";
+import { nullPartnerEventRevenue } from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import {
   PartnerProfileLinkSchema,
@@ -167,18 +167,7 @@ export const GET = withPartnerProfile(
         }),
       };
 
-      if (!hidePartnerRevenue) {
-        return mapped;
-      }
-
-      return {
-        ...mapped,
-        ...("saleAmount" in mapped ? { saleAmount: 0 } : {}),
-        ...("sale" in mapped && mapped.sale
-          ? { sale: { ...mapped.sale, amount: 0 } }
-          : {}),
-        link: mapped.link ? zeroSaleAmount(mapped.link) : mapped.link,
-      };
+      return hidePartnerRevenue ? nullPartnerEventRevenue(mapped) : mapped;
     });
 
     return NextResponse.json(response);
