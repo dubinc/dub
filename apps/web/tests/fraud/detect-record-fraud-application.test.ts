@@ -83,7 +83,6 @@ describe("detectAndRecordFraudApplication", () => {
       expect.objectContaining({
         where: expect.objectContaining({
           partnerId: PARTNER_ID,
-          programId: { not: PROGRAM_ID },
           status: "confirmed",
           // Lifted program bans must not flag new applications
           OR: [
@@ -126,6 +125,30 @@ describe("detectAndRecordFraudApplication", () => {
         },
       }),
     ]);
+  });
+
+  it("flags an admin ban stored on the applying program", async () => {
+    mocks.fraudAlertFindMany.mockResolvedValue([
+      { ...adminBanAlert, programId: PROGRAM_ID },
+    ]);
+
+    await detectAndRecordFraudApplication({ context });
+
+    expect(createdEvents()).toEqual([
+      expect.objectContaining({
+        sourceProgramId: NETWORK_PROGRAM_ID,
+      }),
+    ]);
+  });
+
+  it("does not flag a program ban from the applying program", async () => {
+    mocks.fraudAlertFindMany.mockResolvedValue([
+      { ...programBanAlert, programId: PROGRAM_ID },
+    ]);
+
+    await detectAndRecordFraudApplication({ context });
+
+    expect(createdEvents()).toEqual([]);
   });
 
   it("does not flag an applicant without a confirmed ban", async () => {

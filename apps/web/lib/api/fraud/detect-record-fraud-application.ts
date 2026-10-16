@@ -109,9 +109,6 @@ export async function detectAndRecordFraudApplication({
     const confirmedFraudAlerts = await prisma.fraudAlert.findMany({
       where: {
         partnerId: partner.id,
-        programId: {
-          not: program.id,
-        },
         status: "confirmed",
         // An unban removes the cross-program ban events from that program,
         // so skip program bans that were lifted
@@ -147,6 +144,7 @@ export async function detectAndRecordFraudApplication({
       const { sourceProgramId, bannedReason, bannedAt } =
         getNetworkBanDetails(fraudAlert);
 
+      // Skip bans issued by the applying program. Admin bans come from the network program.
       if (sourceProgramId === program.id) {
         continue;
       }
