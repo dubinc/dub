@@ -3,8 +3,8 @@ import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-cust
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { generateRandomName } from "@/lib/names";
 import {
-  parsePartnerProfileEventLink,
   partnerProfileEventsQuerySchema,
+  PartnerProfileLinkSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { parseFilterValue } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -47,9 +47,8 @@ export const GET = withReferralsEmbedToken(
       return {
         ...eventRest,
         click: clickRest,
-        link: event?.link
-          ? parsePartnerProfileEventLink(event.link, links)
-          : null,
+        // the embed token comes from the workspace, so no private partner link details
+        link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
         ...(customer && {
           customer: z
             .object({

@@ -91,9 +91,6 @@ export const withReferralsEmbedToken = (
             },
             include: {
               links: {
-                include: {
-                  partnerLinkDetails: true,
-                },
                 orderBy: [
                   {
                     saleAmount: "desc",
