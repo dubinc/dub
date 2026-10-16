@@ -60,12 +60,32 @@ export const sendPartnerPostback = async ({
     programId &&
     (event === "sale.created" || event === "commission.created")
   ) {
-    enrichedData = await applyPostbackRevenueVisibility({
-      partnerId,
-      programId,
-      event,
-      data: enrichedData,
-    });
+    try {
+      const visibleData = await applyPostbackRevenueVisibility({
+        partnerId,
+        programId,
+        event,
+        data: enrichedData,
+      });
+
+      if (!visibleData) {
+        console.error(
+          "[sendPartnerPostback] No program enrollment found for revenue visibility",
+          { partnerId, programId, event },
+        );
+        return;
+      }
+
+      enrichedData = visibleData;
+    } catch (error) {
+      console.error("[sendPartnerPostback] Error applying revenue visibility", {
+        partnerId,
+        programId,
+        event,
+        error,
+      });
+      return;
+    }
   }
 
   const adapters = postbacks.map((postback) => {
@@ -102,7 +122,7 @@ async function applyPostbackRevenueVisibility({
   programId: string;
   event: "sale.created" | "commission.created";
   data: Record<string, unknown>;
-}): Promise<Record<string, unknown>> {
+}): Promise<Record<string, unknown> | null> {
   const enrollment = await prisma.programEnrollment.findUnique({
     where: {
       partnerId_programId: {
@@ -119,7 +139,11 @@ async function applyPostbackRevenueVisibility({
     },
   });
 
-  if (!isPartnerRevenueHidden(enrollment?.partnerGroup)) {
+  if (!enrollment) {
+    return null;
+  }
+
+  if (!isPartnerRevenueHidden(enrollment.partnerGroup)) {
     return data;
   }
 

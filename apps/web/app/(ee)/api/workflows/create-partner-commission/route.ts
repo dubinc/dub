@@ -589,6 +589,7 @@ async function stepRunSideEffects(
         groups: {
           select: {
             holdingPeriodDays: true,
+            revenueDataSharingDisabledAt: true,
           },
           where: {
             slug: DEFAULT_PARTNER_GROUP.slug,
