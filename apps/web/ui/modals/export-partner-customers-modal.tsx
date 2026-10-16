@@ -49,9 +49,9 @@ function ExportPartnerCustomersModal({
   const columnCheckboxId = useId();
 
   const ltvExcluded =
-    CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
-      programEnrollment?.programId ?? "",
-    ) || isPartnerRevenueHidden(programEnrollment?.group);
+    !programEnrollment ||
+    CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(programEnrollment.programId) ||
+    isPartnerRevenueHidden(programEnrollment.group);
 
   const sharingEnabled = Boolean(
     programEnrollment?.customerDataSharingEnabledAt,

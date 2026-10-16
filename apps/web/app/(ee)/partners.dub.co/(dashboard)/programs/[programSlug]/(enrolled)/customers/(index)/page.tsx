@@ -68,9 +68,9 @@ export default function PartnerProgramCustomersPage() {
   } = usePartnerCustomerFilters();
 
   const ltvExcluded =
-    CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
-      programEnrollment?.programId ?? "",
-    ) || isPartnerRevenueHidden(programEnrollment?.group);
+    !programEnrollment ||
+    CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(programEnrollment.programId) ||
+    isPartnerRevenueHidden(programEnrollment.group);
 
   const customersColumns = {
     all: [

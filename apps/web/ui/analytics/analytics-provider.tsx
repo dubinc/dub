@@ -128,7 +128,8 @@ export default function AnalyticsProvider({
   });
 
   const hidePartnerRevenue =
-    partnerPage && isPartnerRevenueHidden(programEnrollment?.group);
+    partnerPage &&
+    (!programEnrollment || isPartnerRevenueHidden(programEnrollment.group));
 
   const domainSlug = searchParams?.get("domain");
 

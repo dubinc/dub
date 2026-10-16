@@ -108,7 +108,7 @@ export function BountyPerformanceSection({
   // Hide the whole section when the bounty is revenue-based and revenue is hidden
   if (
     attribute === "totalSaleAmount" &&
-    isPartnerRevenueHidden(programEnrollment?.group)
+    (!programEnrollment || isPartnerRevenueHidden(programEnrollment.group))
   ) {
     return null;
   }

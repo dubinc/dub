@@ -237,7 +237,8 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
 
 const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
-  const hidePartnerRevenue = isPartnerRevenueHidden(programEnrollment?.group);
+  const hidePartnerRevenue =
+    !programEnrollment || isPartnerRevenueHidden(programEnrollment.group);
   const As = showDetailedAnalytics ? Link : "div";
   return (
     <As
@@ -308,7 +309,8 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
   const { getQueryString } = useRouterStuff();
   const { start, end, interval } = usePartnerLinksContext();
   const { programEnrollment } = useProgramEnrollment();
-  const hidePartnerRevenue = isPartnerRevenueHidden(programEnrollment?.group);
+  const hidePartnerRevenue =
+    !programEnrollment || isPartnerRevenueHidden(programEnrollment.group);
   const charts = getCharts(hidePartnerRevenue);
 
   const ref = useRef<HTMLDivElement>(null);
