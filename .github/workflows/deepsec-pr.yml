@@ -1,11 +1,7 @@
 name: DeepSec PR
 
 on:
-  pull_request:
-    paths:
-      - "apps/web/**"
-      - ".deepsec/**"
-      - ".github/workflows/deepsec-pr.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,7 +12,7 @@ concurrency:
 
 jobs:
   analyze:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -100,7 +96,7 @@ jobs:
 
   comment:
     needs: analyze
-    if: always() && needs.analyze.result == 'failure'
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

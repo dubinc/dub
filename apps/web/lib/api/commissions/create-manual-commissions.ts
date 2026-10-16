@@ -1,6 +1,7 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { Session } from "@/lib/auth";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { prisma } from "@/lib/prisma";
@@ -41,7 +42,7 @@ type CreateCommissionsArgs = z.infer<
 > & {
   workspace: Pick<
     Project,
-    "id" | "slug" | "stripeConnectId" | "defaultProgramId"
+    "id" | "slug" | "stripeConnectId" | "stripeConnectMode" | "defaultProgramId"
   >;
   programId: string;
   user: Session["user"];
@@ -54,7 +55,10 @@ type ResolveLinkAndCustomerArgs = CreateCommissionsArgs & {
 };
 
 type RecordEventsArgs = CreateCommissionsArgs & {
-  workspace: Pick<Project, "id" | "stripeConnectId" | "defaultProgramId">;
+  workspace: Pick<
+    Project,
+    "id" | "stripeConnectId" | "stripeConnectMode" | "defaultProgramId"
+  >;
   partner: Pick<Partner, "id" | "email">;
   targetLink: Link;
   targetCustomer: Customer;
@@ -486,6 +490,7 @@ async function createOrUpdateCustomer({
             id,
             name,
             email,
+            normalizedEmail: getNormalizedEmail(email),
             avatar,
             externalId,
             stripeCustomerId,
@@ -508,6 +513,9 @@ async function createOrUpdateCustomer({
         data: {
           name,
           email,
+          ...(email !== undefined && {
+            normalizedEmail: getNormalizedEmail(email),
+          }),
           avatar,
           country,
           stripeCustomerId,

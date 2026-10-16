@@ -1,11 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@/lib/prisma";
 import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import { capitalize, STRIPE_INTEGRATION_ID } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
+import { StripeConnectMode } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -17,7 +16,7 @@ const CORS_HEADERS = new Headers({
 
 const updateStripeIntegrationSchema = z.object({
   stripeAccountId: z.string().nullable(), // null on disconnect
-  stripeMode: stripeIntegrationSettingsSchema.shape.stripeMode,
+  stripeMode: z.enum(StripeConnectMode).optional().default("live"),
 });
 
 // PATCH /api/stripe/integration - update a workspace with a stripe connect account id
@@ -46,7 +45,6 @@ export const PATCH = withWorkspace(
       select: {
         id: true,
         integrationId: true,
-        settings: true,
       },
     });
 
@@ -58,45 +56,32 @@ export const PATCH = withWorkspace(
     }
 
     try {
-      const response = await prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          stripeConnectId: stripeAccountId,
-          // stripeMode always defaults to "live", so clear it explicitly on disconnect
-          stripeConnectMode: stripeAccountId ? stripeMode : null,
-        },
-        select: {
-          stripeConnectId: true,
-        },
-      });
+      const response = await prisma.$transaction(async (tx) => {
+        const project = await tx.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            stripeConnectId: stripeAccountId,
+            // stripeMode always defaults to "live", so clear it explicitly on disconnect
+            stripeConnectMode: stripeAccountId ? stripeMode : null,
+          },
+          select: {
+            stripeConnectId: true,
+          },
+        });
 
-      waitUntil(
-        (async () => {
-          // Uninstall the integration if the stripe account id is null
-          if (installation && stripeAccountId === null) {
-            await prisma.installedIntegration.delete({
-              where: {
-                id: installation.id,
-              },
-            });
-            // else, update the Stripe mode for the installation
-          } else {
-            await prisma.installedIntegration.update({
-              where: {
-                id: installation.id,
-              },
-              data: {
-                settings: {
-                  ...((installation?.settings as any) || {}),
-                  stripeMode,
-                },
-              },
-            });
-          }
-        })(),
-      );
+        // Uninstall the integration if the stripe account id is null
+        if (stripeAccountId === null) {
+          await tx.installedIntegration.delete({
+            where: {
+              id: installation.id,
+            },
+          });
+        }
+
+        return project;
+      });
 
       return NextResponse.json(response, {
         headers: CORS_HEADERS,

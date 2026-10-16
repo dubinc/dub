@@ -3,6 +3,7 @@ import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer"
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { generateRandomName } from "@/lib/names";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
@@ -72,7 +73,10 @@ export async function syncCustomer({
         externalId: dubCustomerExternalId,
         // Only update name/email when Stripe provides non-empty values
         ...(stripeCustomer.name && { name: stripeCustomer.name }),
-        ...(stripeCustomer.email && { email: stripeCustomer.email }),
+        ...(stripeCustomer.email && {
+          email: stripeCustomer.email,
+          normalizedEmail: getNormalizedEmail(stripeCustomer.email),
+        }),
       },
     });
   }
@@ -137,6 +141,7 @@ export async function syncCustomer({
       id: createId({ prefix: "cus_" }),
       name: stripeCustomer.name || stripeCustomer.email || generateRandomName(),
       email: stripeCustomer.email,
+      normalizedEmail: getNormalizedEmail(stripeCustomer.email),
       stripeCustomerId: stripeCustomer.id,
       projectConnectId: stripeAccountId,
       externalId: dubCustomerExternalId,
@@ -162,7 +167,10 @@ export async function syncCustomer({
         externalId: dubCustomerExternalId,
         // Only update name/email when Stripe provides non-empty values
         ...(stripeCustomer.name && { name: stripeCustomer.name }),
-        ...(stripeCustomer.email && { email: stripeCustomer.email }),
+        ...(stripeCustomer.email && {
+          email: stripeCustomer.email,
+          normalizedEmail: getNormalizedEmail(stripeCustomer.email),
+        }),
       },
     });
   }

@@ -59,6 +59,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
             id: true,
             webhookEnabled: true,
             stripeConnectId: true,
+            stripeConnectMode: true,
             shopifyStoreId: true,
             environment: true,
           },

@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { prisma } from "@/lib/prisma";
 import { nanoid, NETWORK_PROGRAM_ID, NETWORK_WORKSPACE_ID } from "@dub/utils";
 import { Partner } from "@prisma/client";
@@ -108,6 +109,7 @@ export async function markApplicationEventSubmittedNetwork(
         id: createId({ prefix: "cus_" }),
         name: partner.name,
         email: partner.email,
+        normalizedEmail: getNormalizedEmail(partner.email),
         avatar: partner.image,
         externalId: partner.id,
         country: partner.country,
