@@ -1,4 +1,4 @@
-import { nullPostbackRevenue } from "@/lib/partners/hide-partner-revenue";
+import { nullifyPostbackRevenue } from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { POSTBACK_EVENT_ID_PREFIX } from "@/lib/postback/constants";
 import { prisma } from "@/lib/prisma";
@@ -123,5 +123,5 @@ async function applyPostbackRevenueVisibility({
     return data;
   }
 
-  return nullPostbackRevenue(event, data);
+  return nullifyPostbackRevenue(event, data);
 }

@@ -2,7 +2,7 @@ import { getEvents } from "@/lib/analytics/get-events";
 import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { generateRandomName } from "@/lib/names";
-import { nullPartnerEventRevenue } from "@/lib/partners/hide-partner-revenue";
+import { nullifyPartnerEventRevenue } from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import {
   partnerProfileEventsQuerySchema,
@@ -72,7 +72,7 @@ export const GET = withReferralsEmbedToken(
         }),
       };
 
-      return hidePartnerRevenue ? nullPartnerEventRevenue(mapped) : mapped;
+      return hidePartnerRevenue ? nullifyPartnerEventRevenue(mapped) : mapped;
     });
 
     return NextResponse.json(response);

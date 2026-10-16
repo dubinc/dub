@@ -10,7 +10,7 @@ import {
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
-import { nullPartnerEventRevenue } from "@/lib/partners/hide-partner-revenue";
+import { nullifyPartnerEventRevenue } from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import {
   PartnerProfileLinkSchema,
@@ -167,7 +167,7 @@ export const GET = withPartnerProfile(
         }),
       };
 
-      return hidePartnerRevenue ? nullPartnerEventRevenue(mapped) : mapped;
+      return hidePartnerRevenue ? nullifyPartnerEventRevenue(mapped) : mapped;
     });
 
     return NextResponse.json(response);

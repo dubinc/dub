@@ -1,6 +1,6 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
-import { nullAnalyticsSaleAmounts } from "@/lib/partners/hide-partner-revenue";
+import { nullifyAnalyticsSaleAmounts } from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { parseFilterValue } from "@dub/utils";
@@ -33,7 +33,7 @@ export const GET = withReferralsEmbedToken(
 
     return NextResponse.json(
       isPartnerRevenueHidden(group)
-        ? nullAnalyticsSaleAmounts(analytics)
+        ? nullifyAnalyticsSaleAmounts(analytics)
         : analytics,
     );
   },

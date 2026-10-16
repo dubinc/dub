@@ -26,7 +26,7 @@ export function hidePartnerTotalSaleAmount<T extends object>(
  * (`saleAmount`, nested `sale.amount`, and `link.saleAmount`).
  * Caller should only invoke when revenue is hidden.
  */
-export function nullPartnerEventRevenue<T extends object>(event: T): T {
+export function nullifyPartnerEventRevenue<T extends object>(event: T): T {
   const next = { ...event } as T & {
     saleAmount?: unknown;
     sale?: Record<string, unknown> | null;
@@ -49,7 +49,7 @@ export function nullPartnerEventRevenue<T extends object>(event: T): T {
 }
 
 /** Null `saleAmount` on analytics responses that include it. */
-export function nullAnalyticsSaleAmounts<T>(data: T): T {
+export function nullifyAnalyticsSaleAmounts<T>(data: T): T {
   if (Array.isArray(data)) {
     return data.map((row) =>
       row && typeof row === "object" && "saleAmount" in row
@@ -70,7 +70,7 @@ export function nullAnalyticsSaleAmounts<T>(data: T): T {
  * - sale.created: nested `sale.amount`
  * - commission.created: top-level `amount`
  */
-export function nullPostbackRevenue(
+export function nullifyPostbackRevenue(
   event: "sale.created" | "commission.created",
   data: Record<string, unknown>,
 ): Record<string, unknown> {

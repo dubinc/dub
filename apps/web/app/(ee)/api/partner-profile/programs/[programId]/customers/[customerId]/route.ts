@@ -10,7 +10,7 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
-import { nullPartnerEventRevenue } from "@/lib/partners/hide-partner-revenue";
+import { nullifyPartnerEventRevenue } from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma } from "@/lib/prisma";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
@@ -143,7 +143,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       activity: {
         ...customer,
         events: hidePartnerRevenue
-          ? events.map(nullPartnerEventRevenue)
+          ? events.map(nullifyPartnerEventRevenue)
           : events,
         link,
       },

@@ -8,7 +8,7 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
-import { nullAnalyticsSaleAmounts } from "@/lib/partners/hide-partner-revenue";
+import { nullifyAnalyticsSaleAmounts } from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { parseFilterValue, toCentsNumber } from "@dub/utils";
@@ -118,7 +118,7 @@ export const GET = withPartnerProfile(
 
     return NextResponse.json(
       isPartnerRevenueHidden(partnerGroup)
-        ? nullAnalyticsSaleAmounts(response)
+        ? nullifyAnalyticsSaleAmounts(response)
         : response,
     );
   },

@@ -15,7 +15,7 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
-import { nullAnalyticsSaleAmounts } from "@/lib/partners/hide-partner-revenue";
+import { nullifyAnalyticsSaleAmounts } from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
@@ -141,7 +141,7 @@ export const GET = withPartnerProfile(
         const formatted = formatPartnerAnalyticsForExport(rows);
 
         return isPartnerRevenueHidden(partnerGroup)
-          ? nullAnalyticsSaleAmounts(formatted)
+          ? nullifyAnalyticsSaleAmounts(formatted)
           : formatted;
       },
       getAnalyticsParams: () =>
