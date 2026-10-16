@@ -956,56 +956,35 @@ async function moveSourceFraudGroups({
   targetPartnerId: string;
   programId?: string;
 }) {
-  const sourceFraudGroups = await tx.fraudEventGroup.findMany({
+  await tx.fraudEventGroup.updateMany({
     where: {
       partnerId: sourcePartnerId,
       status: FraudEventStatus.pending,
       ...(programId && { programId }),
-    },
-    select: {
-      id: true,
-      type: true,
-    },
-  });
-
-  if (sourceFraudGroups.length === 0) {
-    return;
-  }
-
-  await tx.fraudEventGroup.updateMany({
-    where: {
-      id: {
-        in: pluck(sourceFraudGroups, "id"),
-      },
-      status: FraudEventStatus.pending,
     },
     data: {
       partnerId: targetPartnerId,
     },
   });
 
-  // A duplicate-account event's partnerId names the duplicate, so keep the
-  // source ones. cleanupFraudEvents deletes them.
-  const otherGroupIds = pluck(
-    sourceFraudGroups.filter(
-      (group) => group.type !== FraudRuleType.partnerDuplicateAccount,
-    ),
-    "id",
-  );
-
-  if (otherGroupIds.length > 0) {
-    await tx.fraudEvent.updateMany({
-      where: {
-        fraudEventGroupId: {
-          in: otherGroupIds,
+  // Match events by partner, not by the groups moved above. A transfer moves
+  // the enrollment's groups to the target but leaves their events on the
+  // source. A duplicate-account event's partnerId names the duplicate, so
+  // keep those. cleanupFraudEvents deletes them.
+  await tx.fraudEvent.updateMany({
+    where: {
+      partnerId: sourcePartnerId,
+      ...(programId && { programId }),
+      fraudEventGroup: {
+        type: {
+          not: FraudRuleType.partnerDuplicateAccount,
         },
-        partnerId: sourcePartnerId,
       },
-      data: {
-        partnerId: targetPartnerId,
-      },
-    });
-  }
+    },
+    data: {
+      partnerId: targetPartnerId,
+    },
+  });
 }
 
 async function cleanupFraudEvents({
