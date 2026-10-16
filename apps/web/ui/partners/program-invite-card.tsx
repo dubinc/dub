@@ -1,4 +1,4 @@
-import { ProgramEnrollmentProps } from "@/lib/types";
+import { PartnerProfileProgramEnrollmentProps } from "@/lib/types";
 import { ProgramInviteActions } from "@/ui/partners/program-invite-actions";
 import { ProgramLogo } from "@/ui/partners/program-logo";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
@@ -8,7 +8,7 @@ import { formatDateSmart } from "@dub/utils";
 export function ProgramInviteCard({
   programEnrollment,
 }: {
-  programEnrollment: ProgramEnrollmentProps;
+  programEnrollment: PartnerProfileProgramEnrollmentProps;
 }) {
   const { program } = programEnrollment;
 

@@ -4,8 +4,10 @@ import {
   CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS,
   PARTNER_CUSTOMERS_MAX_PAGE_SIZE,
 } from "@/lib/constants/partner-profile";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import usePartnerCustomers from "@/lib/swr/use-partner-customers";
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { PartnerCustomersMenuPopover } from "@/ui/customers/partner-customers-menu-popover";
@@ -44,6 +46,7 @@ export default function PartnerProgramCustomersPage() {
 
   const { programSlug } = useParams<{ programSlug: string }>();
   const { programEnrollment } = useProgramEnrollment();
+  const { displayProperties } = usePartnerLinksDisplay();
 
   const { data: customersCount, error: countError } =
     usePartnerCustomersCount();
@@ -66,17 +69,18 @@ export default function PartnerProgramCustomersPage() {
     setSelectedFilter,
   } = usePartnerCustomerFilters();
 
+  const ltvExcluded =
+    !programEnrollment ||
+    CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(programEnrollment.programId) ||
+    isPartnerRevenueHidden(programEnrollment.group);
+
   const customersColumns = {
     all: [
       "customer",
       "country",
       "link",
       "createdAt",
-      ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
-        programEnrollment?.programId ?? "",
-      )
-        ? []
-        : ["saleAmount"]),
+      ...(ltvExcluded ? [] : ["saleAmount"]),
       "firstSaleAt",
       "subscriptionCanceledAt",
     ],
@@ -85,11 +89,7 @@ export default function PartnerProgramCustomersPage() {
       "country",
       "link",
       "createdAt",
-      ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
-        programEnrollment?.programId ?? "",
-      )
-        ? []
-        : ["saleAmount"]),
+      ...(ltvExcluded ? [] : ["saleAmount"]),
       "firstSaleAt",
       "subscriptionCanceledAt",
     ],
@@ -133,29 +133,31 @@ export default function PartnerProgramCustomersPage() {
           id: "link",
           header: "Link",
           accessorKey: "activity.link",
-          cell: ({ row }) =>
-            row.original.activity.link ? (
+          cell: ({ row }) => {
+            const link = row.original.activity.link;
+            if (!link) return "-";
+
+            const label =
+              displayProperties.includes("title") && link.partnerLinkTitle
+                ? link.partnerLinkTitle
+                : getPrettyUrl(link.shortLink);
+
+            return (
               <a
-                href={`/programs/${programSlug}/analytics?linkId=${row.original.activity.link.id}`}
+                href={`/programs/${programSlug}/analytics?linkId=${link.id}`}
                 target="_blank"
                 className="flex cursor-alias items-center gap-3 decoration-dotted underline-offset-2 hover:underline"
               >
                 <LinkLogo
-                  apexDomain={getApexDomain(
-                    row.original.activity.link.shortLink,
-                  )}
+                  apexDomain={getApexDomain(link.shortLink)}
                   className="size-4 shrink-0 sm:size-4"
                 />
-                <span
-                  className="truncate"
-                  title={row.original.activity.link.shortLink}
-                >
-                  {getPrettyUrl(row.original.activity.link.shortLink)}
+                <span className="truncate" title={label}>
+                  {label}
                 </span>
               </a>
-            ) : (
-              "-"
-            ),
+            );
+          },
           size: 250,
         },
         {
@@ -178,9 +180,7 @@ export default function PartnerProgramCustomersPage() {
             </TimestampTooltip>
           ),
         },
-        ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
-          programEnrollment?.programId ?? "",
-        )
+        ...(ltvExcluded
           ? []
           : [
               {
@@ -249,7 +249,7 @@ export default function PartnerProgramCustomersPage() {
           header: () => <EditColumnsButton table={table} />,
         },
       ].filter((c) => c.id === "menu" || customersColumns.all.includes(c.id)),
-    [programSlug],
+    [programSlug, ltvExcluded, displayProperties],
   );
 
   const { table, ...tableProps } = useTable({

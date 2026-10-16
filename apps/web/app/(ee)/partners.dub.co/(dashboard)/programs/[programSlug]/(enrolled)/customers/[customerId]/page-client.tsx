@@ -1,6 +1,7 @@
 "use client";
 
 import { CUSTOMER_PAGE_EVENTS_LIMIT } from "@/lib/constants/misc";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
 import {
   usePartnerProfileEarnings,
@@ -162,6 +163,7 @@ export function ProgramCustomerPageClient() {
 
 const EarningsTable = memo(({ customerId }: { customerId: string }) => {
   const { programSlug } = useParams();
+  const { programEnrollment } = useProgramEnrollment();
 
   const { data: earningsData, isLoading: isEarningsLoading } =
     usePartnerProfileEarnings({
@@ -190,6 +192,9 @@ const EarningsTable = memo(({ customerId }: { customerId: string }) => {
       }
       viewAllHref={`/programs/${programSlug}/earnings?interval=all&customerId=${customerId}`}
       isLoading={isEarningsLoading}
+      hideSaleAmount={
+        !programEnrollment || isPartnerRevenueHidden(programEnrollment.group)
+      }
     />
   );
 });

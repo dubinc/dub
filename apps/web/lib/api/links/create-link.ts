@@ -53,7 +53,25 @@ export async function createLink(link: CreateLinkOptions) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  const { tagId, tagIds, tagNames, webhookIds, linkReward, ...rest } = link;
+  const {
+    tagId,
+    tagIds,
+    tagNames,
+    webhookIds,
+    linkReward,
+    partnerLinkTitle,
+    partnerLinkComments,
+    ...rest
+  } = link;
+
+  const partnerLinkDetailsTitle =
+    typeof partnerLinkTitle === "string" && partnerLinkTitle.trim()
+      ? truncate(partnerLinkTitle.trim(), 120)
+      : null;
+  const partnerLinkDetailsComments =
+    typeof partnerLinkComments === "string" && partnerLinkComments.trim()
+      ? partnerLinkComments
+      : null;
 
   key = encodeKeyIfCaseSensitive({
     domain: link.domain,
@@ -138,6 +156,17 @@ export async function createLink(link: CreateLinkOptions) {
             },
           },
         }),
+
+        ...(partnerLinkDetailsTitle || partnerLinkDetailsComments
+          ? {
+              partnerLinkDetails: {
+                create: {
+                  title: partnerLinkDetailsTitle,
+                  comments: partnerLinkDetailsComments,
+                },
+              },
+            }
+          : {}),
 
         // Link level rewards
         ...(hasLinkLevelReward && {

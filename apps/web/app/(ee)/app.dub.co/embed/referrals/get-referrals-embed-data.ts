@@ -3,6 +3,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { getBountiesForPartner } from "@/lib/bounty/api/get-bounties-for-partner";
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import { hidePartnerTotalSaleAmount } from "@/lib/partners/hide-partner-revenue";
 import { prisma } from "@/lib/prisma";
 import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-rewards";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
@@ -176,11 +177,16 @@ export const getReferralsEmbedData = async (token: string) => {
       logo: group.logo,
       wordmark: group.wordmark,
       brandColor: group.brandColor,
-      additionalLinks: group.additionalLinks as PartnerGroupAdditionalLink[],
+      additionalLinks: (group.additionalLinks ??
+        []) as PartnerGroupAdditionalLink[],
       maxPartnerLinks: group.maxPartnerLinks,
       linkStructure: group.linkStructure,
       holdingPeriodDays: group.holdingPeriodDays,
+      revenueDataSharingDisabledAt: group.revenueDataSharingDisabledAt,
     },
-    bounties,
+    bounties: bounties.map((bounty) => ({
+      ...bounty,
+      partner: hidePartnerTotalSaleAmount(bounty.partner, group),
+    })),
   };
 };

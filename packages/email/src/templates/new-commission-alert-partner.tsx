@@ -26,6 +26,7 @@ export default function NewCommissionAlertPartner({
   },
   group = {
     holdingPeriodDays: 30,
+    revenueDataSharingDisabled: false,
   },
   commission = {
     type: "sale",
@@ -44,6 +45,7 @@ export default function NewCommissionAlertPartner({
   };
   group: {
     holdingPeriodDays: number;
+    revenueDataSharingDisabled?: boolean;
   };
   commission: {
     type: "click" | "lead" | "sale" | "custom" | "referral";
@@ -56,6 +58,7 @@ export default function NewCommissionAlertPartner({
   const earningsInDollars = currencyFormatter(commission.earnings);
   const linkToEarnings = `https://partners.dub.co/programs/${program.slug}/earnings`;
   const isOnHold = commission.status === "hold";
+  const hidePartnerRevenue = Boolean(group.revenueDataSharingDisabled);
 
   return (
     <Html>
@@ -93,6 +96,8 @@ export default function NewCommissionAlertPartner({
                     <strong className="text-black">{program.name}</strong>'s
                     partner program via your partner referral link.
                   </>
+                ) : hidePartnerRevenue ? (
+                  "made a purchase"
                 ) : (
                   <>
                     made a{" "}

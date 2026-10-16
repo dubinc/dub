@@ -1,7 +1,9 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import { PartnerLinksDisplayContext } from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { CommentsBadge } from "@/ui/links/comments-badge";
@@ -51,7 +53,7 @@ import {
   usePartnerLinkRewardsState,
 } from "./partner-link-rewards";
 
-const CHARTS = [
+const getCharts = (hidePartnerRevenue: boolean) => [
   {
     key: "clicks",
     icon: CursorRays,
@@ -65,17 +67,19 @@ const CHARTS = [
     colorClassName: "text-purple-500",
   },
   {
-    key: "saleAmount",
+    key: hidePartnerRevenue ? "sales" : "saleAmount",
     icon: InvoiceDollar,
     label: "Sales",
     colorClassName: "text-teal-500",
-    currency: true,
+    currency: !hidePartnerRevenue,
   },
 ];
 
 export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const { programEnrollment } = useProgramEnrollment();
-  const { displayOption } = usePartnerLinksContext();
+  const { displayOption, displayProperties } = useContext(
+    PartnerLinksDisplayContext,
+  );
   const { showRewards, toggleRewards } = usePartnerLinkRewardsState();
   const {
     rewards,
@@ -94,6 +98,41 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const isDeactivated = programEnrollment?.status === "deactivated";
   const isQueryLinkStructure =
     programEnrollment?.group?.linkStructure === "query";
+  const showTitle =
+    displayProperties.includes("title") && Boolean(link.partnerLinkTitle);
+
+  const shortLink = (
+    <Tooltip
+      content={
+        <QueryLinkStructureHelpText
+          link={link}
+          className="px-3 py-2 first-letter:uppercase"
+        />
+      }
+      disabled={!isQueryLinkStructure || isDeactivated}
+    >
+      <a
+        href={isDeactivated ? undefined : partnerLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cn(
+          "truncate text-sm transition-colors",
+          showTitle
+            ? "text-neutral-500 hover:text-neutral-700 hover:underline hover:underline-offset-2"
+            : "font-semibold leading-6",
+          isDeactivated
+            ? "cursor-default text-neutral-400"
+            : !showTitle && "text-neutral-900 hover:text-black",
+          isQueryLinkStructure &&
+            !isDeactivated &&
+            "cursor-copy underline decoration-dotted underline-offset-2",
+        )}
+        onClick={isDeactivated ? (e) => e.preventDefault() : undefined}
+      >
+        {getPrettyUrl(partnerLink)}
+      </a>
+    </Tooltip>
+  );
 
   const discountCodeSection = link.discountCode ? (
     <div className="hidden h-8 items-center gap-1.5 rounded-lg border border-neutral-200 pl-2 pr-1.5 sm:flex">
@@ -131,41 +170,34 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
             <div className="flex min-w-0 flex-col">
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1">
-                  <Tooltip
-                    content={
-                      <QueryLinkStructureHelpText
-                        link={link}
-                        className="px-3 py-2 first-letter:uppercase"
-                      />
-                    }
-                    disabled={!isQueryLinkStructure || isDeactivated}
-                  >
-                    <a
-                      href={isDeactivated ? undefined : partnerLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                  {showTitle ? (
+                    <span
                       className={cn(
-                        "truncate text-sm font-semibold leading-6 transition-colors",
-                        isDeactivated
-                          ? "cursor-default text-neutral-400"
-                          : "text-neutral-900 hover:text-black",
-                        isQueryLinkStructure &&
-                          !isDeactivated &&
-                          "cursor-copy underline decoration-dotted underline-offset-2",
+                        "truncate text-sm font-semibold leading-6",
+                        isDeactivated ? "text-neutral-400" : "text-neutral-900",
                       )}
-                      onClick={
-                        isDeactivated ? (e) => e.preventDefault() : undefined
-                      }
+                      title={link.partnerLinkTitle ?? undefined}
                     >
-                      {getPrettyUrl(partnerLink)}
-                    </a>
-                  </Tooltip>
+                      {link.partnerLinkTitle}
+                    </span>
+                  ) : (
+                    shortLink
+                  )}
                   {!isDeactivated && (
                     <CopyButton value={partnerLink} variant="neutral" />
                   )}
 
-                  {link.comments && <CommentsBadge comments={link.comments} />}
+                  {link.partnerLinkComments && (
+                    <CommentsBadge comments={link.partnerLinkComments} />
+                  )}
                 </div>
+
+                {showTitle && (
+                  <div className="flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 sm:w-fit sm:max-w-[400px]">
+                    <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
+                    {shortLink}
+                  </div>
+                )}
 
                 {hasIncentives && primaryText ? (
                   <PartnerLinkRewardsSummary
@@ -176,22 +208,24 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                     onToggleRewards={toggleRewards}
                   />
                 ) : (
-                  /* The max width implementation here is a bit hacky, we should improve in the future */
-                  <div className="flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 sm:w-fit sm:max-w-[400px]">
-                    <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
-                    <a
-                      href={isDeactivated ? undefined : link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="cursor-alias truncate text-sm text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
-                      title={getPrettyUrl(link.url)}
-                      onClick={
-                        isDeactivated ? (e) => e.preventDefault() : undefined
-                      }
-                    >
-                      {getPrettyUrl(link.url)}
-                    </a>
-                  </div>
+                  !showTitle && (
+                    /* The max width implementation here is a bit hacky, we should improve in the future */
+                    <div className="flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 sm:w-fit sm:max-w-[400px]">
+                      <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
+                      <a
+                        href={isDeactivated ? undefined : link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="cursor-alias truncate text-sm text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
+                        title={getPrettyUrl(link.url)}
+                        onClick={
+                          isDeactivated ? (e) => e.preventDefault() : undefined
+                        }
+                      >
+                        {getPrettyUrl(link.url)}
+                      </a>
+                    </div>
+                  )
                 )}
               </div>
             </div>
@@ -236,6 +270,8 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
 
 const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
+  const hidePartnerRevenue =
+    !programEnrollment || isPartnerRevenueHidden(programEnrollment.group);
   const As = showDetailedAnalytics ? Link : "div";
   return (
     <As
@@ -259,31 +295,45 @@ const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
         {
           id: "sales",
           icon: InvoiceDollar,
-          value: link.saleAmount,
+          value: hidePartnerRevenue ? link.sales : link.saleAmount,
           className: "hidden sm:flex",
           iconClassName: "data-[active=true]:text-teal-500",
+          currency: !hidePartnerRevenue,
         },
-      ].map(({ id: tab, icon: Icon, value, className, iconClassName }) => (
-        <div
-          key={tab}
-          className={cn(
-            "flex items-center gap-1.5 whitespace-nowrap rounded px-[5px] py-[3px] transition-colors",
-            className,
-          )}
-        >
-          <Icon
-            data-active={value > 0}
-            className={cn("h-4 w-4 shrink-0", iconClassName)}
-          />
-          <span>
-            {tab === "sales"
-              ? currencyFormatter(value, {
-                  trailingZeroDisplay: "stripIfInteger",
-                })
-              : nFormatter(value)}
-          </span>
-        </div>
-      ))}
+      ].map(
+        ({
+          id: tab,
+          icon: Icon,
+          value,
+          className,
+          iconClassName,
+          currency,
+        }) => {
+          const displayValue = value ?? 0;
+
+          return (
+            <div
+              key={tab}
+              className={cn(
+                "flex items-center gap-1.5 whitespace-nowrap rounded px-[5px] py-[3px] transition-colors",
+                className,
+              )}
+            >
+              <Icon
+                data-active={displayValue > 0}
+                className={cn("h-4 w-4 shrink-0", iconClassName)}
+              />
+              <span>
+                {currency
+                  ? currencyFormatter(displayValue, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })
+                  : nFormatter(displayValue)}
+              </span>
+            </div>
+          );
+        },
+      )}
     </As>
   );
 });
@@ -292,12 +342,16 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
   const { getQueryString } = useRouterStuff();
   const { start, end, interval } = usePartnerLinksContext();
   const { programEnrollment } = useProgramEnrollment();
+  const hidePartnerRevenue =
+    !programEnrollment || isPartnerRevenueHidden(programEnrollment.group);
+  const charts = getCharts(hidePartnerRevenue);
 
   const ref = useRef<HTMLDivElement>(null);
   const isVisible = useInViewport(ref);
   const lastValidTotals = useRef<{
     clicks: number;
     leads: number;
+    sales: number;
     saleAmount: number;
   } | null>(null);
 
@@ -318,12 +372,13 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
 
   const totals = useMemo(() => {
     const newTotals = timeseries?.reduce(
-      (acc, { clicks, leads, saleAmount }) => ({
+      (acc, { clicks, leads, sales, saleAmount }) => ({
         clicks: acc.clicks + clicks,
         leads: acc.leads + leads,
+        sales: acc.sales + (sales ?? 0),
         saleAmount: acc.saleAmount + saleAmount,
       }),
-      { clicks: 0, leads: 0, saleAmount: 0 },
+      { clicks: 0, leads: 0, sales: 0, saleAmount: 0 },
     );
 
     if (newTotals) {
@@ -331,13 +386,25 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
       return newTotals;
     }
 
-    return lastValidTotals.current ?? { clicks: 0, leads: 0, saleAmount: 0 };
+    return (
+      lastValidTotals.current ?? {
+        clicks: 0,
+        leads: 0,
+        sales: 0,
+        saleAmount: 0,
+      }
+    );
   }, [timeseries]);
 
   const chartData = useMemo(() => {
-    return timeseries?.map(({ start, clicks, leads, saleAmount }) => ({
+    return timeseries?.map(({ start, clicks, leads, sales, saleAmount }) => ({
       date: new Date(start),
-      values: { clicks, leads, saleAmount: saleAmount },
+      values: {
+        clicks,
+        leads,
+        sales: sales ?? 0,
+        saleAmount,
+      },
     }));
   }, [timeseries]);
 
@@ -346,7 +413,7 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
       ref={ref}
       className="grid grid-cols-1 gap-4 p-4 pt-0 sm:grid-cols-3 sm:gap-5 sm:px-[18px] sm:pb-5"
     >
-      {CHARTS.map((chart) => (
+      {charts.map((chart) => (
         <Link
           key={chart.key}
           href={`/programs/${programEnrollment?.program.slug}/analytics${getQueryString(

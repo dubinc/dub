@@ -5,6 +5,7 @@ import { programEnrollmentEligibilityIncludes } from "@/lib/bounty/api/bounty-av
 import { getBountiesForPartnerEnrollments } from "@/lib/bounty/api/get-bounties-for-partner";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { getPartnerLinksStatsByProgram } from "@/lib/partners/get-partner-links-stats-by-program";
+import { hidePartnerTotalSaleAmount } from "@/lib/partners/hide-partner-revenue";
 import { prisma } from "@/lib/prisma";
 import {
   partnerProfileBountiesQuerySchema,
@@ -23,6 +24,11 @@ const programEnrollmentInclude = {
       slug: true,
       logo: true,
       defaultGroupId: true,
+    },
+  },
+  partnerGroup: {
+    select: {
+      revenueDataSharingDisabledAt: true,
     },
   },
   ...programEnrollmentEligibilityIncludes,
@@ -53,11 +59,22 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     programEnrollments.map(({ program }) => [program.id, program]),
   );
 
+  const groupsByProgramId = new Map(
+    programEnrollments.map(({ programId, partnerGroup }) => [
+      programId,
+      partnerGroup,
+    ]),
+  );
+
   return NextResponse.json(
     z.array(PartnerProfileBountySchema).parse(
       bounties.map((bounty) => ({
         ...bounty,
         program: programsById.get(bounty.programId),
+        partner: hidePartnerTotalSaleAmount(
+          bounty.partner,
+          groupsByProgramId.get(bounty.programId),
+        ),
       })),
     ),
   );
