@@ -1,18 +1,18 @@
-import { STANDARD_REAPPLICATION_DAYS } from "@dub/utils";
 import {
   ProgramEnrollment,
   ProgramEnrollmentStatus,
   ReapplicationTimeframe,
 } from "@prisma/client";
-import { addDays } from "date-fns";
+import { getReapplicationBlockedReason } from "./reapplication";
 
 /**
  * Throws if the partner's existing enrollment prevents a new application to `groupId`.
  *
- * Approved partners applying to another group are held to the stored
- * `reapplicationTimeframe`, measured from `rejectedAt` (the `reviewedAt` of the
- * latest application reviewed since enrollment, if it was rejected). Omit
- * `rejectedAt` to skip that window.
+ * Rejected and approved partners are held to the stored `reapplicationTimeframe`,
+ * measured from `rejectedAt`. For a rejected enrollment, pass the rejection date.
+ * For an approved partner applying to another group, pass the `reviewedAt` of the
+ * latest application reviewed since enrollment, if it was rejected. Omit
+ * `rejectedAt` to skip that window for an approved partner.
  */
 export function throwIfApplicationBlocked({
   enrollment,
@@ -35,53 +35,52 @@ export function throwIfApplicationBlocked({
       throw new Error(
         "You have an existing application for this program. Please wait for it to be reviewed.",
       );
-    case ProgramEnrollmentStatus.rejected:
-      if (enrollment.reapplicationTimeframe === ReapplicationTimeframe.never) {
-        throw new Error("You cannot reapply to this program.");
-      }
-
-      // TODO: Improve this message to use the absolute day remaining.
+    case ProgramEnrollmentStatus.rejected: {
+      // An instant rejection deletes the enrollment, so a rejected one should not
+      // exist here. Block it, because the upsert would leave it rejected.
       if (
-        enrollment.reapplicationTimeframe === ReapplicationTimeframe.standard
+        enrollment.reapplicationTimeframe === ReapplicationTimeframe.instant
       ) {
         throw new Error(
-          `You can reapply to this program after ${STANDARD_REAPPLICATION_DAYS} days.`,
+          "You have already applied to this program. You cannot apply to this program again.",
         );
       }
 
-      // An instant rejection deletes the enrollment, so a rejected one should not
-      // exist here. Block it, because the upsert would leave it rejected.
-      throw new Error(
-        "You have already applied to this program. You cannot apply to this program again.",
-      );
+      const blockedReason = getReapplicationBlockedReason({
+        reapplicationTimeframe: enrollment.reapplicationTimeframe,
+        rejectedAt,
+      });
+
+      if (blockedReason) {
+        throw new Error(blockedReason);
+      }
+      return;
+    }
     case ProgramEnrollmentStatus.invited:
       throw new Error("You have a pending invitation to join this program.");
     case ProgramEnrollmentStatus.declined:
       throw new Error(
         "You have declined your invitation to join this program. Please contact program owner to re-invite you.",
       );
-    case ProgramEnrollmentStatus.approved:
+    case ProgramEnrollmentStatus.approved: {
       if (enrollment.groupId === groupId) {
         throw new Error("You're already in this group.");
       }
 
-      if (
-        !rejectedAt ||
-        enrollment.reapplicationTimeframe === ReapplicationTimeframe.instant
-      ) {
+      if (!rejectedAt) {
         return;
       }
 
-      if (enrollment.reapplicationTimeframe === ReapplicationTimeframe.never) {
-        throw new Error("You cannot reapply to this program.");
-      }
+      const blockedReason = getReapplicationBlockedReason({
+        reapplicationTimeframe: enrollment.reapplicationTimeframe,
+        rejectedAt,
+      });
 
-      if (addDays(rejectedAt, STANDARD_REAPPLICATION_DAYS) > new Date()) {
-        throw new Error(
-          `You can reapply to this program after ${STANDARD_REAPPLICATION_DAYS} days.`,
-        );
+      if (blockedReason) {
+        throw new Error(blockedReason);
       }
       return;
+    }
     default:
       throw new Error(
         `You cannot apply to this program again because your enrollment is ${enrollment.status}.`,

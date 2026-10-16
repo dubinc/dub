@@ -6,6 +6,7 @@ import { PartnerProfileProgramEnrollmentProps } from "@/lib/types";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramInviteActions } from "@/ui/partners/program-invite-actions";
 import { ProgramLogo } from "@/ui/partners/program-logo";
+import { ProgramReapplyButton } from "@/ui/partners/program-reapply-button";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import {
   MiniAreaChart,
@@ -200,6 +201,18 @@ function getColumns(tab: ProgramTab): ProgramColumn[] {
           size: 160,
           cell: ({ row }) => (
             <EnrollmentStatusBadge status={row.original.status} />
+          ),
+        },
+        {
+          id: "actions",
+          header: "",
+          size: 100,
+          minSize: 100,
+          cell: ({ row }) => (
+            <ProgramReapplyButton
+              programEnrollment={row.original}
+              className="ml-auto"
+            />
           ),
         },
       ];

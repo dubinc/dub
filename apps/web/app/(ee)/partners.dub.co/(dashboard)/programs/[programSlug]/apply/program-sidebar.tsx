@@ -1,9 +1,5 @@
 "use client";
 
-import { submitNetworkProfileAction } from "@/lib/actions/partners/submit-network-profile";
-import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
-import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
   DiscountProps,
@@ -12,26 +8,15 @@ import {
   RewardProps,
 } from "@/lib/types";
 import { applicationRequirementsSchema } from "@/lib/zod/schemas/programs";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
-import { NetworkStatusBadges } from "@/ui/partners/partner-network/network-status-badges";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useProgramApplicationSheet } from "@/ui/partners/program-application-sheet";
 import { ProgramEligibilityCard } from "@/ui/partners/program-eligibility-card";
-import {
-  BlurImage,
-  Button,
-  CircleCheck,
-  Link4,
-  ProgressCircle,
-  StatusBadge,
-} from "@dub/ui";
+import { useApplyDisabledTooltip } from "@/ui/partners/use-apply-disabled-tooltip";
+import { BlurImage, Button, CircleCheck, Link4, StatusBadge } from "@dub/ui";
 import { capitalize, cn, OG_AVATAR_URL } from "@dub/utils";
-import { useAction } from "next-safe-action/hooks";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ReactNode, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { useMemo, useState } from "react";
 
 export function ProgramSidebar({
   program,
@@ -47,35 +32,6 @@ export function ProgramSidebar({
   applicationRewards: RewardProps[];
   applicationDiscount: DiscountProps | null;
 }) {
-  const { partner, mutate } = usePartnerProfile();
-
-  const { completedCount, totalCount, isComplete } =
-    getNetworkProfileChecklistProgress({
-      partner,
-    });
-
-  const { executeAsync: submitNetworkProfile } = useAction(
-    submitNetworkProfileAction,
-    {
-      onSuccess: () => {
-        toast.success("Application submitted successfully");
-      },
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-    },
-  );
-
-  const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Submit application",
-    description:
-      "Are you sure you want to submit your Dub Network application for review? You won't be able to make changes to your application after submitting it.",
-    confirmText: "Confirm submission",
-    onConfirm: async () => {
-      await submitNetworkProfile();
-      await mutate();
-    },
-  });
   const { programEnrollment } = useProgramEnrollment({
     programSlug: program.slug,
     swrOpts: {
@@ -89,88 +45,16 @@ export function ProgramSidebar({
     ? applicationRequirementsSchema.parse(program.applicationRequirements)
     : null;
 
-  const { reason } = evaluateApplicationRequirements({
-    applicationRequirements,
-    context: {
-      country: partner?.country,
-      email: partner?.email,
-    },
-  });
-
-  const requirementsNotMet =
-    reason === "requirementsNotMet"
-      ? "You do not meet the eligibility requirements for this program"
-      : undefined;
-
   const [justApplied, setJustApplied] = useState(false);
 
-  const applyDisabledTooltip: ReactNode =
-    justApplied ? undefined : programEnrollment?.status === "pending" ? (
-      "Your application is under review"
-    ) : programEnrollment?.status &&
-      ["banned", "rejected", "deactivated"].includes(
-        programEnrollment.status,
-      ) ? (
-      `You were ${programEnrollment.status} from this program`
-    ) : programEnrollment ? undefined : !isComplete ? (
-      <div className="max-w-xs p-3 text-center">
-        <div className="text-content-default text-pretty text-sm leading-5">
-          Complete your profile to join the Dub Partner Network. Once approved,
-          you can then apply to this program.
-        </div>
-        <Link
-          href="/profile"
-          className="bg-bg-subtle mt-3 flex items-center justify-center gap-2 rounded-lg px-2.5 py-1.5"
-        >
-          <ProgressCircle
-            progress={completedCount / totalCount}
-            className="text-green-500"
-          />
-          <span className="text-content-default text-sm font-medium">
-            {completedCount} of {totalCount} tasks completed
-          </span>
-        </Link>
-      </div>
-    ) : partner && !["approved", "trusted"].includes(partner.networkStatus) ? (
-      (() => {
-        const networkStatusBadge = NetworkStatusBadges[partner.networkStatus];
-        if (!("partnerTooltip" in networkStatusBadge)) {
-          return null;
-        }
-        const { partnerTooltip, icon: Icon, className } = networkStatusBadge;
-        const { content, cta } = partnerTooltip;
+  const { disabledTooltip, canReapply, confirmModal } = useApplyDisabledTooltip(
+    {
+      applicationRequirements,
+      programEnrollment,
+    },
+  );
 
-        return (
-          <div className="max-w-xs space-y-2 p-4 text-center">
-            <div className="text-content-default text-pretty text-sm leading-5">
-              {content}
-            </div>
-            {partner.networkStatus === "draft" ? (
-              <Button
-                className="p-2"
-                text={cta}
-                onClick={() => setShowConfirmModal(true)}
-              />
-            ) : (
-              <Link
-                href="/profile"
-                className={cn(
-                  "flex items-center justify-center gap-2 rounded-lg p-2",
-                  "ctaClassName" in partnerTooltip
-                    ? partnerTooltip.ctaClassName
-                    : className,
-                )}
-              >
-                <Icon className="size-4 shrink-0" />
-                <span className="text-sm font-medium">{cta}</span>
-              </Link>
-            )}
-          </div>
-        );
-      })()
-    ) : (
-      requirementsNotMet
-    );
+  const applyDisabledTooltip = justApplied ? undefined : disabledTooltip;
 
   const statusBadge = programEnrollment
     ? {
@@ -185,6 +69,7 @@ export function ProgramSidebar({
   const buttonText = useMemo(() => {
     if (justApplied) return "Applied";
     if (!programEnrollment) return "Apply";
+    if (canReapply) return "Reapply";
 
     switch (programEnrollment.status) {
       case "pending":
@@ -194,7 +79,7 @@ export function ProgramSidebar({
       default:
         return capitalize(programEnrollment.status);
     }
-  }, [justApplied, programEnrollment]);
+  }, [justApplied, programEnrollment, canReapply]);
 
   const { programApplicationSheet, setIsOpen: setIsApplicationSheetOpen } =
     useProgramApplicationSheet({
@@ -274,7 +159,8 @@ export function ProgramSidebar({
         text={buttonText}
         icon={justApplied ? <CircleCheck className="size-4" /> : undefined}
         disabled={
-          !applyDisabledTooltip && (!!programEnrollment || justApplied)
+          !applyDisabledTooltip &&
+          ((!!programEnrollment && !canReapply) || justApplied)
             ? true
             : undefined
         }

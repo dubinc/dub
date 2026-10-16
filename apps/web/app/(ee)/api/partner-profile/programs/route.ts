@@ -68,6 +68,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       program: {
         select: PROGRAM_SELECT,
       },
+      partnerGroup: {
+        select: {
+          slug: true,
+        },
+      },
       application: {
         select: {
           rejectionReason: true,
@@ -117,6 +122,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     return {
       ...enrollment,
       inactiveAt: inactiveDates.get(enrollment.programId) ?? null,
+      groupSlug: enrollment.partnerGroup?.slug ?? null,
       rewards: includeRewardsDiscounts
         ? [
             enrollment.clickReward,

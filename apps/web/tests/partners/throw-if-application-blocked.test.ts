@@ -14,7 +14,8 @@ const OTHER_GROUP_ID = "grp_other";
 const PENDING_MESSAGE =
   "You have an existing application for this program. Please wait for it to be reviewed.";
 const NEVER_MESSAGE = "You cannot reapply to this program.";
-const STANDARD_MESSAGE = `You can reapply to this program after ${STANDARD_REAPPLICATION_DAYS} days.`;
+// toThrow matches a substring, and the message ends with the reapply date
+const STANDARD_MESSAGE = "You can reapply to this program on ";
 const SAME_GROUP_MESSAGE = "You're already in this group.";
 
 function enrollment(
@@ -72,19 +73,68 @@ describe("throwIfApplicationBlocked", () => {
       ).toThrow(NEVER_MESSAGE);
     });
 
-    it("blocks with standard timeframe regardless of rejectedAt", () => {
-      for (const rejectedAt of [null, subDays(NOW, 1), subDays(NOW, 90)]) {
+    describe("standard timeframe", () => {
+      const rejectedEnrollment = enrollment(
+        ProgramEnrollmentStatus.rejected,
+        ReapplicationTimeframe.standard,
+      );
+
+      it.each([undefined, null])(
+        "blocks without a rejection date (%s)",
+        (rejectedAt) => {
+          expect(() =>
+            throwIfApplicationBlocked({
+              enrollment: rejectedEnrollment,
+              groupId: TARGET_GROUP_ID,
+              rejectedAt,
+            }),
+          ).toThrow(
+            `You can reapply to this program ${STANDARD_REAPPLICATION_DAYS} days after the rejection.`,
+          );
+        },
+      );
+
+      it.each([
+        ["1 day ago", subDays(NOW, 1)],
+        [
+          "1 minute before the window ends",
+          addMinutes(subDays(NOW, STANDARD_REAPPLICATION_DAYS), 1),
+        ],
+      ])("blocks when rejected %s", (_label, rejectedAt) => {
         expect(() =>
           throwIfApplicationBlocked({
-            enrollment: enrollment(
-              ProgramEnrollmentStatus.rejected,
-              ReapplicationTimeframe.standard,
-            ),
+            enrollment: rejectedEnrollment,
             groupId: TARGET_GROUP_ID,
             rejectedAt,
           }),
         ).toThrow(STANDARD_MESSAGE);
-      }
+      });
+
+      it("says the date when the partner can reapply", () => {
+        expect(() =>
+          throwIfApplicationBlocked({
+            enrollment: rejectedEnrollment,
+            groupId: TARGET_GROUP_ID,
+            rejectedAt: subDays(NOW, 1),
+          }),
+        ).toThrow("You can reapply to this program on July 14, 2026.");
+      });
+
+      it.each([
+        [
+          "exactly when the window ends",
+          subDays(NOW, STANDARD_REAPPLICATION_DAYS),
+        ],
+        ["90 days ago", subDays(NOW, 90)],
+      ])("allows when rejected %s", (_label, rejectedAt) => {
+        expect(() =>
+          throwIfApplicationBlocked({
+            enrollment: rejectedEnrollment,
+            groupId: TARGET_GROUP_ID,
+            rejectedAt,
+          }),
+        ).not.toThrow();
+      });
     });
 
     it("blocks with instant timeframe", () => {

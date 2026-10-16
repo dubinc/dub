@@ -9,7 +9,8 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// This route is used to remove rejected programEnrollments from the database after 30 days so partners can re-apply
+// This route is used to remove old rejected programEnrollments from the database after 30 days.
+// Partners do not need it to reapply, because the apply action reopens a rejected enrollment after 30 days.
 // Runs once every day at 02:00:00 AM UTC (0 2 * * *)
 // POST /api/cron/cleanup/rejected-applications
 export async function POST(req: Request) {
