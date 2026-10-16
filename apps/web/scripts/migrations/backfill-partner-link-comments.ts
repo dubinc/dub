@@ -12,7 +12,11 @@ async function main() {
         programId: { not: null },
         partnerId: { not: null },
         comments: { not: null },
-        partnerLinkDetails: null,
+        // a partner who edited the link before this ran already has a row without comments
+        OR: [
+          { partnerLinkDetails: null },
+          { partnerLinkDetails: { comments: null } },
+        ],
         NOT: {
           comments: "",
         },
@@ -20,6 +24,11 @@ async function main() {
       select: {
         id: true,
         comments: true,
+        partnerLinkDetails: {
+          select: {
+            id: true,
+          },
+        },
       },
       take: BATCH_SIZE,
       orderBy: {
@@ -31,12 +40,28 @@ async function main() {
       break;
     }
 
+    const linksWithoutDetails = links.filter(
+      ({ partnerLinkDetails }) => !partnerLinkDetails,
+    );
+    const linksWithDetails = links.filter(
+      ({ partnerLinkDetails }) => partnerLinkDetails,
+    );
+
     await prisma.partnerLinkDetails.createMany({
-      data: links.map(({ id, comments }) => ({
+      data: linksWithoutDetails.map(({ id, comments }) => ({
         linkId: id,
         comments,
       })),
     });
+
+    await prisma.$transaction(
+      linksWithDetails.map(({ id, comments }) =>
+        prisma.partnerLinkDetails.update({
+          where: { linkId: id },
+          data: { comments },
+        }),
+      ),
+    );
 
     totalProcessed += links.length;
 
