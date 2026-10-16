@@ -25,7 +25,8 @@ export function usePartnerEarningsFilters() {
       programIdOrSlug: programSlug ?? programId,
       type,
       linkId,
-      customerId,
+      // the All programs page has no Customer filter
+      customerId: programSlug ? customerId : undefined,
       status,
       payoutId,
     }),

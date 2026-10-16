@@ -1,6 +1,5 @@
 "use client";
 
-import { IntervalOptions } from "@/lib/analytics/types";
 import { Button, LoadingSpinner, Modal, Tooltip } from "@dub/ui";
 import { ReferredVia } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
@@ -24,22 +23,27 @@ type BackgroundType = (typeof BACKGROUND_OPTIONS)[number]["id"];
 type ShareEarningsModalProps = {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
-  // without a program, the image shows the earnings of all programs
-  programId?: string;
-  start?: Date;
-  end?: Date;
-  interval: IntervalOptions;
+  // the chart values, sent to the image route so that it needs no database query
+  timeseries?: { start: string; earnings: number }[];
 };
 
 // the share icon next to an earnings chart title
-export function ShareChartButton({ onClick }: { onClick: () => void }) {
+export function ShareChartButton({
+  onClick,
+  disabled,
+}: {
+  onClick: () => void;
+  // the modal draws the image from the chart values, so it needs them loaded
+  disabled?: boolean;
+}) {
   return (
     <Tooltip content="Share chart">
       <button
         type="button"
         aria-label="Share chart"
         onClick={onClick}
-        className="flex size-6 items-center justify-center rounded-md border border-transparent text-neutral-500 transition-colors hover:border-neutral-200 hover:bg-neutral-50 hover:text-neutral-700"
+        disabled={disabled}
+        className="flex size-6 items-center justify-center rounded-md border border-transparent text-neutral-500 transition-colors enabled:hover:border-neutral-200 enabled:hover:bg-neutral-50 enabled:hover:text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <ReferredVia className="size-3.5" />
       </button>
@@ -50,10 +54,7 @@ export function ShareChartButton({ onClick }: { onClick: () => void }) {
 export function ShareEarningsModal({
   showModal,
   setShowModal,
-  programId,
-  start,
-  end,
-  interval,
+  timeseries,
 }: ShareEarningsModalProps) {
   return (
     <Modal
@@ -63,10 +64,7 @@ export function ShareEarningsModal({
     >
       <ShareEarningsModalInner
         setShowModal={setShowModal}
-        programId={programId}
-        start={start}
-        end={end}
-        interval={interval}
+        timeseries={timeseries}
       />
     </Modal>
   );
@@ -74,39 +72,41 @@ export function ShareEarningsModal({
 
 function ShareEarningsModalInner({
   setShowModal,
-  programId,
-  start,
-  end,
-  interval,
+  timeseries,
 }: Omit<ShareEarningsModalProps, "showModal">) {
   const [background, setBackground] = useState<BackgroundType>("light");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [blob, setBlob] = useState<Blob | null>(null);
 
   const imageUrl = useMemo(() => {
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!timeseries) return null;
+
     return `/api/og/partner-earnings?${new URLSearchParams({
-      ...(programId && { programId }),
       background,
-      interval,
-      timezone,
-      ...(start && { start: start.toISOString() }),
-      ...(end && { end: end.toISOString() }),
+      earnings: timeseries.map(({ earnings }) => earnings).join(","),
+      ...(timeseries.length > 0 && {
+        start: timeseries[0].start,
+        end: timeseries[timeseries.length - 1].start,
+      }),
     }).toString()}`;
-  }, [programId, background, interval, start, end]);
+  }, [timeseries, background]);
 
   useEffect(() => {
+    if (!imageUrl) return;
+
     const abortController = new AbortController();
 
     setIsLoading(true);
     setBlob(null);
     fetch(imageUrl, { signal: abortController.signal })
-      .then((res) =>
-        res.blob().then((blob) => {
-          setBlob(blob);
-          setIsLoading(false);
-        }),
-      )
+      .then((res) => {
+        if (!res.ok) throw new Error(res.statusText);
+        return res.blob();
+      })
+      .then((blob) => {
+        setBlob(blob);
+        setIsLoading(false);
+      })
       .catch((err) => {
         if (err.name === "AbortError") return;
         toast.error("Failed to prepare chart image for sharing");
@@ -115,6 +115,21 @@ function ShareEarningsModalInner({
 
     return () => abortController.abort();
   }, [imageUrl]);
+
+  // show the fetched image, so that the route draws each image only once
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!blob) {
+      setBlobUrl(null);
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    setBlobUrl(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [blob]);
 
   const handleCopy = async () => {
     if (!blob) return;
@@ -134,9 +149,7 @@ function ShareEarningsModalInner({
   };
 
   const handleDownload = () => {
-    if (!blob) return;
-
-    const blobUrl = URL.createObjectURL(blob);
+    if (!blobUrl) return;
 
     const link = document.createElement("a");
     link.href = blobUrl;
@@ -146,7 +159,6 @@ function ShareEarningsModalInner({
     link.click();
 
     document.body.removeChild(link);
-    URL.revokeObjectURL(blobUrl);
   };
 
   return (
@@ -169,14 +181,11 @@ function ShareEarningsModalInner({
               <LoadingSpinner />
             </div>
           )}
-          {imageUrl && (
+          {blobUrl && (
             <img
-              src={imageUrl}
+              src={blobUrl}
               alt="Earnings chart"
-              className={cn(
-                "relative size-full rounded-xl object-contain",
-                isLoading && "opacity-0",
-              )}
+              className="relative size-full rounded-xl object-contain"
             />
           )}
         </div>

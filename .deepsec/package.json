@@ -1,0 +1,12 @@
+{
+  "name": "deepsec-workspace",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "deepsec": "deepsec"
+  },
+  "dependencies": {
+    "deepsec": "^2.3.8"
+  }
+}
