@@ -87,7 +87,6 @@ const Presets = <TPreset extends Preset, TValue>({
                 key={index}
                 disabled={preset.requiresUpgrade}
                 onSelect={() => onSelect(preset)}
-                title={preset.label}
                 value={preset.id}
                 className={cn(
                   "group relative flex cursor-pointer items-center justify-between overflow-hidden text-ellipsis whitespace-nowrap rounded border border-neutral-200",
