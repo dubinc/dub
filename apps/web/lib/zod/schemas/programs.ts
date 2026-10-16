@@ -22,7 +22,7 @@ import { programInviteEmailDataSchema } from "./program-invite-email";
 import { RewardSchema } from "./rewards";
 import { submittedLeadFormSchema } from "./submitted-lead-form";
 import { UserSchema } from "./users";
-import { centsSchema, centsSchemaWithDefault, parseDateSchema } from "./utils";
+import { centsSchemaWithDefault, parseDateSchema } from "./utils";
 
 export const eligibilityConditionSchema = z
   .object({
@@ -124,8 +124,6 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
   conversions: true,
   sales: true,
   saleAmount: true,
-}).extend({
-  saleAmount: centsSchema.nullable(),
 });
 
 // Internal-only fields used by the Dub UI.

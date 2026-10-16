@@ -31,7 +31,11 @@ import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
-import { ProgramEnrollmentSchema, ProgramSchema } from "./programs";
+import {
+  ProgramEnrollmentSchema,
+  ProgramPartnerLinkSchema,
+  ProgramSchema,
+} from "./programs";
 import { RewardSchema } from "./rewards";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
 import { centsSchema } from "./utils";
@@ -239,6 +243,11 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
   folderId: true,
 });
 
+export const PartnerProfileProgramPartnerLinkSchema =
+  ProgramPartnerLinkSchema.extend({
+    saleAmount: centsSchema.nullable(),
+  });
+
 // GET /api/partner-profile/programs adds the reapplication timeframe, so that
 // a rejected program can say when the partner can apply again
 export const PartnerProfileProgramEnrollmentSchema =
@@ -250,6 +259,10 @@ export const PartnerProfileProgramEnrollmentSchema =
       .describe(
         "When the program banned, deactivated or archived the partner. For deactivated and archived enrollments, only set when `includeInactiveDates=true`. Null for other statuses, and when the date is not known.",
       ),
+    links: z
+      .array(PartnerProfileProgramPartnerLinkSchema)
+      .nullable()
+      .describe("The partner's referral links in this program."),
   });
 
 export const partnerProfileProgramsQuerySchema = z.object({

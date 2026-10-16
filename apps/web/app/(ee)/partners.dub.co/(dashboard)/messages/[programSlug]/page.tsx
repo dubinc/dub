@@ -13,7 +13,7 @@ import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useUser from "@/lib/swr/use-user";
-import { ProgramEnrollmentProps } from "@/lib/types";
+import { PartnerProfileProgramEnrollmentProps } from "@/lib/types";
 import {
   COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
   INACTIVE_ENROLLMENT_STATUSES,
@@ -446,7 +446,7 @@ export default function PartnerMessagesProgramPage() {
 function ProgramInfoPanel({
   programEnrollment,
 }: {
-  programEnrollment: ProgramEnrollmentProps;
+  programEnrollment: PartnerProfileProgramEnrollmentProps;
 }) {
   const program = programEnrollment.program;
   const partnerLink = constructPartnerLink({
