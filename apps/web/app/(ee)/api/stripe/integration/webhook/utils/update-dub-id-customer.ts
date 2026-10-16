@@ -7,27 +7,15 @@ import { Customer, Prisma } from "@prisma/client";
 // with P2002 (unique constraint), and every Stripe retry fails the same way.
 export async function updateDubIdCustomer({
   customer,
-  workspaceId,
-  stripeCustomerId,
+  stripeCustomerOwner,
   data,
 }: {
   customer: Customer;
-  workspaceId: string;
-  stripeCustomerId?: string | null;
+  stripeCustomerOwner: Customer | null;
   data: Prisma.CustomerUncheckedUpdateInput;
 }) {
-  // Prefer the customer that already owns the Stripe customer ID
-  const stripeCustomer =
-    stripeCustomerId && customer.stripeCustomerId !== stripeCustomerId
-      ? await prisma.customer.findUnique({
-          where: {
-            stripeCustomerId,
-            projectId: workspaceId,
-          },
-        })
-      : null;
-
-  const target = stripeCustomer ?? customer;
+  // Prefer the customer in the workspace that already owns the Stripe customer ID
+  const target = stripeCustomerOwner ?? customer;
 
   try {
     return await prisma.customer.update({

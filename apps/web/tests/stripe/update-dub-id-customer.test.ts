@@ -3,14 +3,12 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { updateDubIdCustomer } from "../../app/(ee)/api/stripe/integration/webhook/utils/update-dub-id-customer";
 
 const mocks = vi.hoisted(() => ({
-  findUnique: vi.fn(),
   update: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     customer: {
-      findUnique: mocks.findUnique,
       update: mocks.update,
     },
   },
@@ -31,8 +29,7 @@ const data = {
 
 const args = {
   customer: clickCustomer,
-  workspaceId: "ws_test",
-  stripeCustomerId: "cus_stripe",
+  stripeCustomerOwner: null,
   data,
 };
 
@@ -45,24 +42,16 @@ function prismaError(code: string) {
 
 describe("updateDubIdCustomer", () => {
   beforeEach(() => {
-    mocks.findUnique.mockReset();
     mocks.update.mockReset();
     vi.spyOn(console, "log").mockImplementation(() => {});
   });
 
   test("updates the matched customer when no customer owns the Stripe customer ID", async () => {
     const updated = { ...clickCustomer, ...data };
-    mocks.findUnique.mockResolvedValue(null);
     mocks.update.mockResolvedValue(updated);
 
     await expect(updateDubIdCustomer(args)).resolves.toBe(updated);
 
-    expect(mocks.findUnique).toHaveBeenCalledWith({
-      where: {
-        stripeCustomerId: "cus_stripe",
-        projectId: "ws_test",
-      },
-    });
     expect(mocks.update).toHaveBeenCalledWith({
       where: { id: "cus_click" },
       data,
@@ -70,14 +59,15 @@ describe("updateDubIdCustomer", () => {
   });
 
   test("updates the customer that owns the Stripe customer ID", async () => {
-    const stripeCustomer = {
+    const stripeCustomerOwner = {
       id: "cus_owner",
       stripeCustomerId: "cus_stripe",
     } as Customer;
-    mocks.findUnique.mockResolvedValue(stripeCustomer);
-    mocks.update.mockResolvedValue(stripeCustomer);
+    mocks.update.mockResolvedValue(stripeCustomerOwner);
 
-    await expect(updateDubIdCustomer(args)).resolves.toBe(stripeCustomer);
+    await expect(
+      updateDubIdCustomer({ ...args, stripeCustomerOwner }),
+    ).resolves.toBe(stripeCustomerOwner);
 
     expect(mocks.update).toHaveBeenCalledTimes(1);
     expect(mocks.update).toHaveBeenCalledWith({
@@ -86,27 +76,9 @@ describe("updateDubIdCustomer", () => {
     });
   });
 
-  test("skips the lookup when the matched customer owns the Stripe customer ID", async () => {
-    const customer = { ...clickCustomer, stripeCustomerId: "cus_stripe" };
-    mocks.update.mockResolvedValue(customer);
-
-    await updateDubIdCustomer({ ...args, customer });
-
-    expect(mocks.findUnique).not.toHaveBeenCalled();
-  });
-
-  test("skips the lookup without a Stripe customer ID", async () => {
-    mocks.update.mockResolvedValue(clickCustomer);
-
-    await updateDubIdCustomer({ ...args, stripeCustomerId: null });
-
-    expect(mocks.findUnique).not.toHaveBeenCalled();
-  });
-
   test("retries without externalId when another customer has it (P2002)", async () => {
     const { externalId, ...rest } = data;
     const updated = { ...clickCustomer, ...rest };
-    mocks.findUnique.mockResolvedValue(null);
     mocks.update
       .mockRejectedValueOnce(prismaError("P2002"))
       .mockResolvedValueOnce(updated);
@@ -121,7 +93,6 @@ describe("updateDubIdCustomer", () => {
 
   test("throws other Prisma errors so that Stripe retries the event", async () => {
     const error = prismaError("P1001"); // can't reach database server
-    mocks.findUnique.mockResolvedValue(null);
     mocks.update.mockRejectedValue(error);
 
     await expect(updateDubIdCustomer(args)).rejects.toBe(error);
