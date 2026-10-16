@@ -5,7 +5,7 @@ import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
-const PRISMA_DELETEMANY_LIMIT = 1000;
+const PRISMA_DELETEMANY_LIMIT = 2000;
 
 // This route is used to remove expired tokens from the database
 // 1. VerificationToken
