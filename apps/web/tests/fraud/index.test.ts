@@ -24,6 +24,30 @@ describe.concurrent("/fraud/**", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
+  // Tracks a click on the link, then a signup lead for that click
+  const trackLeadViaLink = async (
+    link: { domain: string; key: string },
+    customer: ReturnType<typeof randomCustomer>,
+  ) => {
+    const clickResponse = await http.post<{ clickId: string }>({
+      path: "/track/click",
+      headers: { ...E2E_TRACK_CLICK_HEADERS },
+      body: { domain: link.domain, key: link.key },
+    });
+
+    await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        eventName: "Signup",
+        clickId: clickResponse.data.clickId,
+        customerId: customer.externalId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      },
+    });
+  };
+
   test("FraudRuleType = customerEmailMatch (exact match)", async () => {
     const clickLink = E2E_FRAUD_PARTNER.links.customerEmailMatch;
 
@@ -162,25 +186,8 @@ describe.concurrent("/fraud/**", async () => {
       email: `${localPart.split("").join(".")}@gmail.com`,
     };
 
-    for (const customer of [firstCustomer, similarCustomer]) {
-      const clickResponse = await http.post<{ clickId: string }>({
-        path: "/track/click",
-        headers: { ...E2E_TRACK_CLICK_HEADERS },
-        body: { domain: clickLink.domain, key: clickLink.key },
-      });
-
-      await http.post<TrackLeadResponse>({
-        path: "/track/lead",
-        body: {
-          eventName: "Signup",
-          clickId: clickResponse.data.clickId,
-          customerId: customer.externalId,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-        },
-      });
-    }
+    await trackLeadViaLink(clickLink, firstCustomer);
+    await trackLeadViaLink(clickLink, similarCustomer);
 
     const { data: firstCustomers } = await http.get<Customer[]>({
       path: "/customers",
@@ -204,41 +211,22 @@ describe.concurrent("/fraud/**", async () => {
   test("FraudRuleType = customerEmailMatch (similar email match across partners)", async () => {
     const localPart = randomEmailLocalPart();
 
-    // Referred by another partner in the same program
     const firstCustomer = {
       ...randomCustomer(),
       email: `${localPart}@gmail.com`,
-      clickLink: E2E_PARTNERS[0].shortLink,
     };
 
     const similarCustomer = {
       ...randomCustomer(),
       email: `${localPart}+2@gmail.com`,
-      clickLink: E2E_FRAUD_PARTNER.links.customerEmailMatch,
     };
 
-    for (const customer of [firstCustomer, similarCustomer]) {
-      const clickResponse = await http.post<{ clickId: string }>({
-        path: "/track/click",
-        headers: { ...E2E_TRACK_CLICK_HEADERS },
-        body: {
-          domain: customer.clickLink.domain,
-          key: customer.clickLink.key,
-        },
-      });
-
-      await http.post<TrackLeadResponse>({
-        path: "/track/lead",
-        body: {
-          eventName: "Signup",
-          clickId: clickResponse.data.clickId,
-          customerId: customer.externalId,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          customerAvatar: customer.avatar,
-        },
-      });
-    }
+    // The first customer is referred by another partner in the same program
+    await trackLeadViaLink(E2E_PARTNERS[0].shortLink, firstCustomer);
+    await trackLeadViaLink(
+      E2E_FRAUD_PARTNER.links.customerEmailMatch,
+      similarCustomer,
+    );
 
     const { data: firstCustomers } = await http.get<Customer[]>({
       path: "/customers",
