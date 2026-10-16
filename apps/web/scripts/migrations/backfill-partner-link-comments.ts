@@ -3,6 +3,8 @@ import "dotenv-flow/config";
 
 const BATCH_SIZE = 500;
 
+// Copies Link.comments into PartnerLinkDetails and keeps them on Link, because
+// workspace members can also write Link.comments from the dashboard.
 async function main() {
   let totalProcessed = 0;
 
