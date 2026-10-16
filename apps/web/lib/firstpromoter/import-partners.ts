@@ -7,6 +7,7 @@ import {
   Program,
 } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
 import { bulkCreateLinks } from "../api/links";
 import { upsertPartnerPlatform } from "../api/partner-profile/upsert-partner-platform";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
@@ -93,12 +94,19 @@ export async function importPartners(payload: FirstPromoterImportPayload) {
         }
       });
 
+      const programEnrollments = results.flatMap((result) =>
+        result.status === "fulfilled" && result.value ? [result.value] : [],
+      );
+
       // Queue an index update because the imported partners were enrolled.
       // Queued per page rather than per partner.
       await queuePartnerSearchSync({
-        enrollmentIds: results.flatMap((result) =>
-          result.status === "fulfilled" && result.value ? [result.value] : [],
-        ),
+        enrollmentIds: programEnrollments.map(({ id }) => id),
+      });
+
+      await detectAndRecordNetworkLevelBans({
+        programId: program.id,
+        partnerIds: programEnrollments.map(({ partnerId }) => partnerId),
       });
     }
 
@@ -212,16 +220,16 @@ async function createPartnerAndLinks({
 
   if (!program.domain || !program.url) {
     console.error("Program domain or url not found", program.id);
-    return programEnrollment.id;
+    return programEnrollment;
   }
 
   if (preservedBan) {
-    return programEnrollment.id;
+    return programEnrollment;
   }
 
   if (programEnrollment.links.length > 0) {
     console.log("Partner already has links", partner.id);
-    return programEnrollment.id;
+    return programEnrollment;
   }
 
   const links = affiliate.promoter_campaigns.map((campaign, idx) => ({
@@ -243,7 +251,7 @@ async function createPartnerAndLinks({
       links,
     });
   } catch (error) {
-    // The enrollment is already committed, so its ID must still reach the
+    // The enrollment is already committed, so it must still reach the
     // page-level search sync even when link creation fails.
     console.error(
       `Failed to create links for imported affiliate ${affiliate.id}`,
@@ -251,5 +259,5 @@ async function createPartnerAndLinks({
     );
   }
 
-  return programEnrollment.id;
+  return programEnrollment;
 }

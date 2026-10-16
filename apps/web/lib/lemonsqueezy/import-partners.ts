@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
@@ -141,13 +142,20 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
         );
       }
 
+      const partnerIds = results.flatMap((result) =>
+        result.status === "fulfilled" && result.value ? [result.value] : [],
+      );
+
       // Queue an index update because the imported partners were enrolled.
       // Queued per page rather than per partner.
       await queuePartnerSearchSync({
-        partnerIds: results.flatMap((result) =>
-          result.status === "fulfilled" && result.value ? [result.value] : [],
-        ),
+        partnerIds,
         programId: program.id,
+      });
+
+      await detectAndRecordNetworkLevelBans({
+        programId: program.id,
+        partnerIds,
       });
     }
 

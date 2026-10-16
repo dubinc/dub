@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { COUNTRIES, COUNTRY_CODES, sleep } from "@dub/utils";
 import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
 import { approveLinkedApplication } from "../program-applications/approve-linked-application";
@@ -70,13 +71,20 @@ export async function importPartners(payload: PartnerStackImportPayload) {
       ),
     );
 
+    const partnerIds = results.flatMap((result) =>
+      result.status === "fulfilled" && result.value ? [result.value] : [],
+    );
+
     // Queue an index update because the imported partners were enrolled. Queued
     // per page rather than per partner.
     await queuePartnerSearchSync({
-      partnerIds: results.flatMap((result) =>
-        result.status === "fulfilled" && result.value ? [result.value] : [],
-      ),
+      partnerIds,
       programId,
+    });
+
+    await detectAndRecordNetworkLevelBans({
+      programId,
+      partnerIds,
     });
 
     await sleep(2000);
