@@ -40,9 +40,11 @@ export const checkCustomerEmailMatch = defineFraudRule({
       ("isFirstConversion" in customer && customer.isFirstConversion) ||
       !("isFirstConversion" in customer);
 
-    // 2. Similar email match: the customer's normalized email matches a
-    // customer referred by any partner in the same program, because variants
-    // of one inbox can come through different partners.
+    // 2. Similar email match: the customer's normalized email matches an
+    // earlier customer referred by any partner in the same program, because
+    // variants of one inbox can come through different partners.
+    // Only earlier customers count, so the partner who referred the original
+    // address is not held when that customer converts later.
     // Require the raw emails to differ. Importers and promo-code attribution
     // can create duplicate rows for one address, and those should not count.
     if (shouldCheckHistoricalMatch) {
@@ -51,8 +53,8 @@ export const checkCustomerEmailMatch = defineFraudRule({
           projectId: program.workspaceId,
           normalizedEmail: normalizedCustomerEmail,
           programId: program.id,
-          id: {
-            not: customer.id,
+          createdAt: {
+            lt: customer.createdAt,
           },
           email: {
             not: customer.email,

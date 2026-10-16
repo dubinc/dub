@@ -612,7 +612,7 @@ async function stepRunSideEffects(
         "riskMonitoringDisabledAt",
       ]),
       customer: {
-        ...pick(commission.customer!, ["id", "email", "name"]),
+        ...pick(commission.customer!, ["id", "email", "name", "createdAt"]),
         // only pass along isFirstConversion if it's a boolean
         ...(typeof isFirstConversion === "boolean" && { isFirstConversion }),
       },

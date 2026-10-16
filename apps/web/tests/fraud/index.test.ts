@@ -257,6 +257,18 @@ describe.concurrent("/fraud/**", async () => {
         matchedCustomerId: firstCustomers[0].id,
       },
     });
+
+    // Only the later variant is flagged, not the original customer
+    const { status, data: firstCustomerEvents } = await http.get<unknown[]>({
+      path: "/fraud/events",
+      query: {
+        customerId: firstCustomers[0].id,
+        type: "customerEmailMatch",
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(firstCustomerEvents).toEqual([]);
   });
 
   test("FraudRuleType = customerEmailSuspiciousDomain", async () => {
