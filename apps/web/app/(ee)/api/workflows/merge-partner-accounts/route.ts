@@ -949,7 +949,8 @@ async function cleanupFraudEvents({
         type: FraudRuleType.partnerDuplicateAccount,
       },
     },
-    include: {
+    select: {
+      id: true,
       fraudEventGroup: {
         select: {
           id: true,
