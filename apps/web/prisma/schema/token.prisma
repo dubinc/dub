@@ -35,6 +35,7 @@ model RestrictedToken {
   @@index([userId])
   @@index([projectId])
   @@index([installationId])
+  @@index([expires])
 }
 
 // Login tokens
