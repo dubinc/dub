@@ -3,22 +3,12 @@ import {
   type PartnerRevenueVisibilityGroup,
 } from "./is-partner-revenue-hidden";
 
-/** Set `saleAmount` to null without mutating the original. */
-export function nullSaleAmount<T extends object>(data: T): T {
-  return { ...data, saleAmount: null };
-}
-
-/** Set `amount` to null without mutating the original. */
-export function nullAmount<T extends object>(data: T): T {
-  return { ...data, amount: null };
-}
-
 /** Null `saleAmount` when revenue data sharing is disabled. */
 export function hidePartnerSaleAmount<T extends object>(
   data: T,
   group: PartnerRevenueVisibilityGroup,
 ): T {
-  return isPartnerRevenueHidden(group) ? nullSaleAmount(data) : data;
+  return isPartnerRevenueHidden(group) ? { ...data, saleAmount: null } : data;
 }
 
 /** Null `totalSaleAmount` when revenue data sharing is disabled. */
@@ -52,7 +42,7 @@ export function nullPartnerEventRevenue<T extends object>(event: T): T {
   }
 
   if (next.link && typeof next.link === "object") {
-    next.link = nullSaleAmount(next.link);
+    next.link = { ...next.link, saleAmount: null };
   }
 
   return next;
@@ -63,13 +53,13 @@ export function nullAnalyticsSaleAmounts<T>(data: T): T {
   if (Array.isArray(data)) {
     return data.map((row) =>
       row && typeof row === "object" && "saleAmount" in row
-        ? nullSaleAmount(row)
+        ? { ...row, saleAmount: null }
         : row,
     ) as T;
   }
 
   if (data && typeof data === "object" && "saleAmount" in data) {
-    return nullSaleAmount(data);
+    return { ...data, saleAmount: null };
   }
 
   return data;

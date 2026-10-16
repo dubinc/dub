@@ -2,7 +2,6 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { DubApiError } from "@/lib/api/errors";
 import { buildPaginationQuery } from "@/lib/api/pagination";
 import { generateRandomName } from "@/lib/names";
-import { nullAmount } from "@/lib/partners/hide-partner-revenue";
 import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma } from "@/lib/prisma";
 import {
@@ -199,7 +198,7 @@ export async function getEarningsForPartner(
       };
 
       return isPartnerRevenueHidden(programEnrollment.partnerGroup)
-        ? nullAmount(earning)
+        ? { ...earning, amount: null }
         : earning;
     }),
   );
