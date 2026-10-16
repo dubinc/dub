@@ -717,6 +717,7 @@ async function stepRunSideEffects(
 
     sendPartnerPostback({
       partnerId,
+      programId,
       event: "commission.created",
       data: commission,
     }),

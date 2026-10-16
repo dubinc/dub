@@ -64,3 +64,29 @@ export function nullAnalyticsSaleAmounts<T>(data: T): T {
 
   return data;
 }
+
+/**
+ * Null sale dollar amounts on partner postback payloads.
+ * - sale.created: nested `sale.amount`
+ * - commission.created: top-level `amount`
+ */
+export function nullPostbackRevenue(
+  event: "sale.created" | "commission.created",
+  data: Record<string, unknown>,
+): Record<string, unknown> {
+  if (event === "commission.created") {
+    return { ...data, amount: null };
+  }
+
+  if (!data.sale || typeof data.sale !== "object") {
+    return data;
+  }
+
+  return {
+    ...data,
+    sale: {
+      ...(data.sale as Record<string, unknown>),
+      amount: null,
+    },
+  };
+}

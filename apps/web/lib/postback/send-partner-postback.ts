@@ -1,3 +1,5 @@
+import { nullPostbackRevenue } from "@/lib/partners/hide-partner-revenue";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { POSTBACK_EVENT_ID_PREFIX } from "@/lib/postback/constants";
 import { prisma } from "@/lib/prisma";
 import { PostbackTrigger } from "@/lib/types";
@@ -12,6 +14,7 @@ interface SendPartnerPostbackParams {
   data: Record<string, unknown>;
   skipEnrichment?: boolean; // Skip enrichment if the data is already enriched when sending a test event
   isTest?: boolean;
+  programId?: string | null;
 }
 
 export const sendPartnerPostback = async ({
@@ -20,6 +23,7 @@ export const sendPartnerPostback = async ({
   data,
   skipEnrichment = false,
   isTest = false,
+  programId,
 }: SendPartnerPostbackParams) => {
   const postbacks = await prisma.postback.findMany({
     where: {
@@ -40,7 +44,7 @@ export const sendPartnerPostback = async ({
     return;
   }
 
-  let enrichedData: Record<string, unknown> | undefined;
+  let enrichedData: Record<string, unknown>;
 
   try {
     enrichedData =
@@ -50,6 +54,18 @@ export const sendPartnerPostback = async ({
   } catch (error) {
     console.error("[sendPartnerPostback] Error enriching data", error);
     return;
+  }
+
+  if (
+    programId &&
+    (event === "sale.created" || event === "commission.created")
+  ) {
+    enrichedData = await applyPostbackRevenueVisibility({
+      partnerId,
+      programId,
+      event,
+      data: enrichedData,
+    });
   }
 
   const adapters = postbacks.map((postback) => {
@@ -74,3 +90,38 @@ export const sendPartnerPostback = async ({
     ),
   );
 };
+
+/** Null sale dollar amounts on postback payloads when the partner group hides revenue. */
+async function applyPostbackRevenueVisibility({
+  partnerId,
+  programId,
+  event,
+  data,
+}: {
+  partnerId: string;
+  programId: string;
+  event: "sale.created" | "commission.created";
+  data: Record<string, unknown>;
+}): Promise<Record<string, unknown>> {
+  const enrollment = await prisma.programEnrollment.findUnique({
+    where: {
+      partnerId_programId: {
+        partnerId,
+        programId,
+      },
+    },
+    select: {
+      partnerGroup: {
+        select: {
+          revenueDataSharingDisabledAt: true,
+        },
+      },
+    },
+  });
+
+  if (!isPartnerRevenueHidden(enrollment?.partnerGroup)) {
+    return data;
+  }
+
+  return nullPostbackRevenue(event, data);
+}
