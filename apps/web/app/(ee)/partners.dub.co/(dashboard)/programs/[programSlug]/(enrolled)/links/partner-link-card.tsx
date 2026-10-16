@@ -274,27 +274,31 @@ const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
           className,
           iconClassName,
           currency,
-        }) => (
-          <div
-            key={tab}
-            className={cn(
-              "flex items-center gap-1.5 whitespace-nowrap rounded px-[5px] py-[3px] transition-colors",
-              className,
-            )}
-          >
-            <Icon
-              data-active={value > 0}
-              className={cn("h-4 w-4 shrink-0", iconClassName)}
-            />
-            <span>
-              {currency
-                ? currencyFormatter(value, {
-                    trailingZeroDisplay: "stripIfInteger",
-                  })
-                : nFormatter(value)}
-            </span>
-          </div>
-        ),
+        }) => {
+          const displayValue = value ?? 0;
+
+          return (
+            <div
+              key={tab}
+              className={cn(
+                "flex items-center gap-1.5 whitespace-nowrap rounded px-[5px] py-[3px] transition-colors",
+                className,
+              )}
+            >
+              <Icon
+                data-active={displayValue > 0}
+                className={cn("h-4 w-4 shrink-0", iconClassName)}
+              />
+              <span>
+                {currency
+                  ? currencyFormatter(displayValue, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })
+                  : nFormatter(displayValue)}
+              </span>
+            </div>
+          );
+        },
       )}
     </As>
   );
