@@ -296,6 +296,15 @@ export const withWorkspace = (
             });
           }
 
+          session = {
+            user: {
+              id: token.user.id,
+              name: token.user.name || "",
+              email: token.user.email || "",
+              isMachine: token.user.isMachine,
+            },
+          };
+
           if (isExpiredWorkspaceKey) {
             expiredTokenWorkspace = { id: token.projectId! };
             throw new DubApiError({
@@ -338,15 +347,6 @@ export const withWorkspace = (
               }
             })(),
           );
-
-          session = {
-            user: {
-              id: token.user.id,
-              name: token.user.name || "",
-              email: token.user.email || "",
-              isMachine: token.user.isMachine,
-            },
-          };
         } else {
           session = await getSession();
 
