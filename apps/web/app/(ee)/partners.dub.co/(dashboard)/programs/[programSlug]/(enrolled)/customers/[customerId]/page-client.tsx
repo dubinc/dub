@@ -192,7 +192,9 @@ const EarningsTable = memo(({ customerId }: { customerId: string }) => {
       }
       viewAllHref={`/programs/${programSlug}/earnings?interval=all&customerId=${customerId}`}
       isLoading={isEarningsLoading}
-      hideSaleAmount={isPartnerRevenueHidden(programEnrollment?.group)}
+      hideSaleAmount={
+        !programEnrollment || isPartnerRevenueHidden(programEnrollment.group)
+      }
     />
   );
 });
