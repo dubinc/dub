@@ -35,12 +35,19 @@ export function sortMessageAttachments<
   );
 }
 
-// Normalize a user-supplied file name
+// Normalize a user-supplied file name into one storage-key segment.
 export function sanitizeFileName(name: string): string {
-  return name
+  const sanitized = name
     .trim()
     .replace(/\s+/g, " ")
-    .replace(/[\x00-\x1F\x7F/\\?#%]/g, (ch) => encodeURIComponent(ch));
+    .replace(/[/\\]/g, "-")
+    .replace(/[\x00-\x1F\x7F?#%]/g, (ch) => encodeURIComponent(ch));
+
+  if (sanitized === "" || sanitized === "." || sanitized === "..") {
+    return "_";
+  }
+
+  return sanitized;
 }
 
 export function isPreviewableImageType(mimeType: string): boolean {

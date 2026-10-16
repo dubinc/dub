@@ -2,9 +2,10 @@
 
 import { testIds } from "@/lib/e2e/test-ids";
 import { useProgramMessagesCount } from "@/lib/messages/hooks/use-program-messages-count";
+import { usePartnerProfileBounties } from "@/lib/swr/use-partner-profile-bounties";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useMediaQuery, type Icon } from "@dub/ui";
-import { Msgs, UserCheck } from "@dub/ui/icons";
+import { Msgs, Trophy, UserCheck } from "@dub/ui/icons";
 import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { OverviewCard } from "./overview-card";
@@ -20,6 +21,9 @@ export function TasksCard({ className }: { className?: string }) {
     status: "invited",
   });
 
+  // the same request as the Bounties badge in the sidebar
+  const { bountiesCount } = usePartnerProfileBounties();
+
   const tasks = [
     {
       icon: Msgs,
@@ -32,6 +36,12 @@ export function TasksCard({ className }: { className?: string }) {
       label: "Review new invitations",
       href: "/programs?tab=invitations",
       count: invitationsCount ?? 0,
+    },
+    {
+      icon: Trophy,
+      label: "Complete bounties",
+      href: "/bounties",
+      count: bountiesCount.active,
     },
   ];
 

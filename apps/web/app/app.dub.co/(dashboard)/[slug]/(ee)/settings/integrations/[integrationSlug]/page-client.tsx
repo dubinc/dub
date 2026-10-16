@@ -8,7 +8,6 @@ import { GoogleAdsSettings } from "@/lib/integrations/google-ads/ui/settings";
 import { HubSpotSettings } from "@/lib/integrations/hubspot/ui/settings";
 import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
 import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { StripeIntegrationSettings } from "@/lib/integrations/stripe/ui/settings";
 import { ZapierSettings } from "@/lib/integrations/zapier/ui/settings";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -79,7 +78,14 @@ export default function IntegrationPageClient({
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { id: workspaceId, slug, plan, role, stripeConnectId } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug,
+    plan,
+    role,
+    stripeConnectId,
+    stripeConnectMode,
+  } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -125,10 +131,7 @@ export default function IntegrationPageClient({
       return null;
     }
 
-    const parsed = stripeIntegrationSettingsSchema.safeParse(
-      integration.settings ?? {},
-    );
-    const mode = parsed.success ? parsed.data.stripeMode : "live";
+    const mode = stripeConnectMode ?? "live";
 
     const variants = {
       live: {
@@ -155,10 +158,10 @@ export default function IntegrationPageClient({
     } as const;
 
     return variants[mode];
-  }, [integration.id, integration.installed, integration.settings]);
+  }, [integration.id, integration.installed, stripeConnectMode]);
 
   const uninstallDisabledIntegrations = {
-    stripe: `https://dashboard.stripe.com/${stripeConnectId}/${stripeConnectionBannerConfig?.title === "Test Mode" ? "test/" : ""}apps/installed/dub.co`,
+    stripe: `https://dashboard.stripe.com/${stripeConnectId}/${stripeConnectMode === "test" ? "test/" : ""}apps/installed/dub.co`,
     intercom:
       "https://app.intercom.com/a/apps/_/settings/app-settings/app-store?app_package_code=dub-ejgb",
   };

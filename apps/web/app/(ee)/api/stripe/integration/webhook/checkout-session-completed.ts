@@ -5,6 +5,7 @@ import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer"
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
@@ -83,6 +84,9 @@ export async function checkoutSessionCompleted({
     const payload = {
       name: stripeCustomerName,
       email: stripeCustomerEmail,
+      ...(stripeCustomerEmail !== undefined && {
+        normalizedEmail: getNormalizedEmail(stripeCustomerEmail),
+      }),
       // stripeCustomerId can potentially be null, so we use email as fallback
       externalId: stripeCustomerId || stripeCustomerEmail,
       projectId: workspace.id,

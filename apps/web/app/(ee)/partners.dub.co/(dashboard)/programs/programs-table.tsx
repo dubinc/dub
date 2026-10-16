@@ -2,7 +2,6 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { usePartnerProgramActivity } from "@/lib/swr/use-partner-profile-earnings";
-import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { PartnerProfileProgramEnrollmentProps } from "@/lib/types";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramInviteActions } from "@/ui/partners/program-invite-actions";
@@ -14,7 +13,6 @@ import {
   Table,
   Tooltip,
   useCopyToClipboard,
-  usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
@@ -24,7 +22,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
-import { PROGRAMS_TABLE_PAGE_SIZE, ProgramTab } from "./program-tabs";
+import { ProgramTab } from "./program-tabs";
+import { useProgramsPage } from "./use-programs-page";
 
 type ProgramColumn = ColumnDef<PartnerProfileProgramEnrollmentProps>;
 
@@ -41,23 +40,21 @@ export function ProgramsTable({
   countError?: unknown;
 }) {
   const router = useRouter();
-  const { searchParams, queryParams } = useRouterStuff();
-  const { pagination, setPagination } = usePagination(PROGRAMS_TABLE_PAGE_SIZE);
+  const { queryParams } = useRouterStuff();
 
-  const sortBy = searchParams.get("sortBy") === "name" ? "name" : undefined;
-  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
-
-  const status = tab.statuses.join(",");
-
-  const { programEnrollments, isLoading, error } = useProgramEnrollments({
-    includeRewardsDiscounts: tab.id === "invitations",
-    includeInactiveDates: tab.id === "inactive",
-    status,
-    search,
-    ...(sortBy && { sortBy }),
+  const {
+    programEnrollments,
+    isLoading,
+    error,
+    pagination,
+    setPagination,
+    sortBy,
     sortOrder,
-    page: pagination.pageIndex,
-    pageSize: pagination.pageSize,
+  } = useProgramsPage({
+    tab,
+    search,
+    count,
+    includeInactiveDates: tab.id === "inactive",
   });
 
   const columns = useMemo(() => getColumns(tab), [tab]);

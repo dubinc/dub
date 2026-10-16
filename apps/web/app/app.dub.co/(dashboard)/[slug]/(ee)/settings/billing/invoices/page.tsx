@@ -2,126 +2,74 @@
 
 import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { INVOICE_PAYMENT_METHODS } from "@/lib/constants/payouts";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InvoiceProps } from "@/lib/types";
-import { PageContent } from "@/ui/layout/page-content";
-import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
   Button,
   buttonVariants,
-  ChevronRight,
   Receipt2,
   StatusBadge,
-  TabSelect,
   useRouterStuff,
 } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { cn, currencyFormatter, fetcher, formatDateTime } from "@dub/utils";
 import { StripeInvoiceStatusBadges } from "app/app.dub.co/(dashboard)/[slug]/(ee)/settings/billing/invoices/stripe-invoice-status-badges";
 import { AlertCircle } from "lucide-react";
-import Link from "next/link";
-import { useMemo } from "react";
 import useSWR from "swr";
-
-const INVOICE_TYPES = [
-  { id: "subscription", label: "Subscription" },
-  { id: "partnerPayout", label: "Partner payouts" },
-  { id: "domainRenewal", label: "Domain renewals" },
-];
+import { INVOICE_TABS, resolveInvoiceType } from "./invoices-nav";
 
 export default function WorkspaceInvoices() {
-  const { slug } = useWorkspace();
-  const { searchParams, queryParams } = useRouterStuff();
-
-  const selectedInvoiceType = useMemo(() => {
-    let type = searchParams.get("type");
-
-    if (type === "payout") {
-      type = "partnerPayout";
-    }
-
-    return INVOICE_TYPES.find((t) => t.id === type) || INVOICE_TYPES[0];
-  }, [searchParams]);
+  const { slug, environment, loading } = useWorkspace();
+  const { searchParams } = useRouterStuff();
+  const environmentReady = !loading && !!environment;
+  const isProduction = isProductionEnvironment(environment);
+  const invoiceType = environmentReady
+    ? resolveInvoiceType(searchParams.get("type"), isProduction)
+    : null;
 
   const { data: invoices } = useSWR<InvoiceProps[]>(
-    `/api/workspaces/${slug}/billing/invoices?type=${selectedInvoiceType.id}`,
+    slug && invoiceType
+      ? `/api/workspaces/${slug}/billing/invoices?type=${invoiceType}`
+      : null,
     fetcher,
   );
 
-  const displayPaymentMethod = selectedInvoiceType.id === "partnerPayout";
+  const displayPaymentMethod = invoiceType === "partnerPayout";
+  const invoiceTypeLabel =
+    INVOICE_TABS.find((tab) => tab.id === invoiceType)?.label ?? "invoice";
 
-  return (
-    <PageContent
-      title={
-        <div className="flex items-center gap-1.5">
-          <Link
-            href={`/${slug}/settings/billing`}
-            className="transition-all duration-150 hover:text-neutral-600 active:scale-95"
-          >
-            Billing
-          </Link>
-          <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
-          <h1>Invoices</h1>
-        </div>
-      }
-    >
-      <PageWidthWrapper>
-        <div className="mb-10 rounded-xl border border-neutral-200 bg-white">
-          <TabSelect
-            className="px-4 md:px-5"
-            options={INVOICE_TYPES}
-            selected={selectedInvoiceType.id}
-            onSelect={(id) => {
-              queryParams({
-                set: {
-                  type: id,
-                },
-              });
-            }}
-          />
-          <div className="grid divide-y divide-neutral-200 border-t border-neutral-200">
-            {invoices ? (
-              invoices.length > 0 ? (
-                invoices.map((invoice) => (
-                  <InvoiceCard
-                    key={invoice.id}
-                    invoice={invoice}
-                    displayPaymentMethod={displayPaymentMethod}
-                    isSubscription={selectedInvoiceType.id === "subscription"}
-                  />
-                ))
-              ) : (
-                <AnimatedEmptyState
-                  title={`No ${selectedInvoiceType.label.toLowerCase()} invoices found`}
-                  description={`You don't have any ${selectedInvoiceType.label.toLowerCase()} invoices yet`}
-                  cardContent={() => (
-                    <>
-                      <Receipt2 className="size-4 text-neutral-700" />
-                      <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-                    </>
-                  )}
-                  className="border-none"
-                />
-              )
-            ) : (
-              <>
-                <InvoiceCardSkeleton
-                  displayPaymentMethod={displayPaymentMethod}
-                />
-                <InvoiceCardSkeleton
-                  displayPaymentMethod={displayPaymentMethod}
-                />
-                <InvoiceCardSkeleton
-                  displayPaymentMethod={displayPaymentMethod}
-                />
-              </>
-            )}
-          </div>
-        </div>
-      </PageWidthWrapper>
-    </PageContent>
+  return invoices ? (
+    invoices.length > 0 ? (
+      invoices.map((invoice) => (
+        <InvoiceCard
+          key={invoice.id}
+          invoice={invoice}
+          displayPaymentMethod={displayPaymentMethod}
+          isSubscription={invoiceType === "subscription"}
+        />
+      ))
+    ) : (
+      <AnimatedEmptyState
+        title={`No ${invoiceTypeLabel.toLowerCase()} invoices found`}
+        description={`You don't have any ${invoiceTypeLabel.toLowerCase()} invoices yet`}
+        cardContent={() => (
+          <>
+            <Receipt2 className="size-4 text-neutral-700" />
+            <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+          </>
+        )}
+        className="border-none"
+      />
+    )
+  ) : (
+    <>
+      <InvoiceCardSkeleton displayPaymentMethod={displayPaymentMethod} />
+      <InvoiceCardSkeleton displayPaymentMethod={displayPaymentMethod} />
+      <InvoiceCardSkeleton displayPaymentMethod={displayPaymentMethod} />
+    </>
   );
 }
 

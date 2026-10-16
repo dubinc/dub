@@ -17,21 +17,24 @@ const querySchema = z.object({
 // TODO: move to GET /invoices
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    if (!workspace.stripeId) {
-      return NextResponse.json([]);
-    }
-
     const { type, stripeStatus } = querySchema.parse(searchParams);
 
-    const invoices =
-      type === "subscription"
-        ? await getSubscriptionInvoices(workspace.stripeId, {
-            status: stripeStatus,
-          })
-        : await getOtherInvoices({
-            workspaceId: workspace.id,
-            type,
-          });
+    if (type === "subscription") {
+      if (!workspace.stripeId) {
+        return NextResponse.json([]);
+      }
+
+      const invoices = await getSubscriptionInvoices(workspace.stripeId, {
+        status: stripeStatus,
+      });
+
+      return NextResponse.json(z.array(InvoiceSchema).parse(invoices));
+    }
+
+    const invoices = await getOtherInvoices({
+      workspaceId: workspace.id,
+      type,
+    });
 
     return NextResponse.json(z.array(InvoiceSchema).parse(invoices));
   },
@@ -96,7 +99,7 @@ const getOtherInvoices = async ({
     return {
       ...invoice,
       description:
-        type === "partnerPayout" ? "Dub Partner payout" : "Dub Domain renewal",
+        type === "partnerPayout" ? "Dub partner payout" : "Dub domain renewal",
       pdfUrl: `${APP_DOMAIN}/invoices/${invoice.id}`,
     };
   });

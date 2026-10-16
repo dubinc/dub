@@ -2,6 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
@@ -132,6 +133,7 @@ export async function attributeViaPromotionCodeId({
       name:
         customerDetails.name || customerDetails.email || generateRandomName(),
       email: customerDetails.email,
+      normalizedEmail: getNormalizedEmail(customerDetails.email),
       externalId: clickEvent.click_id,
       stripeCustomerId,
       linkId: clickEvent.link_id,

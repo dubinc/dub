@@ -150,6 +150,9 @@ export const partnerProfileEarningsQuerySchema =
 export const partnerProfileEarningsCountQuerySchema =
   getPartnerEarningsCountQuerySchema.extend({
     programIdOrSlug: programIdOrSlugSchema,
+    groupBy: z
+      .enum(["linkId", "customerId", "status", "type", "programId"])
+      .optional(),
   });
 
 export const partnerProfileEarningsTimeseriesQuerySchema =

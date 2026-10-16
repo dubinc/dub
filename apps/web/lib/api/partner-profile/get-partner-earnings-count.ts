@@ -1,10 +1,11 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
-import { getPartnerEarningsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
+import { partnerProfileEarningsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { getEarningsProgramFilter } from "./get-earnings-program-id";
+import { programSelect } from "./get-partner-earnings-by-group";
 import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
 
 export async function getPartnerEarningsCount({
@@ -14,7 +15,10 @@ export async function getPartnerEarningsCount({
 }: {
   partnerId: string;
   programId?: string; // if not provided, earnings across all programs (except the network program) are counted
-  filters: z.infer<typeof getPartnerEarningsCountQuerySchema>;
+  filters: Omit<
+    z.infer<typeof partnerProfileEarningsCountQuerySchema>,
+    "programIdOrSlug"
+  >;
 }) {
   const {
     groupBy,
@@ -63,6 +67,7 @@ export async function getPartnerEarningsCount({
     return { count };
   }
 
+  // each group has its count and its total earnings, highest earnings first
   const groupedWhere: Prisma.CommissionWhereInput = {
     ...where,
     ...(type && groupBy !== "type" && { type }),
@@ -73,13 +78,20 @@ export async function getPartnerEarningsCount({
 
   if (groupBy === "customerId") {
     // grouped by program too, since customer data sharing is set per program enrollment
+    // exclude null customerId so the Customer filter has no empty option
     const counts = await prisma.commission.groupBy({
       by: ["customerId", "programId"],
-      where: groupedWhere,
+      where: {
+        ...groupedWhere,
+        customerId: { not: null },
+      },
       _count: true,
+      _sum: {
+        earnings: true,
+      },
       orderBy: {
-        _count: {
-          customerId: "desc",
+        _sum: {
+          earnings: "desc",
         },
       },
     });
@@ -121,7 +133,7 @@ export async function getPartnerEarningsCount({
       ]),
     );
 
-    return counts.map(({ customerId, programId, _count }) => {
+    return counts.map(({ customerId, programId, _count, _sum }) => {
       const customer = customerId ? customersById.get(customerId) : undefined;
       const customerDataSharingEnabledAt =
         dataSharingByProgramId.get(programId);
@@ -134,17 +146,25 @@ export async function getPartnerEarningsCount({
             : obfuscateCustomerEmail(customer.email)
           : customer?.name || generateRandomName(),
         _count,
+        earnings: _sum.earnings ?? 0,
       };
     });
   }
 
   const counts = await prisma.commission.groupBy({
     by: [groupBy],
-    where: groupedWhere,
+    where: {
+      ...groupedWhere,
+      // exclude null linkId so the Link filter has no empty option
+      ...(groupBy === "linkId" && { linkId: { not: null } }),
+    },
     _count: true,
+    _sum: {
+      earnings: true,
+    },
     orderBy: {
-      _count: {
-        [groupBy]: "desc",
+      _sum: {
+        earnings: "desc",
       },
     },
   });
@@ -173,18 +193,51 @@ export async function getPartnerEarningsCount({
 
     const linksById = new Map(links.map((l) => [l.id, l]));
 
-    return counts.map(({ linkId, _count }) => {
-      const link = linkId ? linksById.get(linkId) : undefined;
+    return counts.flatMap(({ linkId, _count, _sum }) => {
+      if (!linkId) return [];
+      const link = linksById.get(linkId);
+      if (!link) return [];
+      return [
+        {
+          id: linkId,
+          domain: link.domain,
+          key: link.key,
+          url: link.url,
+          partnerLinkTitle: link.partnerLinkDetails?.title ?? null,
+          _count,
+          earnings: _sum.earnings ?? 0,
+        },
+      ];
+    });
+  }
+
+  if (groupBy === "programId") {
+    const programs = await prisma.program.findMany({
+      where: {
+        id: {
+          in: counts.map(({ programId }) => programId),
+        },
+      },
+      select: programSelect,
+    });
+
+    const programsById = new Map(programs.map((p) => [p.id, p]));
+
+    return counts.map(({ programId, _count, _sum }) => {
+      const program = programsById.get(programId);
       return {
-        id: linkId,
-        domain: link?.domain,
-        key: link?.key,
-        url: link?.url,
-        partnerLinkTitle: link?.partnerLinkDetails?.title ?? null,
+        id: programId,
+        name: program?.name,
+        slug: program?.slug,
+        logo: program?.logo,
         _count,
+        earnings: _sum.earnings ?? 0,
       };
     });
   }
 
-  return counts;
+  return counts.map(({ _sum, ...group }) => ({
+    ...group,
+    earnings: _sum.earnings ?? 0,
+  }));
 }

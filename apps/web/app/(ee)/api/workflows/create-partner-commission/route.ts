@@ -574,6 +574,7 @@ async function stepRunSideEffects(
       slug: true,
       logo: true,
       supportEmail: true,
+      environment: true,
       workspace: {
         select: {
           id: true,
@@ -604,14 +605,14 @@ async function stepRunSideEffects(
 
   if (shouldRunRiskMonitoring) {
     const triggeredRules = await detectAndRecordFraudEvent({
-      program: { id: programId },
+      program: { id: programId, workspaceId: workspace.id },
       partner: pick(programEnrollment.partner, ["id", "email", "name"]),
       programEnrollment: pick(programEnrollment, [
         "status",
         "riskMonitoringDisabledAt",
       ]),
       customer: {
-        ...pick(commission.customer!, ["id", "email", "name"]),
+        ...pick(commission.customer!, ["id", "email", "name", "createdAt"]),
         // only pass along isFirstConversion if it's a boolean
         ...(typeof isFirstConversion === "boolean" && { isFirstConversion }),
       },

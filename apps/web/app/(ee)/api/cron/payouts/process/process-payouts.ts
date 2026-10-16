@@ -346,6 +346,7 @@ export async function processPayouts({
         workspace,
         program: {
           name: program.name,
+          environment: program.environment,
         },
         payout: {
           amount: totalPayoutAmount,

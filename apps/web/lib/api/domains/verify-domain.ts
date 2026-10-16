@@ -1,5 +1,8 @@
 import { sleep } from "@dub/utils";
+import { assertValidDomainFormat } from "./utils";
+
 export const verifyDomain = async (domain: string) => {
+  assertValidDomainFormat(domain);
   const res = await fetch(
     `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains/${domain.toLowerCase()}/verify?teamId=${process.env.TEAM_ID_VERCEL}`,
     {

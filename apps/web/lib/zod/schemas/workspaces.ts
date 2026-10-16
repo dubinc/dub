@@ -4,6 +4,7 @@ import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import {
   DubProduct,
   PlanPeriod,
+  StripeConnectMode,
   WorkspaceEnvironment,
   WorkspaceRole,
 } from "@prisma/client";
@@ -82,6 +83,12 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("The Stripe Connect ID of the workspace."),
+    stripeConnectMode: z
+      .enum(StripeConnectMode)
+      .nullish()
+      .describe(
+        "The Stripe mode the workspace's Stripe account is connected in.",
+      ),
     totalLinks: z
       .number()
       .describe("The total number of links in the workspace."),
