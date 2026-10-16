@@ -1,5 +1,6 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { hidePartnerLinkSaleAmount } from "@/lib/partners/hide-partner-revenue";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { Reward } from "@prisma/client";
 import { NextResponse } from "next/server";
@@ -38,11 +39,16 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     programEnrollment.customReward,
   ].filter((r): r is Reward => r !== null);
 
+  const { partnerGroup } = programEnrollment;
+
   return NextResponse.json(
     ProgramEnrollmentSchema.parse({
       ...programEnrollment,
+      links: programEnrollment.links?.map((link) =>
+        hidePartnerLinkSaleAmount(link, partnerGroup),
+      ),
       rewards,
-      group: programEnrollment.partnerGroup,
+      group: partnerGroup,
       application: programEnrollment.application
         ? {
             rejectionReason: programEnrollment.application.rejectionReason,

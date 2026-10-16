@@ -114,7 +114,7 @@ export const POST = withWorkspace(
         landerData,
         holdingPeriodDays,
         autoApprovePartnersEnabledAt,
-        hideRevenueFromPartnersAt,
+        revenueDataSharingDisabledAt,
         submittedLeadFormData,
         submittedLeadsEnabledAt,
       } = program.groups[0];
@@ -131,7 +131,7 @@ export const POST = withWorkspace(
           brandColor,
           holdingPeriodDays,
           autoApprovePartnersEnabledAt,
-          hideRevenueFromPartnersAt,
+          revenueDataSharingDisabledAt,
           submittedLeadsEnabledAt,
           ...(additionalLinks && {
             additionalLinks: sanitizeAdditionalLinks(additionalLinks),

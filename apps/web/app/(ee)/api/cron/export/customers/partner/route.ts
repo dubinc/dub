@@ -68,7 +68,7 @@ export const POST = withCron(async ({ rawBody }) => {
         },
         partnerGroup: {
           select: {
-            hideRevenueFromPartnersAt: true,
+            revenueDataSharingDisabledAt: true,
           },
         },
       },

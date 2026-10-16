@@ -44,7 +44,7 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
     brandColor,
     holdingPeriodDays,
     autoApprovePartnersEnabledAt,
-    hideRevenueFromPartnersAt,
+    revenueDataSharingDisabledAt,
     additionalLinks,
     maxPartnerLinks,
     linkStructure,
@@ -94,7 +94,7 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
           brandColor,
           holdingPeriodDays,
           autoApprovePartnersEnabledAt,
-          hideRevenueFromPartnersAt,
+          revenueDataSharingDisabledAt,
           submittedLeadsEnabledAt,
           ...(additionalLinks && {
             additionalLinks: sanitizeAdditionalLinks(additionalLinks),

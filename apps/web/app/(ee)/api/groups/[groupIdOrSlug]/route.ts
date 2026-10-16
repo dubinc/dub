@@ -62,7 +62,7 @@ export const PATCH = withWorkspace(
       landerData,
       holdingPeriodDays,
       autoApprovePartners,
-      hideRevenueFromPartners,
+      revenueDataSharingDisabled,
       updateAutoApprovePartnersForAllGroups,
       updateHoldingPeriodDaysForAllGroups,
       moveRules,
@@ -154,8 +154,8 @@ export const PATCH = withWorkspace(
                 ? new Date()
                 : null,
             }),
-          ...(hideRevenueFromPartners !== undefined && {
-            hideRevenueFromPartnersAt: hideRevenueFromPartners
+          ...(revenueDataSharingDisabled !== undefined && {
+            revenueDataSharingDisabledAt: revenueDataSharingDisabled
               ? new Date()
               : null,
           }),
