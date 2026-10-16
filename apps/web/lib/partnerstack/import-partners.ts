@@ -60,31 +60,32 @@ export async function importPartners(payload: PartnerStackImportPayload) {
       break;
     }
 
-    const results = await Promise.allSettled(
+    // Filled as soon as each enrollment is saved, so a partner whose later step
+    // throws still reaches the search sync and the ban check.
+    const enrolledPartnerIds: string[] = [];
+
+    await Promise.allSettled(
       partners.map((partner) =>
         createPartner({
           program,
           partner,
           group: groupMap[partner.group?.slug ?? DEFAULT_PARTNER_GROUP.slug],
           importId,
+          enrolledPartnerIds,
         }),
       ),
-    );
-
-    const partnerIds = results.flatMap((result) =>
-      result.status === "fulfilled" && result.value ? [result.value] : [],
     );
 
     // Queue an index update because the imported partners were enrolled. Queued
     // per page rather than per partner.
     await queuePartnerSearchSync({
-      partnerIds,
+      partnerIds: enrolledPartnerIds,
       programId,
     });
 
     await detectAndRecordNetworkLevelBans({
       programId,
-      partnerIds,
+      partnerIds: enrolledPartnerIds,
     });
 
     await sleep(2000);
@@ -137,11 +138,13 @@ async function createPartner({
   partner,
   group,
   importId,
+  enrolledPartnerIds,
 }: {
   program: Program;
   partner: PartnerStackPartner;
   group: PartnerGroup;
   importId: string;
+  enrolledPartnerIds: string[];
 }) {
   const commonImportLogInputs = {
     workspace_id: program.workspaceId,
@@ -207,6 +210,8 @@ async function createPartner({
     },
   });
 
+  enrolledPartnerIds.push(partnerId);
+
   if (!preservedBan) {
     await approveLinkedApplication({
       applicationId: enrollment.applicationId,
@@ -221,8 +226,6 @@ async function createPartner({
       [partner.key]: partnerId,
     });
   } catch (error) {
-    // The enrollment is already committed, so its ID must still reach the
-    // page-level search sync even when the mapping write fails.
     console.error("Failed to map imported partner key", error, partner.key);
   }
 

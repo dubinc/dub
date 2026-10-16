@@ -110,6 +110,10 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
     }
 
     if (activeAffiliates.length > 0) {
+      // Filled as soon as each enrollment is saved, so a partner whose later
+      // step throws still reaches the search sync and the ban check.
+      const enrolledPartnerIds: string[] = [];
+
       const results = await Promise.allSettled(
         activeAffiliates.map((affiliate) =>
           createPartnerAndLinks({
@@ -119,6 +123,7 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
             group: defaultGroup,
             userId,
             importId,
+            enrolledPartnerIds,
           }),
         ),
       );
@@ -142,20 +147,16 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
         );
       }
 
-      const partnerIds = results.flatMap((result) =>
-        result.status === "fulfilled" && result.value ? [result.value] : [],
-      );
-
       // Queue an index update because the imported partners were enrolled.
       // Queued per page rather than per partner.
       await queuePartnerSearchSync({
-        partnerIds,
+        partnerIds: enrolledPartnerIds,
         programId: program.id,
       });
 
       await detectAndRecordNetworkLevelBans({
         programId: program.id,
-        partnerIds,
+        partnerIds: enrolledPartnerIds,
       });
     }
 
@@ -188,6 +189,7 @@ async function createPartnerAndLinks({
   group,
   userId,
   importId,
+  enrolledPartnerIds,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan">;
   program: Pick<
@@ -207,6 +209,7 @@ async function createPartnerAndLinks({
   >;
   userId: string;
   importId: string;
+  enrolledPartnerIds: string[];
 }) {
   if (!affiliate.user_email) {
     await logImportError({
@@ -258,6 +261,8 @@ async function createPartnerAndLinks({
       },
     },
   });
+
+  enrolledPartnerIds.push(partner.id);
 
   if (preservedBan) {
     return partner.id;
