@@ -40,6 +40,95 @@ async function createPartnerProfileAuth(
   return { token, userId: user.id };
 }
 
+test("GET /partner-profile/users – sorted by PartnerUser createdAt asc", async ({
+  playwright,
+}) => {
+  let partnerId: string | undefined;
+  const userIds: string[] = [];
+
+  try {
+    const partner = await prisma.partner.create({
+      data: {
+        id: createId({ prefix: "pn_" }),
+        name: randomName("partner"),
+        email: randomPartnerEmail(),
+      },
+    });
+    partnerId = partner.id;
+
+    const owner = await createPartnerProfileAuth(partner);
+    userIds.push(owner.userId);
+
+    const later = new Date("2030-01-02T00:00:00.000Z");
+    const earlier = new Date("2030-01-01T00:00:00.000Z");
+
+    const [laterUser, earlierUser] = await Promise.all([
+      prisma.user.create({
+        data: {
+          id: createId({ prefix: "user_" }),
+          email: randomPartnerEmail(),
+          emailVerified: new Date(),
+          partners: {
+            create: {
+              partnerId: partner.id,
+              role: "member",
+              createdAt: later,
+            },
+          },
+        },
+      }),
+      prisma.user.create({
+        data: {
+          id: createId({ prefix: "user_" }),
+          email: randomPartnerEmail(),
+          emailVerified: new Date(),
+          partners: {
+            create: {
+              partnerId: partner.id,
+              role: "member",
+              createdAt: earlier,
+            },
+          },
+        },
+      }),
+    ]);
+    userIds.push(laterUser.id, earlierUser.id);
+
+    const { api: partnerApi, dispose } = await createBearerApiClient({
+      playwright,
+      token: owner.token,
+    });
+
+    try {
+      const { status, data: users } = await partnerApi.get<
+        { id: string | null; createdAt: string }[]
+      >("/api/partner-profile/users");
+
+      expect(status).toEqual(200);
+
+      const createdAts = users.map((user) =>
+        new Date(user.createdAt).getTime(),
+      );
+      expect(createdAts).toEqual([...createdAts].sort((a, b) => a - b));
+
+      const earlierIndex = users.findIndex((user) => user.id === earlierUser.id);
+      const laterIndex = users.findIndex((user) => user.id === laterUser.id);
+      expect(earlierIndex).toBeGreaterThanOrEqual(0);
+      expect(laterIndex).toBeGreaterThanOrEqual(0);
+      expect(earlierIndex).toBeLessThan(laterIndex);
+    } finally {
+      await dispose();
+    }
+  } finally {
+    await Promise.all(
+      userIds.map((id) => prisma.user.delete({ where: { id } })),
+    );
+    if (partnerId) {
+      await conn.execute(`DELETE FROM Partner WHERE id = ?`, [partnerId]);
+    }
+  }
+});
+
 test("DELETE /partner-profile/users - clears defaultPartnerId", async ({
   playwright,
 }) => {

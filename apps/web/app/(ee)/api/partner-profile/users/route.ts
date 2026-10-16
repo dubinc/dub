@@ -41,6 +41,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     include: {
       user: true,
     },
+    orderBy: {
+      createdAt: "asc",
+    },
   });
 
   const parsedUsers = users.map(({ user, ...rest }) =>
