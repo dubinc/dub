@@ -1,10 +1,10 @@
-import {
-  AccountNotFoundError,
-  getSocialProfile,
-} from "@/lib/api/scrape-creators/get-social-profile";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
+import {
+  AccountNotFoundError,
+  getSocialProfile,
+} from "@/lib/scrape-creators/get-social-profile";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { subDays } from "date-fns";
 import * as z from "zod/v4";
