@@ -144,12 +144,14 @@ export const GET = withPartnerProfile(
           ? nullifyAnalyticsSaleAmounts(formatted)
           : formatted;
       },
-      getAnalyticsParams: () =>
-        parsedParams.linkId
+      getAnalyticsParams: () => ({
+        includePartnerLinkTitle: true,
+        ...(parsedParams.linkId
           ? { linkId: parsedParams.linkId }
           : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
             ? { partnerId: partner.id }
-            : { linkId: parseFilterValue(links.map((link) => link.id)) },
+            : { linkId: parseFilterValue(links.map((link) => link.id)) }),
+      }),
       getDataAvailableFrom: () => dataAvailableFrom,
     });
 
