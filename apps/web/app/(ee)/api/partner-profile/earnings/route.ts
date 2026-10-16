@@ -18,6 +18,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     ...filters,
     programId,
     partnerId: partner.id,
+    includePartnerLinkTitle: true,
   });
 
   return NextResponse.json(earnings);

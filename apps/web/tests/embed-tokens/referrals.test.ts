@@ -80,6 +80,29 @@ describe.sequential("POST /api/tokens/embed/referrals", async () => {
     expect(data).toStrictEqual(expectedTokenResponse);
   });
 
+  test("embed earnings do not include the partner link title", async () => {
+    const { data: token } = await http.post<{ publicToken: string }>({
+      path: "/tokens/embed/referrals",
+      body: {
+        partnerId: E2E_PARTNER.id,
+      },
+    });
+
+    const { data, status } = await http.get<
+      { link?: Record<string, unknown> | null }[]
+    >({
+      path: "/embed/referrals/earnings",
+      headers: {
+        Authorization: `Bearer ${token.publicToken}`,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(
+      data.every(({ link }) => !link || !("partnerLinkTitle" in link)),
+    ).toBe(true);
+  });
+
   test("fails with no partnerId, tenantId, or partner", async () => {
     const { data, status } = await http.post({
       path: "/tokens/embed/referrals",
