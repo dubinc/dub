@@ -2,6 +2,7 @@
 
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
   PARTNER_CUSTOMER_EXPORT_COLUMNS,
@@ -47,9 +48,11 @@ function ExportPartnerCustomersModal({
 
   const columnCheckboxId = useId();
 
-  const ltvExcluded = CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
-    programEnrollment?.programId ?? "",
-  );
+  const ltvExcluded =
+    !programEnrollment ||
+    CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(programEnrollment.programId) ||
+    isPartnerRevenueHidden(programEnrollment.group);
+
   const sharingEnabled = Boolean(
     programEnrollment?.customerDataSharingEnabledAt,
   );

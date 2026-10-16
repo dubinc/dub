@@ -9,10 +9,9 @@ import { cn, getApexDomain, linkConstructor } from "@dub/utils";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
-type PartnerLinkOption = Pick<
-  LinkProps,
-  "id" | "domain" | "key" | "url" | "saleAmount"
->;
+type PartnerLinkOption = Pick<LinkProps, "id" | "domain" | "key" | "url"> & {
+  saleAmount?: number | null;
+};
 
 const getLinkOption = (link: PartnerLinkOption) => ({
   value: link.id,
@@ -99,7 +98,7 @@ export function PartnerLinkSelector({
     if (!links?.length) return null;
 
     return links.reduce((best, current) =>
-      current.saleAmount > best.saleAmount ? current : best,
+      (current.saleAmount ?? 0) > (best.saleAmount ?? 0) ? current : best,
     );
   }, [links]);
 

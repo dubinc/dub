@@ -62,8 +62,10 @@ export const PATCH = withWorkspace(
       landerData,
       holdingPeriodDays,
       autoApprovePartners,
+      revenueDataSharingDisabled,
       updateAutoApprovePartnersForAllGroups,
       updateHoldingPeriodDaysForAllGroups,
+      updateRevenueDataSharingDisabledForAllGroups,
       moveRules,
     } = updateGroupSchema.parse(await parseRequestBody(req));
 
@@ -125,7 +127,7 @@ export const PATCH = withWorkspace(
       moveRules,
     });
 
-    const [updatedGroup] = await Promise.all([
+    const [updatedGroup] = await prisma.$transaction([
       prisma.partnerGroup.update({
         where: {
           id: group.id,
@@ -150,6 +152,12 @@ export const PATCH = withWorkspace(
           ...(autoApprovePartners !== undefined &&
             !updateAutoApprovePartnersForAllGroups && {
               autoApprovePartnersEnabledAt: autoApprovePartners
+                ? new Date()
+                : null,
+            }),
+          ...(revenueDataSharingDisabled !== undefined &&
+            !updateRevenueDataSharingDisabledForAllGroups && {
+              revenueDataSharingDisabledAt: revenueDataSharingDisabled
                 ? new Date()
                 : null,
             }),
@@ -189,6 +197,22 @@ export const PATCH = withWorkspace(
               },
               data: {
                 holdingPeriodDays,
+              },
+            }),
+          ]
+        : []),
+      // Update revenue data sharing for all groups if selected
+      ...(revenueDataSharingDisabled !== undefined &&
+      updateRevenueDataSharingDisabledForAllGroups
+        ? [
+            prisma.partnerGroup.updateMany({
+              where: {
+                programId,
+              },
+              data: {
+                revenueDataSharingDisabledAt: revenueDataSharingDisabled
+                  ? new Date()
+                  : null,
               },
             }),
           ]
