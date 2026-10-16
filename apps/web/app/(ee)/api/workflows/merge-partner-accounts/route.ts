@@ -997,29 +997,32 @@ async function cleanupFraudEvents({
   if (sourceFraudGroups.length > 0) {
     const sourceFraudGroupIds = pluck(sourceFraudGroups, "id");
 
-    await prisma.fraudEventGroup.updateMany({
-      where: {
-        id: {
-          in: sourceFraudGroupIds,
+    // Move groups and events together. A retry cannot find these groups once
+    // they are moved, and the source partner delete would remove the events.
+    await prisma.$transaction([
+      prisma.fraudEventGroup.updateMany({
+        where: {
+          id: {
+            in: sourceFraudGroupIds,
+          },
+          status: FraudEventStatus.pending,
         },
-        status: FraudEventStatus.pending,
-      },
-      data: {
-        partnerId: targetPartnerId,
-      },
-    });
-
-    await prisma.fraudEvent.updateMany({
-      where: {
-        fraudEventGroupId: {
-          in: sourceFraudGroupIds,
+        data: {
+          partnerId: targetPartnerId,
         },
-        partnerId: sourcePartnerId,
-      },
-      data: {
-        partnerId: targetPartnerId,
-      },
-    });
+      }),
+      prisma.fraudEvent.updateMany({
+        where: {
+          fraudEventGroupId: {
+            in: sourceFraudGroupIds,
+          },
+          partnerId: sourcePartnerId,
+        },
+        data: {
+          partnerId: targetPartnerId,
+        },
+      }),
+    ]);
   }
 
   // Bucket group ids by the partner whose held commissions should be released.
