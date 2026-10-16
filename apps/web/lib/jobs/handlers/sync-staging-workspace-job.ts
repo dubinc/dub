@@ -166,7 +166,6 @@ async function syncMember({
         ...activeRestrictedTokenWhere(now),
       },
       select: {
-        id: true,
         hashedKey: true,
       },
     }),
@@ -195,20 +194,17 @@ async function syncMember({
       },
     }),
 
-    ...(workspaceKeys.length > 0
-      ? [
-          prisma.restrictedToken.updateMany({
-            where: {
-              id: {
-                in: pluck(workspaceKeys, "id"),
-              },
-            },
-            data: {
-              expires: now,
-            },
-          }),
-        ]
-      : []),
+    prisma.restrictedToken.updateMany({
+      where: {
+        projectId: workspace.stagingWorkspaceId,
+        userId,
+        installationId: null,
+        ...activeRestrictedTokenWhere(now),
+      },
+      data: {
+        expires: now,
+      },
+    }),
 
     // delete() instead of deleteMany: relationMode is "prisma", so onDelete
     // cascades (access tokens, refresh tokens, webhooks) run per delete only.

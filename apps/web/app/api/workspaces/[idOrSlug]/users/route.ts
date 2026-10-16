@@ -183,7 +183,6 @@ export const DELETE = withWorkspace(
           ...activeRestrictedTokenWhere(now),
         },
         select: {
-          id: true,
           hashedKey: true,
           lastUsed: true,
         },
@@ -227,21 +226,17 @@ export const DELETE = withWorkspace(
       }),
 
       // Remove tokens associated with the user from the workspace
-      ...(workspaceKeys.length > 0
-        ? [
-            prisma.restrictedToken.updateMany({
-              where: {
-                id: {
-                  in: pluck(workspaceKeys, "id"),
-                },
-                expires: null,
-              },
-              data: {
-                expires: now,
-              },
-            }),
-          ]
-        : []),
+      prisma.restrictedToken.updateMany({
+        where: {
+          projectId: workspace.id,
+          userId,
+          installationId: null,
+          ...activeRestrictedTokenWhere(now),
+        },
+        data: {
+          expires: now,
+        },
+      }),
 
       // Remove installations associated with the user from the workspace.
       // delete() instead of deleteMany: relationMode is "prisma", so onDelete
