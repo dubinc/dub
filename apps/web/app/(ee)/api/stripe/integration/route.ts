@@ -56,28 +56,32 @@ export const PATCH = withWorkspace(
     }
 
     try {
-      const response = await prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          stripeConnectId: stripeAccountId,
-          // stripeMode always defaults to "live", so clear it explicitly on disconnect
-          stripeConnectMode: stripeAccountId ? stripeMode : null,
-        },
-        select: {
-          stripeConnectId: true,
-        },
-      });
-
-      // Uninstall the integration if the stripe account id is null
-      if (stripeAccountId === null) {
-        await prisma.installedIntegration.delete({
+      const response = await prisma.$transaction(async (tx) => {
+        const project = await tx.project.update({
           where: {
-            id: installation.id,
+            id: workspace.id,
+          },
+          data: {
+            stripeConnectId: stripeAccountId,
+            // stripeMode always defaults to "live", so clear it explicitly on disconnect
+            stripeConnectMode: stripeAccountId ? stripeMode : null,
+          },
+          select: {
+            stripeConnectId: true,
           },
         });
-      }
+
+        // Uninstall the integration if the stripe account id is null
+        if (stripeAccountId === null) {
+          await tx.installedIntegration.delete({
+            where: {
+              id: installation.id,
+            },
+          });
+        }
+
+        return project;
+      });
 
       return NextResponse.json(response, {
         headers: CORS_HEADERS,
