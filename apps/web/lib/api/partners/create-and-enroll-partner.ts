@@ -12,6 +12,7 @@ import { nanoid } from "@dub/utils";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
+import { detectAndRecordNetworkLevelBans } from "../fraud/detect-network-level-bans";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { throwIfInvalidPartnerTags } from "../partner-tags/throw-if-invalid-partner-tags";
 import {
@@ -296,6 +297,11 @@ export const createAndEnrollPartner = async ({
           programId: program.id,
           partnerIds: [existingOrNewPartner.id],
         }),
+
+      detectAndRecordNetworkLevelBans({
+        programId: program.id,
+        partnerIds: [existingOrNewPartner.id],
+      }),
     ]),
   );
 

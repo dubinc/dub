@@ -2,6 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
+import { detectAndRecordNetworkLevelBans } from "@/lib/api/fraud/detect-network-level-bans";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
@@ -205,6 +206,11 @@ export const bulkInvitePartnersAction = authActionClient
             `Created ${links.length} links for the partner for the default link ${partnerGroupDefaultLink.id}`,
           );
         }
+
+        await detectAndRecordNetworkLevelBans({
+          programId,
+          partnerIds: partners.map(({ id }) => id),
+        });
 
         // Queue an index update because the partners were enrolled. createMany
         // returns no IDs, so this passes partners and lets the job resolve
