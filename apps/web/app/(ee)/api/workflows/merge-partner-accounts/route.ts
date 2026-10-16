@@ -17,7 +17,7 @@ import { partnerMergedWebhookSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { pluck, prettyPrint, R2_URL } from "@dub/utils";
-import { FraudEventStatus, FraudRuleType } from "@prisma/client";
+import { FraudEventStatus, FraudRuleType, Prisma } from "@prisma/client";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
 import { logAndReturn } from "../../cron/utils";
@@ -603,6 +603,15 @@ async function mergeSingleEnrollment({
         });
       }
 
+      // The enrollment delete cascades to its fraud groups, so move the pending
+      // ones first. The release check must still see them on the target.
+      await moveSourceFraudGroups({
+        tx,
+        sourcePartnerId,
+        targetPartnerId,
+        programId,
+      });
+
       await tx.programEnrollment.deleteMany({
         where: { id: sourceEnrollment.id, partnerId: sourcePartnerId },
       });
@@ -934,6 +943,71 @@ async function deleteSourceUser({ sourceUserId }: { sourceUserId: string }) {
   }
 }
 
+// Moves the source's pending fraud groups onto the target so the release
+// check still sees customer-level groups and cross-program bans.
+async function moveSourceFraudGroups({
+  tx,
+  sourcePartnerId,
+  targetPartnerId,
+  programId,
+}: {
+  tx: Prisma.TransactionClient;
+  sourcePartnerId: string;
+  targetPartnerId: string;
+  programId?: string;
+}) {
+  const sourceFraudGroups = await tx.fraudEventGroup.findMany({
+    where: {
+      partnerId: sourcePartnerId,
+      status: FraudEventStatus.pending,
+      ...(programId && { programId }),
+    },
+    select: {
+      id: true,
+      type: true,
+    },
+  });
+
+  if (sourceFraudGroups.length === 0) {
+    return;
+  }
+
+  await tx.fraudEventGroup.updateMany({
+    where: {
+      id: {
+        in: pluck(sourceFraudGroups, "id"),
+      },
+      status: FraudEventStatus.pending,
+    },
+    data: {
+      partnerId: targetPartnerId,
+    },
+  });
+
+  // A duplicate-account event's partnerId names the duplicate, so keep the
+  // source ones. cleanupFraudEvents deletes them.
+  const otherGroupIds = pluck(
+    sourceFraudGroups.filter(
+      (group) => group.type !== FraudRuleType.partnerDuplicateAccount,
+    ),
+    "id",
+  );
+
+  if (otherGroupIds.length > 0) {
+    await tx.fraudEvent.updateMany({
+      where: {
+        fraudEventGroupId: {
+          in: otherGroupIds,
+        },
+        partnerId: sourcePartnerId,
+      },
+      data: {
+        partnerId: targetPartnerId,
+      },
+    });
+  }
+}
+
 async function cleanupFraudEvents({
   sourcePartnerId,
   targetPartnerId,
@@ -981,50 +1055,16 @@ async function cleanupFraudEvents({
     (e) => e.fraudEventGroup._count.fraudEvents === 2,
   );
 
-  // Move every pending source group onto the target, which now holds the
-  // commissions. Customer-level groups and cross-program bans stay pending so
-  // the release check can still see them. Only cleared duplicate-account
-  // groups are resolved below.
-  const sourceFraudGroups = await prisma.fraudEventGroup.findMany({
-    where: {
-      partnerId: sourcePartnerId,
-      status: FraudEventStatus.pending,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (sourceFraudGroups.length > 0) {
-    const sourceFraudGroupIds = pluck(sourceFraudGroups, "id");
-
-    // Move groups and events together. A retry cannot find these groups once
-    // they are moved, and the source partner delete would remove the events.
-    await prisma.$transaction([
-      prisma.fraudEventGroup.updateMany({
-        where: {
-          id: {
-            in: sourceFraudGroupIds,
-          },
-          status: FraudEventStatus.pending,
-        },
-        data: {
-          partnerId: targetPartnerId,
-        },
-      }),
-      prisma.fraudEvent.updateMany({
-        where: {
-          fraudEventGroupId: {
-            in: sourceFraudGroupIds,
-          },
-          partnerId: sourcePartnerId,
-        },
-        data: {
-          partnerId: targetPartnerId,
-        },
-      }),
-    ]);
-  }
+  // Move the pending source groups that are left onto the target, which now
+  // holds the commissions. Overlap merges already moved theirs. Only cleared
+  // duplicate-account groups are resolved below.
+  await prisma.$transaction((tx) =>
+    moveSourceFraudGroups({
+      tx,
+      sourcePartnerId,
+      targetPartnerId,
+    }),
+  );
 
   // Bucket group ids by the partner whose held commissions should be released.
   const groupIdsByPartnerId = new Map<string, string[]>();
