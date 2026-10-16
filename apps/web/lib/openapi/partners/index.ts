@@ -1,4 +1,5 @@
 import { ZodOpenApiPathsObject } from "zod-openapi";
+import { attributeReferral } from "./attribute-referral";
 import { banPartner } from "./ban-partner";
 import { createPartner } from "./create-partner";
 import { createPartnerLink } from "./create-partner-link";
@@ -22,6 +23,9 @@ export const partnersPaths: ZodOpenApiPathsObject = {
   },
   "/partners/analytics": {
     get: retrievePartnerAnalytics,
+  },
+  "/partners/{partnerId}/referral": {
+    post: attributeReferral,
   },
   "/partners/ban": {
     post: banPartner,
