@@ -6,13 +6,14 @@ import { markProgramMessagesReadAction } from "@/lib/messages/mark-program-messa
 import { messageProgramAction } from "@/lib/messages/message-program";
 import { uploadPartnerMessageAttachmentAction } from "@/lib/messages/upload-partner-message-attachment";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useUser from "@/lib/swr/use-user";
-import { ProgramEnrollmentProps } from "@/lib/types";
+import { PartnerProfileProgramEnrollmentProps } from "@/lib/types";
 import {
   COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
   INACTIVE_ENROLLMENT_STATUSES,
@@ -445,7 +446,7 @@ export default function PartnerMessagesProgramPage() {
 function ProgramInfoPanel({
   programEnrollment,
 }: {
-  programEnrollment: ProgramEnrollmentProps;
+  programEnrollment: PartnerProfileProgramEnrollmentProps;
 }) {
   const program = programEnrollment.program;
   const partnerLink = constructPartnerLink({
@@ -463,6 +464,7 @@ function ProgramInfoPanel({
   const isActiveEnrollment = COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES.includes(
     programEnrollment.status,
   );
+  const hidePartnerRevenue = isPartnerRevenueHidden(programEnrollment.group);
 
   return (
     <>
@@ -570,9 +572,16 @@ function ProgramInfoPanel({
               </div>
             ))}
           </div>
-          <div className="divide-border-subtle grid grid-cols-2 divide-x">
+          <div
+            className={cn(
+              "divide-border-subtle grid divide-x",
+              hidePartnerRevenue ? "grid-cols-1" : "grid-cols-2",
+            )}
+          >
             {[
-              { label: "Revenue", value: statsTotals?.saleAmount },
+              ...(!hidePartnerRevenue
+                ? [{ label: "Revenue", value: statsTotals?.saleAmount }]
+                : []),
               { label: "Earnings", value: programEnrollment.totalCommissions },
             ].map(({ label, value }) => (
               <div key={label} className="flex flex-col px-3 py-2.5">

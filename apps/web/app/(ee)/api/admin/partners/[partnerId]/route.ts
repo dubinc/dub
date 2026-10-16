@@ -1,6 +1,7 @@
 import { withAdmin } from "@/lib/auth";
 import { updatePartnerCountry } from "@/lib/partners/update-partner-country";
 import { prisma } from "@/lib/prisma";
+import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
 import { COUNTRIES } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -54,11 +55,25 @@ export const GET = withAdmin(async ({ params }) => {
         partnerId,
       },
       include: {
+        partner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
         program: {
           select: {
             id: true,
             name: true,
             logo: true,
+          },
+        },
+        reviewedBy: {
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
@@ -94,7 +109,7 @@ export const GET = withAdmin(async ({ params }) => {
       subscribers: p.subscribers ? Number(p.subscribers) : null,
     })),
     programEnrollments,
-    fraudAlerts,
+    fraudAlerts: adminFraudAlertSchema.array().parse(fraudAlerts),
     payouts,
   });
 });

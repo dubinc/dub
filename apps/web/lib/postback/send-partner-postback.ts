@@ -1,6 +1,9 @@
+import { nullifyPostbackRevenue } from "@/lib/partners/hide-partner-revenue";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { POSTBACK_EVENT_ID_PREFIX } from "@/lib/postback/constants";
 import { prisma } from "@/lib/prisma";
 import { PostbackTrigger } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { nanoid } from "@dub/utils";
 import { PostbackCustomAdapter } from "./postback-adapter-custom";
 import { PostbackSlackAdapter } from "./postback-adapter-slack";
@@ -12,6 +15,7 @@ interface SendPartnerPostbackParams {
   data: Record<string, unknown>;
   skipEnrichment?: boolean; // Skip enrichment if the data is already enriched when sending a test event
   isTest?: boolean;
+  programId?: string | null;
 }
 
 export const sendPartnerPostback = async ({
@@ -20,6 +24,7 @@ export const sendPartnerPostback = async ({
   data,
   skipEnrichment = false,
   isTest = false,
+  programId,
 }: SendPartnerPostbackParams) => {
   const postbacks = await prisma.postback.findMany({
     where: {
@@ -40,7 +45,7 @@ export const sendPartnerPostback = async ({
     return;
   }
 
-  let enrichedData: Record<string, unknown> | undefined;
+  let enrichedData: Record<string, unknown>;
 
   try {
     enrichedData =
@@ -50,6 +55,38 @@ export const sendPartnerPostback = async ({
   } catch (error) {
     console.error("[sendPartnerPostback] Error enriching data", error);
     return;
+  }
+
+  if (
+    programId &&
+    (event === "sale.created" || event === "commission.created")
+  ) {
+    try {
+      const visibleData = await applyPostbackRevenueVisibility({
+        partnerId,
+        programId,
+        event,
+        data: enrichedData,
+      });
+
+      if (!visibleData) {
+        console.error(
+          "[sendPartnerPostback] No program enrollment found for revenue visibility",
+          { partnerId, programId, event },
+        );
+        return;
+      }
+
+      enrichedData = visibleData;
+    } catch (error) {
+      console.error("[sendPartnerPostback] Error applying revenue visibility", {
+        partnerId,
+        programId,
+        event,
+        error,
+      });
+      return;
+    }
   }
 
   const adapters = postbacks.map((postback) => {
@@ -74,3 +111,61 @@ export const sendPartnerPostback = async ({
     ),
   );
 };
+
+/** Null sale dollar amounts on postback payloads when the partner group hides revenue. */
+async function applyPostbackRevenueVisibility({
+  partnerId,
+  programId,
+  event,
+  data,
+}: {
+  partnerId: string;
+  programId: string;
+  event: "sale.created" | "commission.created";
+  data: Record<string, unknown>;
+}): Promise<Record<string, unknown> | null> {
+  const enrollment = await prisma.programEnrollment.findUnique({
+    where: {
+      partnerId_programId: {
+        partnerId,
+        programId,
+      },
+    },
+    select: {
+      partnerGroup: {
+        select: {
+          revenueDataSharingDisabledAt: true,
+        },
+      },
+      program: {
+        select: {
+          groups: {
+            where: {
+              slug: DEFAULT_PARTNER_GROUP.slug,
+            },
+            select: {
+              revenueDataSharingDisabledAt: true,
+            },
+            take: 1,
+          },
+        },
+      },
+    },
+  });
+
+  if (!enrollment) {
+    return null;
+  }
+
+  const group = enrollment.partnerGroup ?? enrollment.program.groups[0];
+
+  if (!group) {
+    return null;
+  }
+
+  if (!isPartnerRevenueHidden(group)) {
+    return data;
+  }
+
+  return nullifyPostbackRevenue(event, data);
+}

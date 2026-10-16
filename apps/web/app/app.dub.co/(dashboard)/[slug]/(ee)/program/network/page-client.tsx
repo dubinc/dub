@@ -223,8 +223,8 @@ export function ProgramPartnerNetworkPageClient({
 
       {status === "discover" && (
         <div className="mt-[17px]">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col items-center gap-4 md:flex-row">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-center">
               <Filter.Select
                 className="h-10 w-full shrink-0 rounded-lg md:w-fit"
                 filters={filters}
@@ -232,9 +232,9 @@ export function ProgramPartnerNetworkPageClient({
                 onSelect={onSelect}
                 onRemove={onRemove}
               />
-              <div className="flex items-center gap-4">
+              <div className="flex min-w-0 items-center gap-4">
                 <ToggleGroup
-                  className="h-10 w-full rounded-lg border-neutral-200 bg-neutral-50 p-0 md:w-fit"
+                  className="h-10 w-full min-w-0 rounded-lg border-neutral-200 bg-neutral-50 p-0 md:w-fit"
                   optionClassName="rounded-lg px-3 py-2.5"
                   indicatorClassName="rounded-lg bg-white border-none shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_3px_0_rgba(0,0,0,0.08)]"
                   options={PLATFORM_TOGGLE_OPTIONS.map(
@@ -279,7 +279,7 @@ export function ProgramPartnerNetworkPageClient({
             </div>
             <PartnerNetworkSort
               selectedPlatform={selectedPlatform}
-              className="md:ml-auto"
+              className="w-full shrink-0 md:ml-auto md:w-auto"
             />
           </div>
           <AnimatedSizeContainer height>

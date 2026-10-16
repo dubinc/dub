@@ -2,6 +2,7 @@ model Customer {
   id               String  @id
   name             String?
   email            String?
+  normalizedEmail  String?
   avatar           String? @db.Text
   externalId       String?
   stripeCustomerId String? @unique
@@ -36,6 +37,7 @@ model Customer {
 
   @@unique([projectId, externalId])
   @@index([projectId, email])
+  @@index([projectId, normalizedEmail])
   @@index([projectId, createdAt])
   @@index([projectId, saleAmount])
   @@index([projectId, firstSaleAt])

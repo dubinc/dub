@@ -3,7 +3,10 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
+import {
+  PartnerProfileProgramEnrollmentProps,
+  ProgramProps,
+} from "@/lib/types";
 import { PartnerProgramGroupSchema } from "@/lib/zod/schemas/groups";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
@@ -35,7 +38,7 @@ interface ProgramApplicationSheetProps {
     ProgramProps,
     "id" | "slug" | "defaultGroupId" | "name" | "domain" | "logo" | "termsUrl"
   >;
-  programEnrollment?: ProgramEnrollmentProps;
+  programEnrollment?: PartnerProfileProgramEnrollmentProps;
   backDestination?: "programs" | "marketplace";
   onSuccess?: () => void;
 }

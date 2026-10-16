@@ -14,6 +14,7 @@ import {
   log,
   prettyPrint,
 } from "@dub/utils";
+import Stripe from "stripe";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
@@ -131,18 +132,41 @@ export const POST = withCron(async ({ rawBody }) => {
       );
     }
 
-    const stripePayout = await stripe.payouts.create(
-      {
-        amount: availableBalance,
-        currency,
-        // example: "Dub Partners auto-withdrawal (Aug 1, 2025)"
-        description: `Dub Partners auto-withdrawal (${formatDate(new Date(), { month: "short" })})`,
-        method: "standard",
-      },
-      {
-        stripeAccount,
-      },
-    );
+    let stripePayout: Stripe.Payout;
+
+    try {
+      stripePayout = await stripe.payouts.create(
+        {
+          amount: availableBalance,
+          currency,
+          // example: "Dub Partners auto-withdrawal (Aug 1, 2025)"
+          description: `Dub Partners auto-withdrawal (${formatDate(new Date(), { month: "short" })})`,
+          method: "standard",
+        },
+        {
+          stripeAccount,
+        },
+      );
+    } catch (error) {
+      // Stripe rejects payouts below the minimum payout amount for the currency
+      // (e.g. 12,100 AMD). Skip without a retry. The next "balance.available"
+      // event checks the balance again when more funds arrive.
+      const isBelowMinimumPayout =
+        error instanceof Stripe.errors.StripeError &&
+        (error.code === "amount_too_small" ||
+          error.message.startsWith("Amount must be no less than"));
+
+      if (isBelowMinimumPayout) {
+        return logAndRespond(
+          `Available balance ${currencyFormatter(availableBalance, { currency })} for partner ${partner.email} (${stripeAccount}) is below the Stripe minimum payout amount: ${error.message}. Skipping...`,
+          {
+            logLevel: "warn",
+          },
+        );
+      }
+
+      throw error;
+    }
 
     console.log(
       `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${stripePayout.id} (${currencyFormatter(stripePayout.amount, { currency: stripePayout.currency })})`,

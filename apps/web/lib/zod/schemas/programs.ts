@@ -204,6 +204,7 @@ export const ProgramEnrollmentSchema = z.object({
     wordmark: true,
     brandColor: true,
     holdingPeriodDays: true,
+    revenueDataSharingDisabledAt: true,
     additionalLinks: true,
     maxPartnerLinks: true,
     linkStructure: true,

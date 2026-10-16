@@ -4,6 +4,7 @@ import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { PartnerAnalyticsFilters } from "@/lib/analytics/types";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import {
   usePartnerProfileEarnings,
@@ -99,6 +100,19 @@ export function BountyPerformanceSection({
 }: {
   bounty: PartnerBountyProps;
 }) {
+  const { programEnrollment } = useProgramEnrollment();
+  const attribute = bounty.performanceCondition?.attribute as
+    | PerformanceAttribute
+    | undefined;
+
+  // Hide the whole section when the bounty is revenue-based and revenue is hidden
+  if (
+    attribute === "totalSaleAmount" &&
+    (!programEnrollment || isPartnerRevenueHidden(programEnrollment.group))
+  ) {
+    return null;
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">

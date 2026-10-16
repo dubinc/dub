@@ -20,10 +20,6 @@ import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
 
-const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { mode: "live" }),
-});
-
 export async function importCampaigns(payload: RewardfulImportPayload) {
   const { programId, campaignIds } = payload;
 
@@ -35,6 +31,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
       workspace: {
         select: {
           stripeConnectId: true,
+          stripeConnectMode: true,
         },
       },
       groups: {
@@ -55,6 +52,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
     brandColor,
     holdingPeriodDays,
     autoApprovePartnersEnabledAt,
+    revenueDataSharingDisabledAt,
     additionalLinks,
     maxPartnerLinks,
     linkStructure,
@@ -63,6 +61,10 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
     submittedLeadFormData,
     submittedLeadsEnabledAt,
   } = program.groups[0] ?? {};
+
+  const stripe = stripeAppClient({
+    mode: program.workspace.stripeConnectMode,
+  });
 
   const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
 
@@ -105,6 +107,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         brandColor,
         holdingPeriodDays,
         autoApprovePartnersEnabledAt,
+        revenueDataSharingDisabledAt,
         submittedLeadsEnabledAt,
         ...(additionalLinks && {
           additionalLinks: sanitizeAdditionalLinks(additionalLinks),

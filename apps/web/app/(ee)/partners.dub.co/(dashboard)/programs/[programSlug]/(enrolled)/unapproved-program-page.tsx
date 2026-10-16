@@ -1,6 +1,6 @@
 import { withdrawProgramApplicationAction } from "@/lib/actions/partners/withdraw-program-application";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import { ProgramEnrollmentProps } from "@/lib/types";
+import { PartnerProfileProgramEnrollmentProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 const states: Record<
   string,
-  (programEnrollment: ProgramEnrollmentProps) => {
+  (programEnrollment: PartnerProfileProgramEnrollmentProps) => {
     title: string;
     description: ReactNode;
   }
@@ -42,7 +42,7 @@ const states: Record<
 export function UnapprovedProgramPage({
   programEnrollment,
 }: {
-  programEnrollment: ProgramEnrollmentProps;
+  programEnrollment: PartnerProfileProgramEnrollmentProps;
 }) {
   const router = useRouter();
 
