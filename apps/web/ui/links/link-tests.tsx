@@ -1,12 +1,16 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ABTestVariantsSchema } from "@/lib/zod/schemas/links";
-import { fetcher, getPrettyUrl } from "@dub/utils";
+import { fetcher } from "@dub/utils";
 import { motion } from "motion/react";
 import { memo, useMemo } from "react";
 import useSWR from "swr";
 import { LinkAnalyticsBadge } from "./link-analytics-badge";
 import { useLinkCardContext } from "./link-card";
 import { ResponseLink } from "./links-container";
+
+// Analytics groups by base URL with a trailing slash (e.g. "https://dub.co/"),
+// while test variants store the URL without one
+const normalizeUrl = (url: string) => url.replace(/\/$/, "");
 
 export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
   const { id: workspaceId } = useWorkspace();
@@ -65,7 +69,9 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
     >
       <ul className="flex flex-col gap-2.5 border-t border-neutral-200 bg-neutral-100 p-3">
         {testVariants.map((test, idx) => {
-          const analytics = data?.find(({ url }) => url === test.url);
+          const analytics = data?.find(
+            ({ url }) => normalizeUrl(url) === normalizeUrl(test.url),
+          );
 
           return (
             <li
@@ -82,18 +88,11 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
 
                 {/* Test name */}
                 <span className="truncate text-sm font-medium text-neutral-800">
-                  {getPrettyUrl(test.url)}
+                  {test.url}
                 </span>
               </div>
 
-              <div className="flex items-center gap-5">
-                {/* Test percentage */}
-                <div className="h-7 shrink-0 select-none rounded-[6px] border border-neutral-200/50 p-px">
-                  <div className="flex size-full items-center justify-center rounded-[5px] bg-gradient-to-t from-neutral-950/5 px-1.5 text-xs font-semibold tabular-nums text-neutral-800">
-                    {Math.round(test.percentage)}%
-                  </div>
-                </div>
-
+              <div className="flex items-center gap-2">
                 {/* Analytics badge */}
                 <div className="flex justify-end sm:min-w-48">
                   {isLoading ? (
@@ -110,6 +109,13 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
                       sharingEnabled={false}
                     />
                   )}
+                </div>
+
+                {/* Test percentage */}
+                <div className="h-7 shrink-0 select-none rounded-[6px] border border-neutral-200/50 p-px">
+                  <div className="flex size-full items-center justify-center rounded-[5px] bg-gradient-to-t from-neutral-950/5 px-1.5 text-xs font-semibold tabular-nums text-neutral-800">
+                    {Math.round(test.percentage)}%
+                  </div>
                 </div>
               </div>
             </li>

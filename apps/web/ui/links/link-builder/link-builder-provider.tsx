@@ -7,6 +7,7 @@ import {
   PropsWithChildren,
   SetStateAction,
   useContext,
+  useEffect,
   useState,
 } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -56,6 +57,35 @@ export function LinkBuilderProvider({
           false,
       },
   });
+
+  // Keep the first A/B test variant in sync with the destination URL – they
+  // represent the same URL (the modal writes testVariants[0].url back to url)
+  useEffect(() => {
+    const { unsubscribe } = form.watch(
+      ({ url, testVariants, testCompletedAt }, { name }) => {
+        if (name !== "url" || !Array.isArray(testVariants)) return;
+
+        const firstVariant = testVariants[0];
+        if (!firstVariant) return;
+
+        // Don't rewrite the variants of a completed test (<= so a test ended
+        // in this same tick already counts as completed)
+        if (testCompletedAt && new Date(testCompletedAt) <= new Date()) return;
+
+        if (firstVariant.url !== url)
+          form.setValue(
+            "testVariants",
+            [
+              { ...firstVariant, url: url ?? "" },
+              ...testVariants.slice(1),
+            ] as LinkFormData["testVariants"],
+            { shouldDirty: true },
+          );
+      },
+    );
+
+    return () => unsubscribe();
+  }, [form]);
 
   return (
     <LinkBuilderContext.Provider
