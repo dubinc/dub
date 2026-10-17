@@ -29,8 +29,10 @@ import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-cod
 import { getCheckoutSessionProducts } from "./utils/get-checkout-session-products";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 import { getDubCustomerExternalIdFromMetadata } from "./utils/get-dub-customer-external-id-from-metadata";
+import { getStripeCustomerOwner } from "./utils/get-stripe-customer-owner";
 import { incrementLinkLeads } from "./utils/increment-link-leads";
 import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with-stripe-customer-id";
+import { updateDubIdCustomer } from "./utils/update-dub-id-customer";
 
 // Handle event "checkout.session.completed"
 export async function checkoutSessionCompleted({
@@ -57,6 +59,12 @@ export async function checkoutSessionCompleted({
   let clickEvent: ClickEventTB | null = null;
   let leadEvent: LeadEventTB | undefined;
   let linkId: string | undefined;
+
+  const { stripeCustomerOwner, linkableStripeCustomerId } =
+    await getStripeCustomerOwner({
+      workspaceId: workspace.id,
+      stripeCustomerId,
+    });
 
   /*
       for stripe checkout links:
@@ -91,7 +99,11 @@ export async function checkoutSessionCompleted({
       externalId: stripeCustomerId || stripeCustomerEmail,
       projectId: workspace.id,
       projectConnectId: stripeAccountId,
-      stripeCustomerId,
+      // skip on a guest checkout (so that it does not clear an existing stripeCustomerId)
+      // and when another workspace owns the Stripe customer ID
+      ...(linkableStripeCustomerId && {
+        stripeCustomerId: linkableStripeCustomerId,
+      }),
       clickId: clickEvent.click_id,
       linkId: clickEvent.link_id,
       country: clickEvent.country,
@@ -128,10 +140,11 @@ export async function checkoutSessionCompleted({
                 ]
               : []),
 
-            ...(stripeCustomerId
+            ...(linkableStripeCustomerId
               ? [
                   {
-                    stripeCustomerId,
+                    projectId: workspace.id,
+                    stripeCustomerId: linkableStripeCustomerId,
                   },
                 ]
               : []),
@@ -146,10 +159,9 @@ export async function checkoutSessionCompleted({
     if (created) {
       customer = existingOrNewCustomer;
     } else {
-      customer = await prisma.customer.update({
-        where: {
-          id: existingOrNewCustomer.id,
-        },
+      customer = await updateDubIdCustomer({
+        customer: existingOrNewCustomer,
+        stripeCustomerOwner,
         data: payload,
       });
     }
@@ -199,11 +211,14 @@ export async function checkoutSessionCompleted({
           - if no promotion code or attribution fails, we skip the event
   */
     if (dubCustomerExternalId) {
-      customer = await updateCustomerWithStripeCustomerId({
-        workspaceId: workspace.id,
-        dubCustomerExternalId,
-        stripeCustomerId,
-      });
+      // prefer the customer that already owns the Stripe customer ID (same as invoice.paid)
+      customer =
+        stripeCustomerOwner ??
+        (await updateCustomerWithStripeCustomerId({
+          workspaceId: workspace.id,
+          dubCustomerExternalId,
+          stripeCustomerId: linkableStripeCustomerId,
+        }));
 
       if (!customer) {
         if (promotionCodeId) {
@@ -232,24 +247,17 @@ export async function checkoutSessionCompleted({
         }
       }
     } else {
-      // find customer by stripeCustomerId or email
-      const existingCustomer = await prisma.customer.findFirst({
-        where: {
-          OR: [
-            {
-              stripeCustomerId,
-            },
-            ...(stripeCustomerEmail
-              ? [
-                  {
-                    projectId: workspace.id,
-                    email: stripeCustomerEmail,
-                  },
-                ]
-              : []),
-          ],
-        },
-      });
+      // find customer by stripeCustomerId, then by email
+      const existingCustomer =
+        stripeCustomerOwner ??
+        (stripeCustomerEmail
+          ? await prisma.customer.findFirst({
+              where: {
+                projectId: workspace.id,
+                email: stripeCustomerEmail,
+              },
+            })
+          : null);
 
       if (existingCustomer) {
         dubCustomerExternalId = existingCustomer.externalId ?? stripeCustomerId;
@@ -269,7 +277,7 @@ export async function checkoutSessionCompleted({
           customer = await updateCustomerWithStripeCustomerId({
             workspaceId: workspace.id,
             dubCustomerExternalId,
-            stripeCustomerId,
+            stripeCustomerId: linkableStripeCustomerId,
           });
         }
 
@@ -494,9 +502,10 @@ export async function checkoutSessionCompleted({
         },
         firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
         subscriptionCanceledAt: null,
+        // skip when another workspace owns the Stripe customer ID (it would fail with P2002)
         ...(!customer?.stripeCustomerId &&
-          stripeCustomerId && {
-            stripeCustomerId,
+          linkableStripeCustomerId && {
+            stripeCustomerId: linkableStripeCustomerId,
           }),
       },
     }),
