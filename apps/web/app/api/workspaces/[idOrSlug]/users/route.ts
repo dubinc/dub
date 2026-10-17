@@ -1,7 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
+import { activeRestrictedTokenWhere } from "@/lib/api/tokens/active-restricted-token";
 import { throwIfNoAccess } from "@/lib/api/tokens/throw-if-no-access";
 import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan";
 import { withWorkspace } from "@/lib/auth";
+import { tokenCache } from "@/lib/auth/token-cache";
 import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
@@ -10,8 +12,9 @@ import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
-import { pluralize } from "@dub/utils";
+import { pluck, pluralize } from "@dub/utils";
 import { WorkspaceRole } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -172,25 +175,50 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const activeRestrictedTokens = await prisma.restrictedToken.count({
-      where: {
-        projectId: workspace.id,
-        userId,
-        lastUsed: {
-          not: null,
-        },
-      },
-    });
+    const now = new Date();
 
-    if (activeRestrictedTokens) {
-      const tokenTense = pluralize("token", activeRestrictedTokens);
+    const [workspaceTokens, installations] = await Promise.all([
+      prisma.restrictedToken.findMany({
+        where: {
+          projectId: workspace.id,
+          userId,
+          installationId: null,
+          ...activeRestrictedTokenWhere(now),
+        },
+        select: {
+          lastUsed: true,
+        },
+      }),
+
+      prisma.installedIntegration.findMany({
+        where: {
+          projectId: workspace.id,
+          userId,
+        },
+        select: {
+          id: true,
+          accessTokens: {
+            select: {
+              hashedKey: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    const activeWorkspaceTokens = workspaceTokens.filter(
+      (token) => token.lastUsed,
+    );
+
+    if (activeWorkspaceTokens.length > 0) {
+      const tokenTense = pluralize("token", activeWorkspaceTokens.length);
       throw new DubApiError({
         code: "bad_request",
-        message: `This user has ${activeRestrictedTokens} active restricted ${tokenTense}. Please remove the ${tokenTense} first before removing the user from the workspace.`,
+        message: `This user has ${activeWorkspaceTokens.length} active restricted ${tokenTense}. Please remove the ${tokenTense} first before removing the user from the workspace.`,
       });
     }
 
-    await Promise.all([
+    await prisma.$transaction([
       // Remove the user from the workspace
       prisma.projectUsers.delete({
         where: {
@@ -202,7 +230,30 @@ export const DELETE = withWorkspace(
       }),
 
       // Remove tokens associated with the user from the workspace
-      prisma.restrictedToken.deleteMany({
+      prisma.restrictedToken.updateMany({
+        where: {
+          projectId: workspace.id,
+          userId,
+          installationId: null,
+          ...activeRestrictedTokenWhere(now),
+        },
+        data: {
+          expires: now,
+        },
+      }),
+
+      // Remove installations associated with the user from the workspace.
+      // delete() instead of deleteMany: relationMode is "prisma", so onDelete
+      // cascades (access tokens, refresh tokens, webhooks) run per delete only.
+      ...installations.map((installation) =>
+        prisma.installedIntegration.delete({
+          where: {
+            id: installation.id,
+          },
+        }),
+      ),
+
+      prisma.oAuthCode.deleteMany({
         where: {
           projectId: workspace.id,
           userId,
@@ -210,31 +261,66 @@ export const DELETE = withWorkspace(
       }),
 
       // Remove the default workspace for the user if they are leaving the workspace
-      workspace.slug === projectUser.user.defaultWorkspace &&
-        prisma.user.update({
-          where: {
-            id: userId,
-          },
-          data: {
-            defaultWorkspace: null,
-          },
-        }),
+      ...(workspace.slug === projectUser.user.defaultWorkspace
+        ? [
+            prisma.user.update({
+              where: {
+                id: userId,
+              },
+              data: {
+                defaultWorkspace: null,
+              },
+            }),
+          ]
+        : []),
+
+      // Remove the user if it's a machine user
+      ...(projectUser.user.isMachine
+        ? [
+            prisma.user.delete({
+              where: {
+                id: userId,
+              },
+            }),
+          ]
+        : []),
     ]);
+
+    // Re-read after the transaction so cache expiry covers every key updateMany
+    // soft-deleted — including keys created after the pre-tx findMany.
+    const expiredWorkspaceKeys = await prisma.restrictedToken.findMany({
+      where: {
+        projectId: workspace.id,
+        userId,
+        installationId: null,
+        expires: now,
+      },
+      select: {
+        hashedKey: true,
+      },
+    });
+
+    const hashedKeys = pluck(
+      [
+        ...expiredWorkspaceKeys,
+        ...installations.flatMap(({ accessTokens }) => accessTokens),
+      ],
+      "hashedKey",
+    );
+
+    if (hashedKeys.length > 0) {
+      waitUntil(
+        tokenCache.expireMany({
+          hashedKeys,
+        }),
+      );
+    }
 
     if (!projectUser.user.isMachine) {
       await syncStagingWorkspaceJob.dispatch({
         action: "remove-member",
         workspaceId: workspace.id,
         userId,
-      });
-    }
-
-    // delete the user if it's a machine user
-    if (projectUser.user.isMachine) {
-      await prisma.user.delete({
-        where: {
-          id: userId,
-        },
       });
     }
 

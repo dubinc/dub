@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
+import { activeRestrictedTokenWhere } from "@/lib/api/tokens/active-restricted-token";
 import { scopesToName, validateScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
@@ -32,6 +33,7 @@ export const GET = withWorkspace(
       where: {
         projectId: workspace.id,
         installationId: null,
+        ...activeRestrictedTokenWhere(),
         ...(userId && {
           userId,
         }),
@@ -101,6 +103,7 @@ export const POST = withWorkspace(
           where: {
             projectId: workspace.id,
             installationId: null, // Skip OAuth installations tokens
+            ...activeRestrictedTokenWhere(),
           },
         });
 
