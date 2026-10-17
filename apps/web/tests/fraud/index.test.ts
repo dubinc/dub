@@ -387,4 +387,63 @@ describe.concurrent("/fraud/**", async () => {
       },
     });
   });
+
+  test("FraudRuleType = customerSharedClickId", async () => {
+    const clickLink = E2E_FRAUD_PARTNER.links.customerEmailMatch;
+
+    const clickResponse = await http.post<{ clickId: string }>({
+      path: "/track/click",
+      headers: {
+        ...E2E_TRACK_CLICK_HEADERS,
+        "User-Agent": `${E2E_TRACK_CLICK_HEADERS["User-Agent"]} ${Date.now()}${Math.floor(Math.random() * 1e6)}`,
+      },
+      body: { domain: clickLink.domain, key: clickLink.key },
+    });
+
+    const trackedClickId = clickResponse.data.clickId;
+    const firstCustomer = randomCustomer();
+    const secondCustomer = randomCustomer();
+
+    await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        eventName: "Signup",
+        clickId: trackedClickId,
+        customerId: firstCustomer.externalId,
+        customerName: firstCustomer.name,
+        customerEmail: firstCustomer.email,
+        customerAvatar: firstCustomer.avatar,
+      },
+    });
+
+    await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        eventName: "Signup",
+        clickId: trackedClickId,
+        customerId: secondCustomer.externalId,
+        customerName: secondCustomer.name,
+        customerEmail: secondCustomer.email,
+        customerAvatar: secondCustomer.avatar,
+      },
+    });
+
+    const { data: customers } = await http.get<Customer[]>({
+      path: "/customers",
+      query: { externalId: firstCustomer.externalId },
+    });
+
+    expect(customers.length).toBeGreaterThan(0);
+
+    await verifyFraudEvent({
+      http,
+      partner: E2E_FRAUD_PARTNER,
+      customer: secondCustomer,
+      ruleType: "customerSharedClickId",
+      metadata: {
+        clickId: trackedClickId,
+        matchedCustomerId: customers[0].id,
+      },
+    });
+  });
 });

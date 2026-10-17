@@ -47,6 +47,7 @@ interface RiskReviewSheetProps {
 const COMMISSION_BLOCKING_FRAUD_TYPE: FraudRuleType[] = [
   FraudRuleType.customerEmailMatch,
   FraudRuleType.customerEmailSuspiciousDomain,
+  FraudRuleType.customerSharedClickId,
   FraudRuleType.referralSourceBanned,
   FraudRuleType.paidTrafficDetected,
   FraudRuleType.partnerCrossProgramBan,

@@ -321,6 +321,7 @@ export const trackLead = async ({
               clickEvent: {
                 url: clickData.url,
                 referer: clickData.referer,
+                clickId: clickData.click_id,
               },
             });
 
