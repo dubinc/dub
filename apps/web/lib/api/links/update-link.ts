@@ -38,7 +38,9 @@ export async function updateLink({
     partnerId: string | null;
   };
   updatedLink: ProcessedLinkProps &
-    Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt">;
+    Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt"> & {
+      partnerLinkDetails?: unknown;
+    };
 }) {
   let {
     id,
@@ -76,6 +78,7 @@ export async function updateLink({
     testCompletedAt,
     partnerLinkTitle,
     partnerLinkComments,
+    partnerLinkDetails: _partnerLinkDetails,
     ...rest
   } = updatedLink;
 
