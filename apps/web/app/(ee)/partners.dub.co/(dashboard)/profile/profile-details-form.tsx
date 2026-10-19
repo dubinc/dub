@@ -1,6 +1,8 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
+import { PAYOUT_SUPPORTED_COUNTRIES } from "@/lib/constants/payouts-supported-countries";
+import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerProps } from "@/lib/types";
@@ -209,6 +211,16 @@ function BasicInfoForm({
   disabled: boolean;
   onSubmitAction: () => void;
 }) {
+  const countrySupportsPayouts =
+    getPayoutMethodsForCountry({ country: partner?.country }).length > 0;
+  const countryOptions = [
+    ...new Set([
+      ...(partner?.country ? [partner.country] : []),
+      ...PAYOUT_SUPPORTED_COUNTRIES.map(({ code }) => code).filter(
+        (code) => code !== "US" || code === partner?.country,
+      ),
+    ]),
+  ];
   const {
     register,
     control,
@@ -346,7 +358,11 @@ function BasicInfoForm({
           onSubmitAction();
         }}
         onSubmit={handleSubmit(async (data) => {
-          if (partner?.country === "US" && data.country !== partner.country) {
+          if (
+            countrySupportsPayouts &&
+            partner?.country &&
+            data.country !== partner.country
+          ) {
             const acknowledged = await new Promise<boolean>((resolve) => {
               acknowledgeAndContinue(
                 () => resolve(true),
@@ -520,8 +536,9 @@ function BasicInfoForm({
                 <CountryCombobox
                   value={field.value || ""}
                   onChange={field.onChange}
+                  countries={countryOptions}
                   disabledTooltip={
-                    partner?.country !== "US" ? (
+                    !countrySupportsPayouts ? (
                       <TooltipContent
                         title="Your profile country is based on your current location and cannot be changed. If you need to update your country, please contact support."
                         cta="Contact support"

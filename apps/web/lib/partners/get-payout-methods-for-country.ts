@@ -30,3 +30,20 @@ export function getPayoutMethodsForCountry({
 
   return methods;
 }
+
+export function canSelfServePartnerCountryChange({
+  from,
+  to,
+}: {
+  from: string | null | undefined;
+  to: string;
+}) {
+  if (!from || from === to || to === "US") {
+    return false;
+  }
+
+  return (
+    getPayoutMethodsForCountry({ country: from }).length > 0 &&
+    getPayoutMethodsForCountry({ country: to }).length > 0
+  );
+}

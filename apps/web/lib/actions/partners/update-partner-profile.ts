@@ -7,6 +7,7 @@ import { requestEmailChange } from "@/lib/auth/request-email-change";
 import { qstash } from "@/lib/cron";
 import { isReservedUsername } from "@/lib/edge-config";
 import { dispatchGroupUtmSyncForPartner } from "@/lib/partners/dispatch-partner-utm-sync";
+import { canSelfServePartnerCountryChange } from "@/lib/partners/get-payout-methods-for-country";
 import {
   assertEmailAvailableForIdentitySync,
   requestSyncedEmailChange,
@@ -98,14 +99,21 @@ export const updatePartnerProfileAction = authPartnerActionClient
     const countryChanged = Boolean(country) && country !== partner.country;
 
     if (countryChanged) {
-      if (partner.country !== "US") {
-        throw new Error(
-          "Your profile country cannot be changed. Contact support to update it.",
-        );
-      }
-
       if (!country || !Object.hasOwn(COUNTRIES, country)) {
         throw new Error("Select a valid country.");
+      }
+
+      if (
+        !canSelfServePartnerCountryChange({
+          from: partner.country,
+          to: country,
+        })
+      ) {
+        throw new Error(
+          country === "US"
+            ? "To change your country to the United States, contact support."
+            : "Your profile country cannot be changed. Contact support to update it.",
+        );
       }
 
       const processingPayout = await prisma.payout.findFirst({

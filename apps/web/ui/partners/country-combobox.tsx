@@ -6,6 +6,7 @@ import { ReactNode, useMemo } from "react";
 export function CountryCombobox({
   value,
   onChange,
+  countries,
   disabledTooltip,
   error,
   className,
@@ -14,24 +15,28 @@ export function CountryCombobox({
 }: {
   value: string;
   onChange: (value: string) => void;
+  countries?: string[];
   disabledTooltip?: string | ReactNode;
   error?: boolean;
   className?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
-  const options = useMemo(
-    () =>
-      Object.entries(COUNTRIES)
-        // show United States first
-        .sort((a, b) => (a[0] === "US" ? -1 : b[0] === "US" ? 1 : 0))
-        .map(([key, value]) => ({
-          icon: <CountryFlag countryCode={key} className="mr-1.5" />,
-          value: key,
-          label: value,
-        })),
-    [],
-  );
+  const options = useMemo(() => {
+    const entries = countries
+      ? countries.flatMap((code) =>
+          COUNTRIES[code] ? [[code, COUNTRIES[code]] as const] : [],
+        )
+      : Object.entries(COUNTRIES);
+
+    return entries
+      .sort((a, b) => (a[0] === "US" ? -1 : b[0] === "US" ? 1 : 0))
+      .map(([key, label]) => ({
+        icon: <CountryFlag countryCode={key} className="mr-1.5" />,
+        value: key,
+        label,
+      }));
+  }, [countries]);
 
   return (
     <Combobox

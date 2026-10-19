@@ -1,5 +1,6 @@
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { qstash } from "@/lib/cron";
+import { canSelfServePartnerCountryChange } from "@/lib/partners/get-payout-methods-for-country";
 import { prisma } from "@/lib/prisma";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -34,9 +35,17 @@ export async function updatePartnerCountry({
     return;
   }
 
-  if (!isAdmin && partner.country !== "US") {
+  if (
+    !isAdmin &&
+    !canSelfServePartnerCountryChange({
+      from: partner.country,
+      to: country,
+    })
+  ) {
     throw new Error(
-      "Your profile country cannot be changed. Contact support to update it.",
+      country === "US"
+        ? "To change your country to the United States, contact support."
+        : "Your profile country cannot be changed. Contact support to update it.",
     );
   }
 
@@ -70,7 +79,7 @@ export async function updatePartnerCountry({
   const updated = await prisma.partner.updateMany({
     where: {
       id: partner.id,
-      ...(!isAdmin && { country: "US" }),
+      ...(!isAdmin && { country: partner.country }),
     },
     data: {
       country,

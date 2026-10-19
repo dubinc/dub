@@ -1,4 +1,5 @@
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
+import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
 import { SupportChatContext } from "@/ui/support/types";
 import { COUNTRIES } from "@dub/utils";
 import { PartnerRole, Program, Project } from "@prisma/client";
@@ -62,8 +63,10 @@ function buildPartnerProfileCountryPrompt({
   partnerCountry,
   partnerRole,
 }: Pick<GlobalChatContext, "partnerCountry" | "partnerRole">) {
+  const countrySupportsPayouts =
+    getPayoutMethodsForCountry({ country: partnerCountry }).length > 0;
   const canUpdateCountry =
-    partnerCountry === "US" &&
+    countrySupportsPayouts &&
     !!partnerRole &&
     hasPermission(partnerRole, "partner_profile.update");
 
@@ -72,10 +75,10 @@ function buildPartnerProfileCountryPrompt({
 
   if (canUpdateCountry) {
     countryChangeInstruction =
-      "They can update it themselves in partner profile settings at https://partners.dub.co/profile. Tell them to change it there. Do not create a support ticket.";
-  } else if (partnerCountry === "US") {
+      "They can update it themselves in partner profile settings at https://partners.dub.co/profile, to another country that supports Connect, PayPal, or stablecoin payouts. Tell them to change it there. Do not create a support ticket for that. They cannot change it to the United States. If they want the United States, tell them support has to update it, and in that same response call requestSupportTicket so the upload form appears. After they confirm, call createSupportTicket.";
+  } else if (countrySupportsPayouts) {
     countryChangeInstruction =
-      "They do not have permission to update the partner profile. An owner of this partner account can change the country in partner profile settings at https://partners.dub.co/profile. Tell them to ask an owner. Do not create a support ticket.";
+      "They do not have permission to update the partner profile. An owner of this partner account can change the country in partner profile settings at https://partners.dub.co/profile, to another country that supports Connect, PayPal, or stablecoin payouts. Tell them to ask an owner. Do not create a support ticket for that. Neither they nor an owner can change it to the United States. If they want the United States, tell them support has to update it, and in that same response call requestSupportTicket so the upload form appears. After they confirm, call createSupportTicket.";
   }
 
   return `
