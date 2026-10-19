@@ -3,6 +3,7 @@ import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import {
@@ -89,6 +90,9 @@ export const PATCH = withWorkspace(
         data: {
           name,
           email,
+          ...(email !== undefined && {
+            normalizedEmail: getNormalizedEmail(email),
+          }),
           avatar: finalCustomerAvatar,
           externalId,
           stripeCustomerId,

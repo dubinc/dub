@@ -1,4 +1,7 @@
-import { reportNetworkLevelBan } from "@/lib/api/fraud/report-network-level-ban";
+import {
+  getNetworkBanDetails,
+  reportNetworkLevelBan,
+} from "@/lib/api/fraud/report-network-level-ban";
 import { prisma } from "@/lib/prisma";
 
 export async function confirmPartnerFraudAlerts({
@@ -53,11 +56,12 @@ export async function confirmPartnerFraudAlerts({
       reviewedAt,
     },
     select: {
+      programId: true,
+      source: true,
+      reviewedAt: true,
       createdAt: true,
       programEnrollment: {
         select: {
-          programId: true,
-          partnerId: true,
           bannedReason: true,
           bannedAt: true,
           application: {
@@ -71,17 +75,17 @@ export async function confirmPartnerFraudAlerts({
   });
 
   const alertResults = await Promise.allSettled(
-    confirmedFraudAlerts.map(({ programEnrollment, createdAt }) =>
-      reportNetworkLevelBan({
-        partnerId: programEnrollment.partnerId,
-        programId: programEnrollment.programId,
-        bannedReason: programEnrollment.bannedReason ?? "fraud",
-        bannedAt:
-          programEnrollment.bannedAt ??
-          programEnrollment.application?.reviewedAt ??
-          createdAt,
-      }),
-    ),
+    confirmedFraudAlerts.map((fraudAlert) => {
+      const { sourceProgramId, bannedReason, bannedAt } =
+        getNetworkBanDetails(fraudAlert);
+
+      return reportNetworkLevelBan({
+        partnerId,
+        programId: sourceProgramId,
+        bannedReason,
+        bannedAt,
+      });
+    }),
   );
 
   const failedReports = alertResults.filter(

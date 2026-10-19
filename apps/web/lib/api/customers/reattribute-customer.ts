@@ -3,6 +3,7 @@ import { updateLinkStatsForImporter } from "@/lib/api/links/update-link-stats-fo
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { MUTABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { prisma } from "@/lib/prisma";
 import { getCustomerEventsTB } from "@/lib/tinybird/get-customer-events-tb";
@@ -163,6 +164,7 @@ export async function recreateCustomerForReattribution({
         id: newCustomerId,
         name: customer.name,
         email: customer.email,
+        normalizedEmail: getNormalizedEmail(customer.email),
         avatar: customer.avatar,
         externalId: customer.externalId,
         stripeCustomerId: customer.stripeCustomerId,

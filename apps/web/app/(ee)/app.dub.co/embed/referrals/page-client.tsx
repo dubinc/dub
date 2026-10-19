@@ -115,6 +115,7 @@ type ReferralsEmbedData = {
     | "maxPartnerLinks"
     | "linkStructure"
     | "holdingPeriodDays"
+    | "revenueDataSharingDisabledAt"
   >;
   links: ReferralsEmbedLink[];
   rewards: RewardProps[];
@@ -222,7 +223,7 @@ export function ReferralsEmbedPageClient({
       ...(showQuickstart ? ["Quickstart"] : []),
       ...(activeBountiesCount > 0 ? ["Bounties"] : []),
       ...(!programEmbedData?.hideEarnings ? ["Earnings"] : []),
-      ...(group.additionalLinks.length > 0 ? ["Links"] : []),
+      ...((group.additionalLinks?.length ?? 0) > 0 ? ["Links"] : []),
       ...(programEmbedData?.leaderboard?.mode === "disabled"
         ? []
         : ["Leaderboard"]),

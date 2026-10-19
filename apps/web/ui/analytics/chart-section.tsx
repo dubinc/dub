@@ -31,6 +31,7 @@ export function ChartSection() {
     selectedTab,
     saleUnit,
     view,
+    hidePartnerRevenue,
   } = useContext(AnalyticsContext);
   const { plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
@@ -93,6 +94,7 @@ export function ChartSection() {
           }
           requiresUpgrade={requiresUpgrade}
           showPaywall={showPaywall}
+          hideSaleAmount={hidePartnerRevenue}
         />
       </div>
       <div className="relative">
@@ -115,7 +117,7 @@ export function ChartSection() {
           )}
         </div>
         <div className="absolute right-3 top-3 flex items-center gap-2">
-          {showConversions && (
+          {showConversions && !hidePartnerRevenue && (
             <ToggleGroup
               className="flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100 sm:hidden"
               optionClassName="size-8 p-0 flex items-center justify-center"

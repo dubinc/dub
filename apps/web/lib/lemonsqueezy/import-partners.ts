@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
@@ -109,6 +110,10 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
     }
 
     if (activeAffiliates.length > 0) {
+      // Filled as soon as each enrollment is saved, so a partner whose later
+      // step throws still reaches the search sync and the ban check.
+      const enrolledPartnerIds: string[] = [];
+
       const results = await Promise.allSettled(
         activeAffiliates.map((affiliate) =>
           createPartnerAndLinks({
@@ -118,6 +123,7 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
             group: defaultGroup,
             userId,
             importId,
+            enrolledPartnerIds,
           }),
         ),
       );
@@ -144,10 +150,13 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
       // Queue an index update because the imported partners were enrolled.
       // Queued per page rather than per partner.
       await queuePartnerSearchSync({
-        partnerIds: results.flatMap((result) =>
-          result.status === "fulfilled" && result.value ? [result.value] : [],
-        ),
+        partnerIds: enrolledPartnerIds,
         programId: program.id,
+      });
+
+      await detectAndRecordNetworkLevelBans({
+        programId: program.id,
+        partnerIds: enrolledPartnerIds,
       });
     }
 
@@ -180,6 +189,7 @@ async function createPartnerAndLinks({
   group,
   userId,
   importId,
+  enrolledPartnerIds,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan">;
   program: Pick<
@@ -199,6 +209,7 @@ async function createPartnerAndLinks({
   >;
   userId: string;
   importId: string;
+  enrolledPartnerIds: string[];
 }) {
   if (!affiliate.user_email) {
     await logImportError({
@@ -250,6 +261,8 @@ async function createPartnerAndLinks({
       },
     },
   });
+
+  enrolledPartnerIds.push(partner.id);
 
   if (preservedBan) {
     return partner.id;

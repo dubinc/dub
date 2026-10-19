@@ -33,7 +33,7 @@ vi.mock("@/lib/prisma", () => ({
 
 // Side effects of a completed application are not under test here
 vi.mock("@/lib/api/fraud/detect-record-fraud-application", () => ({
-  detectAndRecordFraudApplication: vi.fn(),
+  detectAndRecordFraudApplication: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@/lib/api/partners/notify-program-application", () => ({

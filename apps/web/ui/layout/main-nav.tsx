@@ -87,7 +87,7 @@ export function MainNav({
           isOpen
             ? "bg-black/20 backdrop-blur-sm"
             : "bg-transparent max-lg:pointer-events-none",
-          displayBanner ? "top-12 h-[calc(100dvh-48px)]" : "top-0 h-dvh",
+          displayBanner ? "top-9 h-[calc(100dvh-36px)]" : "top-0 h-dvh",
         )}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
@@ -109,7 +109,9 @@ export function MainNav({
       <div
         className={cn(
           "bg-neutral-200 pb-[var(--page-bottom-margin)] pt-[var(--page-top-margin)] [--page-bottom-margin:0px] [--page-top-margin:0px] lg:pb-2 lg:pr-2 lg:[--page-bottom-margin:0.5rem] lg:[--page-top-margin:0.5rem]",
-          displayBanner ? "mt-12 h-[calc(100vh-48px)]" : "h-screen",
+          displayBanner
+            ? "mt-9 h-[calc(100vh-36px)] [--page-banner-height:36px]"
+            : "h-screen [--page-banner-height:0px]",
         )}
       >
         <div

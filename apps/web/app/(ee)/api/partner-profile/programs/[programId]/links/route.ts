@@ -5,13 +5,15 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { hidePartnerSaleAmount } from "@/lib/partners/hide-partner-revenue";
 import { prisma } from "@/lib/prisma";
 import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-rewards";
-import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import {
-  createPartnerLinkSchema,
-  INACTIVE_ENROLLMENT_STATUSES,
-} from "@/lib/zod/schemas/partners";
+  createPartnerProfileLinkSchema,
+  mapPartnerLinkDetails,
+  PartnerProfileLinkSchema,
+} from "@/lib/zod/schemas/partner-profile";
+import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -25,6 +27,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     saleReward,
     customReward,
     discount,
+    partnerGroup: group,
   } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: params.programId,
@@ -35,8 +38,14 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       saleReward: true,
       customReward: true,
       discount: true,
+      partnerGroup: {
+        select: {
+          revenueDataSharingDisabledAt: true,
+        },
+      },
       links: {
         include: {
+          partnerLinkDetails: true,
           linkReward: {
             include: {
               clickReward: true,
@@ -65,12 +74,15 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       enrollmentDiscount: discount,
     });
 
-    return {
-      ...link,
-      ...resolvedRewards,
-      discountCode: discountCode?.code,
-      discountCodeDisabledAt: discountCode?.disabledAt ?? null,
-    };
+    return hidePartnerSaleAmount(
+      {
+        ...mapPartnerLinkDetails(link),
+        ...resolvedRewards,
+        discountCode: discountCode?.code,
+        discountCodeDisabledAt: discountCode?.disabledAt ?? null,
+      },
+      group,
+    );
   });
 
   return NextResponse.json(z.array(PartnerProfileLinkSchema).parse(result));
@@ -79,9 +91,8 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 // POST /api/partner-profile/[programId]/links - create a link for a partner
 export const POST = withPartnerProfile(
   async ({ partner, params, req, session }) => {
-    const { url, key, comments } = createPartnerLinkSchema
-      .pick({ url: true, key: true, comments: true })
-      .parse(await parseRequestBody(req));
+    const { url, key, partnerLinkTitle, partnerLinkComments } =
+      createPartnerProfileLinkSchema.parse(await parseRequestBody(req));
 
     const {
       program,
@@ -151,7 +162,8 @@ export const POST = withPartnerProfile(
         tenantId,
         partnerId: partner.id,
         folderId: program.defaultFolderId,
-        comments,
+        partnerLinkTitle,
+        partnerLinkComments,
         trackConversion: true,
       },
       workspace: {
@@ -180,8 +192,20 @@ export const POST = withPartnerProfile(
 
     const partnerLink = await createLink(linkWithUtm);
 
-    return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink), {
-      status: 201,
-    });
+    return NextResponse.json(
+      PartnerProfileLinkSchema.parse(
+        hidePartnerSaleAmount(
+          {
+            ...partnerLink,
+            partnerLinkTitle: partnerLinkTitle ?? null,
+            partnerLinkComments: partnerLinkComments ?? null,
+          },
+          group,
+        ),
+      ),
+      {
+        status: 201,
+      },
+    );
   },
 );

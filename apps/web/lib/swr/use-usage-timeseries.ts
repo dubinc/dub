@@ -79,6 +79,8 @@ export function useUsageTimeseries({
       (gb) => gb === searchParams.get("groupBy"),
     ) ?? "domain";
 
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   const {
     data: usage,
     error,
@@ -99,7 +101,7 @@ export function useUsageTimeseries({
             end: endOfDay(new Date(end)).toISOString(),
           }),
         ...(interval && { interval }),
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        ...(timezone && { timezone }),
         ...(isLinkResource && {
           ...(folderId && { folderId }),
           ...(domain && { domain }),

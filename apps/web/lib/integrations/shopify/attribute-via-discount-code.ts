@@ -2,6 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
@@ -53,6 +54,7 @@ export async function attributeViaDiscountCode({
         ? `${orderCustomer.first_name} ${orderCustomer.last_name}`.trim()
         : generateRandomName(),
       email: orderCustomer?.email,
+      normalizedEmail: getNormalizedEmail(orderCustomer?.email),
       externalId: orderCustomer?.id?.toString() || customerId,
       linkId: link.id,
       clickId,

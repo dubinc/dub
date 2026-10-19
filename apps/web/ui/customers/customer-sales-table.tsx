@@ -1,4 +1,4 @@
-import { CommissionResponse, SaleEvent } from "@/lib/types";
+import { PartnerEarningsResponse, SaleEvent } from "@/lib/types";
 import { StatusBadge, TimestampTooltip } from "@dub/ui";
 import { currencyFormatter, formatDateTimeSmart, nFormatter } from "@dub/utils";
 import {
@@ -9,26 +9,27 @@ import {
 import Link from "next/link";
 import { CommissionStatusBadges } from "../partners/commission-status-badges";
 
+type SalesTableRow =
+  | Pick<SaleEvent, "timestamp" | "eventName" | "saleAmount">
+  | Pick<
+      PartnerEarningsResponse,
+      "createdAt" | "amount" | "earnings" | "status"
+    >;
+
 export function CustomerSalesTable({
   sales,
   totalSales,
   isLoading,
   viewAllHref,
+  hideSaleAmount,
 }: {
-  sales?:
-    | Pick<SaleEvent, "timestamp" | "eventName" | "saleAmount">[]
-    | Pick<
-        CommissionResponse,
-        "createdAt" | "amount" | "earnings" | "status"
-      >[];
+  sales?: SalesTableRow[];
   totalSales?: number;
   isLoading?: boolean;
   viewAllHref?: string;
+  hideSaleAmount?: boolean;
 }) {
-  const table = useReactTable<
-    | Pick<SaleEvent, "timestamp" | "eventName" | "saleAmount">
-    | Pick<CommissionResponse, "createdAt" | "amount" | "earnings" | "status">
-  >({
+  const table = useReactTable<SalesTableRow>({
     data: sales || [],
     columns: [
       {
@@ -55,11 +56,18 @@ export function CustomerSalesTable({
             },
           ]
         : []),
-      {
-        header: "Amount",
-        accessorFn: (d) => ("saleAmount" in d ? d.saleAmount : d.amount),
-        cell: ({ getValue }) => <span>{currencyFormatter(getValue())}</span>,
-      },
+      ...(!hideSaleAmount
+        ? [
+            {
+              header: "Amount",
+              accessorFn: (d) =>
+                ("saleAmount" in d ? d.saleAmount : d.amount) ?? 0,
+              cell: ({ getValue }) => (
+                <span>{currencyFormatter(getValue())}</span>
+              ),
+            },
+          ]
+        : []),
       ...(sales?.length && "earnings" in sales?.[0]
         ? [
             {

@@ -71,7 +71,7 @@ export function OverviewTasks() {
   );
 
   return (
-    <ProgramOverviewCard className="rounded-xl">
+    <ProgramOverviewCard>
       <div className="flex h-12 items-center pl-4 pr-3">
         <h2 className="text-content-emphasis text-sm font-semibold">Tasks</h2>
       </div>

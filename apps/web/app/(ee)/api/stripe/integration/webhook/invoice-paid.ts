@@ -418,6 +418,7 @@ export async function invoicePaid({
         ? [
             sendPartnerPostback({
               partnerId: link.partnerId,
+              programId: link.programId,
               event: "sale.created",
               data: {
                 ...saleData,

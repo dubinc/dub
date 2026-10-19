@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { COUNTRIES, COUNTRY_CODES, sleep } from "@dub/utils";
 import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
 import { approveLinkedApplication } from "../program-applications/approve-linked-application";
@@ -59,13 +60,18 @@ export async function importPartners(payload: PartnerStackImportPayload) {
       break;
     }
 
-    const results = await Promise.allSettled(
+    // Filled as soon as each enrollment is saved, so a partner whose later step
+    // throws still reaches the search sync and the ban check.
+    const enrolledPartnerIds: string[] = [];
+
+    await Promise.allSettled(
       partners.map((partner) =>
         createPartner({
           program,
           partner,
           group: groupMap[partner.group?.slug ?? DEFAULT_PARTNER_GROUP.slug],
           importId,
+          enrolledPartnerIds,
         }),
       ),
     );
@@ -73,10 +79,13 @@ export async function importPartners(payload: PartnerStackImportPayload) {
     // Queue an index update because the imported partners were enrolled. Queued
     // per page rather than per partner.
     await queuePartnerSearchSync({
-      partnerIds: results.flatMap((result) =>
-        result.status === "fulfilled" && result.value ? [result.value] : [],
-      ),
+      partnerIds: enrolledPartnerIds,
       programId,
+    });
+
+    await detectAndRecordNetworkLevelBans({
+      programId,
+      partnerIds: enrolledPartnerIds,
     });
 
     await sleep(2000);
@@ -129,11 +138,13 @@ async function createPartner({
   partner,
   group,
   importId,
+  enrolledPartnerIds,
 }: {
   program: Program;
   partner: PartnerStackPartner;
   group: PartnerGroup;
   importId: string;
+  enrolledPartnerIds: string[];
 }) {
   const commonImportLogInputs = {
     workspace_id: program.workspaceId,
@@ -199,6 +210,8 @@ async function createPartner({
     },
   });
 
+  enrolledPartnerIds.push(partnerId);
+
   if (!preservedBan) {
     await approveLinkedApplication({
       applicationId: enrollment.applicationId,
@@ -213,8 +226,6 @@ async function createPartner({
       [partner.key]: partnerId,
     });
   } catch (error) {
-    // The enrollment is already committed, so its ID must still reach the
-    // page-level search sync even when the mapping write fails.
     console.error("Failed to map imported partner key", error, partner.key);
   }
 

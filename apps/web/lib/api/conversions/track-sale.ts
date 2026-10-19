@@ -3,6 +3,7 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
@@ -223,6 +224,7 @@ export const trackSale = async ({
           id: finalCustomerId,
           name: finalCustomerName,
           email: customerEmail,
+          normalizedEmail: getNormalizedEmail(customerEmail),
           avatar: finalCustomerAvatar,
           externalId: customerExternalId,
           linkId: clickData.link_id,
@@ -670,6 +672,7 @@ const _trackSale = async ({
           ? [
               sendPartnerPostback({
                 partnerId: link.partnerId,
+                programId: link.programId,
                 event: "sale.created",
                 data: {
                   ...saleData,

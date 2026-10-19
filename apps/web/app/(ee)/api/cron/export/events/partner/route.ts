@@ -13,10 +13,11 @@ import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING } from "@/lib/constants/partner-profile";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { generateRandomName } from "@/lib/names";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma } from "@/lib/prisma";
 import {
+  parsePartnerProfileEventLink,
   partnerProfileEventsQuerySchema,
-  PartnerProfileLinkSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
@@ -45,8 +46,13 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { columns, partnerId, programId, userId, ...parsedParams } =
-      payloadSchema.parse(JSON.parse(rawBody));
+    const {
+      columns: columnsParam,
+      partnerId,
+      programId,
+      userId,
+      ...parsedParams
+    } = payloadSchema.parse(JSON.parse(rawBody));
 
     const user = await prisma.user.findUnique({
       where: {
@@ -65,15 +71,43 @@ export async function POST(req: Request) {
       return logAndRespond(`User ${userId} has no email. Skipping the export.`);
     }
 
-    const { program, links, customerDataSharingEnabledAt } =
+    const { program, links, customerDataSharingEnabledAt, partnerGroup } =
       await getProgramEnrollmentOrThrow({
         partnerId,
         programId,
         include: {
-          program: true,
-          links: true,
+          program: {
+            select: {
+              name: true,
+              workspaceId: true,
+              startedAt: true,
+              createdAt: true,
+            },
+          },
+          links: {
+            select: {
+              id: true,
+              domain: true,
+              key: true,
+              partnerLinkDetails: {
+                select: {
+                  title: true,
+                  comments: true,
+                },
+              },
+            },
+          },
+          partnerGroup: {
+            select: {
+              revenueDataSharingDisabledAt: true,
+            },
+          },
         },
       });
+
+    const columns = columnsParam.filter(
+      (c) => !(isPartnerRevenueHidden(partnerGroup) && c === "saleAmount"),
+    );
 
     // If no links, return early with empty export
     if (links.length === 0) {
@@ -150,7 +184,9 @@ export async function POST(req: Request) {
         return {
           ...eventRest,
           click: clickRest,
-          link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
+          link: event?.link
+            ? parsePartnerProfileEventLink(event.link, links)
+            : null,
           ...(customer && {
             customer: z
               .object({

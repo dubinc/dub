@@ -53,7 +53,8 @@ import { usePartnerLinkQRModal } from "./partner-link-qr-modal";
 interface PartnerLinkFormData {
   key: string;
   pathname: string;
-  comments?: string;
+  partnerLinkTitle?: string;
+  partnerLinkComments?: string;
 }
 
 interface PartnerLinkModalProps {
@@ -226,7 +227,8 @@ function PartnerLinkModalContent({
       ? {
           pathname: getPathnameFromUrl(link.url),
           key: link.key,
-          comments: link.comments ?? "",
+          partnerLinkTitle: link.partnerLinkTitle ?? "",
+          partnerLinkComments: link.partnerLinkComments ?? "",
         }
       : undefined,
   });
@@ -478,16 +480,35 @@ function PartnerLinkModalContent({
           <div>
             <div className="flex items-center gap-2">
               <label
-                htmlFor="comments"
+                htmlFor="partnerLinkTitle"
+                className="block text-sm font-medium text-neutral-700"
+              >
+                Title
+              </label>
+              <InfoTooltip content="A private label to help you identify this link in your dashboard, analytics, and filters. Only you can see it." />
+            </div>
+            <input
+              {...register("partnerLinkTitle")}
+              type="text"
+              id="partnerLinkTitle"
+              className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              placeholder="e.g. Instagram bio, YouTube description"
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="partnerLinkComments"
                 className="block text-sm font-medium text-neutral-700"
               >
                 Comments
               </label>
-              <InfoTooltip content="Use comments to add context to your short links – for you and your team. [Learn more.](https://dub.co/help/article/link-comments)" />
+              <InfoTooltip content="Private notes for this link. Only you can see them." />
             </div>
             <TextareaAutosize
-              {...register("comments")}
-              id="comments"
+              {...register("partnerLinkComments")}
+              id="partnerLinkComments"
               minRows={3}
               className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
               placeholder="Add comments (optional)"

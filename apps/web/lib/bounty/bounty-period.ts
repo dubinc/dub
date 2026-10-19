@@ -1,4 +1,4 @@
-import { formatDate } from "@dub/utils";
+import { formatDate, pluralize } from "@dub/utils";
 import { BountyStartMode } from "@prisma/client";
 import { addDays, addMonths, addWeeks } from "date-fns";
 
@@ -16,25 +16,45 @@ export const BOUNTY_DURATION_DAYS: Record<DurationPreset, number> = {
   sixMonths: 180,
 };
 
+export const BOUNTY_DURATION_UNITS = ["day", "week", "month"] as const;
+
+export type BountyDurationUnit = (typeof BOUNTY_DURATION_UNITS)[number];
+
+// Months are stored as 30 days, matching the presets above
+export const BOUNTY_DURATION_UNIT_DAYS: Record<BountyDurationUnit, number> = {
+  day: 1,
+  week: 7,
+  month: 30,
+};
+
+export const BOUNTY_MAX_ENDS_AFTER_DAYS = 730;
+
 const ENDS_AFTER_DAYS_LABELS: Record<number, string> = {
   [BOUNTY_DURATION_DAYS.twoWeeks]: "2 weeks",
   [BOUNTY_DURATION_DAYS.oneMonth]: "1 month",
   [BOUNTY_DURATION_DAYS.sixMonths]: "6 months",
 };
 
+// The unit typed for a custom duration isn't stored, so non-presets show in days
+export function formatEndsAfterDays(days: number) {
+  return ENDS_AFTER_DAYS_LABELS[days] ?? `${days} ${pluralize("day", days)}`;
+}
+
 export type StartPreset = "today" | DurationPreset | "onPartnerJoin" | "custom";
-export type EndPreset = "never" | DurationPreset | "custom";
+export type EndPreset = "never" | DurationPreset | "customDuration" | "custom";
 
 export function resolveBountyTiming({
   startPreset,
   endPreset,
   customStartsAt,
   customEndsAt,
+  customEndsAfterDays,
 }: {
   startPreset: StartPreset;
   endPreset: EndPreset;
   customStartsAt?: Date | null;
   customEndsAt?: Date | null;
+  customEndsAfterDays?: number | null;
 }) {
   const now = new Date();
 
@@ -78,6 +98,14 @@ export function resolveBountyTiming({
         endsAfterDays = BOUNTY_DURATION_DAYS[endPreset];
       }
       break;
+    case "customDuration":
+      if (customEndsAfterDays == null) break;
+      if (startMode === BountyStartMode.absolute) {
+        endsAt = addDays(startsAt, customEndsAfterDays);
+      } else {
+        endsAfterDays = customEndsAfterDays;
+      }
+      break;
     case "custom":
       endsAt = customEndsAt ?? null;
       break;
@@ -116,9 +144,7 @@ export function getProgramBountyMeta({
 
   if (isRelative) {
     if (endsAfterDays != null) {
-      const durationLabel =
-        ENDS_AFTER_DAYS_LABELS[endsAfterDays] ?? `${endsAfterDays} days`;
-      dateRangeLabel = `${durationLabel} after joining`;
+      dateRangeLabel = `${formatEndsAfterDays(endsAfterDays)} after joining`;
     } else if (endsAt) {
       dateRangeLabel = `When a new partner joins → ${formatDate(endsAt, { month: "short" })}`;
     } else {
