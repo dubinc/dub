@@ -11,10 +11,21 @@ import { criticalApiFailureRowSchema } from "./get-critical-api-failures";
 
 type FailureRow = z.infer<typeof criticalApiFailureRowSchema>;
 type WorkspaceFailure = Omit<FailureRow, "workspaceId">;
+type EndpointRef = Pick<WorkspaceFailure, "method" | "routePattern">;
 
-// Redis key used to cooldown alerts per workspace (one email covers all failing endpoints).
-function alertCooldownKey(workspaceId: string) {
-  return `critical-api-failure-alert:${workspaceId}`;
+function endpointKey({ method, routePattern }: EndpointRef) {
+  return `${method}:${routePattern}`;
+}
+
+// Redis key used to cooldown alerts per workspace + method + routePattern.
+function alertCooldownKey({
+  workspaceId,
+  method,
+  routePattern,
+}: {
+  workspaceId: string;
+} & EndpointRef) {
+  return `critical-api-failure-alert:${workspaceId}:${method}:${routePattern}`;
 }
 
 // Formats the checked hour window for the email body (e.g. "Oct 16, 2026, 14:00–15:00 UTC").
@@ -43,7 +54,7 @@ function pickHighestFailurePerEndpoint(failures: WorkspaceFailure[]) {
   const byEndpoint = new Map<string, WorkspaceFailure>();
 
   for (const failure of failures) {
-    const key = `${failure.method}:${failure.routePattern}`;
+    const key = endpointKey(failure);
     const current = byEndpoint.get(key);
     if (!current || failure.failureCount > current.failureCount) {
       byEndpoint.set(key, failure);
@@ -53,29 +64,60 @@ function pickHighestFailurePerEndpoint(failures: WorkspaceFailure[]) {
   return [...byEndpoint.values()];
 }
 
-// Claims the workspace alert slot via Redis NX so we don't re-alert within the cooldown window.
-async function claimAlertSlot({
+// Claims per-endpoint alert slots via Redis NX so we don't re-alert the same
+// method+route within the cooldown window. Returns only newly claimed failures.
+async function claimAlertSlots({
   workspaceId,
   failures,
 }: {
   workspaceId: string;
   failures: WorkspaceFailure[];
 }) {
-  const acquired = await redis.set(alertCooldownKey(workspaceId), "1", {
-    nx: true,
-    ex: CRITICAL_API_ALERT_COOLDOWN_SECONDS,
-  });
+  const claimed: WorkspaceFailure[] = [];
 
-  if (!acquired) {
-    return [];
+  for (const failure of pickHighestFailurePerEndpoint(failures)) {
+    const acquired = await redis.set(
+      alertCooldownKey({ workspaceId, ...failure }),
+      "1",
+      {
+        nx: true,
+        ex: CRITICAL_API_ALERT_COOLDOWN_SECONDS,
+      },
+    );
+
+    if (acquired) {
+      claimed.push(failure);
+    }
   }
 
-  return pickHighestFailurePerEndpoint(failures);
+  return claimed;
 }
 
-// Clears the workspace cooldown so the next cron can retry after a send failure.
-async function releaseAlertSlot(workspaceId: string) {
-  await redis.del(alertCooldownKey(workspaceId));
+// Clears claimed endpoint cooldowns so the next cron can retry after a send failure.
+async function releaseAlertSlots({
+  workspaceId,
+  failures,
+}: {
+  workspaceId: string;
+  failures: WorkspaceFailure[];
+}) {
+  await Promise.all(
+    failures.map((failure) =>
+      redis.del(alertCooldownKey({ workspaceId, ...failure })),
+    ),
+  );
+}
+
+function alertSubject(
+  failures: WorkspaceFailure[],
+  workspaceName: string,
+) {
+  if (failures.length === 1) {
+    const { method, routePattern } = failures[0];
+    return `Your API requests to ${method} ${routePattern} are failing`;
+  }
+
+  return `Critical API endpoints are failing in ${workspaceName}`;
 }
 
 // Emails workspace owners about critical API failures that passed the cooldown check.
@@ -96,11 +138,10 @@ export async function notifyCriticalApiFailures({
   const byWorkspace = groupFailuresByWorkspace(rows);
   const hourLabel = formatHourLabel(hour);
   let workspacesNotified = 0;
-
   let emailsQueued = 0;
 
   for (const [workspaceId, failures] of byWorkspace) {
-    const claimedFailures = await claimAlertSlot({
+    const claimedFailures = await claimAlertSlots({
       workspaceId,
       failures,
     });
@@ -131,10 +172,7 @@ export async function notifyCriticalApiFailures({
       continue;
     }
 
-    const subject =
-      claimedFailures.length === 1
-        ? `Your API requests to ${claimedFailures[0].method} ${claimedFailures[0].routePattern} are failing`
-        : `Critical API endpoints are failing in ${workspace.name}`;
+    const subject = alertSubject(claimedFailures, workspace.name);
 
     const { error } = await sendBatchEmail(
       workspace.users.map((user) => ({
@@ -158,8 +196,8 @@ export async function notifyCriticalApiFailures({
         `Failed to send critical API failure alert for workspace ${workspaceId}:`,
         error,
       );
-      // Release cooldown so the next hourly cron can retry.
-      await releaseAlertSlot(workspaceId);
+      // Release claimed endpoint cooldowns so the next hourly cron can retry.
+      await releaseAlertSlots({ workspaceId, failures: claimedFailures });
       continue;
     }
 
