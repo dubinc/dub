@@ -241,7 +241,7 @@ describe("safeFetch", () => {
     });
 
     await expect(safeFetch("https://example.com")).rejects.toThrow(
-      "Could not resolve hostname",
+      "Could not resolve hostname: example.com (AAAA lookup returned HTTP 500)",
     );
   });
 
