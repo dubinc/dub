@@ -67,7 +67,14 @@ async function resolveHostnameToIps(
     }
   };
 
-  const [a, aaaa] = await Promise.all([query("A"), query("AAAA")]);
+  // Retry a failed lookup once, so a short DoH error does not reject a valid host.
+  const queryWithRetry = async (type: "A" | "AAAA") =>
+    (await query(type)) ?? (signal.aborted ? null : query(type));
+
+  const [a, aaaa] = await Promise.all([
+    queryWithRetry("A"),
+    queryWithRetry("AAAA"),
+  ]);
   if (a === null || aaaa === null) return null;
   return [...a, ...aaaa];
 }
