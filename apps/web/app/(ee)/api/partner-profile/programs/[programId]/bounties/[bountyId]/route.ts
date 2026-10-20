@@ -12,6 +12,7 @@ import {
   aggregatePartnerLinksStats,
   partnerLinkStatsSelect,
 } from "@/lib/partners/aggregate-partner-links-stats";
+import { hidePartnerTotalSaleAmount } from "@/lib/partners/hide-partner-revenue";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
 
@@ -19,7 +20,7 @@ import { NextResponse } from "next/server";
 export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { programId, bountyId } = params;
 
-  const { program, links, ...programEnrollment } =
+  const { program, links, partnerGroup, ...programEnrollment } =
     await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId,
@@ -32,6 +33,11 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
         },
         links: {
           select: partnerLinkStatsSelect,
+        },
+        partnerGroup: {
+          select: {
+            revenueDataSharingDisabledAt: true,
+          },
         },
         ...programEnrollmentEligibilityIncludes,
       },
@@ -82,13 +88,16 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
+  const partnerBounty = toPartnerBounty({
+    bounty,
+    programEnrollment,
+    partnerLinksStats: aggregatePartnerLinksStats(links),
+  });
+
   return NextResponse.json(
-    PartnerBountySchema.parse(
-      toPartnerBounty({
-        bounty,
-        programEnrollment,
-        partnerLinksStats: aggregatePartnerLinksStats(links),
-      }),
-    ),
+    PartnerBountySchema.parse({
+      ...partnerBounty,
+      partner: hidePartnerTotalSaleAmount(partnerBounty.partner, partnerGroup),
+    }),
   );
 });

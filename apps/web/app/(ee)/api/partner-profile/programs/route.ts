@@ -1,6 +1,7 @@
 import { getProgramEnrollmentInactiveDates } from "@/lib/api/partner-profile/get-program-enrollment-inactive-dates";
 import { getProgramEnrollmentsWhere } from "@/lib/api/partner-profile/get-program-enrollments-where";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { hidePartnerSaleAmount } from "@/lib/partners/hide-partner-revenue";
 import { prisma } from "@/lib/prisma";
 import {
   PartnerProfileProgramEnrollmentSchema,
@@ -68,6 +69,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       program: {
         select: PROGRAM_SELECT,
       },
+      partnerGroup: {
+        select: {
+          revenueDataSharingDisabledAt: true,
+        },
+      },
       application: {
         select: {
           rejectionReason: true,
@@ -116,6 +122,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const response = programEnrollments.map((enrollment) => {
     return {
       ...enrollment,
+      links: enrollment.links.map((link) =>
+        hidePartnerSaleAmount(link, enrollment.partnerGroup),
+      ),
       inactiveAt: inactiveDates.get(enrollment.programId) ?? null,
       rewards: includeRewardsDiscounts
         ? [

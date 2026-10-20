@@ -202,11 +202,15 @@ const PARTNER_LINK_STATS = [
     icon: InvoiceDollar,
     event: "sales",
     iconClassName: "data-[active=true]:text-teal-500",
-    getValue: (link: PartnerLink) => ({
-      count: link.saleAmount,
-      formatted: `$${nFormatter(link.saleAmount / 100)}`,
-      tooltip: `${currencyFormatter(link.saleAmount, { trailingZeroDisplay: "stripIfInteger" })} revenue`,
-    }),
+    getValue: (link: PartnerLink) => {
+      const saleAmount = link.saleAmount ?? 0;
+
+      return {
+        count: saleAmount,
+        formatted: `$${nFormatter(saleAmount / 100)}`,
+        tooltip: `${currencyFormatter(saleAmount, { trailingZeroDisplay: "stripIfInteger" })} revenue`,
+      };
+    },
   },
 ] as const;
 

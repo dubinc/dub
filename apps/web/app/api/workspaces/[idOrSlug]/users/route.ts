@@ -39,6 +39,9 @@ export const GET = withWorkspace(
       include: {
         user: true,
       },
+      orderBy: {
+        createdAt: "asc",
+      },
     });
 
     const parsedUsers = users.map(({ user, ...rest }) =>

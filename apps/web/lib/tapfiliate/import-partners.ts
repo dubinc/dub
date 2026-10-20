@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { PartnerGroup, Program } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
@@ -88,6 +89,10 @@ export async function importPartners(payload: TapfiliateImportPayload) {
       break;
     }
 
+    // Filled as soon as each enrollment is saved, so a partner whose later step
+    // throws still reaches the search sync and the ban check.
+    const enrolledPartnerIds: string[] = [];
+
     const partnersPromise = await Promise.allSettled(
       affiliates.map((affiliate) => {
         let group = defaultGroup;
@@ -104,6 +109,7 @@ export async function importPartners(payload: TapfiliateImportPayload) {
           group,
           userId,
           importId,
+          enrolledPartnerIds,
         });
       }),
     );
@@ -115,11 +121,16 @@ export async function importPartners(payload: TapfiliateImportPayload) {
       )
       .map((p) => p.value);
 
-    if (partnerIds.length > 0) {
-      // Queue an index update because the imported partners were enrolled.
-      // Queued per page rather than per partner.
-      await queuePartnerSearchSync({ partnerIds, programId });
+    // Queue an index update because the imported partners were enrolled.
+    // Queued per page rather than per partner.
+    await queuePartnerSearchSync({ partnerIds: enrolledPartnerIds, programId });
 
+    await detectAndRecordNetworkLevelBans({
+      programId,
+      partnerIds: enrolledPartnerIds,
+    });
+
+    if (partnerIds.length > 0) {
       await tapfiliateImporter.trackImportedPartnerIds({
         programId,
         partnerIds,
@@ -177,6 +188,7 @@ async function createPartnerAndLinks({
   group,
   userId,
   importId,
+  enrolledPartnerIds,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan">;
   program: Pick<
@@ -196,6 +208,7 @@ async function createPartnerAndLinks({
   >;
   userId: string;
   importId: string;
+  enrolledPartnerIds: string[];
 }) {
   if (!affiliate.email) {
     await logImportError({
@@ -252,6 +265,8 @@ async function createPartnerAndLinks({
       },
     },
   });
+
+  enrolledPartnerIds.push(partner.id);
 
   if (preservedBan) {
     return partner.id;

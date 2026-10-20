@@ -12,6 +12,7 @@ import { nanoid } from "@dub/utils";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
+import { detectAndRecordNetworkLevelBans } from "../fraud/detect-network-level-bans";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { throwIfInvalidPartnerTags } from "../partner-tags/throw-if-invalid-partner-tags";
 import {
@@ -215,6 +216,15 @@ export const createAndEnrollPartner = async ({
 
   // Queue an index update because a new enrollment was created.
   waitUntil(queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }));
+
+  // Check for a network-level ban before the default links are created,
+  // so a link failure does not skip it
+  waitUntil(
+    detectAndRecordNetworkLevelBans({
+      programId: program.id,
+      partnerIds: [existingOrNewPartner.id],
+    }),
+  );
 
   // Create the partner links based on group defaults
   const links = await createPartnerDefaultLinks({

@@ -3,6 +3,7 @@ import {
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
 import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
+import { partnerLinksDisplayPropertyIds } from "@/lib/partners/partner-links-display";
 import { COUNTRY_CODES } from "@dub/utils";
 import {
   Category,
@@ -152,6 +153,15 @@ export const ProgramEnrollmentApplicationSchema = z.object({
     .describe("When the application was approved or rejected."),
 });
 
+const partnerLinksDisplaySchema = z.object({
+  displayOption: z.enum(["full", "cards"]),
+  displayProperties: z.array(z.enum(partnerLinksDisplayPropertyIds)),
+});
+
+export const programEnrollmentPreferencesValueSchemas = {
+  linksDisplay: partnerLinksDisplaySchema.nullish(),
+} as const;
+
 export const ProgramEnrollmentSchema = z.object({
   programId: z.string().describe("The program's unique ID on Dub."),
   groupId: z.string().nullish().describe("The partner's group ID on Dub."),
@@ -204,6 +214,7 @@ export const ProgramEnrollmentSchema = z.object({
     wordmark: true,
     brandColor: true,
     holdingPeriodDays: true,
+    revenueDataSharingDisabledAt: true,
     additionalLinks: true,
     maxPartnerLinks: true,
     linkStructure: true,
@@ -219,6 +230,11 @@ export const ProgramEnrollmentSchema = z.object({
     "Linked program application, including review outcome when applicable.",
   ),
   riskMonitoringDisabledAt: z.date().nullable(),
+  partnerPreferences: z
+    .object({
+      linksDisplay: partnerLinksDisplaySchema.nullish(),
+    })
+    .nullish(),
 });
 
 export const ProgramInviteSchema = z.object({

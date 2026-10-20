@@ -1,4 +1,5 @@
 import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
+import { sanitizeTimezone } from "@/lib/analytics/utils/sanitize-timezone";
 import * as z from "zod/v4";
 
 export const usageQuerySchema = z.object({
@@ -9,7 +10,11 @@ export const usageQuerySchema = z.object({
   interval: z.enum(DATE_RANGE_INTERVAL_PRESETS).optional(),
   start: z.string().optional(),
   end: z.string().optional(),
-  timezone: z.string().optional().default("UTC"),
+  timezone: z
+    .string()
+    .optional()
+    .overwrite((v) => (v === undefined ? undefined : sanitizeTimezone(v)))
+    .default("UTC"),
 });
 
 export const usageResponse = z.object({

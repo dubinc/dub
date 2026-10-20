@@ -25,6 +25,7 @@ const expectedGroup: Partial<GroupProps> = {
   holdingPeriodDays: expect.any(Number),
   brandColor: null,
   autoApprovePartnersEnabledAt: null,
+  revenueDataSharingDisabledAt: null,
   submittedLeadsEnabledAt: null,
   clickReward: null,
   leadReward: null,
@@ -77,6 +78,7 @@ describe.sequential("/groups/**", async () => {
       linkStructure: defaultGroup.linkStructure,
       holdingPeriodDays: defaultGroup.holdingPeriodDays,
       autoApprovePartnersEnabledAt: defaultGroup.autoApprovePartnersEnabledAt,
+      revenueDataSharingDisabledAt: defaultGroup.revenueDataSharingDisabledAt,
       submittedLeadsEnabledAt: defaultGroup.submittedLeadsEnabledAt,
     });
 
@@ -143,6 +145,31 @@ describe.sequential("/groups/**", async () => {
     });
 
     group = updatedGroup;
+  });
+
+  test("PATCH /groups/[groupId] - hide revenue from partners", async () => {
+    const { status, data: updatedGroup } = await http.patch<GroupProps>({
+      path: `/groups/${group.id}`,
+      body: {
+        revenueDataSharingDisabled: true,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(updatedGroup.revenueDataSharingDisabledAt).toEqual(expect.any(String));
+
+    const { status: clearStatus, data: clearedGroup } =
+      await http.patch<GroupProps>({
+        path: `/groups/${group.id}`,
+        body: {
+          revenueDataSharingDisabled: false,
+        },
+      });
+
+    expect(clearStatus).toEqual(200);
+    expect(clearedGroup.revenueDataSharingDisabledAt).toBeNull();
+
+    group = clearedGroup;
   });
 
   test("PATCH /groups/[groupId] - update group with group move rule", async () => {
@@ -286,6 +313,7 @@ describe.sequential("/groups/**", async () => {
       brandColor: group.brandColor,
       holdingPeriodDays: group.holdingPeriodDays,
       autoApprovePartnersEnabledAt: group.autoApprovePartnersEnabledAt,
+      revenueDataSharingDisabledAt: group.revenueDataSharingDisabledAt,
       submittedLeadsEnabledAt: group.submittedLeadsEnabledAt,
       totalPartners: 0,
       totalClicks: 0,

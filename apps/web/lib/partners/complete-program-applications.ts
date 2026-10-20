@@ -214,6 +214,16 @@ export async function completeProgramApplications(userEmail: string) {
           },
         };
 
+        // Detect and record fraud events for the partner when they apply to a program
+        const fraudDetection = detectAndRecordFraudApplication({
+          context: {
+            program,
+            partner,
+          },
+        }).catch((error) =>
+          console.error("Failed to detect application fraud", error),
+        );
+
         await Promise.allSettled([
           ...(validApplication
             ? [
@@ -224,15 +234,18 @@ export async function completeProgramApplications(userEmail: string) {
                   application,
                 }),
 
-                dispatchPartnerApplicationReview({
-                  applicationId: application.id,
-                  programId: program.id,
-                  partnerId: partner.id,
-                  autoApprovePartnersEnabledAt:
-                    group?.autoApprovePartnersEnabledAt,
-                  applicationScreeningCriteria:
-                    program.applicationScreeningCriteria,
-                }),
+                // Wait for fraud detection, so the review job sees the new fraud events
+                fraudDetection.then(() =>
+                  dispatchPartnerApplicationReview({
+                    applicationId: application.id,
+                    programId: program.id,
+                    partnerId: partner.id,
+                    autoApprovePartnersEnabledAt:
+                      group?.autoApprovePartnersEnabledAt,
+                    applicationScreeningCriteria:
+                      program.applicationScreeningCriteria,
+                  }),
+                ),
 
                 // Send "partner.application_submitted" webhook (deprecated)
                 workspacesByProgramId.has(program.id) &&
@@ -275,13 +288,7 @@ export async function completeProgramApplications(userEmail: string) {
                 ),
               ]),
 
-          // Detect and record fraud events for the partner when they apply to a program
-          detectAndRecordFraudApplication({
-            context: {
-              program,
-              partner,
-            },
-          }),
+          fraudDetection,
         ]);
       }),
     );

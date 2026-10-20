@@ -4,6 +4,7 @@ import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
 import { testIds } from "@/lib/e2e/test-ids";
 import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useDomains from "@/lib/swr/use-domains";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -47,10 +48,12 @@ export function SuccessPageClient({
     plan,
     planPeriod,
     trialEndsAt,
+    environment,
     loading: isLoadingWorkspace,
   } = useWorkspace();
 
   const showSlackInvite =
+    isProductionEnvironment(environment) &&
     getPlanCapabilities(workspace.plan).canRequestSlackSupportInvite &&
     !isWorkspaceBillingTrialActive(trialEndsAt);
 

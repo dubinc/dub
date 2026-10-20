@@ -1,6 +1,7 @@
 "use client";
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import {
   usePartnerProfileEarningsCount,
   usePartnerProfileEarningsTimeseries,
@@ -76,6 +77,7 @@ type EarningsCountGroup = {
   id: string;
   domain?: string;
   key?: string;
+  partnerLinkTitle?: string | null;
   name?: string;
   logo?: string | null;
 };
@@ -85,13 +87,19 @@ function getGroupLabel({
   groupBy,
   group,
   id,
+  showTitle,
 }: {
   groupBy: EarningsGroupBy;
   group?: EarningsCountGroup;
   id: string;
+  showTitle: boolean;
 }) {
   if (groupBy === "programId" && group?.name) {
     return group.name;
+  }
+
+  if (groupBy === "linkId" && showTitle && group?.partnerLinkTitle) {
+    return group.partnerLinkTitle;
   }
 
   if (groupBy === "linkId" && group?.domain && group?.key) {
@@ -121,6 +129,8 @@ export function EarningsCompositeChart() {
   )?.value;
   const labelsGroupBy =
     groupBy === "linkId" || groupBy === "programId" ? groupBy : undefined;
+
+  const { displayProperties } = usePartnerLinksDisplay();
 
   const { data } = usePartnerProfileEarningsTimeseries({
     ...filters,
@@ -295,7 +305,13 @@ export function EarningsCompositeChart() {
                                   />
                                 )}
                                 <span className="min-w-0 truncate font-medium text-neutral-700">
-                                  {getGroupLabel({ groupBy, group, id })}
+                                  {getGroupLabel({
+                                    groupBy,
+                                    group,
+                                    id,
+                                    showTitle:
+                                      displayProperties.includes("title"),
+                                  })}
                                 </span>
                               </div>
                               <p className="text-right text-neutral-500">
@@ -354,6 +370,7 @@ function EarningsTableControls() {
   const { queryParams, searchParamsObj } = useRouterStuff();
   const earningsFilters = usePartnerEarningsFilters();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const { displayProperties } = usePartnerLinksDisplay();
 
   const { data: programs } = usePartnerProfileEarningsCount<
     { id: string; name?: string; logo?: string | null; earnings: number }[]
@@ -378,7 +395,14 @@ function EarningsTableControls() {
   });
 
   const { data: links } = usePartnerProfileEarningsCount<
-    { id: string; domain: string; key: string; url: string; earnings: number }[]
+    {
+      id: string;
+      domain: string;
+      key: string;
+      url: string;
+      partnerLinkTitle?: string | null;
+      earnings: number;
+    }[]
   >({
     ...earningsFilters,
     groupBy: "linkId",
@@ -450,16 +474,21 @@ function EarningsTableControls() {
           return <LinkIcon url={props.option?.data?.url} />;
         },
         options:
-          links?.map(({ id, domain, key, url, earnings }) => ({
-            value: id,
-            label: linkConstructor({
-              domain,
-              key,
-              pretty: true,
+          links?.map(
+            ({ id, domain, key, url, partnerLinkTitle, earnings }) => ({
+              value: id,
+              label:
+                displayProperties.includes("title") && partnerLinkTitle
+                  ? partnerLinkTitle
+                  : linkConstructor({
+                      domain,
+                      key,
+                      pretty: true,
+                    }),
+              data: { url },
+              right: currencyFormatter(earnings),
             }),
-            data: { url },
-            right: currencyFormatter(earnings),
-          })) ?? null,
+          ) ?? null,
       },
       // the Customer filter is only on the Earnings page of one program
       ...(programSlug
@@ -500,7 +529,15 @@ function EarningsTableControls() {
           }) ?? null,
       },
     ],
-    [programSlug, programs, types, links, customers, statuses],
+    [
+      programSlug,
+      programs,
+      types,
+      links,
+      customers,
+      statuses,
+      displayProperties,
+    ],
   );
 
   const activeFilters = useMemo(() => {

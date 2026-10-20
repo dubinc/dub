@@ -13,8 +13,10 @@ import {
   EventType,
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanProps } from "@/lib/types";
 import { useLocalStorage } from "@dub/ui";
@@ -75,6 +77,7 @@ export const AnalyticsContext = createContext<{
   totalEventsLoading?: boolean;
   adminPage?: boolean;
   partnerPage?: boolean;
+  hidePartnerRevenue?: boolean;
   showConversions?: boolean;
   fetchCompositeStats?: boolean;
   requiresUpgrade?: boolean;
@@ -92,6 +95,7 @@ export const AnalyticsContext = createContext<{
   end: new Date(),
   adminPage: false,
   partnerPage: false,
+  hidePartnerRevenue: false,
   showConversions: false,
   fetchCompositeStats: false,
   requiresUpgrade: false,
@@ -119,6 +123,14 @@ export default function AnalyticsProvider({
   const { partner } = usePartnerProfile();
   const partnerPage = partner?.id && programSlug ? true : false;
 
+  const { programEnrollment } = useProgramEnrollment({
+    enabled: Boolean(partnerPage),
+  });
+
+  const hidePartnerRevenue =
+    partnerPage &&
+    (!programEnrollment || isPartnerRevenueHidden(programEnrollment.group));
+
   const domainSlug = searchParams?.get("domain");
 
   // Show conversion tabs/data for all dashboards except shared (unless explicitly set)
@@ -129,6 +141,9 @@ export default function AnalyticsProvider({
     useLocalStorage<AnalyticsSaleUnit>(`analytics-sale-unit`, "saleAmount");
 
   const saleUnit: AnalyticsSaleUnit = useMemo(() => {
+    if (hidePartnerRevenue) {
+      return "sales";
+    }
     const searchParamsSaleUnit = searchParams.get(
       "saleUnit",
     ) as AnalyticsSaleUnit;
@@ -137,7 +152,7 @@ export default function AnalyticsProvider({
       return searchParamsSaleUnit;
     }
     return persistedSaleUnit;
-  }, [searchParams.get("saleUnit")]);
+  }, [searchParams.get("saleUnit"), hidePartnerRevenue]);
 
   const [persistedView, setPersistedView] = useLocalStorage<AnalyticsView>(
     `analytics-view`,
@@ -301,6 +316,7 @@ export default function AnalyticsProvider({
         totalEventsLoading: totalEventsLoading,
         adminPage, // whether the user is an admin
         partnerPage, // whether the user is viewing partner analytics
+        hidePartnerRevenue, // whether the partner's group hides sale dollar amounts
         showConversions, // whether to show conversions tabs/data
         fetchCompositeStats, // whether to pull composite stats or just clicks
         requiresUpgrade, // whether an upgrade is required to perform the query

@@ -1,6 +1,7 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
@@ -157,6 +158,7 @@ export default function EventsTable({
     eventsApiPath,
     totalEvents,
     partnerPage,
+    hidePartnerRevenue,
   } = useContext(AnalyticsContext);
 
   const { programSlug } = useParams<{ programSlug: string }>();
@@ -167,18 +169,32 @@ export default function EventsTable({
   );
 
   const [persisted] = useWorkspacePreferences("linksDisplay");
+  const { displayProperties: partnerDisplayProperties } =
+    usePartnerLinksDisplay();
 
   const shortLinkTitle = useCallback(
-    (d: { url?: string; title?: string; shortLink?: string }) => {
+    (d: {
+      url?: string;
+      title?: string;
+      partnerLinkTitle?: string | null;
+      shortLink?: string;
+    }) => {
+      if (partnerPage) {
+        if (partnerDisplayProperties.includes("title") && d.partnerLinkTitle) {
+          return d.partnerLinkTitle;
+        }
+        return d.shortLink ? getPrettyUrl(d.shortLink) : "Unknown";
+      }
+
       const displayProperties = persisted?.displayProperties;
 
       if (displayProperties?.includes("title") && d.title) {
         return d.title;
       }
 
-      return d.shortLink || "Unknown";
+      return d.shortLink ? getPrettyUrl(d.shortLink) : "Unknown";
     },
-    [persisted],
+    [persisted, partnerPage, partnerDisplayProperties],
   );
 
   const sortBy = searchParams.get("sortBy") || "timestamp";
@@ -341,6 +357,7 @@ export default function EventsTable({
             filterParams: ({ getValue }) => ({ linkId: getValue().id }),
           },
           cell: ({ getValue }) => {
+            const label = shortLinkTitle(getValue());
             const content = (
               <div
                 className={cn(
@@ -353,8 +370,8 @@ export default function EventsTable({
                   apexDomain={getApexDomain(getValue().url)}
                   className="size-4 shrink-0 sm:size-4"
                 />
-                <span className="truncate" title={shortLinkTitle(getValue())}>
-                  {getPrettyUrl(shortLinkTitle(getValue()))}
+                <span className="truncate" title={label}>
+                  {label}
                 </span>
               </div>
             );
@@ -694,7 +711,12 @@ export default function EventsTable({
           cell: ({ row }) => <RowMenuButton row={row} />,
         },
       ]
-        .filter((c) => c.id === "menu" || eventColumns[tab].all.includes(c.id))
+        .filter(
+          (c) =>
+            c.id === "menu" ||
+            (eventColumns[tab].all.includes(c.id) &&
+              !(hidePartnerRevenue && c.id === "saleAmount")),
+        )
         .map((col) => ({
           ...col,
           enableResizing: true,
@@ -702,7 +724,7 @@ export default function EventsTable({
           minSize: col.minSize || 100,
           maxSize: col.maxSize || 1000,
         })),
-    [tab, product, partnerPage],
+    [tab, product, partnerPage, hidePartnerRevenue, shortLinkTitle],
   );
 
   const { pagination, setPagination } = usePagination();

@@ -292,6 +292,7 @@ export const createReferralCommission = async (
 
     sendPartnerPostback({
       partnerId: referredByPartnerId,
+      programId,
       event: "commission.created",
       data: commission,
     }),

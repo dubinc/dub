@@ -3,6 +3,7 @@ import { sleep } from "@dub/utils";
 import { Partner, Program } from "@prisma/client";
 
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
 import { approveLinkedApplication } from "../program-applications/approve-linked-application";
@@ -66,6 +67,10 @@ export async function importPartners(payload: ToltImportPayload) {
     }
 
     if (activeAffiliates.length > 0) {
+      // Filled as soon as each enrollment is saved, so a partner whose later
+      // step throws still reaches the search sync and the ban check.
+      const enrolledPartnerIds: string[] = [];
+
       const partnersPromise = await Promise.allSettled(
         activeAffiliates.map((affiliate) =>
           createPartner({
@@ -80,6 +85,7 @@ export async function importPartners(payload: ToltImportPayload) {
               referralRewardId: defaultGroup.referralRewardId,
               discountId: defaultGroup.discountId,
             },
+            enrolledPartnerIds,
           }),
         ),
       );
@@ -90,14 +96,19 @@ export async function importPartners(payload: ToltImportPayload) {
         )
         .map((p) => p.value);
 
-      if (partners.length > 0) {
-        // Queue an index update because the imported partners were enrolled.
-        // Queued per page rather than per partner.
-        await queuePartnerSearchSync({
-          partnerIds: partners.map((p) => p.id),
-          programId,
-        });
+      // Queue an index update because the imported partners were enrolled.
+      // Queued per page rather than per partner.
+      await queuePartnerSearchSync({
+        partnerIds: enrolledPartnerIds,
+        programId,
+      });
 
+      await detectAndRecordNetworkLevelBans({
+        programId,
+        partnerIds: enrolledPartnerIds,
+      });
+
+      if (partners.length > 0) {
         await toltImporter.addPartners({
           programId,
           partnerIds: partners.map((p) => p.id),
@@ -135,6 +146,7 @@ async function createPartner({
   program,
   affiliate,
   defaultGroupAttributes,
+  enrolledPartnerIds,
 }: {
   program: Program;
   affiliate: ToltAffiliate;
@@ -147,6 +159,7 @@ async function createPartner({
     referralRewardId: string | null;
     discountId: string | null;
   };
+  enrolledPartnerIds: string[];
 }) {
   const partner = await prisma.partner.upsert({
     where: {
@@ -175,6 +188,8 @@ async function createPartner({
       ...defaultGroupAttributes,
     },
   });
+
+  enrolledPartnerIds.push(partner.id);
 
   if (!preservedBan) {
     await approveLinkedApplication({

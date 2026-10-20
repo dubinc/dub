@@ -3,6 +3,7 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { updateLinkStatsForImporter } from "@/lib/api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { EdgeLinkProps } from "@/lib/planetscale/types";
@@ -136,6 +137,7 @@ export async function createDemoCommission({
       id: customerId,
       name: customer.name || customer.email || generateRandomName(),
       email: customer.email,
+      normalizedEmail: getNormalizedEmail(customer.email),
       externalId: customer.externalId,
       country: customer.country,
       linkId: targetLink.id,
@@ -146,6 +148,9 @@ export async function createDemoCommission({
     update: {
       name: customer.name || customer.email || generateRandomName(),
       email: customer.email,
+      ...(customer.email !== undefined && {
+        normalizedEmail: getNormalizedEmail(customer.email),
+      }),
       country: customer.country,
     },
   });

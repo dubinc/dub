@@ -3,13 +3,13 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { CountryFlag } from "@/ui/shared/country-flag";
-import { ArrowRight, Link4, LoadingSpinner, useRouterStuff } from "@dub/ui";
+import { Link4, LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { COUNTRIES, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
-import Link from "next/link";
 import { useContext } from "react";
 import useSWR from "swr";
 import { ExceededEventsLimit } from "../exceeded-events-limit";
 import { ProgramOverviewBlock } from "../program-overview-block";
+import { ProgramOverviewRow } from "../program-overview-row";
 
 export function CountriesBlock() {
   const { slug: workspaceSlug, exceededEvents } = useWorkspace();
@@ -43,8 +43,10 @@ export function CountriesBlock() {
           include: ["interval", "start", "end"],
         },
       )}`}
+      className="pb-3.5"
+      contentClassName="px-3"
     >
-      <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
+      <div className="@2xl:h-[257px] flex h-auto flex-col">
         {exceededEvents ? (
           <ExceededEventsLimit />
         ) : isLoading ? (
@@ -61,7 +63,7 @@ export function CountriesBlock() {
           </div>
         ) : (
           data?.slice(0, 6).map(({ country, leads, saleAmount }) => (
-            <Link
+            <ProgramOverviewRow
               key={country}
               href={`/${workspaceSlug}/program/analytics${getQueryString(
                 { country },
@@ -69,7 +71,6 @@ export function CountriesBlock() {
                   include: ["interval", "start", "end"],
                 },
               )}`}
-              className="text-content-default group flex h-10 items-center justify-between text-xs font-medium"
             >
               <div className="flex min-w-0 items-center gap-2">
                 {country === "(direct)" ? (
@@ -80,7 +81,6 @@ export function CountriesBlock() {
                 <span className="min-w-0 truncate">
                   {COUNTRIES?.[country] ?? country}
                 </span>
-                <ArrowRight className="text-content-emphasis size-2.5 -translate-x-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100 [&_*]:stroke-2" />
               </div>
 
               <span>
@@ -88,7 +88,7 @@ export function CountriesBlock() {
                   ? nFormatter(leads, { full: true })
                   : currencyFormatter(saleAmount)}
               </span>
-            </Link>
+            </ProgramOverviewRow>
           ))
         )}
       </div>

@@ -1,3 +1,4 @@
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { prisma } from "@/lib/prisma";
 import { chunk, nanoid } from "@dub/utils";
 import { Customer, Link, Project } from "@prisma/client";
@@ -240,6 +241,7 @@ async function createCustomer({
         id: createId({ prefix: "cus_" }),
         name: customer.name || customer.email,
         email: customer.email,
+        normalizedEmail: getNormalizedEmail(customer.email),
         externalId,
         projectId: workspace.id,
         projectConnectId: workspace.stripeConnectId,

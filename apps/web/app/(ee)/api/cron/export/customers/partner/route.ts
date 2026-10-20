@@ -6,6 +6,7 @@ import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
 import { withCron } from "@/lib/cron/with-cron";
 import { formatPartnerCustomersForExport } from "@/lib/customers/api/format-partner-customers-export";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
 import { partnerCustomersExportCronInputSchema } from "@/lib/zod/schemas/partner-profile";
 import { sendEmail } from "@dub/email";
@@ -53,16 +54,29 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(`User ${userId} has no email.`);
   }
 
-  const { program, customerDataSharingEnabledAt } =
+  const { program, customerDataSharingEnabledAt, partnerGroup } =
     await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
       include: {
-        program: true,
+        program: {
+          select: {
+            id: true,
+            name: true,
+            workspaceId: true,
+          },
+        },
+        partnerGroup: {
+          select: {
+            revenueDataSharingDisabledAt: true,
+          },
+        },
       },
     });
 
-  const ltvExcluded = CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id);
+  const ltvExcluded =
+    CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id) ||
+    isPartnerRevenueHidden(partnerGroup);
 
   const where = {
     partnerId,

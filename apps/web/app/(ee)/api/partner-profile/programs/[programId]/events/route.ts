@@ -10,8 +10,10 @@ import {
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
+import { nullifyPartnerEventRevenue } from "@/lib/partners/hide-partner-revenue";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import {
-  PartnerProfileLinkSchema,
+  parsePartnerProfileEventLink,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { parseFilterValue, toCentsNumber } from "@dub/utils";
@@ -21,15 +23,44 @@ import * as z from "zod/v4";
 // GET /api/partner-profile/programs/[programId]/events – get events for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { program, links, totalCommissions, customerDataSharingEnabledAt } =
-      await getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId: params.programId,
-        include: {
-          program: true,
-          links: true,
+    const {
+      program,
+      links,
+      totalCommissions,
+      customerDataSharingEnabledAt,
+      partnerGroup,
+    } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: params.programId,
+      include: {
+        program: {
+          select: {
+            id: true,
+            workspaceId: true,
+            startedAt: true,
+            createdAt: true,
+          },
         },
-      });
+        links: {
+          select: {
+            id: true,
+            domain: true,
+            key: true,
+            partnerLinkDetails: {
+              select: {
+                title: true,
+                comments: true,
+              },
+            },
+          },
+        },
+        partnerGroup: {
+          select: {
+            revenueDataSharingDisabledAt: true,
+          },
+        },
+      },
+    });
 
     if (
       LARGE_PROGRAM_IDS.includes(program.id) &&
@@ -109,16 +140,20 @@ export const GET = withPartnerProfile(
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
 
+    const hidePartnerRevenue = isPartnerRevenueHidden(partnerGroup);
+
     const response = events.map((event) => {
       // don't return ip address for partner profile
       // @ts-ignore – ip is deprecated but present in the data
       const { ip, click, customer, ...eventRest } = event;
       const { ip: _, ...clickRest } = click;
 
-      return {
+      const mapped = {
         ...eventRest,
         click: clickRest,
-        link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
+        link: event?.link
+          ? parsePartnerProfileEventLink(event.link, links)
+          : null,
         ...(customer && {
           customer: z
             .object({
@@ -139,6 +174,8 @@ export const GET = withPartnerProfile(
             }),
         }),
       };
+
+      return hidePartnerRevenue ? nullifyPartnerEventRevenue(mapped) : mapped;
     });
 
     return NextResponse.json(response);

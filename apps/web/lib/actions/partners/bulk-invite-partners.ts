@@ -2,6 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
+import { detectAndRecordNetworkLevelBans } from "@/lib/api/fraud/detect-network-level-bans";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
@@ -175,6 +176,13 @@ export const bulkInvitePartnersAction = authActionClient
 
     waitUntil(
       (async () => {
+        // Check for network-level bans before the default links are created,
+        // so a link failure does not skip the check
+        await detectAndRecordNetworkLevelBans({
+          programId,
+          partnerIds: partners.map(({ id }) => id),
+        });
+
         // Create default links for the partners for each group default link
         for (const partnerGroupDefaultLink of partnerGroupDefaultLinks) {
           const links = await bulkCreateLinks({

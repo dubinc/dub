@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { SLACK_SUPPORT_INVITE_MAX_EMAILS } from "@/lib/constants/misc";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import { requestSlackConnectSupportInvite } from "@/lib/slack/support-invite";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
@@ -25,6 +26,11 @@ function dedupeEmails(emails: string[]): string[] {
 // POST /api/workspaces/[idOrSlug]/support/slack-invite — Slack Connect invite to priority support
 export const POST = withWorkspace(
   async ({ workspace, session, req }) => {
+    assertProductionWorkspace(workspace, {
+      message:
+        "Priority Slack support is not available in staging or sandbox workspaces.",
+    });
+
     if (!getPlanCapabilities(workspace.plan).canRequestSlackSupportInvite) {
       throw new DubApiError({
         code: "forbidden",
