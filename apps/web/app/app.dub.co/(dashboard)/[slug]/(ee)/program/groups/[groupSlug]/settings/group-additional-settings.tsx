@@ -292,7 +292,7 @@ function GroupAdditionalSettingsForm({
 
               <GroupSettingsRow
                 heading="Hide revenue from partners"
-                description="Partners in this group will not see sale amounts. They will still see clicks, leads, sales, and commissions."
+                description="[Hide sale amounts](https://dub.co/help/article/partner-groups#hide-revenue-from-partners) from partners in this group, while still showing their clicks, leads, sales, and commissions."
               >
                 {isLoading ? (
                   <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
