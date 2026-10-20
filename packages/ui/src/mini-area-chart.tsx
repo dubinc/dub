@@ -120,7 +120,13 @@ function MiniAreaChartInner({
               y2={0}
             />
             <mask id={`${id}-fade-mask`} maskContentUnits="objectBoundingBox">
-              <rect width="1" height="1" fill={`url(#${id}-fade-gradient)`} />
+              {/* extends past the bounding box, which excludes the stroke and would clip it at the peaks */}
+              <rect
+                y="-1"
+                width="1"
+                height="3"
+                fill={`url(#${id}-fade-gradient)`}
+              />
             </mask>
           </>
         )}

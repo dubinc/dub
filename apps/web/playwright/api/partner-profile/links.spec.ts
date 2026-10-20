@@ -191,6 +191,60 @@ test("POST /partner-profile/programs/:id/links - allowed additionalLinks domain"
   }
 });
 
+test("PATCH /partner-profile/programs/:id/links/:linkId - update key", async ({
+  api,
+  program,
+  playwright,
+}) => {
+  let partnerId: string | undefined;
+  let userId: string | undefined;
+
+  try {
+    const { data: partner } = await createPartner(api);
+    partnerId = partner.id;
+    const auth = await createPartnerProfileAuth(partner);
+    userId = auth.userId;
+
+    const { api: partnerApi, dispose } = await createBearerApiClient({
+      playwright,
+      token: auth.token,
+    });
+
+    try {
+      const { data: links } = await partnerApi.get<PartnerProfileLink[]>(
+        `/api/partner-profile/programs/${program.id}/links`,
+      );
+      const link =
+        links.find((link) => link.partnerGroupDefaultLinkId) ?? links[0];
+
+      expect(
+        await prisma.partnerLinkDetails.findUnique({
+          where: { linkId: link.id },
+        }),
+      ).toBeNull();
+
+      const key = nanoid(8);
+      const { status, data } = await partnerApi.patch<PartnerProfileLink>(
+        `/api/partner-profile/programs/${program.id}/links/${link.id}`,
+        { key },
+      );
+
+      expect(status).toEqual(200);
+      expect(data).toMatchObject({
+        id: link.id,
+        domain: TEST_WORKSPACE.program.domain,
+        key,
+        shortLink: `https://${TEST_WORKSPACE.program.domain}/${key}`,
+      });
+    } finally {
+      await dispose();
+    }
+  } finally {
+    if (userId) await prisma.user.delete({ where: { id: userId } });
+    await deletePartner(partnerId);
+  }
+});
+
 test("PATCH /partner-profile/programs/:id/links/:linkId - cannot change default link URL", async ({
   api,
   program,
