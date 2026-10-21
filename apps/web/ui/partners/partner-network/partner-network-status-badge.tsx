@@ -1,4 +1,4 @@
-import { BadgeCheck2, Tooltip } from "@dub/ui";
+import { BadgeCheck2, Tooltip, UserXmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PartnerNetworkStatus } from "@prisma/client";
 import { TrustedPartnerBadge } from "../trusted-partner-badge";
@@ -12,6 +12,33 @@ export function PartnerNetworkStatusBadge({
 }) {
   if (networkStatus === "trusted") {
     return <TrustedPartnerBadge variant="inline" size={size} />;
+  }
+
+  if (networkStatus === "banned") {
+    return (
+      <Tooltip
+        content={
+          <div className="flex max-w-xs items-start gap-1.5 p-3">
+            <UserXmark className="mt-0.5 size-5 shrink-0 text-red-500" />
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-semibold text-neutral-900">
+                Banned Partner
+              </span>
+              <span className="text-sm font-normal text-neutral-600">
+                This partner is banned from the Dub Partner Network.
+              </span>
+            </div>
+          </div>
+        }
+      >
+        <UserXmark
+          className={cn(
+            "shrink-0 text-red-500",
+            size === "small" ? "size-3.5" : "size-5",
+          )}
+        />
+      </Tooltip>
+    );
   }
 
   if (networkStatus === "approved") {

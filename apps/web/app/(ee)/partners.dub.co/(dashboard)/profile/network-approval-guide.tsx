@@ -35,6 +35,11 @@ const NETWORK_STATUS_BADGE_VARIANT = {
     label: "Approved",
     icon: CircleCheck,
   },
+  banned: {
+    variant: "error",
+    label: "Banned",
+    icon: CircleXmark,
+  },
 } as const;
 
 export function NetworkApprovalGuide() {
