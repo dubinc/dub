@@ -27,18 +27,8 @@ export const POST = withAdmin(
       await req.json(),
     );
 
-    const partner = await getPartnerNetworkStatus(partnerId);
-
-    if (!partner) {
-      return new Response("Partner not found.", { status: 404 });
-    }
-
-    if (partner.networkStatus === "banned") {
-      return new Response("Partner is already banned from the network.", {
-        status: 400,
-      });
-    }
-
+    // No check for an existing ban, so that a retry after a failed fraud
+    // alert can still create it (the ban itself is a no-op then)
     const result = await flagPartnerForFraud({
       partnerId,
       reason,
