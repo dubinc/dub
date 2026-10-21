@@ -1,6 +1,6 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { hardDeletePartners } from "@/lib/api/partners/hard-delete-partners";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
-import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { toltImporter } from "./importer";
 
@@ -126,11 +126,7 @@ export async function cleanupPartners({ programId }: { programId: string }) {
             ({ id }) => id,
           );
 
-          // using conn.execute here since Prisma throws on partner.deleteMany()
-          await conn.execute(
-            `DELETE FROM Partner WHERE id IN (${partnerIdsToDelete.map(() => "?").join(",")})`,
-            partnerIdsToDelete,
-          );
+          await hardDeletePartners({ partnerIds: partnerIdsToDelete });
 
           console.log(
             "Removed the following partners",
