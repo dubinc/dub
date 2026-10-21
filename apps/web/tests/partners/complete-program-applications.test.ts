@@ -173,4 +173,26 @@ describe("completeProgramApplications", () => {
     });
     expect(consoleError).not.toHaveBeenCalled();
   });
+
+  it("does not complete applications for a partner banned from the network", async () => {
+    mocks.findUniqueOrThrow.mockResolvedValue({
+      partners: [
+        {
+          partnerId: PARTNER_ID,
+          partner: {
+            id: PARTNER_ID,
+            networkStatus: "banned",
+            platforms: [],
+            programs: [],
+          },
+        },
+      ],
+    });
+    mockApplications([pendingApplication]);
+
+    await completeProgramApplications(EMAIL);
+
+    expect(mocks.findMany).not.toHaveBeenCalled();
+    expect(mocks.transaction).not.toHaveBeenCalled();
+  });
 });
