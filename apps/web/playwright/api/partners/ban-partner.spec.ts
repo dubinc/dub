@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma";
 import type { EnrolledPartnerProps } from "@/lib/types";
 import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
@@ -75,6 +76,79 @@ test("POST /partners/ban – by tenantId", async ({ api, program }) => {
     expect(data).toStrictEqual({ partnerId });
 
     await expectPartnerBanned(api, partnerId, "fraud");
+  } finally {
+    await deletePartner(partnerId);
+  }
+});
+
+test("POST /partners/ban – flag for fraud", async ({ api, program }) => {
+  let partnerId: string | undefined;
+  const flagForFraudReason = `Fake traffic ${nanoid()}`;
+
+  try {
+    const { data: created } = await createPartner(api, {
+      groupId: program.defaultGroupId,
+    });
+    partnerId = created.id;
+
+    const { status, data } = await api.post<{ partnerId: string }>(
+      "/api/partners/ban",
+      {
+        partnerId,
+        reason: "fraud",
+        flagForFraud: true,
+        flagForFraudReason,
+      },
+    );
+
+    expect(status).toEqual(200);
+    expect(data).toStrictEqual({ partnerId });
+
+    await expectPartnerBanned(api, partnerId, "fraud");
+
+    // The fraud alert is created after the response is sent
+    await expect
+      .poll(
+        () =>
+          prisma.fraudAlert.findFirst({
+            where: { partnerId, programId: program.id },
+            select: { reason: true, status: true },
+          }),
+        { timeout: 15_000 },
+      )
+      .toEqual({ reason: flagForFraudReason, status: "pending" });
+  } finally {
+    if (partnerId) {
+      await prisma.fraudAlert.deleteMany({ where: { partnerId } });
+    }
+    await deletePartner(partnerId);
+  }
+});
+
+test("POST /partners/ban – flag for fraud without a reason", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+
+  try {
+    const { data: created } = await createPartner(api, {
+      groupId: program.defaultGroupId,
+    });
+    partnerId = created.id;
+
+    expect(
+      await api.post("/api/partners/ban", {
+        partnerId,
+        reason: "fraud",
+        flagForFraud: true,
+      }),
+    ).toEqual(
+      apiError({
+        code: "bad_request",
+        message: "Fraud reason is required when flagging for fraud.",
+      }),
+    );
   } finally {
     await deletePartner(partnerId);
   }
