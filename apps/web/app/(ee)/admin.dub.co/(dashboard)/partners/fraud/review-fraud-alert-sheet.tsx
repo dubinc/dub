@@ -17,6 +17,7 @@ import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { Markdown } from "@/ui/shared/markdown";
 import {
   Button,
+  Checkbox,
   LoadingSpinner,
   Sheet,
   StatusBadge,
@@ -117,12 +118,19 @@ function SheetContent({
   onReviewed: () => Promise<void>;
 }) {
   const [reviewNote, setReviewNote] = useState(fraudAlert.reviewNote ?? "");
+  const [banFromNetwork, setBanFromNetwork] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: partner, isLoading } = useSWR<PartnerDetail>(
+  const {
+    data: partner,
+    isLoading,
+    mutate: mutatePartner,
+  } = useSWR<PartnerDetail>(
     `/api/admin/partners/${fraudAlert.partner.id}`,
     (url: string) => fetch(url).then((r) => r.json()),
   );
+
+  const isBannedFromNetwork = partner?.networkStatus === "banned";
 
   const handleReview = async (action: "confirmed" | "dismissed") => {
     if (
@@ -140,6 +148,8 @@ function SheetContent({
         body: JSON.stringify({
           status: action,
           reviewNote,
+          ...(action === "confirmed" &&
+            banFromNetwork && { banFromNetwork: true }),
         }),
       });
 
@@ -151,6 +161,39 @@ function SheetContent({
       setReviewNote("");
       setIsOpen(false);
       await onReviewed();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUnban = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to unban this partner from the Dub Partner Network? Their network profile will go back to draft.",
+      )
+    ) {
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(
+        `/api/admin/partners/${fraudAlert.partner.id}/network-ban`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text);
+      }
+
+      toast.success("Partner unbanned from the Dub Partner Network.");
+      await mutatePartner();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong",
@@ -340,20 +383,49 @@ function SheetContent({
           </p>
         </div>
         {fraudAlert.status === "pending" && (
-          <div className="mt-3 flex items-center justify-end gap-2">
+          <div className="mt-3 flex items-center justify-between gap-2">
+            {partner && !isBannedFromNetwork ? (
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-700">
+                <Checkbox
+                  checked={banFromNetwork}
+                  onCheckedChange={(checked) =>
+                    setBanFromNetwork(checked === true)
+                  }
+                />
+                Also ban from Dub Partner Network
+              </label>
+            ) : (
+              <div />
+            )}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                className="h-8 w-fit px-3"
+                text="Dismiss"
+                loading={isSubmitting}
+                onClick={() => handleReview("dismissed")}
+              />
+              <Button
+                variant="danger"
+                className="h-8 w-fit px-3"
+                text="Confirm Fraud"
+                loading={isSubmitting}
+                onClick={() => handleReview("confirmed")}
+              />
+            </div>
+          </div>
+        )}
+        {isBannedFromNetwork && (
+          <div className="mt-3 flex items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2">
+            <span className="text-sm text-red-700">
+              This partner is banned from the Dub Partner Network.
+            </span>
             <Button
               variant="secondary"
               className="h-8 w-fit px-3"
-              text="Dismiss"
+              text="Unban"
               loading={isSubmitting}
-              onClick={() => handleReview("dismissed")}
-            />
-            <Button
-              variant="danger"
-              className="h-8 w-fit px-3"
-              text="Confirm Fraud"
-              loading={isSubmitting}
-              onClick={() => handleReview("confirmed")}
+              onClick={handleUnban}
             />
           </div>
         )}
