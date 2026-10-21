@@ -1,7 +1,8 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
-import { hardDeletePartners } from "@/lib/api/partners/hard-delete-partners";
+import { deletePartnerUsers } from "@/lib/api/partners/delete-partner-users";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { withAdmin } from "@/lib/auth";
+import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { prettyPrint } from "@dub/utils";
@@ -141,7 +142,9 @@ export const POST = withAdmin(
         });
       }
 
-      await hardDeletePartners({ partnerIds: [partner.id] });
+      await deletePartnerUsers({ partnerIds: [partner.id] });
+
+      await conn.execute(`DELETE FROM Partner WHERE id = ?`, [partner.id]);
       console.log(`Deleted partner ${partner.email} (${partner.id})`);
     }
 

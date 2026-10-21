@@ -1,7 +1,8 @@
+import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
-import { hardDeletePartners } from "./hard-delete-partners";
+import { deletePartnerUsers } from "./delete-partner-users";
 import { queuePartnerSearchSync } from "./queue-partner-search-sync";
 
 const BATCH_SIZE = 250;
@@ -193,7 +194,16 @@ export async function bulkDeletePartners({
       },
     });
 
-    await hardDeletePartners({ partnerIds });
+    await deletePartnerUsers({ partnerIds });
+
+    // using conn.execute here since Prisma is throwing a weird error
+    const res = await conn.execute(
+      `DELETE FROM Partner WHERE id IN (${partnerIds.map(() => "?").join(",")})`,
+      partnerIds,
+    );
+    console.log(JSON.stringify(res, null, 2));
+
+    console.log(`Deleted ${partnerIds.length} partners`);
 
     // Queue an index update because deleting the partners cascades to their
     // remaining enrollments in other programs.
