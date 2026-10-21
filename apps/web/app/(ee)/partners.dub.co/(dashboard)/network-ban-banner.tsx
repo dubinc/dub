@@ -24,7 +24,7 @@ export function NetworkBanBanner() {
         </p>
       </div>
       <a
-        href="mailto:support@dub.co?subject=Dub%20Partner%20Network%20ban%20appeal"
+        href="https://dub.co/contact/support"
         className={cn(
           buttonVariants({ variant: "secondary" }),
           "flex h-6 w-fit shrink-0 items-center whitespace-nowrap rounded-lg border px-1.5 text-xs font-medium",
