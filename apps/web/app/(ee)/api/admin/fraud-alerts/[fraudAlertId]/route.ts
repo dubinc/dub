@@ -37,6 +37,16 @@ export const PATCH = withAdmin(
       return new Response("Fraud alert not found.", { status: 404 });
     }
 
+    // A retry after a failed ban runs only the ban, since the alert is already confirmed
+    if (
+      newStatus === "confirmed" &&
+      fraudAlert.status === "confirmed" &&
+      banFromNetwork
+    ) {
+      await banPartnerFromNetwork(fraudAlert.partnerId);
+      return NextResponse.json({ success: true });
+    }
+
     if (newStatus === "confirmed" && fraudAlert.status !== "pending") {
       return new Response("Fraud alert has already been reviewed.", {
         status: 409,
@@ -70,11 +80,6 @@ export const PATCH = withAdmin(
       return NextResponse.json({ success: true });
     }
 
-    // Ban first, so that a failed ban can be retried before the alert is confirmed
-    if (banFromNetwork) {
-      await banPartnerFromNetwork(fraudAlert.partnerId);
-    }
-
     const { confirmedCount } = await confirmPartnerFraudAlerts({
       partnerId: fraudAlert.partnerId,
       reviewedById: session.user.id,
@@ -85,6 +90,11 @@ export const PATCH = withAdmin(
       return new Response("Fraud alert has already been reviewed.", {
         status: 409,
       });
+    }
+
+    // Ban only after the confirmation, so a dismissal that wins the race leaves no ban
+    if (banFromNetwork) {
+      await banPartnerFromNetwork(fraudAlert.partnerId);
     }
 
     return NextResponse.json({ success: true });
