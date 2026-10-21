@@ -52,6 +52,7 @@ export const GET = withWorkspace(
         prisma.programEnrollment.aggregate({
           where: {
             programId,
+            status: "approved",
             applicationEvent: {
               referredByPartnerId: partnerId,
             },

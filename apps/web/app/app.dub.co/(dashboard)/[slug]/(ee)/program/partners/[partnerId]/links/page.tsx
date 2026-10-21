@@ -6,19 +6,30 @@ import usePartner from "@/lib/swr/use-partner";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { CopyButton, LoadingSpinner, Table, useTable } from "@dub/ui";
-import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
-import { useParams, useRouter } from "next/navigation";
-import { useMemo } from "react";
+import {
+  CardList,
+  CopyButton,
+  InvoiceDollar,
+  LoadingSpinner,
+  Shuffle,
+  Users,
+} from "@dub/ui";
+import { getPrettyUrl } from "@dub/utils";
+import { useParams } from "next/navigation";
 import { PartnerDiscountCodes } from "./discount-codes";
-import { ReferralLinks } from "./referral-links";
+import {
+  formatStatCount,
+  formatStatRevenue,
+  PartnerLinkStat,
+  ReferralLinks,
+} from "./referral-links";
 
 export default function ProgramPartnerLinksPage() {
   const { partnerId } = useParams() as { partnerId: string };
   const { partner, error } = usePartner({ partnerId });
 
   return partner ? (
-    <div className="grid min-w-0 gap-4">
+    <div className="grid min-w-0 grid-cols-1 gap-4">
       <ReferralLinks partner={partner} />
       <PartnerDiscountCodes partner={partner} />
       <PartnerReferralLink partner={partner} />
@@ -42,7 +53,6 @@ const PartnerReferralLink = ({
   partner: EnrolledPartnerProps;
 }) => {
   const { slug } = useWorkspace();
-  const router = useRouter();
   const {
     program,
     loading: loadingProgram,
@@ -56,96 +66,87 @@ const PartnerReferralLink = ({
     partnerId: partner.id,
   });
 
+  if (!partner?.referralRewardId) {
+    return null;
+  }
+
   const referralLink = constructPartnerReferralLink({
     partner,
     program,
   });
 
-  const data = useMemo(() => {
-    if (!referralLink || !referral?.stats) {
-      return [];
-    }
-
-    return [
-      {
-        link: referralLink,
-        totalPartners: referral.stats.totalPartners,
-        totalConversions: referral.stats.totalConversions,
-        totalSaleAmount: referral.stats.totalSaleAmount,
-      },
-    ];
-  }, [referralLink, referral]);
-
-  const referredPartnersUrl = `/${slug}/program/partners?referredByPartnerId=${partner.id}`;
-
-  const table = useTable({
-    data,
-    columns: [
-      {
-        id: "link",
-        header: "Link",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <span className="font-medium text-black">
-              {getPrettyUrl(row.original.link)}
-            </span>
-            <CopyButton value={row.original.link} className="p-0.5" />
-          </div>
-        ),
-      },
-      {
-        header: "Partners",
-        size: 1,
-        minSize: 1,
-        cell: ({ row }) => nFormatter(row.original.totalPartners),
-      },
-      {
-        header: "Conversions",
-        size: 1,
-        minSize: 1,
-        cell: ({ row }) => nFormatter(row.original.totalConversions),
-      },
-      {
-        header: "Revenue",
-        size: 1,
-        minSize: 1,
-        cell: ({ row }) =>
-          currencyFormatter(row.original.totalSaleAmount, {
-            trailingZeroDisplay: "stripIfInteger",
-          }),
-      },
-    ],
-    onRowClick: (_row, e) => {
-      if (e.metaKey || e.ctrlKey) window.open(referredPartnersUrl, "_blank");
-      else router.push(referredPartnersUrl);
-    },
-    onRowAuxClick: () => window.open(referredPartnersUrl, "_blank"),
-    rowProps: () => ({
-      onPointerEnter: () => router.prefetch(referredPartnersUrl),
-    }),
-    resourceName: (p) => `link${p ? "s" : ""}`,
-    thClassName: (id) =>
-      cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
-    tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    scrollWrapperClassName: "min-h-[40px]",
-    loading: loadingReferral || loadingProgram,
-    error:
-      referralError || errorProgram
-        ? "Failed to load partner referral data"
-        : undefined,
-  });
-
-  if (!partner?.referralRewardId) {
-    return null;
-  }
+  // Stats count approved referred partners, matching the partners list these link to
+  const referredPartnersUrl = (params?: Record<string, string>) =>
+    `/${slug}/program/partners?${new URLSearchParams({
+      status: "approved",
+      referredByPartnerId: partner.id,
+      ...params,
+    })}`;
 
   return (
     <>
       <h2 className="text-content-emphasis text-lg font-semibold">
         Partner referral link
       </h2>
-      <Table {...table} />
+      {loadingReferral || loadingProgram ? (
+        <div className="flex justify-center py-8">
+          <LoadingSpinner />
+        </div>
+      ) : referralError || errorProgram || !referral?.stats ? (
+        <div className="text-content-subtle rounded-xl border border-neutral-200 py-8 text-center text-sm">
+          Failed to load partner referral data
+        </div>
+      ) : (
+        <CardList variant="compact">
+          <CardList.Card
+            innerClassName="flex items-center justify-between gap-4 px-3 py-2.5"
+            hoverStateEnabled={false}
+          >
+            <div className="flex min-w-0 items-center gap-1">
+              <span className="text-content-default truncate text-sm font-medium">
+                {getPrettyUrl(referralLink)}
+              </span>
+              <CopyButton
+                value={referralLink}
+                variant="neutral"
+                className="shrink-0 p-1"
+              />
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              <PartnerLinkStat
+                icon={Users}
+                iconClassName="data-[active=true]:text-blue-500"
+                href={referredPartnersUrl()}
+                {...formatStatCount({
+                  count: referral.stats.totalPartners,
+                  unit: "partner",
+                })}
+              />
+              <PartnerLinkStat
+                icon={Shuffle}
+                iconClassName="data-[active=true]:text-orange-500"
+                href={referredPartnersUrl({
+                  totalConversionsMin: "1",
+                  sortBy: "totalConversions",
+                })}
+                {...formatStatCount({
+                  count: referral.stats.totalConversions,
+                  unit: "conversion",
+                })}
+              />
+              <PartnerLinkStat
+                icon={InvoiceDollar}
+                iconClassName="data-[active=true]:text-teal-500"
+                href={referredPartnersUrl({
+                  totalSaleAmountMin: "1",
+                  sortBy: "totalSaleAmount",
+                })}
+                {...formatStatRevenue(referral.stats.totalSaleAmount)}
+              />
+            </div>
+          </CardList.Card>
+        </CardList>
+      )}
     </>
   );
 };
