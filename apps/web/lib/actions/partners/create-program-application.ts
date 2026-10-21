@@ -192,6 +192,12 @@ export const createProgramApplicationAction = actionClient
     }
 
     if (existingPartner) {
+      if (existingPartner.networkStatus === "banned") {
+        throw new Error(
+          "Your account is banned from the Dub Partner Network, so you can't apply to programs. Please contact support@dub.co if you think this is a mistake.",
+        );
+      }
+
       // for in-app applications from existing partners, we need to check
       // if the partner has an incomplete profile, if so we prompt them to complete it
       if (inAppApplication) {
