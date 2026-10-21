@@ -45,11 +45,15 @@ class DynadotClient extends HttpBaseClient {
   }
 
   // GET /api3.json?command=search
-  async search(input: z.input<typeof searchDomainsInputSchema>) {
+  async search(
+    input: z.input<typeof searchDomainsInputSchema>,
+    { timeout }: { timeout?: number } = {},
+  ) {
     return await this.get("", {
       input,
       inputSchema: searchDomainsInputSchema,
       outputSchema: searchDomainsOutputSchema,
+      timeout,
     });
   }
 
