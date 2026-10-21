@@ -503,6 +503,9 @@ export default function NetworkApplicationsPage() {
           }}
           onReview={handleReviewPartner}
           onUpdateCountry={handleUpdatePartnerCountry}
+          onNetworkBanChange={async () => {
+            await mutate();
+          }}
         />
       )}
       <div className="mb-4 flex flex-col gap-3">
