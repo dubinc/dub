@@ -4,26 +4,19 @@ import { redis } from "@/lib/upstash";
 import { hashStringSHA256, isValidUrl } from "@dub/utils";
 import { PlatformType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { scrapeCreatorsFetch } from "./client";
+import * as z from "zod/v4";
+import { ScrapeCreatorsApiError, scrapeCreatorsClient } from "./client";
+import { socialContentSchema } from "./schema";
 
 const CACHE_KEY_PREFIX = "socialContentCache";
 const CACHE_TTL = 60 * 60;
+
+type ScrapeCreatorsContent = z.output<typeof socialContentSchema>;
 
 interface GetSocialContentStatsParams {
   platform: PlatformType;
   url: string;
 }
-
-const PLATFORM_CONTENT_TYPE: Record<
-  Exclude<PlatformType, "website">,
-  "post" | "video" | "tweet"
-> = {
-  youtube: "video",
-  instagram: "post",
-  twitter: "tweet",
-  tiktok: "video",
-  linkedin: "post",
-};
 
 const EMPTY_SOCIAL_CONTENT: SocialContent = {
   publishedAt: null,
@@ -59,24 +52,15 @@ export async function getSocialContent({
     return cachedResult;
   }
 
-  const contentType = PLATFORM_CONTENT_TYPE[platform];
-  const version = platform === "tiktok" ? "v2" : "v1";
+  let data: ScrapeCreatorsContent;
 
-  const { data, error } = await scrapeCreatorsFetch(
-    "/:version/:platform/:contentType",
-    {
-      params: {
-        version,
-        platform,
-        contentType,
-      },
-      query: {
-        url,
-      },
-    },
-  );
+  try {
+    data = await fetchSocialContent({ platform, url });
+  } catch (error) {
+    if (!(error instanceof ScrapeCreatorsApiError)) {
+      throw error;
+    }
 
-  if (error) {
     // Post not found
     // Cache empty result, so that we don't keep trying to scrape the same post.
     if (error.status === 404) {
@@ -93,11 +77,43 @@ export async function getSocialContent({
 
   console.log(`Response from ScrapeCreators: ${JSON.stringify(data, null, 2)}`);
 
-  let result: SocialContent;
+  const result = mapSocialContent(data);
 
+  if (BOUNTY_SOCIAL_PLATFORM_VALUES.includes(data.platform)) {
+    waitUntil(redis.set(cacheKey, result, { ex: CACHE_TTL }));
+  }
+
+  return result;
+}
+
+async function fetchSocialContent({
+  platform,
+  url,
+}: GetSocialContentStatsParams): Promise<ScrapeCreatorsContent> {
+  switch (platform) {
+    case "youtube":
+      return await scrapeCreatorsClient.getYouTubeVideo({ url });
+    case "instagram":
+      return await scrapeCreatorsClient.getInstagramPost({ url });
+    case "twitter":
+      return await scrapeCreatorsClient.getTwitterTweet({ url });
+    case "tiktok":
+      return await scrapeCreatorsClient.getTikTokVideo({ url });
+    case "linkedin":
+      return await scrapeCreatorsClient.getLinkedInPost({ url });
+    case "website":
+      throw new Error(`Unsupported social content platform: ${platform}`);
+    default: {
+      const _exhaustive: never = platform;
+      return _exhaustive;
+    }
+  }
+}
+
+function mapSocialContent(data: ScrapeCreatorsContent): SocialContent {
   switch (data.platform) {
-    case "youtube": {
-      result = {
+    case "youtube":
+      return {
         publishedAt: new Date(data.publishDateText),
         handle: data.channel.handle,
         platformId: data.channel.id,
@@ -107,8 +123,6 @@ export async function getSocialContent({
         description: data.description ?? null,
         thumbnailUrl: data.thumbnailUrl ?? null,
       };
-      break;
-    }
 
     case "instagram": {
       const thumbnailUrl = data.display_url ?? data.thumbnail_src ?? null;
@@ -118,9 +132,8 @@ export async function getSocialContent({
         carouselEdges.length > 0
           ? carouselEdges
               .map(
-                (edge: {
-                  node: { display_url?: string; thumbnail_src?: string };
-                }) => edge.node.display_url ?? edge.node.thumbnail_src ?? "",
+                (edge) =>
+                  edge.node.display_url ?? edge.node.thumbnail_src ?? "",
               )
               .filter(Boolean)
           : undefined;
@@ -143,11 +156,11 @@ export async function getSocialContent({
         mediaType = "video";
       }
 
-      result = {
+      return {
         publishedAt: new Date(data.taken_at_timestamp * 1000),
         handle: data.owner.username,
         platformId: null,
-        views: data.video_play_count ?? data.video_view_count,
+        views: data.video_play_count || data.video_view_count,
         likes: data.edge_media_preview_like.count,
         title: null,
         description: data.edge_media_to_caption?.edges?.[0]?.node?.text ?? null,
@@ -155,11 +168,10 @@ export async function getSocialContent({
         mediaType,
         thumbnailUrls,
       };
-      break;
     }
 
-    case "twitter": {
-      result = {
+    case "twitter":
+      return {
         publishedAt: new Date(data.legacy.created_at),
         handle: data.core.user_results.result.core.screen_name,
         platformId: null,
@@ -169,11 +181,9 @@ export async function getSocialContent({
         description: data.legacy.full_text ?? null,
         thumbnailUrl: null,
       };
-      break;
-    }
 
-    case "tiktok": {
-      result = {
+    case "tiktok":
+      return {
         publishedAt: new Date(data.create_time_utc),
         handle: data.author.unique_id,
         platformId: null,
@@ -183,15 +193,13 @@ export async function getSocialContent({
         description: data.desc ?? null,
         thumbnailUrl: data.video?.cover?.url_list?.[0] ?? null,
       };
-      break;
-    }
 
     case "linkedin": {
       const handleMatch = data.author?.url?.match(
         /linkedin\.com\/in\/([^\/\?]+)/i,
       );
 
-      result = {
+      return {
         publishedAt: data.datePublished ? new Date(data.datePublished) : null,
         handle: handleMatch?.[1] ?? null,
         platformId: null,
@@ -201,27 +209,13 @@ export async function getSocialContent({
         description: data.description ?? data.headline ?? null,
         thumbnailUrl: null,
       };
-      break;
     }
 
-    default:
-      result = {
-        publishedAt: null,
-        handle: null,
-        platformId: null,
-        views: 0,
-        likes: 0,
-        title: null,
-        description: null,
-        thumbnailUrl: null,
-      };
+    default: {
+      const _exhaustive: never = data;
+      return _exhaustive;
+    }
   }
-
-  if (BOUNTY_SOCIAL_PLATFORM_VALUES.includes(data.platform)) {
-    waitUntil(redis.set(cacheKey, result, { ex: CACHE_TTL }));
-  }
-
-  return result;
 }
 
 function normalizeUrl(raw: string) {

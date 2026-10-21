@@ -2,7 +2,6 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import {
   bountyEligibilityIncludes,
   canPartnerSubmitBounty,
@@ -13,6 +12,7 @@ import { BOUNTY_MAX_SUBMISSION_URLS } from "@/lib/bounty/constants";
 import { addFrequency, getCurrentPeriodNumber } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { prisma } from "@/lib/prisma";
+import { getSocialContent } from "@/lib/scrape-creators/get-social-content";
 import {
   createBountySubmissionInputSchema,
   submissionRequirementsSchema,

@@ -1,8 +1,8 @@
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
-import { getLinkedInPost } from "@/lib/api/scrape-creators/get-linkedin-post";
-import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getLinkedInPost } from "@/lib/scrape-creators/get-linkedin-post";
+import { getSocialProfile } from "@/lib/scrape-creators/get-social-profile";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { PlatformType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
