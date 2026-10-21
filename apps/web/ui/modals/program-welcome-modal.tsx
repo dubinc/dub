@@ -36,7 +36,7 @@ function ProgramWelcomeModal({
       href: `/${workspaceSlug}/program/rewards`,
     },
     {
-      text: "Publish program application form",
+      text: "Publish your program application form",
       href: `/${workspaceSlug}/program/groups/default/branding`,
     },
     {
@@ -44,7 +44,7 @@ function ProgramWelcomeModal({
       href: `/${workspaceSlug}/settings/tracking`,
     },
     {
-      text: "Connect a bank account for partner payouts",
+      text: "Connect your bank account for partner payouts",
       href: "https://dub.co/help/article/how-to-set-up-bank-account",
     },
     {
