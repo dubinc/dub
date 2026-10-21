@@ -13,9 +13,9 @@ function SheetRoot({
   typeof Drawer.Root
 >) {
   const RootComponent = nested ? Drawer.NestedRoot : Drawer.Root;
-  // Nested sheets (e.g. create reward from the mobile edit-reward modal) must
-  // stack above Modal's mobile Drawer (z-50). Standalone sheets stay at z-40.
-  const zIndexClassName = nested ? "z-[60]" : "z-40";
+  // On mobile, nested sheets match the z-50 of Modal's Drawer and Popover's
+  // Drawer, so layers that share a z-index stack in the order they open.
+  const zIndexClassName = nested ? "z-40 max-sm:z-50" : "z-40";
   return (
     <RootComponent direction="right" handleOnly {...rest}>
       <Drawer.Portal>
