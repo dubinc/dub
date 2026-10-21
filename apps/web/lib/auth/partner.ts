@@ -237,27 +237,37 @@ export const withPartnerProfile = (
           });
         }
 
-        const partnerUser = await prisma.partnerUser.findUnique({
-          where: {
-            userId_partnerId: {
-              userId,
-              partnerId: defaultPartnerId,
-            },
-          },
-          include: {
-            partner: {
-              include: {
-                industryInterests: true,
-                preferredEarningStructures: true,
-                salesChannels: true,
-                platforms: true,
+        // Load the partner on its own, not as an include, so a PartnerUser row
+        // whose partner was deleted returns a 404 instead of a Prisma error.
+        const [partnerUser, partnerProfile] = await Promise.all([
+          prisma.partnerUser.findUnique({
+            where: {
+              userId_partnerId: {
+                userId,
+                partnerId: defaultPartnerId,
               },
             },
-          },
-        });
+            select: {
+              userId: true,
+              role: true,
+            },
+          }),
 
-        // partnerUser relationship doesn't exist
-        if (!partnerUser) {
+          prisma.partner.findUnique({
+            where: {
+              id: defaultPartnerId,
+            },
+            include: {
+              industryInterests: true,
+              preferredEarningStructures: true,
+              salesChannels: true,
+              platforms: true,
+            },
+          }),
+        ]);
+
+        // partnerUser relationship or partner doesn't exist
+        if (!partnerUser || !partnerProfile) {
           throw new DubApiError({
             code: "not_found",
             message: "Partner profile not found.",
@@ -273,7 +283,7 @@ export const withPartnerProfile = (
 
         // Beta feature checks
         if (featureFlag) {
-          const flags = await getPartnerFeatureFlags(partnerUser.partner.id);
+          const flags = await getPartnerFeatureFlags(partnerProfile.id);
 
           if (!flags[featureFlag]) {
             throw new DubApiError({
@@ -289,7 +299,7 @@ export const withPartnerProfile = (
           salesChannels,
           platforms,
           ...partnerProps
-        } = partnerUser.partner;
+        } = partnerProfile;
 
         return await handler({
           req,

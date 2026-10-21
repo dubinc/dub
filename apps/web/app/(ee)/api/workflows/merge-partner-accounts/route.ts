@@ -2,11 +2,11 @@ import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { deletePartnerAccounts } from "@/lib/api/partners/delete-partner-accounts";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { logger } from "@/lib/axiom/server";
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
-import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { approveLinkedApplication } from "@/lib/program-applications/approve-linked-application";
 import { storage } from "@/lib/storage";
@@ -1122,7 +1122,9 @@ async function deleteSourcePartner({
   sourceEmail: string;
   sourceImage: string | null;
 }) {
-  await conn.execute(`DELETE FROM Partner WHERE id = ?`, [sourcePartnerId]);
+  // Also removes the PartnerUser row of a source user that was kept because it
+  // still has workspaces.
+  await deletePartnerAccounts({ partnerIds: [sourcePartnerId] });
 
   if (sourceImage) {
     try {

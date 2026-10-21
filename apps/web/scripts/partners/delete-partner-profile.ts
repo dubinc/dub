@@ -1,7 +1,7 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { deletePartnerAccounts } from "@/lib/api/partners/delete-partner-accounts";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
-import { conn } from "../../lib/planetscale";
 import { stripeConnectClient } from "../stripe/connect-client";
 
 async function main() {
@@ -95,18 +95,7 @@ async function main() {
   });
   console.log(`Deleted ${deletedProgramEnrollments.count} program enrollments`);
 
-  const deletedPartnerUsers = await prisma.partnerUser.deleteMany({
-    where: {
-      partnerId: partner.id,
-    },
-  });
-  console.log(`Deleted ${deletedPartnerUsers.count} partner users`);
-
-  // using conn.execute here since Prisma is throwing a weird error
-  const res = await conn.execute(`DELETE FROM Partner WHERE id = ?`, [
-    partner.id,
-  ]);
-  console.log(JSON.stringify(res, null, 2));
+  await deletePartnerAccounts({ partnerIds: [partner.id] });
 
   if (partner.stripeConnectId) {
     const res = await stripeConnectClient.accounts.del(partner.stripeConnectId);
