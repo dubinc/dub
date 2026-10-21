@@ -201,6 +201,36 @@ describe("safeFetch", () => {
     );
   });
 
+  it("retries a failed DoH lookup once", async () => {
+    let aaaaCalls = 0;
+    fetchMock.mockImplementation(async (input, init) => {
+      const url = new URL(input.toString());
+      if (url.searchParams.get("type") === "AAAA" && aaaaCalls++ === 0) {
+        return new Response("error", { status: 503 });
+      }
+      return defaultFetch(input, init);
+    });
+
+    const res = await safeFetch("https://example.com");
+
+    expect(await res.text()).toBe("ok");
+    expect(aaaaCalls).toBe(2);
+  });
+
+  it("does not retry an NXDOMAIN answer", async () => {
+    const lookups: string[] = [];
+    fetchMock.mockImplementation(async (input) => {
+      const url = new URL(input.toString());
+      lookups.push(url.searchParams.get("type")!);
+      return Response.json({ Status: 3 });
+    });
+
+    await expect(safeFetch("https://missing.example.com")).rejects.toThrow(
+      "Could not resolve hostname: missing.example.com",
+    );
+    expect(lookups.sort()).toEqual(["A", "AAAA"]);
+  });
+
   it("fails closed when one DoH lookup fails", async () => {
     fetchMock.mockImplementation(async (input) => {
       const url = new URL(input.toString());
@@ -211,7 +241,7 @@ describe("safeFetch", () => {
     });
 
     await expect(safeFetch("https://example.com")).rejects.toThrow(
-      "Could not resolve hostname",
+      "Could not resolve hostname: example.com (AAAA lookup returned HTTP 500)",
     );
   });
 

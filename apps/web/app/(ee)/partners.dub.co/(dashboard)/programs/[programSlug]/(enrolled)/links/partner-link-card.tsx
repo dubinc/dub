@@ -26,6 +26,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
+import { ArrowRight } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
@@ -98,8 +99,18 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const isDeactivated = programEnrollment?.status === "deactivated";
   const isQueryLinkStructure =
     programEnrollment?.group?.linkStructure === "query";
+  const descriptionEnabled = displayProperties.includes("description");
+  const hasDescription = Boolean(link.partnerLinkComments?.trim());
   const showTitle =
     displayProperties.includes("title") && Boolean(link.partnerLinkTitle);
+  const showInlineShortLink = showTitle && displayProperties.includes("link");
+  const showDescription = descriptionEnabled && hasDescription;
+  // Description only replaces rewards on links that actually have one.
+  const rewardsEnabled =
+    (displayProperties.includes("rewards") || descriptionEnabled) &&
+    !showDescription;
+  const showRewardDetails =
+    rewardsEnabled && hasIncentives && Boolean(primaryText);
 
   const shortLink = (
     <Tooltip
@@ -115,8 +126,13 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
         href={isDeactivated ? undefined : partnerLink}
         target="_blank"
         rel="noopener noreferrer"
+        title={
+          isQueryLinkStructure && !isDeactivated
+            ? undefined
+            : getPrettyUrl(partnerLink)
+        }
         className={cn(
-          "truncate text-sm transition-colors",
+          "min-w-0 truncate text-sm transition-colors",
           showTitle
             ? "text-neutral-500 hover:text-neutral-700 hover:underline hover:underline-offset-2"
             : "font-semibold leading-6",
@@ -168,12 +184,13 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
             </div>
 
             <div className="flex min-w-0 flex-col">
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1">
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <div className="flex min-w-0 items-center gap-1">
                   {showTitle ? (
                     <span
                       className={cn(
-                        "truncate text-sm font-semibold leading-6",
+                        "min-w-0 truncate text-sm font-semibold leading-6",
+                        showInlineShortLink && "max-w-[45%] shrink-0",
                         isDeactivated ? "text-neutral-400" : "text-neutral-900",
                       )}
                       title={link.partnerLinkTitle ?? undefined}
@@ -181,25 +198,36 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                       {link.partnerLinkTitle}
                     </span>
                   ) : (
-                    shortLink
+                    <div className="flex min-w-0 items-center">{shortLink}</div>
                   )}
                   {!isDeactivated && (
-                    <CopyButton value={partnerLink} variant="neutral" />
+                    <CopyButton
+                      value={partnerLink}
+                      variant="neutral"
+                      className="shrink-0"
+                    />
                   )}
-
-                  {link.partnerLinkComments && (
-                    <CommentsBadge comments={link.partnerLinkComments} />
+                  {link.partnerLinkComments && !showDescription && (
+                    <div className="hidden shrink-0 sm:block">
+                      <CommentsBadge comments={link.partnerLinkComments} />
+                    </div>
+                  )}
+                  {showInlineShortLink && (
+                    <div className="flex min-w-0 items-center gap-1">
+                      <ArrowRight className="size-3 shrink-0 text-neutral-400" />
+                      {shortLink}
+                    </div>
                   )}
                 </div>
 
-                {showTitle && (
-                  <div className="flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 sm:w-fit sm:max-w-[400px]">
-                    <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
-                    {shortLink}
-                  </div>
-                )}
-
-                {hasIncentives && primaryText ? (
+                {showDescription ? (
+                  <p
+                    className="min-w-0 truncate pl-0.5 text-sm text-neutral-500"
+                    title={link.partnerLinkComments ?? undefined}
+                  >
+                    {link.partnerLinkComments}
+                  </p>
+                ) : showRewardDetails && primaryText ? (
                   <PartnerLinkRewardsSummary
                     primaryText={primaryText}
                     primaryReward={primaryReward}
@@ -208,7 +236,8 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                     onToggleRewards={toggleRewards}
                   />
                 ) : (
-                  !showTitle && (
+                  !showTitle &&
+                  !showDescription && (
                     /* The max width implementation here is a bit hacky, we should improve in the future */
                     <div className="flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 sm:w-fit sm:max-w-[400px]">
                       <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
@@ -258,12 +287,14 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
         </div>
       </div>
       {displayOption === "full" && <StatsCharts link={link} />}
-      <PartnerLinkRewardsPanel
-        rewards={rewards}
-        discount={discount}
-        showRewards={showRewards}
-        additionalCount={additionalCount}
-      />
+      {rewardsEnabled && (
+        <PartnerLinkRewardsPanel
+          rewards={rewards}
+          discount={discount}
+          showRewards={showRewards}
+          additionalCount={additionalCount}
+        />
+      )}
     </CardList.Card>
   );
 }

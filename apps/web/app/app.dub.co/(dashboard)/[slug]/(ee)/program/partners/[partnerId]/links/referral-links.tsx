@@ -26,6 +26,7 @@ import {
   InvoiceDollar,
   LoadingSpinner,
   MenuItem,
+  PenWriting,
   Popover,
   Shuffle,
   Tooltip,
@@ -294,6 +295,8 @@ function PartnerLinkCard({
     link,
   });
 
+  const linkHref = `/${slug}/links/${link.domain}/${link.key}`;
+
   const rewardEvents = getLinkRewardOverride(link, partner);
 
   const hasDiscountOverride = hasLinkRewardOverride({
@@ -336,7 +339,7 @@ function PartnerLinkCard({
         <div className="flex min-w-0 items-center gap-2">
           <div className="flex min-w-0 items-center gap-1">
             <Link
-              href={`/${slug}/links/${link.domain}/${link.key}`}
+              href={linkHref}
               target="_blank"
               className="text-content-default cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
             >
@@ -419,6 +422,7 @@ function PartnerLinkCard({
           )}
 
           <PartnerLinkCardMenu
+            linkHref={linkHref}
             overrideDisabledTooltip={overrideDisabledTooltip}
             onEditReward={(event) => {
               setRewardEvent(event);
@@ -435,10 +439,12 @@ function PartnerLinkCard({
 }
 
 function PartnerLinkCardMenu({
+  linkHref,
   onEditReward,
   onEditDiscount,
   overrideDisabledTooltip,
 }: {
+  linkHref: string;
   onEditReward: (event: "sale" | "lead" | "click") => void;
   onEditDiscount: () => void;
   overrideDisabledTooltip?: ReactNode;
@@ -453,6 +459,16 @@ function PartnerLinkCardMenu({
       content={
         <Command tabIndex={0} loop className="focus:outline-none">
           <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
+            <MenuItem
+              as={Command.Item}
+              icon={PenWriting}
+              onSelect={() => {
+                setOpenPopover(false);
+                window.open(linkHref, "_blank");
+              }}
+            >
+              Edit link
+            </MenuItem>
             {(["sale", "lead", "click"] as const).map((event) => {
               const Icon = REWARD_EVENT_ICON[event];
               return (

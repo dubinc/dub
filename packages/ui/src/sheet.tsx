@@ -13,11 +13,14 @@ function SheetRoot({
   typeof Drawer.Root
 >) {
   const RootComponent = nested ? Drawer.NestedRoot : Drawer.Root;
+  // On mobile, nested sheets match the z-50 of Modal's Drawer and Popover's
+  // Drawer, so layers that share a z-index stack in the order they open.
+  const zIndexClassName = nested ? "z-40 max-sm:z-50" : "z-40";
   return (
     <RootComponent direction="right" handleOnly {...rest}>
       <Drawer.Portal>
         <Drawer.Overlay
-          className="fixed inset-0 z-40 bg-black/20"
+          className={cn("fixed inset-0 bg-black/20", zIndexClassName)}
           data-sheet-overlay
         />
         <Drawer.Content
@@ -33,7 +36,8 @@ function SheetRoot({
             contentProps?.onPointerDownOutside?.(e);
           }}
           className={cn(
-            "@container/sheet fixed bottom-2 right-2 top-2 z-40 flex outline-none",
+            "@container/sheet fixed bottom-2 right-2 top-2 flex outline-none",
+            zIndexClassName,
             "w-[min(var(--sheet-width),calc(100%-2*var(--sheet-margin)))] [--sheet-margin:8px] [--sheet-width:540px]",
             contentProps?.className,
           )}
