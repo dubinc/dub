@@ -1,4 +1,5 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { deletePartnerAccounts } from "@/lib/api/partners/delete-partner-accounts";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
@@ -43,15 +44,20 @@ async function main() {
 
   await bulkDeleteLinks(finalPartnersToDelete.flatMap((p) => p.links));
 
-  const deletePartners = await prisma.partner.deleteMany({
+  const partnerIds = finalPartnersToDelete.map((p) => p.partnerId);
+
+  const deletedProgramEnrollments = await prisma.programEnrollment.deleteMany({
     where: {
-      id: {
-        in: finalPartnersToDelete.map((p) => p.partnerId),
+      programId,
+      partnerId: {
+        in: partnerIds,
       },
     },
   });
 
-  console.log("deletePartners", deletePartners);
+  console.log("deletedProgramEnrollments", deletedProgramEnrollments);
+
+  await deletePartnerAccounts({ partnerIds });
 }
 
 main();
