@@ -4,7 +4,6 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
 import { deleteWorkspace } from "@/lib/api/workspaces/delete-workspace";
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import { getWorkspaceLogoKeyPrefix } from "@/lib/api/workspaces/workspace-logo";
 import { workspaceProductCache } from "@/lib/api/workspaces/workspace-product-cache";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
@@ -18,13 +17,13 @@ import {
 import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { mergeSiteVisitTrackingSettings } from "@/lib/sitemaps/site-visit-tracking";
 import { storage } from "@/lib/storage";
+import { getOwnedAssetKey, mintAssetKey } from "@/lib/storage/asset-keys";
 import {
   createWorkspaceSchema,
   siteVisitTrackingSettingsPatchSchema,
   WorkspaceSchema,
   WorkspaceSchemaExtended,
 } from "@/lib/zod/schemas/workspaces";
-import { nanoid, R2_URL } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -139,7 +138,7 @@ export const PATCH = withWorkspace(
 
     const logoUploaded = logo
       ? await storage.upload({
-          key: `${getWorkspaceLogoKeyPrefix(workspace.id)}${nanoid(7)}`,
+          key: mintAssetKey("workspaceLogo", workspace.id).key,
           body: logo,
         })
       : null;
@@ -278,9 +277,17 @@ export const PATCH = withWorkspace(
 
       waitUntil(
         (async () => {
-          if (logoUploaded && workspace.logo) {
+          const oldLogoKey = logoUploaded
+            ? getOwnedAssetKey({
+                kind: "workspaceLogo",
+                ownerId: workspace.id,
+                url: workspace.logo,
+              })
+            : null;
+
+          if (oldLogoKey) {
             await storage.delete({
-              key: workspace.logo.replace(`${R2_URL}/`, ""),
+              key: oldLogoKey,
             });
           }
 

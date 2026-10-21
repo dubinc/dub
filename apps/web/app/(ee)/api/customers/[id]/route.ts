@@ -5,14 +5,17 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { prisma } from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
+import {
+  getOwnedAssetKey,
+  resolveIncomingImage,
+} from "@/lib/storage/asset-keys";
 import {
   CustomerEnrichedSchema,
   CustomerSchema,
   getCustomersQuerySchema,
   updateCustomerBodySchema,
 } from "@/lib/zod/schemas/customers";
-import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -74,13 +77,13 @@ export const PATCH = withWorkspace(
 
     const oldCustomerAvatar = customer.avatar;
 
-    // we need to persist the customer avatar to R2 if:
-    // 1. it's different from the old avatar
-    // 2. it's not stored in R2 already
-    const finalCustomerAvatar =
-      avatar && avatar !== oldCustomerAvatar && !isStored(avatar)
-        ? `${R2_URL}/customers/${customer.id}/avatar_${nanoid(7)}`
-        : avatar;
+    const { url: finalCustomerAvatar, uploadKey: avatarUploadKey } =
+      resolveIncomingImage({
+        kind: "customerAvatar",
+        ownerId: customer.id,
+        value: avatar,
+        current: oldCustomerAvatar,
+      });
 
     try {
       const updatedCustomer = await prisma.customer.update({
@@ -101,11 +104,11 @@ export const PATCH = withWorkspace(
         },
       });
 
-      if (avatar && !isStored(avatar) && finalCustomerAvatar) {
+      if (avatar && avatarUploadKey) {
         waitUntil(
           storage
             .upload({
-              key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+              key: avatarUploadKey,
               body: avatar,
               opts: {
                 width: 128,
@@ -113,9 +116,15 @@ export const PATCH = withWorkspace(
               },
             })
             .then(() => {
-              if (oldCustomerAvatar && isStored(oldCustomerAvatar)) {
+              const oldAvatarKey = getOwnedAssetKey({
+                kind: "customerAvatar",
+                ownerId: customer.id,
+                url: oldCustomerAvatar,
+              });
+
+              if (oldAvatarKey) {
                 storage.delete({
-                  key: oldCustomerAvatar.replace(`${R2_URL}/`, ""),
+                  key: oldAvatarKey,
                 });
               }
             })
@@ -178,8 +187,16 @@ export const DELETE = withWorkspace(
       },
     });
 
-    if (customer.avatar && isStored(customer.avatar)) {
-      storage.delete({ key: customer.avatar.replace(`${R2_URL}/`, "") });
+    const avatarKey = getOwnedAssetKey({
+      kind: "customerAvatar",
+      ownerId: customer.id,
+      url: customer.avatar,
+    });
+
+    if (avatarKey) {
+      storage.delete({
+        key: avatarKey,
+      });
     }
 
     return NextResponse.json({

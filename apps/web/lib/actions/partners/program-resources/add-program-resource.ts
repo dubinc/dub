@@ -3,6 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@/lib/prisma";
+import { getOwnedAssetKey, storageUrl } from "@/lib/storage/asset-keys";
 import {
   addProgramResourceSchema,
   programResourceColorSchema,
@@ -49,7 +50,13 @@ export const addProgramResourceAction = authActionClient
     if (resourceType === "logo" || resourceType === "file") {
       const { key, fileSize } = parsedInput;
 
-      if (!key.startsWith(`programs/${program.id}/`)) {
+      if (
+        !getOwnedAssetKey({
+          kind: "programResource",
+          ownerId: program.id,
+          url: storageUrl(key),
+        })
+      ) {
         throw new Error("Invalid resource key");
       }
 

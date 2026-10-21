@@ -5,7 +5,8 @@ import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { prisma } from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
+import { resolveIncomingImage } from "@/lib/storage/asset-keys";
 import {
   recordClickZod,
   recordClickZodSchema,
@@ -16,7 +17,7 @@ import { CreatePartnerCommissionProps } from "@/lib/types";
 import { createManualCommissionBodySchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
-import { COUNTRIES_TO_CONTINENTS, nanoid, R2_URL } from "@dub/utils";
+import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
 import {
   CommissionSource,
   CommissionType,
@@ -389,10 +390,12 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
 
     const customerId = createId({ prefix: "cus_" });
     const finalCustomerName = name || email || generateRandomName();
-    const finalCustomerAvatar =
-      avatar && !isStored(avatar)
-        ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
-        : avatar;
+    const { url: finalCustomerAvatar, uploadKey: avatarUploadKey } =
+      resolveIncomingImage({
+        kind: "customerAvatar",
+        ownerId: customerId,
+        value: avatar,
+      });
 
     targetCustomer = await createOrUpdateCustomer({
       workspace,
@@ -408,9 +411,9 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
       },
     });
 
-    if (avatar && !isStored(avatar) && finalCustomerAvatar) {
+    if (avatar && avatarUploadKey) {
       await storage.upload({
-        key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+        key: avatarUploadKey,
         body: avatar,
         opts: {
           width: 128,

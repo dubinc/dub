@@ -5,7 +5,8 @@ import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
 import { prisma } from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
+import { resolveIncomingImage } from "@/lib/storage/asset-keys";
 import { ProgramLanderData } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programApplicationFormSchema } from "@/lib/zod/schemas/program-application-form";
@@ -58,22 +59,35 @@ export const updateGroupBrandingAction = authActionClient
 
     const { program } = group;
 
-    const uploadLogo = logo && !isStored(logo);
-    const uploadWordmark = wordmark && !isStored(wordmark);
+    // Only upload when the image isn't unchanged or already this program's.
+    // A kept image leaves the column as it is.
+    const { uploadKey: logoUploadKey } = resolveIncomingImage({
+      kind: "programLogo",
+      ownerId: programId,
+      value: logo,
+      current: group.logo,
+    });
+
+    const { uploadKey: wordmarkUploadKey } = resolveIncomingImage({
+      kind: "programWordmark",
+      ownerId: programId,
+      value: wordmark,
+      current: group.wordmark,
+    });
 
     const [logoUrl, wordmarkUrl] = await Promise.all([
-      uploadLogo
+      logo && logoUploadKey
         ? storage
             .upload({
-              key: `programs/${programId}/logo_${nanoid(7)}`,
+              key: logoUploadKey,
               body: logo,
             })
             .then(({ url }) => url)
         : undefined,
-      uploadWordmark
+      wordmark && wordmarkUploadKey
         ? storage
             .upload({
-              key: `programs/${programId}/wordmark_${nanoid(7)}`,
+              key: wordmarkUploadKey,
               body: wordmark,
             })
             .then(({ url }) => url)

@@ -10,13 +10,14 @@ import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { approveLinkedApplication } from "@/lib/program-applications/approve-linked-application";
 import { storage } from "@/lib/storage";
+import { getOwnedAssetKey } from "@/lib/storage/asset-keys";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { partnerMergedWebhookSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
-import { pluck, prettyPrint, R2_URL } from "@dub/utils";
+import { pluck, prettyPrint } from "@dub/utils";
 import { FraudEventStatus, FraudRuleType, Prisma } from "@prisma/client";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
@@ -927,9 +928,15 @@ async function deleteSourceUser({ sourceUserId }: { sourceUserId: string }) {
       },
     });
 
-    if (deletedUser.image) {
+    const imageKey = getOwnedAssetKey({
+      kind: "userAvatar",
+      ownerId: deletedUser.id,
+      url: deletedUser.image,
+    });
+
+    if (imageKey) {
       await storage.delete({
-        key: deletedUser.image.replace(`${R2_URL}/`, ""),
+        key: imageKey,
       });
     }
 
@@ -1126,10 +1133,16 @@ async function deleteSourcePartner({
   // still has workspaces.
   await deletePartnerAccounts({ partnerIds: [sourcePartnerId] });
 
-  if (sourceImage) {
+  const sourceImageKey = getOwnedAssetKey({
+    kind: "partnerImage",
+    ownerId: sourcePartnerId,
+    url: sourceImage,
+  });
+
+  if (sourceImageKey) {
     try {
       await storage.delete({
-        key: sourceImage.replace(`${R2_URL}/`, ""),
+        key: sourceImageKey,
       });
     } catch (error) {
       logger.error("partner.image_delete_failed", {

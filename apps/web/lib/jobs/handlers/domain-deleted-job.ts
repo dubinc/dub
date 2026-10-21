@@ -2,11 +2,11 @@ import { removeDomainFromVercel } from "@/lib/api/domains/remove-domain-vercel";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { CRON_BATCH_SIZE } from "../../cron";
 import { prisma } from "../../prisma";
 import { storage } from "../../storage";
+import { getOwnedAssetKey } from "../../storage/asset-keys";
 import { defineJob } from "../index";
 
 const inputSchema = z.object({
@@ -25,6 +25,7 @@ export const domainDeletedJob = defineJob({
         slug: domain,
       },
       select: {
+        id: true,
         projectId: true,
         logo: true,
       },
@@ -86,11 +87,17 @@ export const domainDeletedJob = defineJob({
     });
 
     // side effects: remove from Vercel, and delete the logo (if it exists)
+    const logoKey = getOwnedAssetKey({
+      kind: "domainLogo",
+      ownerId: domainRecord.id,
+      url: domainRecord.logo,
+    });
+
     const response = await Promise.allSettled([
       removeDomainFromVercel(domain),
-      domainRecord.logo &&
+      logoKey &&
         storage.delete({
-          key: domainRecord.logo.replace(`${R2_URL}/`, ""),
+          key: logoKey,
         }),
     ]);
 

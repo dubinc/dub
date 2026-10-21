@@ -7,11 +7,12 @@ import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
+import { mintAssetKey } from "@/lib/storage/asset-keys";
 import {
   createWorkspaceSchema,
   WorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
-import { FREE_WORKSPACES_LIMIT, nanoid, R2_URL } from "@dub/utils";
+import { FREE_WORKSPACES_LIMIT, nanoid } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -74,7 +75,7 @@ export const POST = withSession(async ({ req, session }) => {
   }
 
   try {
-    let uploadedImageUrl: string | undefined;
+    let uploadedLogo: { key: string; url: string } | undefined;
 
     const workspace = await prisma.$transaction(
       async (tx) => {
@@ -99,8 +100,8 @@ export const POST = withSession(async ({ req, session }) => {
         }
 
         const workspaceId = createWorkspaceId();
-        uploadedImageUrl = logo
-          ? `${R2_URL}/workspaces/${workspaceId}/logo_${nanoid(7)}`
+        uploadedLogo = logo
+          ? mintAssetKey("workspaceLogo", workspaceId)
           : undefined;
 
         return await tx.project.create({
@@ -108,7 +109,7 @@ export const POST = withSession(async ({ req, session }) => {
             id: workspaceId,
             name,
             slug,
-            logo: uploadedImageUrl,
+            logo: uploadedLogo?.url,
             users: {
               create: {
                 userId: session.user.id,
@@ -166,9 +167,9 @@ export const POST = withSession(async ({ req, session }) => {
 
         // Upload logo to R2 if uploaded
         logo &&
-          uploadedImageUrl &&
+          uploadedLogo &&
           storage.upload({
-            key: uploadedImageUrl.replace(`${R2_URL}/`, ""),
+            key: uploadedLogo.key,
             body: logo,
           }),
       ]),

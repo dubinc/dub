@@ -3,7 +3,7 @@ import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-prog
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
-import { R2_URL } from "@dub/utils";
+import { getOwnedAssetKey } from "@/lib/storage/asset-keys";
 
 export async function deleteProgramAdmin(programId: string) {
   const program = await prisma.program.findUnique({
@@ -105,9 +105,15 @@ export async function deleteProgramAdmin(programId: string) {
     );
   }
 
-  if (program.logo) {
+  const logoKey = getOwnedAssetKey({
+    kind: "programLogo",
+    ownerId: program.id,
+    url: program.logo,
+  });
+
+  if (logoKey) {
     const deletedLogo = await storage.delete({
-      key: program.logo.replace(`${R2_URL}/`, ""),
+      key: logoKey,
     });
 
     console.log("Deleted logo", deletedLogo);

@@ -3,6 +3,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
+import { getOwnedAssetKey, storageUrl } from "@/lib/storage/asset-keys";
 import {
   programResourceColorSchema,
   programResourceFileSchema,
@@ -67,7 +68,13 @@ export const updateProgramResourceAction = authActionClient
 
       // If a new file was uploaded, validate ownership and derive URL server-side
       if (key) {
-        if (!key.startsWith(`programs/${program.id}/`)) {
+        if (
+          !getOwnedAssetKey({
+            kind: "programResource",
+            ownerId: program.id,
+            url: storageUrl(key),
+          })
+        ) {
           throw new Error("Invalid resource key");
         }
 
@@ -131,10 +138,16 @@ export const updateProgramResourceAction = authActionClient
     });
 
     // Delete the old file from storage only after the DB update succeeds (best-effort)
-    if (oldFileUrl) {
+    const oldFileKey = getOwnedAssetKey({
+      kind: "programResource",
+      ownerId: program.id,
+      url: oldFileUrl,
+    });
+
+    if (oldFileKey) {
       try {
         await storage.delete({
-          key: oldFileUrl.replace(`${R2_URL}/`, ""),
+          key: oldFileKey,
         });
       } catch (error) {
         console.error(

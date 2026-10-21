@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
-import { R2_URL } from "@dub/utils";
+import { storage } from "@/lib/storage";
+import { getOwnedAssetKey } from "@/lib/storage/asset-keys";
 import {
   DeleteWorkspacePayload,
   enqueueNextWorkspaceDeleteStep,
@@ -27,9 +27,15 @@ export async function deleteWorkspaceCustomers(
     // Delete customer avatars from storage
     await Promise.allSettled(
       customers.map(async (customer) => {
-        if (customer.avatar && isStored(customer.avatar)) {
+        const avatarKey = getOwnedAssetKey({
+          kind: "customerAvatar",
+          ownerId: customer.id,
+          url: customer.avatar,
+        });
+
+        if (avatarKey) {
           await storage.delete({
-            key: customer.avatar.replace(`${R2_URL}/`, ""),
+            key: avatarKey,
           });
         }
       }),

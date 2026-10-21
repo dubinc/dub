@@ -9,7 +9,8 @@ import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
+import { resolveIncomingImage } from "@/lib/storage/asset-keys";
 import {
   getClickEvent,
   getLeadEvent,
@@ -27,7 +28,7 @@ import {
   trackSaleRequestSchema,
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
-import { nanoid, R2_URL } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { CommissionSource, Customer, EventType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
@@ -207,10 +208,12 @@ export const trackSale = async ({
     const finalCustomerId = createId({ prefix: "cus_" });
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
-    const finalCustomerAvatar =
-      customerAvatar && !isStored(customerAvatar)
-        ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
-        : customerAvatar;
+    const { url: finalCustomerAvatar, uploadKey: avatarUploadKey } =
+      resolveIncomingImage({
+        kind: "customerAvatar",
+        ownerId: finalCustomerId,
+        value: customerAvatar,
+      });
 
     const { customer: existingOrNewCustomer, created } =
       await getOrCreateCustomer({
@@ -243,11 +246,11 @@ export const trackSale = async ({
     }
 
     // Persist customer avatar to R2 if it's not already stored
-    if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
+    if (customerAvatar && avatarUploadKey) {
       waitUntil(
         storage
           .upload({
-            key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+            key: avatarUploadKey,
             body: customerAvatar,
             opts: {
               width: 128,

@@ -11,13 +11,12 @@ import {
 import { prisma } from "@/lib/prisma";
 import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import { storage } from "@/lib/storage";
+import { getOwnedAssetKey, mintAssetKey } from "@/lib/storage/asset-keys";
 import { uploadedImageSchema } from "@/lib/zod/schemas/images";
 import {
   APP_DOMAIN,
   PARTNERS_DOMAIN,
   PARTNERS_HOSTNAMES,
-  R2_URL,
-  nanoid,
   trim,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -110,7 +109,7 @@ export const PATCH = withSession(async ({ req, session }) => {
 
   if (image) {
     const { url } = await storage.upload({
-      key: `avatars/${session.user.id}_${nanoid(7)}`,
+      key: mintAssetKey("userAvatar", session.user.id).key,
       body: image,
     });
     image = url;
@@ -212,11 +211,15 @@ export const PATCH = withSession(async ({ req, session }) => {
       // Delete only if a new image is uploaded and the old image exists.
       // Skip if the partner profile still references the old image (e.g. user
       // chose to update login account only after a prior identity sync).
-      if (
-        image &&
-        session.user.image &&
-        session.user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`)
-      ) {
+      const oldImageKey = image
+        ? getOwnedAssetKey({
+            kind: "userAvatar",
+            ownerId: session.user.id,
+            url: session.user.image,
+          })
+        : null;
+
+      if (oldImageKey && session.user.image) {
         const partnerStillUsesImage =
           partnerId &&
           (await isImageReferencedByPartner({
@@ -226,7 +229,7 @@ export const PATCH = withSession(async ({ req, session }) => {
 
         if (!partnerStillUsesImage) {
           await storage.delete({
-            key: session.user.image.replace(`${R2_URL}/`, ""),
+            key: oldImageKey,
           });
         }
       }
@@ -258,11 +261,16 @@ export const DELETE = withSession(async ({ session }) => {
       },
     });
     // if the user has a custom avatar and it is stored by their userId, delete it
-    if (
-      user.image &&
-      user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`)
-    ) {
-      await storage.delete({ key: user.image.replace(`${R2_URL}/`, "") });
+    const imageKey = getOwnedAssetKey({
+      kind: "userAvatar",
+      ownerId: session.user.id,
+      url: user.image,
+    });
+
+    if (imageKey) {
+      await storage.delete({
+        key: imageKey,
+      });
     }
     return NextResponse.json(user);
   }

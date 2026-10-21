@@ -3,11 +3,11 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
+import { getOwnedAssetKey } from "@/lib/storage/asset-keys";
 import {
   deleteProgramResourceSchema,
   programResourcesSchema,
 } from "@/lib/zod/schemas/program-resources";
-import { R2_URL } from "@dub/utils";
 import { authActionClient } from "../../safe-action";
 import { throwIfNoPermission } from "../../throw-if-no-permission";
 
@@ -49,9 +49,20 @@ export const deleteProgramResourceAction = authActionClient
     if (!resource) throw new Error(`Resource not found`);
 
     // Delete file-based resources from storage
-    if ((resourceType === "logo" || resourceType === "file") && resource.url) {
+    const fileKey =
+      resourceType === "logo" || resourceType === "file"
+        ? getOwnedAssetKey({
+            kind: "programResource",
+            ownerId: program.id,
+            url: resource.url,
+          })
+        : null;
+
+    if (fileKey) {
       try {
-        await storage.delete({ key: resource.url.replace(`${R2_URL}/`, "") });
+        await storage.delete({
+          key: fileKey,
+        });
       } catch (error) {
         console.error(
           "Failed to delete program resource file from storage:",

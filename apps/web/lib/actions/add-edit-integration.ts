@@ -1,12 +1,13 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { DUB_WORKSPACE_ID, nanoid, R2_URL } from "@dub/utils";
+import { DUB_WORKSPACE_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../api/create-id";
 import { deleteScreenshots } from "../integrations/utils";
-import { isStored, storage } from "../storage";
+import { storage } from "../storage";
+import { getOwnedAssetKey, resolveIncomingImage } from "../storage/asset-keys";
 import { createIntegrationSchema } from "../zod/schemas/integration";
 import { authActionClient } from "./safe-action";
 import { throwIfNoPermission } from "./throw-if-no-permission";
@@ -34,20 +35,33 @@ export const addEditIntegration = authActionClient
     }
 
     const newIntegrationId = createId({ prefix: "int_" });
+    const integrationId = id || newIntegrationId;
 
-    if (integration.logo && !isStored(integration.logo)) {
-      const result = await storage.upload({
-        key: `integrations/${id || newIntegrationId}_${nanoid(7)}`,
+    const oldIntegration = id
+      ? await prisma.integration.findUniqueOrThrow({
+          where: {
+            id,
+          },
+        })
+      : null;
+
+    const { url: logoUrl, uploadKey: logoUploadKey } = resolveIncomingImage({
+      kind: "integrationLogo",
+      ownerId: integrationId,
+      value: integration.logo,
+      current: oldIntegration?.logo,
+    });
+
+    if (integration.logo && logoUploadKey) {
+      await storage.upload({
+        key: logoUploadKey,
         body: integration.logo,
       });
-      integration.logo = result.url;
     }
 
-    if (id) {
-      const oldIntegration = await prisma.integration.findUniqueOrThrow({
-        where: { id },
-      });
+    integration.logo = logoUrl;
 
+    if (id && oldIntegration) {
       await prisma.integration.update({
         where: { id },
         data: integration,
@@ -55,13 +69,19 @@ export const addEditIntegration = authActionClient
 
       waitUntil(
         (async () => {
-          if (
-            oldIntegration.logo &&
-            integration.logo !== oldIntegration.logo &&
-            oldIntegration.logo.startsWith(`${R2_URL}/integrations/${id}`)
-          ) {
+          // Only when the logo was replaced or cleared
+          const oldLogoKey =
+            logoUploadKey || integration.logo === null
+              ? getOwnedAssetKey({
+                  kind: "integrationLogo",
+                  ownerId: id,
+                  url: oldIntegration.logo,
+                })
+              : null;
+
+          if (oldLogoKey) {
             await storage.delete({
-              key: oldIntegration.logo.replace(`${R2_URL}/`, ""),
+              key: oldLogoKey,
             });
           }
 
@@ -76,7 +96,10 @@ export const addEditIntegration = authActionClient
               : [];
 
           if (removedScreenshots.length > 0) {
-            await deleteScreenshots(removedScreenshots);
+            await deleteScreenshots({
+              screenshots: removedScreenshots,
+              workspaceId: oldIntegration.projectId,
+            });
           }
         })(),
       );

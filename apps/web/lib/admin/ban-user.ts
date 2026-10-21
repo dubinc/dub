@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import { R2_URL } from "@dub/utils";
 import { WorkspaceRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { updateConfig } from "../edge-config";
 import { extractEmailDomain } from "../email/extract-email-domain";
-import { isStored, storage } from "../storage";
+import { storage } from "../storage";
+import { getOwnedAssetKey } from "../storage/asset-keys";
 import { deleteWorkspace } from "./delete-workspace";
 
 type BanUserProps = {
@@ -79,9 +79,15 @@ export async function deleteBannedUser(
     },
   });
 
-  if (user.image && isStored(user.image)) {
+  const imageKey = getOwnedAssetKey({
+    kind: "userAvatar",
+    ownerId: user.id,
+    url: user.image,
+  });
+
+  if (imageKey) {
     await storage.delete({
-      key: user.image.replace(`${R2_URL}/`, ""),
+      key: imageKey,
     });
   }
 }

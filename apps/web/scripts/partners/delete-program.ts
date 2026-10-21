@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { R2_URL } from "@dub/utils";
 import "dotenv-flow/config";
 import { bulkDeleteLinks } from "../../lib/api/links";
 import { storage } from "../../lib/storage";
+import { getOwnedAssetKey } from "../../lib/storage/asset-keys";
 
 async function main() {
   const program = await prisma.program.findUniqueOrThrow({
@@ -92,9 +92,15 @@ async function main() {
     console.log("Deleted program enrollments", deletedProgramEnrollments);
   }
 
-  if (program.logo) {
+  const logoKey = getOwnedAssetKey({
+    kind: "programLogo",
+    ownerId: program.id,
+    url: program.logo,
+  });
+
+  if (logoKey) {
     const deletedLogo = await storage.delete({
-      key: program.logo.replace(`${R2_URL}/`, ""),
+      key: logoKey,
     });
 
     console.log("Deleted logo", deletedLogo);

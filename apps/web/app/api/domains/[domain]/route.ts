@@ -13,8 +13,9 @@ import { withWorkspace } from "@/lib/auth";
 import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
+import { getOwnedAssetKey, mintAssetKey } from "@/lib/storage/asset-keys";
 import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
-import { combineWords, nanoid, R2_URL } from "@dub/utils";
+import { combineWords } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
@@ -142,7 +143,7 @@ export const PATCH = withWorkspace(
 
     const logoUploaded = logo
       ? await storage.upload({
-          key: `domains/${existingDomain.id}/logo_${nanoid(7)}`,
+          key: mintAssetKey("domainLogo", existingDomain.id).key,
           body: logo,
         })
       : null;
@@ -209,9 +210,18 @@ export const PATCH = withWorkspace(
     waitUntil(
       (async () => {
         // remove old logo
-        if (existingDomain.logo && (logo === null || logoUploaded)) {
+        const oldLogoKey =
+          logo === null || logoUploaded
+            ? getOwnedAssetKey({
+                kind: "domainLogo",
+                ownerId: existingDomain.id,
+                url: existingDomain.logo,
+              })
+            : null;
+
+        if (oldLogoKey) {
           await storage.delete({
-            key: existingDomain.logo.replace(`${R2_URL}/`, ""),
+            key: oldLogoKey,
           });
         }
 

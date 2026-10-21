@@ -4,6 +4,7 @@ import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken } from "@/lib/api/oauth/utils";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
+import { throwIfForeignScreenshots } from "@/lib/integrations/utils";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { createOAuthAppSchema, oAuthAppSchema } from "@/lib/zod/schemas/oauth";
@@ -57,6 +58,11 @@ export const POST = withWorkspace(
       pkce,
       screenshots,
     } = await createOAuthAppSchema.parseAsync(await parseRequestBody(req));
+
+    throwIfForeignScreenshots({
+      screenshots,
+      workspaceId: workspace.id,
+    });
 
     const integration = await prisma.integration.findUnique({
       where: {

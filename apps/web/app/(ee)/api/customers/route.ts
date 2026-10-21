@@ -8,7 +8,8 @@ import { getCustomers } from "@/lib/customers/api/get-customers";
 import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
+import { resolveIncomingImage } from "@/lib/storage/asset-keys";
 import {
   createCustomerBodySchema,
   CustomerEnrichedSchema,
@@ -16,7 +17,6 @@ import {
   getCustomersQuerySchemaExtended,
 } from "@/lib/zod/schemas/customers";
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
-import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -63,10 +63,12 @@ export const POST = withWorkspace(
 
     const customerId = createId({ prefix: "cus_" });
     const finalCustomerName = name || email || generateRandomName();
-    const finalCustomerAvatar =
-      avatar && !isStored(avatar)
-        ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
-        : avatar;
+    const { url: finalCustomerAvatar, uploadKey: avatarUploadKey } =
+      resolveIncomingImage({
+        kind: "customerAvatar",
+        ownerId: customerId,
+        value: avatar,
+      });
 
     try {
       const customer = await prisma.customer.create({
@@ -84,11 +86,11 @@ export const POST = withWorkspace(
         },
       });
 
-      if (avatar && !isStored(avatar) && finalCustomerAvatar) {
+      if (avatar && avatarUploadKey) {
         waitUntil(
           storage
             .upload({
-              key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+              key: avatarUploadKey,
               body: avatar,
               opts: {
                 width: 128,

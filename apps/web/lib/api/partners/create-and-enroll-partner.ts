@@ -4,11 +4,11 @@ import { createId } from "@/lib/api/create-id";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { prisma } from "@/lib/prisma";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
+import { resolveIncomingImage } from "@/lib/storage/asset-keys";
 import { CreatePartnerProps, ProgramProps, WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
-import { nanoid } from "@dub/utils";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
@@ -171,10 +171,20 @@ export const createAndEnrollPartner = async ({
       id: createId({ prefix: "pn_" }),
       name: partner.name || partner.email,
       email: partner.email,
-      image: partner.image && !isStored(partner.image) ? null : partner.image,
+      // Set below, once we know which partner the image belongs to
+      image: null,
       country: partner.country,
       description: partner.description,
     },
+  });
+
+  // Keep the image only if it's unchanged or already this partner's;
+  // otherwise copy it into storage this partner owns.
+  const { uploadKey: partnerImageUploadKey } = resolveIncomingImage({
+    kind: "partnerImage",
+    ownerId: existingOrNewPartner.id,
+    value: partner.image,
+    current: existingOrNewPartner.image,
   });
 
   const { programEnrollment, created } = await createOrGetProgramEnrollment({
@@ -276,10 +286,10 @@ export const createAndEnrollPartner = async ({
 
       // upload partner image to R2
       partner.image &&
-        !isStored(partner.image) &&
+        partnerImageUploadKey &&
         storage
           .upload({
-            key: `partners/${existingOrNewPartner.id}/image_${nanoid(7)}`,
+            key: partnerImageUploadKey,
             body: partner.image,
           })
           .then(async ({ url }) => {

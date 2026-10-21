@@ -8,7 +8,8 @@ import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
+import { resolveIncomingImage } from "@/lib/storage/asset-keys";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { CustomerSource, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
@@ -18,7 +19,7 @@ import {
   trackLeadRequestSchema,
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
-import { nanoid, R2_URL } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { CommissionSource, EventType, Link } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
@@ -76,10 +77,12 @@ export const trackLead = async ({
   const finalCustomerId = createId({ prefix: "cus_" });
   const finalCustomerName =
     customerName || customerEmail || generateRandomName();
-  const finalCustomerAvatar =
-    customerAvatar && !isStored(customerAvatar)
-      ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
-      : customerAvatar;
+  const { url: finalCustomerAvatar, uploadKey: avatarUploadKey } =
+    resolveIncomingImage({
+      kind: "customerAvatar",
+      ownerId: finalCustomerId,
+      value: customerAvatar,
+    });
 
   let isDuplicateEvent = false;
 
@@ -231,15 +234,11 @@ export const trackLead = async ({
         if (mode !== "deferred") {
           await recordLead(createLeadEventPayload(customer.id));
         }
-        if (
-          customerAvatar &&
-          !isStored(customerAvatar) &&
-          finalCustomerAvatar
-        ) {
+        if (customerAvatar && avatarUploadKey) {
           // persist customer avatar to R2
           await storage
             .upload({
-              key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+              key: avatarUploadKey,
               body: customerAvatar,
               opts: {
                 width: 128,

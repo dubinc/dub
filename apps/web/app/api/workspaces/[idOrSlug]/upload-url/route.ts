@@ -1,4 +1,5 @@
 import { withWorkspace } from "@/lib/auth";
+import { mintAssetKey } from "@/lib/storage/asset-keys";
 import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
 import { signedUploadInputSchema } from "@/lib/storage/schemas";
 import { validateSignedUpload } from "@/lib/storage/validate-signed-upload";
@@ -23,7 +24,7 @@ export const POST = withWorkspace(
 
     const key =
       policy === "integrationScreenshots"
-        ? `integration-screenshots/${nanoid(10)}`
+        ? mintAssetKey("integrationScreenshot", workspace.id).key
         : `program-logos/${nanoid(10)}`;
 
     validateSignedUpload({

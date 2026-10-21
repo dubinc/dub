@@ -1,11 +1,14 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { deleteScreenshots } from "@/lib/integrations/utils";
+import {
+  deleteScreenshots,
+  throwIfForeignScreenshots,
+} from "@/lib/integrations/utils";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
+import { getOwnedAssetKey, mintAssetKey } from "@/lib/storage/asset-keys";
 import { oAuthAppSchema, updateOAuthAppSchema } from "@/lib/zod/schemas/oauth";
-import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -78,13 +81,19 @@ export const PATCH = withWorkspace(
         },
       });
 
+      throwIfForeignScreenshots({
+        screenshots,
+        workspaceId: workspace.id,
+        existingScreenshots: integration.screenshots,
+      });
+
       let logoUrl: string | undefined;
       const logoUpdated = logo && integration.logo !== logo;
 
       // Logo has been changed
       if (logoUpdated) {
         const result = await storage.upload({
-          key: `integrations/${params.appId}_${nanoid(7)}`,
+          key: mintAssetKey("integrationLogo", params.appId).key,
           body: logo,
         });
 
@@ -120,28 +129,33 @@ export const PATCH = withWorkspace(
 
       waitUntil(
         (async () => {
-          if (
-            logoUpdated &&
-            integration.logo &&
-            integration.logo.startsWith(
-              `${R2_URL}/integrations/${params.appId}`,
-            )
-          ) {
+          const oldLogoKey = logoUpdated
+            ? getOwnedAssetKey({
+                kind: "integrationLogo",
+                ownerId: params.appId,
+                url: integration.logo,
+              })
+            : null;
+
+          if (oldLogoKey) {
             await storage.delete({
-              key: integration.logo.replace(`${R2_URL}/`, ""),
+              key: oldLogoKey,
             });
           }
 
           // Remove old screenshots
-          const oldScreenshots = integration.screenshots
-            ? (integration.screenshots as string[])
+          const oldScreenshots = Array.isArray(integration.screenshots)
+            ? integration.screenshots
             : [];
 
-          const removedScreenshots = oldScreenshots?.filter(
-            (s) => !screenshots?.includes(s),
+          const removedScreenshots = oldScreenshots.filter(
+            (s) => typeof s === "string" && !screenshots?.includes(s),
           );
 
-          await deleteScreenshots(removedScreenshots);
+          await deleteScreenshots({
+            screenshots: removedScreenshots,
+            workspaceId: workspace.id,
+          });
         })(),
       );
 
@@ -151,6 +165,10 @@ export const PATCH = withWorkspace(
         oAuthAppSchema.parse({ ...oAuthApp, ...updatedIntegration }),
       );
     } catch (error) {
+      if (error instanceof DubApiError) {
+        throw error;
+      }
+
       if (error.code === "P2002") {
         throw new DubApiError({
           code: "conflict",
@@ -194,16 +212,22 @@ export const DELETE = withWorkspace(
 
     waitUntil(
       (async () => {
-        if (
-          integration.logo &&
-          integration.logo.startsWith(`${R2_URL}/integrations`)
-        ) {
+        const logoKey = getOwnedAssetKey({
+          kind: "integrationLogo",
+          ownerId: integration.id,
+          url: integration.logo,
+        });
+
+        if (logoKey) {
           await storage.delete({
-            key: integration.logo.replace(`${R2_URL}/`, ""),
+            key: logoKey,
           });
         }
 
-        await deleteScreenshots(integration.screenshots);
+        await deleteScreenshots({
+          screenshots: integration.screenshots,
+          workspaceId: workspace.id,
+        });
       })(),
     );
 
