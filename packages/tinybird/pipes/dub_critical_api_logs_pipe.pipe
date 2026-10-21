@@ -1,0 +1,40 @@
+TAGS "Dub MV Pipes"
+
+DESCRIPTION >
+	Materialize hourly request counts for critical API endpoints (2xx, 401, 403)
+	so failure alerts can query without scanning dub_api_logs across all workspaces.
+	Route allowlist must stay in sync with CRITICAL_API_ROUTES in apps/web.
+
+
+NODE mv
+SQL >
+
+    SELECT
+        toStartOfHour(timestamp) AS hour,
+        workspace_id,
+        method,
+        route_pattern,
+        status_code,
+        count() AS request_count
+    FROM dub_api_logs
+    WHERE
+        route_pattern IN (
+            '/track/lead',
+            '/track/sale',
+            '/commissions',
+            '/track/lead/client',
+            '/track/sale/client'
+        )
+        AND (
+            status_code IN (401, 403)
+            OR (status_code >= 200 AND status_code < 300)
+        )
+    GROUP BY
+        hour,
+        workspace_id,
+        method,
+        route_pattern,
+        status_code
+
+TYPE materialized
+DATASOURCE dub_critical_api_logs_mv
