@@ -253,32 +253,18 @@ export abstract class HttpBaseClient {
     }
 
     // The body read can still fail after the headers arrived (a timeout or a dropped connection).
-    // Report it like a network error, so callers can retry it the same way.
+    // On a successful status, report it like a network error, so callers can retry it the same way.
+    // On an error status, keep the status: the vendor rejected the request, only the error body is missing.
     let text: string;
 
     try {
       text = await response.text();
     } catch (error) {
-      const reason = error instanceof Error ? error.message : String(error);
-      const message = `[${this.vendor}] ${method} ${safeUrl} network error while reading the response: ${reason}`;
-
-      waitUntil(
-        this.logError(message, {
-          method,
-          url: safeUrl,
-          status: response.status,
-          error: reason,
-        }),
-      );
-
-      throw new HttpClientError({
-        vendor: this.vendor,
-        method,
-        url: safeUrl,
-        status: null,
-        responseBody: null,
-        message,
-      });
+      if (!response.ok) {
+        text = "";
+      } else {
+        throw this.bodyReadError({ method, safeUrl, response, error });
+      }
     }
 
     let data: unknown = null;
@@ -349,6 +335,40 @@ export abstract class HttpBaseClient {
     }
 
     return parsed.data as z.output<TOutput>;
+  }
+
+  // A failed body read on a successful status, reported like a network error (null status)
+  private bodyReadError({
+    method,
+    safeUrl,
+    response,
+    error,
+  }: {
+    method: string;
+    safeUrl: string;
+    response: Response;
+    error: unknown;
+  }) {
+    const reason = error instanceof Error ? error.message : String(error);
+    const message = `[${this.vendor}] ${method} ${safeUrl} network error while reading the response: ${reason}`;
+
+    waitUntil(
+      this.logError(message, {
+        method,
+        url: safeUrl,
+        status: response.status,
+        error: reason,
+      }),
+    );
+
+    return new HttpClientError({
+      vendor: this.vendor,
+      method,
+      url: safeUrl,
+      status: null,
+      responseBody: null,
+      message,
+    });
   }
 
   private buildQueryParams(
