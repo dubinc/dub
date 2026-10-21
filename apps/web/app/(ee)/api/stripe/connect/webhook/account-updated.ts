@@ -41,6 +41,7 @@ export async function accountUpdated(event: Stripe.AccountUpdatedEvent) {
       defaultPayoutMethod: true,
       payoutMethodHash: true,
       tremendousEmail: true,
+      networkStatus: true,
     },
   });
 
@@ -117,7 +118,8 @@ export async function accountUpdated(event: Stripe.AccountUpdatedEvent) {
     return `No change in payout state for partner ${partner.email} (${partner.stripeConnectId}), skipping...`;
   }
 
-  if (partner.payoutsEnabledAt && !payoutsEnabledAt) {
+  // Also covers banned partners, where payoutsEnabledAt stays null
+  if (!payoutsEnabledAt) {
     return `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt null`;
   }
 

@@ -992,17 +992,21 @@ export const banPartnerSchema = z.object({
   flagForFraud: z
     .boolean()
     .optional()
-    .describe("Whether to flag the partner for fraud."),
+    .describe("Whether to flag the partner for fraud review by the Dub team."),
   flagForFraudReason: z
     .string()
     .max(MAX_FRAUD_REASON_LENGTH)
     .optional()
-    .describe("The reason for flagging the partner for fraud."),
+    .describe(
+      "The reason for flagging the partner for fraud. Required when flagForFraud is true.",
+    ),
 });
 
 export const banPartnerApiSchema = partnerIdTenantIdSchema.extend(
   banPartnerSchema.pick({
     reason: true,
+    flagForFraud: true,
+    flagForFraudReason: true,
   }).shape,
 );
 

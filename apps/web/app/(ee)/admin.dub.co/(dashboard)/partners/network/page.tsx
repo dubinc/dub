@@ -98,7 +98,7 @@ export default function NetworkApplicationsPage() {
     },
   );
 
-  const { data: partnersCount } = useSWR<{
+  const { data: partnersCount, mutate: mutatePartnersCount } = useSWR<{
     count: number;
   }>(
     `/api/admin/partners/network/count${getQueryString(undefined, {
@@ -503,6 +503,10 @@ export default function NetworkApplicationsPage() {
           }}
           onReview={handleReviewPartner}
           onUpdateCountry={handleUpdatePartnerCountry}
+          onNetworkBanChange={async () => {
+            // A ban or unban can move the partner out of the status filter
+            await Promise.all([mutate(), mutatePartnersCount()]);
+          }}
         />
       )}
       <div className="mb-4 flex flex-col gap-3">

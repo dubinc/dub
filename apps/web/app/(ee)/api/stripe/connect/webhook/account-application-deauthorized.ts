@@ -24,6 +24,7 @@ export async function accountApplicationDeauthorized(
       payoutsEnabledAt: true,
       defaultPayoutMethod: true,
       tremendousEmail: true,
+      networkStatus: true,
     },
   });
 

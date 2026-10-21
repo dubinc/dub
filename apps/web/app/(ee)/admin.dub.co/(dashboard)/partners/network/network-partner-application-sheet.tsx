@@ -28,6 +28,7 @@ import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { NetworkIdentityVerification } from "./identity-verification";
+import { NetworkBan } from "./network-ban";
 import { NetworkPartnerChangeHistory } from "./network-partner-change-history";
 
 type NetworkPartnerSheetTabId = "about" | "programs" | "duplicates";
@@ -58,6 +59,7 @@ export function NetworkPartnerApplicationSheet({
   onNext,
   onReview,
   onUpdateCountry,
+  onNetworkBanChange,
 }: {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
@@ -72,6 +74,7 @@ export function NetworkPartnerApplicationSheet({
     partner: AdminNetworkPartner,
     country: string,
   ) => Promise<void>;
+  onNetworkBanChange: () => Promise<void>;
 }) {
   const [currentTabId, setCurrentTabId] =
     useState<NetworkPartnerSheetTabId>("about");
@@ -210,14 +213,14 @@ export function NetworkPartnerApplicationSheet({
 
   useKeyboardShortcut("a", () => setShowApproveConfirm(true), {
     sheet: true,
-    enabled: !["approved", "trusted"].includes(partner.networkStatus),
+    enabled: !["approved", "trusted", "banned"].includes(partner.networkStatus),
   });
 
   useKeyboardShortcut("r", () => setShowRejectConfirm(true), {
     sheet: true,
     enabled:
       !showRevertToDraftInsteadOfReject &&
-      !["rejected", "trusted"].includes(partner.networkStatus),
+      !["rejected", "trusted", "banned"].includes(partner.networkStatus),
   });
 
   useKeyboardShortcut("r", () => setShowRevertToDraftConfirm(true), {
@@ -307,6 +310,9 @@ export function NetworkPartnerApplicationSheet({
               <NetworkIdentityVerification partner={partner} />
             </div>
             <div className="overflow-x-hidden">
+              <NetworkBan partner={partner} onChange={onNetworkBanChange} />
+            </div>
+            <div className="overflow-x-hidden">
               <NetworkPartnerChangeHistory
                 changeHistoryLog={partner.changeHistoryLog}
               />
@@ -366,7 +372,9 @@ export function NetworkPartnerApplicationSheet({
                 shortcut="R"
                 onClick={() => setShowRejectConfirm(true)}
                 disabledTooltip={
-                  ["rejected", "trusted"].includes(partner.networkStatus)
+                  ["rejected", "trusted", "banned"].includes(
+                    partner.networkStatus,
+                  )
                     ? `Cannot reject a ${partner.networkStatus} partner.`
                     : undefined
                 }
@@ -380,7 +388,9 @@ export function NetworkPartnerApplicationSheet({
               shortcut="A"
               onClick={() => setShowApproveConfirm(true)}
               disabledTooltip={
-                ["approved", "trusted"].includes(partner.networkStatus)
+                ["approved", "trusted", "banned"].includes(
+                  partner.networkStatus,
+                )
                   ? `Cannot approve a ${partner.networkStatus} partner.`
                   : undefined
               }

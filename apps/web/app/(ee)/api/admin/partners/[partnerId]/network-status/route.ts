@@ -36,6 +36,13 @@ export const PATCH = withAdmin(async ({ params, req }) => {
     return new Response("Partner not found.", { status: 404 });
   }
 
+  if (existingPartner.networkStatus === "banned") {
+    return new Response(
+      "Partner is banned from the network. Unban them first.",
+      { status: 400 },
+    );
+  }
+
   if (existingPartner.networkStatus === updatedStatus) {
     return new Response("Partner is already in this status.", {
       status: 400,
@@ -71,20 +78,36 @@ export const PATCH = withAdmin(async ({ params, req }) => {
     });
   }
 
-  const updatedPartner = await prisma.partner.update({
-    where: {
-      id: partnerId,
-    },
-    data: {
-      networkStatus: updatedStatus,
-      changeHistoryLog: partnerChangeHistoryLog,
-      reviewedAt: updatedStatus === "draft" ? null : new Date(),
-    },
-    select: {
-      id: true,
-      networkStatus: true,
-    },
-  });
+  const updatedPartner = await prisma.partner
+    .update({
+      where: {
+        id: partnerId,
+        networkStatus: {
+          not: "banned",
+        },
+      },
+      data: {
+        networkStatus: updatedStatus,
+        changeHistoryLog: partnerChangeHistoryLog,
+        reviewedAt: updatedStatus === "draft" ? null : new Date(),
+      },
+      select: {
+        id: true,
+        networkStatus: true,
+      },
+    })
+    .catch((error) => {
+      // A ban saved after the read above must not be overwritten
+      if (error.code === "P2025") return null;
+      throw error;
+    });
+
+  if (!updatedPartner) {
+    return new Response(
+      "Partner is banned from the network. Unban them first.",
+      { status: 400 },
+    );
+  }
 
   if (
     existingPartner.email &&

@@ -78,6 +78,13 @@ export const POST = withAdmin(
       return new Response("Partner not found.", { status: 404 });
     }
 
+    if (partner.networkStatus === "banned") {
+      return new Response(
+        "Partner is banned from the network. Unban them first.",
+        { status: 400 },
+      );
+    }
+
     if (partner.trustedAt) {
       return new Response("Partner is already marked as trusted.", {
         status: 400,
@@ -96,23 +103,39 @@ export const POST = withAdmin(
       changedAt: trustedAt,
     });
 
-    const updatedPartner = await prisma.partner.update({
-      where: {
-        id: partner.id,
-      },
-      data: {
-        networkStatus: "trusted",
-        trustedAt,
-        changeHistoryLog: partnerChangeHistoryLog,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        trustedAt: true,
-      },
-    });
+    const updatedPartner = await prisma.partner
+      .update({
+        where: {
+          id: partner.id,
+          networkStatus: {
+            not: "banned",
+          },
+        },
+        data: {
+          networkStatus: "trusted",
+          trustedAt,
+          changeHistoryLog: partnerChangeHistoryLog,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          trustedAt: true,
+        },
+      })
+      .catch((error) => {
+        // A ban saved after the read above must not be overwritten
+        if (error.code === "P2025") return null;
+        throw error;
+      });
+
+    if (!updatedPartner) {
+      return new Response(
+        "Partner is banned from the network. Unban them first.",
+        { status: 400 },
+      );
+    }
 
     return NextResponse.json(updatedPartner);
   },
@@ -144,6 +167,13 @@ export const DELETE = withAdmin(
       return new Response("Partner not found.", { status: 404 });
     }
 
+    if (partner.networkStatus === "banned") {
+      return new Response(
+        "Partner is banned from the network. Unban them first.",
+        { status: 400 },
+      );
+    }
+
     const partnerChangeHistoryLog = partner.changeHistoryLog
       ? partnerProfileChangeHistoryLogSchema.parse(partner.changeHistoryLog)
       : [];
@@ -155,14 +185,32 @@ export const DELETE = withAdmin(
       changedAt: new Date(),
     });
 
-    await prisma.partner.update({
-      where: { id: partner.id },
-      data: {
-        networkStatus: "approved",
-        trustedAt: null,
-        changeHistoryLog: partnerChangeHistoryLog,
-      },
-    });
+    const updatedPartner = await prisma.partner
+      .update({
+        where: {
+          id: partner.id,
+          networkStatus: {
+            not: "banned",
+          },
+        },
+        data: {
+          networkStatus: "approved",
+          trustedAt: null,
+          changeHistoryLog: partnerChangeHistoryLog,
+        },
+      })
+      .catch((error) => {
+        // A ban saved after the read above must not be overwritten
+        if (error.code === "P2025") return null;
+        throw error;
+      });
+
+    if (!updatedPartner) {
+      return new Response(
+        "Partner is banned from the network. Unban them first.",
+        { status: 400 },
+      );
+    }
 
     return NextResponse.json({ success: true });
   },

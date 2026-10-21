@@ -55,7 +55,11 @@ export async function completeProgramApplications(userEmail: string) {
       },
     });
 
-    if (!user.partners.length) {
+    // Partners banned from the network can't join programs through applications
+    if (
+      !user.partners.length ||
+      user.partners[0].partner.networkStatus === "banned"
+    ) {
       return;
     }
 

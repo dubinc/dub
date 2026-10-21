@@ -35,6 +35,11 @@ const NETWORK_STATUS_BADGE_VARIANT = {
     label: "Approved",
     icon: CircleCheck,
   },
+  banned: {
+    variant: "error",
+    label: "Banned",
+    icon: CircleXmark,
+  },
 } as const;
 
 export function NetworkApprovalGuide() {
@@ -95,7 +100,8 @@ export function NetworkApprovalGuide() {
                   Join the Dub Partner Network
                 </h2>
 
-                {partner.networkStatus === "draft" || !isComplete ? (
+                {partner.networkStatus !== "banned" &&
+                (partner.networkStatus === "draft" || !isComplete) ? (
                   <div className="bg-bg-default/10 flex w-fit items-center gap-1.5 rounded-md px-2 py-1">
                     <ProgressCircle
                       progress={completedCount / totalCount}

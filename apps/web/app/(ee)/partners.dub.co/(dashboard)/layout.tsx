@@ -1,7 +1,5 @@
-import { MainNav } from "@/ui/layout/main-nav";
-import { HelpButton } from "@/ui/layout/sidebar/help-button";
-import { PartnersSidebarNav } from "@/ui/layout/sidebar/partners-sidebar-nav";
 import { PartnerProfileAuth } from "./auth";
+import { PartnerMainNav } from "./partner-main-nav";
 
 export default function PartnerDashboardLayout({
   children,
@@ -9,12 +7,8 @@ export default function PartnerDashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <MainNav
-      toolContent={<HelpButton />}
-      sidebar={PartnersSidebarNav}
-      hasBanner={false}
-    >
+    <PartnerMainNav>
       <PartnerProfileAuth>{children}</PartnerProfileAuth>
-    </MainNav>
+    </PartnerMainNav>
   );
 }

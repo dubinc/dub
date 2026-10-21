@@ -28,6 +28,7 @@ export async function recipientConfigurationUpdated(event: Stripe.ThinEvent) {
       defaultPayoutMethod: true,
       cryptoWalletAddress: true,
       tremendousEmail: true,
+      networkStatus: true,
     },
   });
 

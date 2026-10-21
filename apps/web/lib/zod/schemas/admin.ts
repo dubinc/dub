@@ -142,6 +142,12 @@ export const adminNetworkPartnerQuerySchema = z
 export const adminFlagFraudSchema = z.object({
   reason: z.string().trim().min(1).max(MAX_FRAUD_REASON_LENGTH),
   reviewNote: z.string().trim().max(MAX_FRAUD_REASON_LENGTH).optional(),
+  banFromNetwork: z.boolean().optional(),
+});
+
+export const adminNetworkBanSchema = adminFlagFraudSchema.pick({
+  reason: true,
+  reviewNote: true,
 });
 
 export const adminFraudAlertSchema = z.object({

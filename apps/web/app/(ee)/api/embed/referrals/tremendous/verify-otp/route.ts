@@ -76,8 +76,17 @@ export const POST = withReferralsEmbedToken(
         id: true,
         country: true,
         defaultPayoutMethod: true,
+        networkStatus: true,
       },
     });
+
+    if (partner.networkStatus === "banned") {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "Your account is banned from the Dub Partner Network, so you can't connect a payout method.",
+      });
+    }
 
     if (
       partner.country &&
@@ -150,6 +159,10 @@ export const POST = withReferralsEmbedToken(
             id: partner.id,
             defaultPayoutMethod: null,
             payoutsEnabledAt: null,
+            // A ban saved after the check above must not enable payouts
+            networkStatus: {
+              not: "banned",
+            },
           },
           data: {
             tremendousEmail: email,

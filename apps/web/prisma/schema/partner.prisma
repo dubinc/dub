@@ -14,6 +14,7 @@ enum PartnerNetworkStatus {
   approved
   rejected
   trusted
+  banned
 }
 
 enum MonthlyTraffic {

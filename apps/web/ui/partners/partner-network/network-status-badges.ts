@@ -3,6 +3,7 @@ import {
   CircleHalfDottedCheck,
   CircleHalfDottedClock,
   CircleXmark,
+  UserXmark,
 } from "@dub/ui/icons";
 
 export const NetworkStatusBadges = {
@@ -39,6 +40,17 @@ export const NetworkStatusBadges = {
     variant: "error",
     className: "bg-bg-error text-content-error",
     icon: CircleXmark,
+  },
+  banned: {
+    partnerTooltip: {
+      content:
+        "Your account is banned from the Dub Partner Network. You are not eligible to apply to this program.",
+      cta: "Banned",
+    },
+    label: "Banned",
+    variant: "error",
+    className: "bg-bg-error text-content-error",
+    icon: UserXmark,
   },
   // not show in partner tooltip
   approved: {

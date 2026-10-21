@@ -53,6 +53,9 @@ import { actionClient } from "../safe-action";
 
 export type PartnerData = { name: string; country?: string };
 
+const NETWORK_BAN_ERROR =
+  "Your account is banned from the Dub Partner Network, so you can't apply to programs. Please contact support@dub.co if you think this is a mistake.";
+
 interface Response {
   programApplicationId: string;
   programEnrollmentId?: string;
@@ -192,6 +195,10 @@ export const createProgramApplicationAction = actionClient
     }
 
     if (existingPartner) {
+      if (existingPartner.networkStatus === "banned") {
+        throw new Error(NETWORK_BAN_ERROR);
+      }
+
       // for in-app applications from existing partners, we need to check
       // if the partner has an incomplete profile, if so we prompt them to complete it
       if (inAppApplication) {
@@ -296,7 +303,14 @@ async function createApplicationAndEnrollment({
     async (tx) => {
       // Serializes concurrent applications from the same partner so the
       // checks below cannot be raced (MySQL has no partial unique index so we can't restrict this on DB level).
-      await tx.$queryRaw`SELECT id FROM Partner WHERE id = ${partner.id} FOR UPDATE`;
+      const [lockedPartner] = await tx.$queryRaw<
+        Pick<Partner, "networkStatus">[]
+      >`SELECT networkStatus FROM Partner WHERE id = ${partner.id} FOR UPDATE`;
+
+      // Recheck under the lock, in case a ban was saved after the first read
+      if (lockedPartner?.networkStatus === "banned") {
+        throw new Error(NETWORK_BAN_ERROR);
+      }
 
       const enrollment = await tx.programEnrollment.findUnique({
         where: {

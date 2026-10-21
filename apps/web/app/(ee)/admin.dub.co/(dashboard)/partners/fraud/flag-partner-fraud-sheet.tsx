@@ -5,7 +5,7 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { SearchBox } from "@/ui/shared/search-box";
-import { Button, LoadingSpinner, Sheet, StatusBadge } from "@dub/ui";
+import { Button, Checkbox, LoadingSpinner, Sheet, StatusBadge } from "@dub/ui";
 import { Xmark } from "@dub/ui/icons";
 import { fetcher, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useState } from "react";
@@ -52,6 +52,7 @@ function FlagPartnerFraudSheetContent({
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [reason, setReason] = useState("");
   const [reviewNote, setReviewNote] = useState("");
+  const [banFromNetwork, setBanFromNetwork] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const trimmedSearch = debouncedSearch.trim();
@@ -71,6 +72,7 @@ function FlagPartnerFraudSheetContent({
   );
 
   const partner = partners?.[0];
+  const isBannedFromNetwork = partner?.networkStatus === "banned";
   const partnerNotFound = canSearch && !isSearching && partners?.length === 0;
 
   const handleFlag = useCallback(async () => {
@@ -86,6 +88,8 @@ function FlagPartnerFraudSheetContent({
           body: JSON.stringify({
             reason,
             reviewNote: reviewNote.trim() || undefined,
+            ...(banFromNetwork &&
+              !isBannedFromNetwork && { banFromNetwork: true }),
           }),
         },
       );
@@ -107,6 +111,7 @@ function FlagPartnerFraudSheetContent({
       setDebouncedSearch("");
       setReason("");
       setReviewNote("");
+      setBanFromNetwork(false);
       setIsOpen(false);
       await onFlagged();
     } catch (error) {
@@ -116,12 +121,22 @@ function FlagPartnerFraudSheetContent({
     } finally {
       setIsSubmitting(false);
     }
-  }, [partner, reason, reviewNote, setIsOpen, onFlagged]);
+  }, [
+    partner,
+    reason,
+    reviewNote,
+    banFromNetwork,
+    isBannedFromNetwork,
+    setIsOpen,
+    onFlagged,
+  ]);
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Confirm fraud",
     description:
-      "This will confirm fraud for this partner and alert their enrolled programs through the network-level ban risk rule. This action cannot be undone.",
+      banFromNetwork && !isBannedFromNetwork
+        ? "This will confirm fraud for this partner, alert their enrolled programs through the network-level ban risk rule, and ban them from the Dub Partner Network. Fraud confirmation cannot be undone."
+        : "This will confirm fraud for this partner and alert their enrolled programs through the network-level ban risk rule. This action cannot be undone.",
     confirmText: "Confirm Fraud",
     confirmVariant: "danger",
     onConfirm: handleFlag,
@@ -265,6 +280,32 @@ function FlagPartnerFraudSheetContent({
               {reviewNote.length}/{MAX_FRAUD_REASON_LENGTH}
             </p>
           </div>
+
+          {partner &&
+            (isBannedFromNetwork ? (
+              <p className="text-sm text-neutral-500">
+                This partner is already banned from the Dub Partner Network.
+              </p>
+            ) : (
+              <label className="flex cursor-pointer items-start gap-2">
+                <Checkbox
+                  className="mt-0.5"
+                  checked={banFromNetwork}
+                  onCheckedChange={(checked) =>
+                    setBanFromNetwork(checked === true)
+                  }
+                />
+                <div>
+                  <p className="text-sm font-medium text-neutral-900">
+                    Also ban from Dub Partner Network
+                  </p>
+                  <p className="text-xs text-neutral-500">
+                    Disables payouts and blocks new program applications. You
+                    can unban them later from the fraud alert.
+                  </p>
+                </div>
+              </label>
+            ))}
         </div>
       </div>
 

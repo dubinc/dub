@@ -22,6 +22,7 @@ export const GET = withAdmin(async ({ params }) => {
       country: true,
       companyName: true,
       createdAt: true,
+      networkStatus: true,
       platforms: true,
     },
   });
