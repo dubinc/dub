@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 
+// Returns the IDs of the payouts that failed to retally
 export const retallyPayoutsAmount = async (payoutIdsToRetally: string[]) => {
+  const failedPayoutIds: string[] = [];
+
   for (const payoutId of payoutIdsToRetally) {
     try {
       const commissionsSum = await prisma.commission.aggregate({
@@ -26,6 +29,9 @@ export const retallyPayoutsAmount = async (payoutIdsToRetally: string[]) => {
       }
     } catch (error) {
       console.error(`Error retallying payout ${payoutId}:`, error);
+      failedPayoutIds.push(payoutId);
     }
   }
+
+  return failedPayoutIds;
 };
