@@ -1,5 +1,6 @@
 "use client";
 
+import { partnerLinksDisplayProperties } from "@/lib/partners/partner-links-display";
 import { PartnerLinksDisplayContext } from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { Button, Popover } from "@dub/ui";
@@ -8,11 +9,6 @@ import { cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useContext, useState } from "react";
-
-const DISPLAY_PROPERTIES = [
-  { id: "link" as const, label: "Short link", switch: "title" as const },
-  { id: "title" as const, label: "Title", switch: "link" as const },
-];
 
 export function PartnerLinkDisplay() {
   const { showDetailedAnalytics } = useProgramEnrollment();
@@ -68,7 +64,7 @@ export function PartnerLinkDisplay() {
               Display Properties
             </span>
             <div className="mt-4 flex flex-wrap gap-2">
-              {DISPLAY_PROPERTIES.map((property) => {
+              {partnerLinksDisplayProperties.map((property) => {
                 const active = displayProperties.includes(property.id);
                 return (
                   <button
@@ -80,11 +76,13 @@ export function PartnerLinkDisplay() {
                         ? displayProperties.filter((p) => p !== property.id)
                         : [...displayProperties, property.id];
 
-                      // Toggle switched property (short link ↔ title)
-                      next = [
-                        ...next.filter((p) => p !== property.switch),
-                        ...(active ? [property.switch] : []),
-                      ];
+                      if (property.switch) {
+                        // Reward details and description replace each other
+                        next = [
+                          ...next.filter((p) => p !== property.switch),
+                          ...(active ? [property.switch] : []),
+                        ];
+                      }
 
                       setDisplayProperties(next);
                     }}

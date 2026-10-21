@@ -3,6 +3,7 @@ import {
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
 import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
+import { partnerLinksDisplayPropertyIds } from "@/lib/partners/partner-links-display";
 import { COUNTRY_CODES } from "@dub/utils";
 import {
   Category,
@@ -154,7 +155,7 @@ export const ProgramEnrollmentApplicationSchema = z.object({
 
 const partnerLinksDisplaySchema = z.object({
   displayOption: z.enum(["full", "cards"]),
-  displayProperties: z.array(z.enum(["link", "title"])),
+  displayProperties: z.array(z.enum(partnerLinksDisplayPropertyIds)),
 });
 
 export const programEnrollmentPreferencesValueSchemas = {

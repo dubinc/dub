@@ -1,6 +1,11 @@
 "use client";
 
 import { updateProgramEnrollmentPreferences } from "@/lib/actions/partners/update-program-enrollment-preferences";
+import {
+  defaultPartnerLinksDisplayProperties,
+  normalizePartnerLinksDisplayProperties,
+  type PartnerLinksDisplayProperty,
+} from "@/lib/partners/partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -15,23 +20,21 @@ import {
 import { mutate } from "swr";
 
 type PartnerLinksDisplayOption = "full" | "cards";
-type PartnerLinksDisplayProperty = "link" | "title";
 
 type PartnerLinksDisplayPreferences = {
   displayOption: PartnerLinksDisplayOption;
   displayProperties: PartnerLinksDisplayProperty[];
 };
 
-const DEFAULT_DISPLAY_PROPERTIES: PartnerLinksDisplayProperty[] = ["link"];
-
 /** Read persisted partner links display prefs (for Analytics / Events / filters). */
 export function usePartnerLinksDisplay() {
   const { programEnrollment } = useProgramEnrollment();
 
   return {
-    displayProperties:
+    displayProperties: normalizePartnerLinksDisplayProperties(
       programEnrollment?.partnerPreferences?.linksDisplay?.displayProperties ??
-      DEFAULT_DISPLAY_PROPERTIES,
+        defaultPartnerLinksDisplayProperties,
+    ),
   };
 }
 
@@ -49,7 +52,7 @@ export const PartnerLinksDisplayContext =
   createContext<PartnerLinksDisplayContextValue>({
     displayOption: "full",
     setDisplayOption: () => {},
-    displayProperties: DEFAULT_DISPLAY_PROPERTIES,
+    displayProperties: defaultPartnerLinksDisplayProperties,
     setDisplayProperties: () => {},
     isDirty: false,
     persist: () => {},
@@ -70,13 +73,15 @@ export function PartnerLinksDisplayProvider({
   const persisted = programEnrollment?.partnerPreferences?.linksDisplay ?? null;
 
   const resolvedPersisted = useMemo<PartnerLinksDisplayPreferences>(() => {
-    if (persisted) return persisted;
     return {
       displayOption:
-        (linksCount && linksCount > 5) || !showDetailedAnalytics
+        persisted?.displayOption ??
+        ((linksCount && linksCount > 5) || !showDetailedAnalytics
           ? "cards"
-          : "full",
-      displayProperties: DEFAULT_DISPLAY_PROPERTIES,
+          : "full"),
+      displayProperties: normalizePartnerLinksDisplayProperties(
+        persisted?.displayProperties ?? defaultPartnerLinksDisplayProperties,
+      ),
     };
   }, [persisted, linksCount, showDetailedAnalytics]);
 
