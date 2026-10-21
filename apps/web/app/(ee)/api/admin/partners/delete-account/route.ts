@@ -1,4 +1,5 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { deletePartnerUsers } from "@/lib/api/partners/delete-partner-users";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { withAdmin } from "@/lib/auth";
 import { conn } from "@/lib/planetscale";
@@ -140,6 +141,8 @@ export const POST = withAdmin(
           enrollmentIds: partner.programs.map(({ id }) => id),
         });
       }
+
+      await deletePartnerUsers({ partnerIds: [partner.id] });
 
       await conn.execute(`DELETE FROM Partner WHERE id = ?`, [partner.id]);
       console.log(`Deleted partner ${partner.email} (${partner.id})`);

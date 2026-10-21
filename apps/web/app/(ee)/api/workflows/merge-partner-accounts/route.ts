@@ -2,6 +2,7 @@ import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { deletePartnerUsers } from "@/lib/api/partners/delete-partner-users";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { logger } from "@/lib/axiom/server";
@@ -1122,6 +1123,10 @@ async function deleteSourcePartner({
   sourceEmail: string;
   sourceImage: string | null;
 }) {
+  // The source user is kept when it still has workspaces, so its PartnerUser
+  // row has to be removed here.
+  await deletePartnerUsers({ partnerIds: [sourcePartnerId] });
+
   await conn.execute(`DELETE FROM Partner WHERE id = ?`, [sourcePartnerId]);
 
   if (sourceImage) {

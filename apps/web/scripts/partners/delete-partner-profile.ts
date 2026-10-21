@@ -1,4 +1,5 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { deletePartnerUsers } from "@/lib/api/partners/delete-partner-users";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import { conn } from "../../lib/planetscale";
@@ -95,12 +96,7 @@ async function main() {
   });
   console.log(`Deleted ${deletedProgramEnrollments.count} program enrollments`);
 
-  const deletedPartnerUsers = await prisma.partnerUser.deleteMany({
-    where: {
-      partnerId: partner.id,
-    },
-  });
-  console.log(`Deleted ${deletedPartnerUsers.count} partner users`);
+  await deletePartnerUsers({ partnerIds: [partner.id] });
 
   // using conn.execute here since Prisma is throwing a weird error
   const res = await conn.execute(`DELETE FROM Partner WHERE id = ?`, [
