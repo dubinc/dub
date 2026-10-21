@@ -39,7 +39,6 @@ export const { POST } = serve<Input>(
   async (context) => {
     const { invoiceId } = context.requestPayload;
 
-    const renewedDomains: RenewedDomain[] = [];
     let failedSlugs: string[] = [];
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -56,7 +55,6 @@ export const { POST } = serve<Input>(
         },
       );
 
-      renewedDomains.push(...result.renewed);
       failedSlugs = result.failed;
 
       if (failedSlugs.length === 0 || attempt === MAX_ATTEMPTS) {
@@ -84,15 +82,14 @@ export const { POST } = serve<Input>(
       });
     }
 
-    if (renewedDomains.length === 0) {
-      return;
-    }
-
     await context.run("send-renewal-email", async () => {
-      return await sendRenewalEmail({
+      const outputLog = await sendRenewalEmail({
         invoiceId,
-        renewedDomains,
       });
+
+      console.log(outputLog);
+
+      return outputLog;
     });
   },
   {
@@ -120,17 +117,16 @@ export const { POST } = serve<Input>(
   },
 );
 
-type RenewedDomain = {
-  slug: string;
-  expiresAt: string;
-};
+// A domain of the invoice with expiresAt at or after this date is already renewed for this invoice
+function getRenewedThreshold(paidAt: Date) {
+  return addDays(startOfDay(paidAt), 365);
+}
 
 // Reads the domains on every attempt, so a domain renewed by an earlier attempt
 // (its expiresAt is already extended past the threshold) is not renewed twice.
 async function renewPendingDomains({ invoiceId }: { invoiceId: string }) {
   const skip = (outputLog: string) => ({
     outputLog,
-    renewed: [] as RenewedDomain[],
     failed: [] as string[],
   });
 
@@ -167,7 +163,6 @@ async function renewPendingDomains({ invoiceId }: { invoiceId: string }) {
   const slugs = parseRegisteredDomainSlugs(invoice.registeredDomains);
 
   const todayStart = startOfDay(new Date());
-  const alreadyAppliedThreshold = addDays(startOfDay(invoice.paidAt), 365);
 
   const domainsToRenew = await prisma.registeredDomain.findMany({
     where: {
@@ -175,7 +170,7 @@ async function renewPendingDomains({ invoiceId }: { invoiceId: string }) {
         in: slugs,
       },
       expiresAt: {
-        lt: alreadyAppliedThreshold,
+        lt: getRenewedThreshold(invoice.paidAt),
       },
     },
     orderBy: {
@@ -194,7 +189,7 @@ async function renewPendingDomains({ invoiceId }: { invoiceId: string }) {
     );
   }
 
-  const renewed: RenewedDomain[] = [];
+  let renewedCount = 0;
   const failed: string[] = [];
 
   for (const domainChunk of chunk(domainsToRenew, BATCH_SIZE)) {
@@ -216,22 +211,17 @@ async function renewPendingDomains({ invoiceId }: { invoiceId: string }) {
         // Remaining time is preserved when not yet expired. Otherwise the new term starts from today.
         const renewalBase =
           domain.expiresAt > todayStart ? domain.expiresAt : todayStart;
-        const newExpiresAt = addDays(renewalBase, 365);
-
         await prisma.registeredDomain.update({
           where: {
             id: domain.id,
           },
           data: {
-            expiresAt: newExpiresAt,
+            expiresAt: addDays(renewalBase, 365),
             autoRenewalDisabledAt: null,
           },
         });
 
-        renewed.push({
-          slug: domain.slug,
-          expiresAt: newExpiresAt.toISOString(),
-        });
+        renewedCount++;
       }),
     );
 
@@ -239,24 +229,22 @@ async function renewPendingDomains({ invoiceId }: { invoiceId: string }) {
   }
 
   return {
-    outputLog: `Renewed ${renewed.length}/${domainsToRenew.length} domains for invoice ${invoiceId}.`,
-    renewed,
+    outputLog: `Renewed ${renewedCount}/${domainsToRenew.length} domains for invoice ${invoiceId}.`,
     failed,
   };
 }
 
-async function sendRenewalEmail({
-  invoiceId,
-  renewedDomains,
-}: {
-  invoiceId: string;
-  renewedDomains: RenewedDomain[];
-}) {
-  const invoice = await prisma.invoice.findUniqueOrThrow({
+// Reads the renewed domains from the database, not from the attempt steps. A step that throws after
+// some updates loses its return value, and its retry skips the domains that were already renewed.
+async function sendRenewalEmail({ invoiceId }: { invoiceId: string }) {
+  const invoice = await prisma.invoice.findUnique({
     where: {
       id: invoiceId,
     },
     select: {
+      type: true,
+      paidAt: true,
+      registeredDomains: true,
       workspace: {
         select: {
           slug: true,
@@ -277,6 +265,32 @@ async function sendRenewalEmail({
     },
   });
 
+  if (!invoice || invoice.type !== "domainRenewal" || !invoice.paidAt) {
+    return `Invoice ${invoiceId} is not a paid domain renewal invoice. Skipping the renewal email...`;
+  }
+
+  const renewedDomains = await prisma.registeredDomain.findMany({
+    where: {
+      slug: {
+        in: parseRegisteredDomainSlugs(invoice.registeredDomains),
+      },
+      expiresAt: {
+        gte: getRenewedThreshold(invoice.paidAt),
+      },
+    },
+    orderBy: {
+      expiresAt: "asc",
+    },
+    select: {
+      slug: true,
+      expiresAt: true,
+    },
+  });
+
+  if (renewedDomains.length === 0) {
+    return `No renewed domains for invoice ${invoiceId}. Skipping the renewal email...`;
+  }
+
   const { workspace } = invoice;
 
   const ownerEmails = workspace.users
@@ -287,10 +301,8 @@ async function sendRenewalEmail({
     return "No users found to send domain renewal success email.";
   }
 
-  // The email shows a single "active until" date, so use the earliest new expiry
-  const earliestNewExpiresAt = renewedDomains
-    .map(({ expiresAt }) => new Date(expiresAt))
-    .sort((a, b) => a.getTime() - b.getTime())[0];
+  // The email shows a single "active until" date, so use the earliest new expiry (the list is sorted by expiresAt)
+  const earliestNewExpiresAt = renewedDomains[0].expiresAt;
 
   const { error } = await sendBatchEmail(
     ownerEmails.map((email) => ({
