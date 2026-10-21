@@ -1,26 +1,62 @@
 /**
- * Bans the Wispr Flow fraud-ring partners from the Dub Partner Network.
+ * Bans the Wispr Flow fraud-ring partners from the Dub Partner Network and
+ * confirms an admin fraud alert for each one.
  *
- * Calls banPartnerFromNetwork. That disables payouts and blocks new program
- * applications. Existing program enrollments are left as they are, including
- * the three pending Tier F applications (those are not rejected here).
+ * Partners already banned from the network are skipped. Nothing is written
+ * for them, including a new fraud alert.
+ *
+ * The fraud alert reason is FRAUD_ALERT_MESSAGE below. Override it with
+ * --message or --message-file. --execute also needs --reviewed-by, a Dub
+ * admin user id (user_...) or email, stored as the alert reviewer.
+ *
+ * Existing program enrollments are left as they are, including the three
+ * pending Tier F applications (those are not rejected here).
  *
  * Dry run (default):
  *   pnpm script partners/ban-partners-from-network
  *
  * Apply:
- *   pnpm script partners/ban-partners-from-network --execute
+ *   pnpm script partners/ban-partners-from-network \
+ *     --execute \
+ *     --reviewed-by=you@dub.co
  *
  * Nam Nguyễn Hoàng is in his own group. The investigation says his subscribers
  * belong mainly to the brand-search group, so he is not mixed into the ring
- * list. This script still network-bans him.
+ * list. This script still network-bans him when he is not already banned.
  */
 
+import { readFileSync } from "node:fs";
+
+import { flagPartnerForFraud } from "@/lib/api/fraud/flag-partner-for-fraud";
 import { banPartnerFromNetwork } from "@/lib/api/partners/network-ban";
 import { prisma } from "@/lib/prisma";
+import { MAX_FRAUD_REASON_LENGTH } from "@/lib/zod/schemas/partners";
 import "dotenv-flow/config";
 
 const PARTNER_ID_PATTERN = /^pn_[0-9A-Z]{25}$/;
+
+// Reason stored on each confirmed admin fraud alert. Edit this, or pass
+// --message=... / --message-file=... when you run the script.
+const FRAUD_ALERT_MESSAGE = `Quick update: we've banned 43 Dub partners for fraud on our program today. Here's what we found:
+
+Together they referred 1,986 customers. 1,598 of those paid, and 1,586 of the paying ones never used the product. 497 of the paid signups were on cards shared by 3+ accounts. Most paid within minutes of signing up, and many came from cards that later turned out to be stolen. It looks like a coordinated group of linked accounts, not 43 independent affiliates.
+
+Banning them cancelled about $6.6k in unpaid commissions. They had already been paid $9,089.18, and we'd like to claw that back. Can you help with that? Here are the partners with paid-out commissions:
+
+Amit (pn_1K9CXR5JT07V05RB4SGZZ4AHY): $1,901.28
+Dharmendra Godara (pn_1KAGGDEE1E4MX4MVEESEQMXQM): $1,700.50
+Mahesh Godara (pn_1KAE3AQEKMJQ2S3N7JQQRNRN1): $1,598.25
+Dinesh Patel (pn_1KGPGDVE6TPHE8NE3W7B9874B): $1,241.27
+jordan (pn_1KHT9T9HYJ9V8JD12K8M9J53S): $693.50
+Sachin gurjar (pn_1KAE2R8P3PFQBN0TD85NYS9Y5): $560.88
+Kaushik Chekhaliya (pn_1JW96M8XG41GDANM0K56DGJBJ): $461.50
+agh*** (pn_1K8TD2X15BQH7F8TNHMJ3EPBQ): $427.50
+Bagaram (pn_1KZAQW77CNXXHDPZMATMXFNA4): $304.00
+Dimpi (pn_1KJ2VS6H4BF6XTMAKKAW04BT9): $114.00
+Geeta (pn_1KCGK0Y88R2CKM4ACKEX249AH): $53.25
+Kuldeep khanna (pn_1KGS5SAECWFY7RHV8DZSB712Y): $33.25
+
+If any of these accounts are also active on other programs, it'd be worth checking them. And if you can, please flag them (and anyone linked to them) so they can't come back under a new partner account.`;
 
 // 133 partners already banned from the program. Commission totals in the
 // investigation cover these accounts plus Nam.
@@ -228,6 +264,16 @@ const TIER_F_PARTNER_IDS = [
 // One-off email domains.
 const TIER_G_PARTNER_IDS = ["pn_1K5X8HH966BBP3CZD1MZK1F2W"] as const;
 
+// From the program's report of 43 banned partners. The other 38 are already
+// in the groups above.
+const PROGRAM_REPORT_PARTNER_IDS = [
+  "pn_1JW96M8XG41GDANM0K56DGJBJ",
+  "pn_1KGS5SAECWFY7RHV8DZSB712Y",
+  "pn_1KRZJHDQRBAE1Q9QH63NH7GHZ",
+  "pn_1KKBJEBQXKEFY901RACJQ2VN8",
+  "pn_1M3XW7A4R7051PEAH1RGAGN7G",
+] as const;
+
 const partnerGroups = [
   { name: "Ring", partnerIds: RING_PARTNER_IDS, expectedCount: 133 },
   {
@@ -240,6 +286,11 @@ const partnerGroups = [
   { name: "Tier E", partnerIds: TIER_E_PARTNER_IDS, expectedCount: 12 },
   { name: "Tier F", partnerIds: TIER_F_PARTNER_IDS, expectedCount: 8 },
   { name: "Tier G", partnerIds: TIER_G_PARTNER_IDS, expectedCount: 1 },
+  {
+    name: "Program report",
+    partnerIds: PROGRAM_REPORT_PARTNER_IDS,
+    expectedCount: 5,
+  },
 ] as const;
 
 function assertPartnerGroups() {
@@ -279,10 +330,91 @@ const partnersToBan = partnerGroups.flatMap((group) =>
   })),
 );
 
+function parseArgs(argv: string[]) {
+  let execute = false;
+  let message: string | undefined;
+  let messageFile: string | undefined;
+  let reviewedBy: string | undefined;
+
+  for (const arg of argv) {
+    if (arg === "--execute") {
+      execute = true;
+    } else if (arg.startsWith("--message=")) {
+      message = arg.slice("--message=".length);
+    } else if (arg.startsWith("--message-file=")) {
+      messageFile = arg.slice("--message-file=".length);
+    } else if (arg.startsWith("--reviewed-by=")) {
+      reviewedBy = arg.slice("--reviewed-by=".length);
+    } else {
+      throw new Error(`Unknown argument: ${arg}`);
+    }
+  }
+
+  if (message !== undefined && messageFile !== undefined) {
+    throw new Error("Pass --message or --message-file, not both.");
+  }
+
+  if (message === "") {
+    throw new Error("--message cannot be empty.");
+  }
+
+  if (messageFile === "") {
+    throw new Error("--message-file cannot be empty.");
+  }
+
+  if (reviewedBy === "") {
+    throw new Error("--reviewed-by cannot be empty.");
+  }
+
+  return { execute, message, messageFile, reviewedBy };
+}
+
+function resolveFraudAlertMessage({
+  message,
+  messageFile,
+}: {
+  message?: string;
+  messageFile?: string;
+}) {
+  const raw = messageFile
+    ? readFileSync(messageFile, "utf8")
+    : message ?? FRAUD_ALERT_MESSAGE;
+  const reason = raw.trim();
+
+  if (reason.length > MAX_FRAUD_REASON_LENGTH) {
+    throw new Error(
+      `Fraud alert message is ${reason.length} characters. The maximum is ${MAX_FRAUD_REASON_LENGTH}.`,
+    );
+  }
+
+  return reason;
+}
+
+async function resolveReviewerId(reviewedBy: string) {
+  const user = await prisma.user.findUnique({
+    where: reviewedBy.startsWith("user_")
+      ? { id: reviewedBy }
+      : { email: reviewedBy },
+    select: {
+      id: true,
+      email: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error(`No user found for ${reviewedBy}.`);
+  }
+
+  return user;
+}
+
 async function main() {
   assertPartnerGroups();
 
-  const execute = process.argv.includes("--execute");
+  const { execute, message, messageFile, reviewedBy } = parseArgs(
+    process.argv.slice(2),
+  );
+  const reason = resolveFraudAlertMessage({ message, messageFile });
 
   console.log(
     `${execute ? "Executing" : "Dry run"}: ${partnersToBan.length} partners across ${partnerGroups.length} groups.`,
@@ -290,6 +422,15 @@ async function main() {
 
   for (const group of partnerGroups) {
     console.log(`  ${group.name}: ${group.partnerIds.length}`);
+  }
+
+  if (reason.length === 0) {
+    console.log(
+      "Fraud alert message is empty. Set FRAUD_ALERT_MESSAGE or pass --message / --message-file.",
+    );
+  } else {
+    console.log(`Fraud alert message (${reason.length} characters):`);
+    console.log(reason);
   }
 
   const partners = await prisma.partner.findMany({
@@ -332,7 +473,9 @@ async function main() {
   }
 
   if (alreadyBanned.length > 0) {
-    console.log("Already banned from the network:");
+    console.log(
+      "Already banned from the network. These partners are left unchanged:",
+    );
     console.table(
       alreadyBanned.map(({ partnerId, group }) => ({
         group,
@@ -359,7 +502,7 @@ async function main() {
 
   if (!execute) {
     console.log(
-      "Dry run. Re-run with --execute to ban these partners from the network.",
+      "Dry run. Re-run with --execute --reviewed-by=<user id or email> to ban partners who are not already banned and confirm a fraud alert.",
     );
 
     if (missing.length > 0) {
@@ -369,14 +512,83 @@ async function main() {
     return;
   }
 
+  if (reason.length === 0) {
+    throw new Error(
+      "A fraud alert message is required. Set FRAUD_ALERT_MESSAGE or pass --message / --message-file.",
+    );
+  }
+
+  if (!reviewedBy) {
+    throw new Error(
+      "Pass --reviewed-by=<user id or email> so the fraud alert has a reviewer.",
+    );
+  }
+
+  const reviewer = await resolveReviewerId(reviewedBy);
+  console.log(
+    `Fraud alerts will be reviewed by ${reviewer.email ?? reviewer.id}.`,
+  );
+
   let banned = 0;
+  let skipped = 0;
   let failed = 0;
 
   for (const { partnerId, group } of toBan) {
+    const partner = await prisma.partner.findUnique({
+      where: {
+        id: partnerId,
+      },
+      select: {
+        networkStatus: true,
+      },
+    });
+
+    if (!partner) {
+      failed += 1;
+      console.error(`Partner ${partnerId} (${group}) was not found.`);
+      continue;
+    }
+
+    // Check again at write time. A partner banned since the preview is left alone.
+    if (partner.networkStatus === "banned") {
+      skipped += 1;
+      console.log(
+        `Skipping ${partnerId} (${group}); already banned from the network.`,
+      );
+      continue;
+    }
+
     try {
-      await banPartnerFromNetwork(partnerId);
-      banned += 1;
-      console.log(`Banned ${partnerId} (${group})`);
+      const result = await flagPartnerForFraud({
+        partnerId,
+        reason,
+        reviewedById: reviewer.id,
+        banFromNetwork: true,
+      });
+
+      if (result.status === "flagged") {
+        banned += 1;
+        console.log(
+          `Banned ${partnerId} (${group}). Alerted ${result.alertedProgramsCount} programs.`,
+        );
+        continue;
+      }
+
+      // No new alert is possible. Still ban when the partner is not already banned.
+      if (
+        result.status === "already_flagged" ||
+        result.status === "no_active_enrollments"
+      ) {
+        await banPartnerFromNetwork(partnerId);
+        banned += 1;
+        console.log(
+          `Banned ${partnerId} (${group}) without a new fraud alert (${result.status}).`,
+        );
+        continue;
+      }
+
+      failed += 1;
+      console.error(`Failed to ban ${partnerId} (${group}): ${result.status}.`);
     } catch (error) {
       failed += 1;
       console.error(`Failed to ban ${partnerId} (${group})`, error);
@@ -384,7 +596,7 @@ async function main() {
   }
 
   console.log(
-    `Banned ${banned}. Failed ${failed}. Already banned ${alreadyBanned.length}. Missing ${missing.length}.`,
+    `Banned ${banned}. Skipped ${skipped + alreadyBanned.length}. Failed ${failed}. Missing ${missing.length}.`,
   );
 
   if (failed > 0 || missing.length > 0) {
