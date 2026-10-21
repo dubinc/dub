@@ -252,7 +252,35 @@ export abstract class HttpBaseClient {
       });
     }
 
-    const text = await response.text();
+    // The body read can still fail after the headers arrived (a timeout or a dropped connection).
+    // Report it like a network error, so callers can retry it the same way.
+    let text: string;
+
+    try {
+      text = await response.text();
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      const message = `[${this.vendor}] ${method} ${safeUrl} network error while reading the response: ${reason}`;
+
+      waitUntil(
+        this.logError(message, {
+          method,
+          url: safeUrl,
+          status: response.status,
+          error: reason,
+        }),
+      );
+
+      throw new HttpClientError({
+        vendor: this.vendor,
+        method,
+        url: safeUrl,
+        status: null,
+        responseBody: null,
+        message,
+      });
+    }
+
     let data: unknown = null;
 
     if (text) {

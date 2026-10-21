@@ -67,13 +67,10 @@ async function searchWithRetry(
         timeout: SEARCH_TIMEOUT_MS,
       });
     } catch (error) {
-      // A null status means Dynadot sent no response (network error or timeout).
+      // A null status means Dynadot sent no full response (network error or timeout, also during the body read).
       // Request validation errors also have a null status, but the route validates the domain first.
-      // The timeout can also abort the body read after the headers arrived, which throws a plain TimeoutError.
       const noResponse =
-        (error instanceof HttpClientError && error.status === null) ||
-        (error instanceof Error &&
-          (error.name === "TimeoutError" || error.name === "AbortError"));
+        error instanceof HttpClientError && error.status === null;
 
       if (!noResponse) {
         throw error;
