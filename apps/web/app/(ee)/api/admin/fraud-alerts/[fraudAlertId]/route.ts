@@ -1,4 +1,5 @@
 import { confirmPartnerFraudAlerts } from "@/lib/api/fraud/confirm-partner-fraud-alerts";
+import { banPartnerFromNetwork } from "@/lib/api/partners/network-ban";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MAX_FRAUD_REASON_LENGTH } from "@/lib/zod/schemas/partners";
@@ -9,15 +10,18 @@ import * as z from "zod/v4";
 const reviewSchema = z.object({
   status: z.enum(["confirmed", "dismissed"]),
   reviewNote: z.string().trim().max(MAX_FRAUD_REASON_LENGTH).optional(),
+  banFromNetwork: z.boolean().optional(),
 });
 
 // PATCH /api/admin/fraud-alerts/[fraudAlertId]
 export const PATCH = withAdmin(
   async ({ req, params, session }) => {
     const { fraudAlertId } = params;
-    const { status: newStatus, reviewNote } = reviewSchema.parse(
-      await req.json(),
-    );
+    const {
+      status: newStatus,
+      reviewNote,
+      banFromNetwork,
+    } = reviewSchema.parse(await req.json());
 
     const fraudAlert = await prisma.fraudAlert.findUnique({
       where: {
@@ -76,6 +80,10 @@ export const PATCH = withAdmin(
       return new Response("Fraud alert has already been reviewed.", {
         status: 409,
       });
+    }
+
+    if (banFromNetwork) {
+      await banPartnerFromNetwork(fraudAlert.partnerId);
     }
 
     return NextResponse.json({ success: true });

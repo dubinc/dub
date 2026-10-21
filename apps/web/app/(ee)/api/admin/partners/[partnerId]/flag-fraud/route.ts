@@ -1,4 +1,5 @@
 import { reportNetworkLevelBan } from "@/lib/api/fraud/report-network-level-ban";
+import { banPartnerFromNetwork } from "@/lib/api/partners/network-ban";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { adminFlagFraudSchema } from "@/lib/zod/schemas/admin";
@@ -10,7 +11,9 @@ import { NextResponse } from "next/server";
 export const POST = withAdmin(
   async ({ params, req, session }) => {
     const { partnerId } = params;
-    const { reason, reviewNote } = adminFlagFraudSchema.parse(await req.json());
+    const { reason, reviewNote, banFromNetwork } = adminFlagFraudSchema.parse(
+      await req.json(),
+    );
 
     const partner = await prisma.partner.findUnique({
       where: { id: partnerId },
@@ -92,6 +95,10 @@ export const POST = withAdmin(
         reviewedById: session.user.id,
       },
     });
+
+    if (banFromNetwork) {
+      await banPartnerFromNetwork(partnerId);
+    }
 
     return NextResponse.json({
       success: true,
