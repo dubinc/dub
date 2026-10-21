@@ -1,5 +1,5 @@
 /**
- * Bans the Wispr Flow fraud-ring partners from the Dub Partner Network and
+ * Bans fradulent partners from the Dub Partner Network and
  * confirms an admin fraud alert for each one.
  *
  * Partners already banned from the network are skipped. Nothing is written
@@ -37,26 +37,7 @@ const PARTNER_ID_PATTERN = /^pn_[0-9A-Z]{25}$/;
 
 // Reason stored on each confirmed admin fraud alert. Edit this, or pass
 // --message=... / --message-file=... when you run the script.
-const FRAUD_ALERT_MESSAGE = `Quick update: we've banned 43 Dub partners for fraud on our program today. Here's what we found:
-
-Together they referred 1,986 customers. 1,598 of those paid, and 1,586 of the paying ones never used the product. 497 of the paid signups were on cards shared by 3+ accounts. Most paid within minutes of signing up, and many came from cards that later turned out to be stolen. It looks like a coordinated group of linked accounts, not 43 independent affiliates.
-
-Banning them cancelled about $6.6k in unpaid commissions. They had already been paid $9,089.18, and we'd like to claw that back. Can you help with that? Here are the partners with paid-out commissions:
-
-Amit (pn_1K9CXR5JT07V05RB4SGZZ4AHY): $1,901.28
-Dharmendra Godara (pn_1KAGGDEE1E4MX4MVEESEQMXQM): $1,700.50
-Mahesh Godara (pn_1KAE3AQEKMJQ2S3N7JQQRNRN1): $1,598.25
-Dinesh Patel (pn_1KGPGDVE6TPHE8NE3W7B9874B): $1,241.27
-jordan (pn_1KHT9T9HYJ9V8JD12K8M9J53S): $693.50
-Sachin gurjar (pn_1KAE2R8P3PFQBN0TD85NYS9Y5): $560.88
-Kaushik Chekhaliya (pn_1JW96M8XG41GDANM0K56DGJBJ): $461.50
-agh*** (pn_1K8TD2X15BQH7F8TNHMJ3EPBQ): $427.50
-Bagaram (pn_1KZAQW77CNXXHDPZMATMXFNA4): $304.00
-Dimpi (pn_1KJ2VS6H4BF6XTMAKKAW04BT9): $114.00
-Geeta (pn_1KCGK0Y88R2CKM4ACKEX249AH): $53.25
-Kuldeep khanna (pn_1KGS5SAECWFY7RHV8DZSB712Y): $33.25
-
-If any of these accounts are also active on other programs, it'd be worth checking them. And if you can, please flag them (and anyone linked to them) so they can't come back under a new partner account.`;
+const FRAUD_ALERT_MESSAGE = "Fradulent Stripe upgrades";
 
 // 133 partners already banned from the program. Commission totals in the
 // investigation cover these accounts plus Nam.
@@ -196,10 +177,6 @@ const RING_PARTNER_IDS = [
   "pn_1KZ5CKCX76B8HKZ8A8RXF1W4G",
 ] as const;
 
-// pn_1K58CEY21ZX8XMEV9SVQ72TDT — Nam Nguyễn Hoàng. Brand-search group.
-const BRAND_SEARCH_PARTNER_IDS = ["pn_1K58CEY21ZX8XMEV9SVQ72TDT"] as const;
-
-// Dot variants linked to the banned ring.
 const TIER_C_PARTNER_IDS = [
   "pn_1KC60WYVYM2HNP5BVK35GX2JX",
   "pn_1KEDNFA59JHYZXJSF0H5EEG3V",
@@ -222,7 +199,6 @@ const TIER_C_PARTNER_IDS = [
   "pn_1M2WJ5SJ1S1G6GF37V0K5PRJN",
 ] as const;
 
-// Dot-variant batch created Sep 18–20 (IE), not linked by two or more shared inboxes.
 const TIER_D_PARTNER_IDS = [
   "pn_1M2TZ6XR0ZT3KWPH7YSJNWKNB",
   "pn_1M2WCMT3NCWFZHG4T55ETCQDE",
@@ -231,7 +207,6 @@ const TIER_D_PARTNER_IDS = [
   "pn_1M2YS204JWPNS8ZGKC82EW95F",
 ] as const;
 
-// Bulk Outlook / Hotmail pattern.
 const TIER_E_PARTNER_IDS = [
   "pn_1KR4SHW7A9Z8STZ3009V65E5G",
   "pn_1KSHYHSHHXP02HEQEYHMNKWC6",
@@ -247,9 +222,6 @@ const TIER_E_PARTNER_IDS = [
   "pn_1M3NVR0VRY5NGCP8CGDNCHBR7",
 ] as const;
 
-// Same payout details as banned partners.
-// The first three are pending applicants. This script network-bans them and
-// does not reject the program application.
 const TIER_F_PARTNER_IDS = [
   "pn_1KE88WY56QTR9GZPH9CV3E09P",
   "pn_1M2QM5X8PDMW00HFH9GX14GPB",
@@ -276,11 +248,6 @@ const PROGRAM_REPORT_PARTNER_IDS = [
 
 const partnerGroups = [
   { name: "Ring", partnerIds: RING_PARTNER_IDS, expectedCount: 133 },
-  {
-    name: "Brand search",
-    partnerIds: BRAND_SEARCH_PARTNER_IDS,
-    expectedCount: 1,
-  },
   { name: "Tier C", partnerIds: TIER_C_PARTNER_IDS, expectedCount: 19 },
   { name: "Tier D", partnerIds: TIER_D_PARTNER_IDS, expectedCount: 5 },
   { name: "Tier E", partnerIds: TIER_E_PARTNER_IDS, expectedCount: 12 },
