@@ -292,7 +292,7 @@ async function sendRenewalEmail({
     .map(({ expiresAt }) => new Date(expiresAt))
     .sort((a, b) => a.getTime() - b.getTime())[0];
 
-  await sendBatchEmail(
+  const { error } = await sendBatchEmail(
     ownerEmails.map((email) => ({
       variant: "notifications",
       to: email,
@@ -306,7 +306,17 @@ async function sendRenewalEmail({
         expiresAt: earliestNewExpiresAt,
       }),
     })),
+    {
+      idempotencyKey: `domain-renewed/${invoiceId}`,
+    },
   );
+
+  // Throw so that QStash retries the step. The idempotency key prevents a second email.
+  if (error) {
+    throw new Error(
+      `Failed to send domain renewal email for invoice ${invoiceId}: ${error.message}`,
+    );
+  }
 
   return `Domain renewal success email sent to ${ownerEmails.length} users.`;
 }
