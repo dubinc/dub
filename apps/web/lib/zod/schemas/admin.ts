@@ -145,6 +145,11 @@ export const adminFlagFraudSchema = z.object({
   banFromNetwork: z.boolean().optional(),
 });
 
+export const adminNetworkBanSchema = adminFlagFraudSchema.pick({
+  reason: true,
+  reviewNote: true,
+});
+
 export const adminFraudAlertSchema = z.object({
   id: z.string(),
   reason: z.string(),
