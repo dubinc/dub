@@ -400,18 +400,26 @@ async function main() {
 
         row.held = held.length;
 
+        // Payout amounts must match their commissions again, and a payout
+        // with no commissions left is deleted. A second run skips these held
+        // commissions, so a failed payout must be fixed by hand.
+        const failedPayoutIds = await retallyPayoutsAmount([
+          ...new Set(held.flatMap((c) => (c.payoutId ? [c.payoutId] : []))),
+        ]);
+
+        if (failedPayoutIds.length > 0) {
+          failed.push({
+            customerId: customer.id,
+            error: `Failed to retally payouts: ${failedPayoutIds.join(", ")}`,
+          });
+        }
+
         await trackCommissionStatusUpdate({
           workspaceId: customer.program!.workspaceId,
           programId,
           commissions: held,
           newStatus: CommissionStatus.hold,
         });
-
-        // Payout amounts must match their commissions again, and a payout
-        // with no commissions left is deleted
-        await retallyPayoutsAmount([
-          ...new Set(held.flatMap((c) => (c.payoutId ? [c.payoutId] : []))),
-        ]);
 
         await syncTotalCommissions({
           programId,
