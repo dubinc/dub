@@ -70,6 +70,11 @@ export const PATCH = withAdmin(
       return NextResponse.json({ success: true });
     }
 
+    // Ban first, so that a failed ban can be retried before the alert is confirmed
+    if (banFromNetwork) {
+      await banPartnerFromNetwork(fraudAlert.partnerId);
+    }
+
     const { confirmedCount } = await confirmPartnerFraudAlerts({
       partnerId: fraudAlert.partnerId,
       reviewedById: session.user.id,
@@ -80,10 +85,6 @@ export const PATCH = withAdmin(
       return new Response("Fraud alert has already been reviewed.", {
         status: 409,
       });
-    }
-
-    if (banFromNetwork) {
-      await banPartnerFromNetwork(fraudAlert.partnerId);
     }
 
     return NextResponse.json({ success: true });

@@ -83,6 +83,11 @@ export const POST = withAdmin(
       );
     }
 
+    // Ban before the alert is created, so that a failed ban can be retried
+    if (banFromNetwork) {
+      await banPartnerFromNetwork(partnerId);
+    }
+
     await prisma.fraudAlert.create({
       data: {
         partnerId,
@@ -95,10 +100,6 @@ export const POST = withAdmin(
         reviewedById: session.user.id,
       },
     });
-
-    if (banFromNetwork) {
-      await banPartnerFromNetwork(partnerId);
-    }
 
     return NextResponse.json({
       success: true,
