@@ -1,10 +1,17 @@
 import { parseRegisteredDomainSlugs } from "@/lib/api/domains/is-domain-registration-invoice";
+import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import DomainRenewed from "@dub/email/templates/domain-renewed";
-import { chunk, log, pluralize, sleep } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  chunk,
+  log,
+  pluralize,
+  sleep,
+} from "@dub/utils";
 import { RegisteredDomain } from "@prisma/client";
 import { addDays, startOfDay } from "date-fns";
 import * as z from "zod/v4";
@@ -16,13 +23,17 @@ export const dynamic = "force-dynamic";
 
 const inputSchema = z.object({
   invoiceId: z.string(),
+  attempt: z.number().int().min(1).default(1),
 });
 
 const BATCH_SIZE = 5;
+const MAX_ATTEMPTS = 3;
+const RETRY_DELAY_SECONDS = 60 * 60;
 
 // POST /api/cron/domains/renewal-succeeded - Renews domains for a given invoice
 export const POST = withCron(async ({ rawBody }) => {
-  const { invoiceId } = inputSchema.parse(JSON.parse(rawBody));
+  const { invoiceId, attempt } = inputSchema.parse(JSON.parse(rawBody));
+  const isLastAttempt = attempt >= MAX_ATTEMPTS;
 
   const invoice = await prisma.invoice.findUnique({
     where: {
@@ -101,6 +112,7 @@ export const POST = withCron(async ({ rawBody }) => {
         const renewSucceeded = await setRenewOption({
           domain: domain.slug,
           autoRenew: true,
+          logFailure: isLastAttempt,
         });
 
         return {
@@ -157,6 +169,27 @@ export const POST = withCron(async ({ rawBody }) => {
       "Failed to set auto-renew option on Dynadot for the following domains:",
       domainsFailed.map(({ slug }) => slug).join(", "),
     );
+
+    // Dynadot failures are mostly short outages, so retry the invoice later instead of failing now.
+    // The renewed domains are skipped on the next attempt, since their expiresAt is already extended.
+    if (!isLastAttempt) {
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/renewal-succeeded`,
+        delay: RETRY_DELAY_SECONDS,
+        deduplicationId: `domain-renewal-${invoiceId}-attempt-${attempt + 1}`,
+        body: {
+          invoiceId,
+          attempt: attempt + 1,
+        },
+      });
+
+      return logAndRespond(
+        `Failed to renew ${domainsFailed.length} domains for invoice ${invoiceId} (attempt ${attempt} of ${MAX_ATTEMPTS}). Retrying in ${RETRY_DELAY_SECONDS / 60} minutes.`,
+        {
+          logLevel: "warn",
+        },
+      );
+    }
 
     await log({
       message: `Domain renewal partially failed for invoice ${invoiceId}. See the logs for more details.`,
