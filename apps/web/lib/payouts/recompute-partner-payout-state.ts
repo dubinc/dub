@@ -16,6 +16,7 @@ const PAYOUT_METHOD_PRIORITY: PartnerPayoutMethod[] = [
  * Computes payoutsEnabledAt and defaultPayoutMethod based on currently active
  * payout methods. Preserves the partner's existing default when it is still
  * active; otherwise falls back to priority order: stablecoin > connect > paypal.
+ * Keeps payoutsEnabledAt null for partners banned from the network.
  */
 export async function recomputePartnerPayoutState(
   partner: Pick<
@@ -26,6 +27,7 @@ export async function recomputePartnerPayoutState(
     | "payoutsEnabledAt"
     | "defaultPayoutMethod"
     | "tremendousEmail"
+    | "networkStatus"
   > & {
     cryptoWalletAddress?: string | null;
   },
@@ -124,7 +126,8 @@ export async function recomputePartnerPayoutState(
 
   let payoutsEnabledAt: Date | null = null;
 
-  if (defaultPayoutMethod) {
+  // Partners banned from the network must not get payouts enabled again
+  if (defaultPayoutMethod && partner.networkStatus !== "banned") {
     // if default payout method has changed, set payoutsEnabledAt to today
     // otherwise, use the existing payoutsEnabledAt (or today if null)
     if (defaultPayoutMethod !== partner.defaultPayoutMethod) {

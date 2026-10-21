@@ -25,6 +25,7 @@ export async function recipientAccountClosed(event: Stripe.ThinEvent) {
       payoutsEnabledAt: true,
       defaultPayoutMethod: true,
       tremendousEmail: true,
+      networkStatus: true,
     },
   });
 
