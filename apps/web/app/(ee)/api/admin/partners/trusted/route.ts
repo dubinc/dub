@@ -78,6 +78,13 @@ export const POST = withAdmin(
       return new Response("Partner not found.", { status: 404 });
     }
 
+    if (partner.networkStatus === "banned") {
+      return new Response(
+        "Partner is banned from the network. Unban them first.",
+        { status: 400 },
+      );
+    }
+
     if (partner.trustedAt) {
       return new Response("Partner is already marked as trusted.", {
         status: 400,
@@ -142,6 +149,13 @@ export const DELETE = withAdmin(
 
     if (!partner) {
       return new Response("Partner not found.", { status: 404 });
+    }
+
+    if (partner.networkStatus === "banned") {
+      return new Response(
+        "Partner is banned from the network. Unban them first.",
+        { status: 400 },
+      );
     }
 
     const partnerChangeHistoryLog = partner.changeHistoryLog

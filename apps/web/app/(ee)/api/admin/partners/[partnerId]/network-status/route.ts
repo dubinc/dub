@@ -36,6 +36,13 @@ export const PATCH = withAdmin(async ({ params, req }) => {
     return new Response("Partner not found.", { status: 404 });
   }
 
+  if (existingPartner.networkStatus === "banned") {
+    return new Response(
+      "Partner is banned from the network. Unban them first.",
+      { status: 400 },
+    );
+  }
+
   if (existingPartner.networkStatus === updatedStatus) {
     return new Response("Partner is already in this status.", {
       status: 400,
