@@ -159,6 +159,10 @@ export const POST = withReferralsEmbedToken(
             id: partner.id,
             defaultPayoutMethod: null,
             payoutsEnabledAt: null,
+            // A ban saved after the check above must not enable payouts
+            networkStatus: {
+              not: "banned",
+            },
           },
           data: {
             tremendousEmail: email,
