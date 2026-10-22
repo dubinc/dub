@@ -5,11 +5,11 @@ import { describe, expect, test } from "vitest";
 
 describe("partnerRemovalOverrides", () => {
   test("leaves an update that does not clear the partner unchanged", () => {
-    expect(partnerRemovalOverrides({})).toBeNull();
-    expect(partnerRemovalOverrides({ partnerId: "pn_1" })).toBeNull();
+    expect(partnerRemovalOverrides({})).toEqual({});
+    expect(partnerRemovalOverrides({ partnerId: "pn_1" })).toEqual({});
     expect(
       partnerRemovalOverrides({ partnerId: "pn_1", programId: "prog_1" }),
-    ).toBeNull();
+    ).toEqual({});
   });
 
   test("clears the program when the partner is removed and no new program is sent", () => {
@@ -28,7 +28,7 @@ describe("partnerRemovalOverrides", () => {
   test("keeps an explicit program so a tenant can still enroll a partner", () => {
     expect(
       partnerRemovalOverrides({ partnerId: null, programId: "prog_1" }),
-    ).toBeNull();
+    ).toEqual({});
   });
 });
 

@@ -117,7 +117,7 @@ export const PATCH = withWorkspace(
           : link.expiresAt,
       geo: link.geo as NewLinkProps["geo"],
       ...body,
-      ...(partnerRemovalOverrides(body) ?? {}),
+      ...partnerRemovalOverrides(body),
       // Only pass UTM tags to processLink when explicitly provided in body (preserves existing values otherwise)
       ...Object.fromEntries(
         UTMTags.filter((tag) => tag in body).map((tag) => [tag, body[tag]]),
