@@ -341,9 +341,12 @@ class StorageClient {
   }
 
   private async urlToBlob(url: string, opts?: imageOptions): Promise<Blob> {
-    let response: Response;
+    let blob: Blob | undefined;
+
     try {
       if (opts?.height || opts?.width) {
+        // Resize through the wsrv.nl proxy. A proxy failure is not the caller's fault, so any
+        // proxy error or error status falls back to the direct fetch below, which judges the URL.
         try {
           const proxyUrl = new URL("https://wsrv.nl");
           proxyUrl.searchParams.set("url", url);
@@ -351,27 +354,32 @@ class StorageClient {
           if (opts.height)
             proxyUrl.searchParams.set("h", opts.height.toString());
           proxyUrl.searchParams.set("fit", "cover");
-          response = await fetchWithTimeout(proxyUrl.toString());
+          const proxyResponse = await fetchWithTimeout(proxyUrl.toString());
+          if (proxyResponse.ok) {
+            blob = await proxyResponse.blob();
+          }
         } catch (error) {
-          response = await this.safeFetch(url);
+          blob = undefined;
         }
-      } else {
-        response = await this.safeFetch(url);
+      }
+
+      if (!blob) {
+        // safeFetch returns only a successful response and throws for the others
+        const response = await this.safeFetch(url);
+        blob = await response.blob();
       }
     } catch (error) {
       if (error instanceof DubApiError) {
         throw error;
       }
 
-      // A host that does not resolve, a refused connection or a timeout on the caller's URL
+      // A host that does not resolve, a refused connection, a timeout or a dropped connection
+      // while the body is read, on the caller's URL
       throw invalidSourceError(
         `Failed to fetch URL: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
-    if (!response.ok) {
-      throw invalidSourceError(`Failed to fetch URL: ${response.statusText}`);
-    }
-    const blob = await response.blob();
+
     if (opts?.contentType) {
       return new Blob([blob], { type: opts.contentType });
     }
