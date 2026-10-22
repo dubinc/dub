@@ -26,8 +26,9 @@ export async function generateMetadata(props: {
     notFound();
   }
 
-  const landerPublishedAt = program.group?.landerPublishedAt;
-  const isPublished = Boolean(landerPublishedAt && program.group?.landerData);
+  const isPublished = Boolean(
+    program.group?.landerPublishedAt && program.group?.landerData,
+  );
   const isProduction = isProductionEnvironment(program.environment);
 
   // Unpublished landers 404/redirect in the page — don't soft-index them with
@@ -51,7 +52,7 @@ export async function generateMetadata(props: {
     ...(isProduction && {
       canonicalUrl: `${PARTNERS_DOMAIN}/${program.slug}`,
     }),
-    noIndex: !(isProduction && Boolean(landerPublishedAt)),
+    noIndex: !isProduction,
   });
 }
 
