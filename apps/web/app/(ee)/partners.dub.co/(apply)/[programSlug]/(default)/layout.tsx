@@ -1,7 +1,6 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { getProgramSlugs } from "@/lib/fetchers/get-program-slugs";
 import { isProductionEnvironment } from "@/lib/sandbox/environment";
-import { shouldIndexProgramLander } from "@/lib/sandbox/program-seo";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { Wordmark } from "@dub/ui";
@@ -52,10 +51,7 @@ export async function generateMetadata(props: {
     ...(isProduction && {
       canonicalUrl: `${PARTNERS_DOMAIN}/${program.slug}`,
     }),
-    noIndex: !shouldIndexProgramLander({
-      environment: program.environment,
-      landerPublishedAt,
-    }),
+    noIndex: !(isProduction && Boolean(landerPublishedAt)),
   });
 }
 
