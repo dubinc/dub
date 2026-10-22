@@ -7,13 +7,19 @@ import { saleCreated } from "./sale-created";
 
 // POST /api/dub/webhook - receive webhooks for Dub
 export const POST = withAxiom(async (req: Request) => {
-  const body = await req.json();
-  const { event, data } = webhookPayloadSchema.parse(body);
-
   const webhookSignature = req.headers.get("Dub-Signature");
 
   if (!webhookSignature) {
     return new Response("No signature provided", { status: 401 });
+  }
+
+  // The sender signs JSON.stringify(payload), so the body is parsed before the signature check
+  let body: unknown;
+
+  try {
+    body = await req.json();
+  } catch {
+    return new Response("Invalid JSON body", { status: 400 });
   }
 
   const computedSignature = crypto
@@ -22,8 +28,17 @@ export const POST = withAxiom(async (req: Request) => {
     .digest("hex");
 
   if (!timingSafeCompare(webhookSignature, computedSignature)) {
-    return new Response("Invalid signature", { status: 400 });
+    return new Response("Invalid signature", { status: 401 });
   }
+
+  // Validate the payload only after the signature check, so unsigned requests cannot reach the schema
+  const parsed = webhookPayloadSchema.safeParse(body);
+
+  if (!parsed.success) {
+    return new Response("Invalid webhook payload", { status: 400 });
+  }
+
+  const { event, data } = parsed.data;
 
   let response = "OK";
 
