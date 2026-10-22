@@ -1,6 +1,5 @@
 import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
-import { StatusBadge } from "@dub/ui";
-import { OG_AVATAR_URL } from "@dub/utils";
+import { DUB_LOGO, OG_AVATAR_URL } from "@dub/utils";
 import * as z from "zod/v4";
 
 type AdminFraudAlert = z.infer<typeof adminFraudAlertSchema>;
@@ -11,7 +10,8 @@ export function FraudAlertReporter({
   fraudAlert: AdminFraudAlert;
 }) {
   if (fraudAlert.source === "admin") {
-    return <StatusBadge variant="error">Dub Admin</StatusBadge>;
+    fraudAlert.program.name = "Dub Admin";
+    fraudAlert.program.logo = DUB_LOGO;
   }
 
   return (
