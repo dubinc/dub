@@ -4,9 +4,12 @@ import { dynadotClient } from "./client";
 export const setRenewOption = async ({
   domain,
   autoRenew,
+  logFailure = true,
 }: {
   domain: string;
   autoRenew: boolean;
+  // Set to false when the caller retries later and alerts on its own
+  logFailure?: boolean;
 }): Promise<boolean> => {
   try {
     const parsedResponse = await dynadotClient.setRenewOption({
@@ -37,11 +40,13 @@ export const setRenewOption = async ({
 
     return true;
   } catch (error) {
-    await log({
-      message: `Failed to set renew option for ${domain}: ${error instanceof Error ? error.message : String(error)}`,
-      type: "errors",
-      mention: true,
-    });
+    if (logFailure) {
+      await log({
+        message: `Failed to set renew option for ${domain}: ${error instanceof Error ? error.message : String(error)}`,
+        type: "errors",
+        mention: true,
+      });
+    }
 
     console.error(error);
 

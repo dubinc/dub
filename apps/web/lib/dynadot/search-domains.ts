@@ -1,4 +1,5 @@
 import { DubApiError } from "../api/errors";
+import { HttpClientError } from "../http/base-client";
 import { DomainStatusSchema } from "../zod/schemas/domains";
 import {
   parseRegistrationPriceUsdCents,
@@ -6,12 +7,15 @@ import {
 } from "./calculate-domain-price";
 import { dynadotClient } from "./client";
 
+const SEARCH_TIMEOUT_MS = 10_000;
+const SEARCH_ATTEMPTS = 2;
+
 export const searchDomainsAvailability = async ({
   domains,
 }: {
   domains: Record<string, string>;
 }) => {
-  const data = await dynadotClient.search({
+  const data = await searchWithRetry({
     ...domains,
     command: "search",
     show_price: "1",
@@ -51,3 +55,34 @@ export const searchDomainsAvailability = async ({
 
   return DomainStatusSchema.array().parse(result);
 };
+
+// The user waits for the search result, so retry a network error or timeout once
+// with a short timeout, then return an error message the UI can show.
+async function searchWithRetry(
+  input: Parameters<typeof dynadotClient.search>[0],
+) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await dynadotClient.search(input, {
+        timeout: SEARCH_TIMEOUT_MS,
+      });
+    } catch (error) {
+      // A null status means Dynadot sent no full response (network error or timeout, also during the body read).
+      // Request validation errors also have a null status, but the route validates the domain first.
+      const noResponse =
+        error instanceof HttpClientError && error.status === null;
+
+      if (!noResponse) {
+        throw error;
+      }
+
+      if (attempt >= SEARCH_ATTEMPTS) {
+        throw new DubApiError({
+          code: "internal_server_error",
+          message:
+            "Domain search is unavailable right now. Please try again in a few minutes.",
+        });
+      }
+    }
+  }
+}
