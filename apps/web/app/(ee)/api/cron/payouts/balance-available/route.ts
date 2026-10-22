@@ -165,6 +165,21 @@ export const POST = withCron(async ({ rawBody }) => {
         );
       }
 
+      // Stripe restricted the connected account, so a retry fails the same way (stripe-should-retry: false).
+      // The funds stay on the account, and a later "balance.available" event runs this again.
+      const isPayoutsNotAllowed =
+        error instanceof Stripe.errors.StripeError &&
+        error.code === "payouts_not_allowed";
+
+      if (isPayoutsNotAllowed) {
+        return logAndRespond(
+          `Stripe does not allow payouts for partner ${partner.email} (${stripeAccount}), the account is restricted: ${error.message}. Skipping...`,
+          {
+            logLevel: "warn",
+          },
+        );
+      }
+
       throw error;
     }
 
