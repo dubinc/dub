@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { isPrivateIp } from "@/lib/api/is-private-ip";
 import { assertSafeStorageKey } from "@/lib/storage/assert-safe-storage-key";
 import { OG_AVATAR_URL, R2_URL, fetchWithTimeout } from "@dub/utils";
@@ -44,7 +45,9 @@ class StorageClient {
       } else if (this.isUrl(body)) {
         uploadBody = await this.urlToBlob(body, opts);
       } else {
-        throw new Error("Invalid input: Not a base64 string or a valid URL");
+        throw invalidSourceError(
+          "Invalid input: Not a base64 string or a valid URL",
+        );
       }
     } else {
       uploadBody = body;
@@ -283,7 +286,7 @@ class StorageClient {
     const { hostname, protocol } = new URL(url);
 
     if (protocol !== "http:" && protocol !== "https:") {
-      throw new Error("Only http and https URLs are allowed.");
+      throw invalidSourceError("Only http and https URLs are allowed.");
     }
 
     let address: string;
@@ -295,7 +298,9 @@ class StorageClient {
     }
 
     if (isPrivateIp(address)) {
-      throw new Error("URL resolves to a private or internal IP address.");
+      throw invalidSourceError(
+        "URL resolves to a private or internal IP address.",
+      );
     }
   }
 
@@ -321,38 +326,50 @@ class StorageClient {
       if (response.status >= 300 && response.status < 400) {
         const location = response.headers.get("location");
         if (!location) {
-          throw new Error("Redirect response missing location header");
+          throw invalidSourceError("Redirect response missing location header");
         }
         currentUrl = new URL(location, currentUrl).href;
         continue;
       }
 
-      throw new Error(
+      throw invalidSourceError(
         `Failed to fetch URL: ${response.status} ${response.statusText}`,
       );
     }
 
-    throw new Error("Too many redirects");
+    throw invalidSourceError("Too many redirects");
   }
 
   private async urlToBlob(url: string, opts?: imageOptions): Promise<Blob> {
     let response: Response;
-    if (opts?.height || opts?.width) {
-      try {
-        const proxyUrl = new URL("https://wsrv.nl");
-        proxyUrl.searchParams.set("url", url);
-        if (opts.width) proxyUrl.searchParams.set("w", opts.width.toString());
-        if (opts.height) proxyUrl.searchParams.set("h", opts.height.toString());
-        proxyUrl.searchParams.set("fit", "cover");
-        response = await fetchWithTimeout(proxyUrl.toString());
-      } catch (error) {
+    try {
+      if (opts?.height || opts?.width) {
+        try {
+          const proxyUrl = new URL("https://wsrv.nl");
+          proxyUrl.searchParams.set("url", url);
+          if (opts.width) proxyUrl.searchParams.set("w", opts.width.toString());
+          if (opts.height)
+            proxyUrl.searchParams.set("h", opts.height.toString());
+          proxyUrl.searchParams.set("fit", "cover");
+          response = await fetchWithTimeout(proxyUrl.toString());
+        } catch (error) {
+          response = await this.safeFetch(url);
+        }
+      } else {
         response = await this.safeFetch(url);
       }
-    } else {
-      response = await this.safeFetch(url);
+    } catch (error) {
+      if (error instanceof DubApiError) {
+        throw error;
+      }
+
+      // A host that does not resolve, a refused connection or a timeout on the caller's URL
+      throw invalidSourceError(
+        `Failed to fetch URL: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
     if (!response.ok) {
-      throw new Error(`Failed to fetch URL: ${response.statusText}`);
+      throw invalidSourceError(`Failed to fetch URL: ${response.statusText}`);
     }
     const blob = await response.blob();
     if (opts?.contentType) {
@@ -390,6 +407,15 @@ class StorageClient {
 
     throw new Error(`Invalid bucket type: ${bucket}`);
   }
+}
+
+// A problem with the body or URL that the caller passed to upload(). It is a client error, so
+// handleApiError returns 400 and server actions show the message, for every caller of upload().
+function invalidSourceError(message: string) {
+  return new DubApiError({
+    code: "bad_request",
+    message,
+  });
 }
 
 export const storage = new StorageClient();
