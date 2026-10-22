@@ -19,19 +19,15 @@
  *   pnpm script partners/ban-partners-from-network \
  *     --execute \
  *     --reviewed-by=you@dub.co
- *
- * Nam Nguyễn Hoàng is in his own group. The investigation says his subscribers
- * belong mainly to the brand-search group, so he is not mixed into the ring
- * list. This script still network-bans him when he is not already banned.
  */
 
 import { readFileSync } from "node:fs";
 
-import { flagPartnerForFraud } from "@/lib/api/fraud/flag-partner-for-fraud";
-import { banPartnerFromNetwork } from "@/lib/api/partners/network-ban";
 import { prisma } from "@/lib/prisma";
 import { MAX_FRAUD_REASON_LENGTH } from "@/lib/zod/schemas/partners";
 import "dotenv-flow/config";
+import { flagPartnerForFraud } from "../../lib/api/fraud/flag-partner-for-fraud";
+import { banPartnerFromNetwork } from "../../lib/api/partners/network-ban";
 
 const PARTNER_ID_PATTERN = /^pn_[0-9A-Z]{25}$/;
 
@@ -39,8 +35,7 @@ const PARTNER_ID_PATTERN = /^pn_[0-9A-Z]{25}$/;
 // --message=... / --message-file=... when you run the script.
 const FRAUD_ALERT_MESSAGE = "Fradulent Stripe upgrades";
 
-// 133 partners already banned from the program. Commission totals in the
-// investigation cover these accounts plus Nam.
+// 133 partners already banned from the program
 const RING_PARTNER_IDS = [
   "pn_1KXY21XZKCN1NQHN9ZQTFXVHW",
   "pn_1KTNPMEJ7PPZ8HSKCK4AN05QD",
