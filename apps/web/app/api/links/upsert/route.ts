@@ -76,7 +76,7 @@ export const PUT = withWorkspace(
             ? link.testStartedAt.toISOString()
             : link.testStartedAt,
         ...body,
-        ...(partnerRemovalOverrides(body) ?? {}),
+        ...partnerRemovalOverrides(body),
       };
 
       // if link and updatedLink are identical, return the link

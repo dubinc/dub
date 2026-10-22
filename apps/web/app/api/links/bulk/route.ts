@@ -508,7 +508,7 @@ export const PATCH = withWorkspace(
       }
     }
 
-    const removal = partnerRemovalOverrides(data) ?? {};
+    const removal = partnerRemovalOverrides(data);
 
     const processedLinks = await Promise.all(
       links.map(async (link) =>

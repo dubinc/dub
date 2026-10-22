@@ -11,9 +11,9 @@
 export function partnerRemovalOverrides(patch: {
   partnerId?: string | null;
   programId?: string | null;
-}): { partnerId: null; programId: null } | null {
+}): { partnerId: null; programId: null } | Record<string, never> {
   if (patch.partnerId !== null || patch.programId) {
-    return null;
+    return {};
   }
 
   return { partnerId: null, programId: null };
