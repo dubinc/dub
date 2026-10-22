@@ -1,10 +1,13 @@
 import { getDomainSearchAvailability } from "@/lib/api/domains/get-domain-search-availability";
-import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
 import { withWorkspace } from "@/lib/auth";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
+
+// A registrable .link name has one label before .link. The label is at most 60 characters,
+// so the "get", "try" and "use" variants that the search also checks stay within the 63-character label limit.
+const LINK_DOMAIN_REGEX = /^[a-z0-9]([a-z0-9-]{0,58}[a-z0-9])?\.link$/i;
 
 const schema = z.object({
   domain: z
@@ -12,7 +15,7 @@ const schema = z.object({
     .trim()
     .min(1)
     .endsWith(".link")
-    .refine(isValidDomainFormat, {
+    .refine((domain) => LINK_DOMAIN_REGEX.test(domain), {
       message: "Please enter a valid domain, for example acme.link.",
     })
     .transform((domain) => domain.toLowerCase())
