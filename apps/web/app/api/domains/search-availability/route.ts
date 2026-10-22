@@ -1,4 +1,5 @@
 import { getDomainSearchAvailability } from "@/lib/api/domains/get-domain-search-availability";
+import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
 import { withWorkspace } from "@/lib/auth";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
@@ -11,6 +12,9 @@ const schema = z.object({
     .trim()
     .min(1)
     .endsWith(".link")
+    .refine(isValidDomainFormat, {
+      message: "Please enter a valid domain, for example acme.link.",
+    })
     .transform((domain) => domain.toLowerCase())
     .describe("We only support .link domains for now."),
 });
