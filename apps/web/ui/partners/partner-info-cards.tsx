@@ -227,14 +227,15 @@ export function PartnerInfoCards({
       },
       {
         id: "payoutMethod" as const,
-        icon: partner.defaultPayoutMethod ? (
-          createElement(
-            getPayoutMethodIconConfig(partner.defaultPayoutMethod).Icon,
-            { className: "size-3.5 shrink-0" },
-          )
-        ) : (
-          <CircleMinus className="size-3.5 shrink-0" />
-        ),
+        icon:
+          partner.defaultPayoutMethod && partner.payoutsEnabledAt ? (
+            createElement(
+              getPayoutMethodIconConfig(partner.defaultPayoutMethod).Icon,
+              { className: "size-3.5 shrink-0" },
+            )
+          ) : (
+            <CircleMinus className="size-3.5 shrink-0" />
+          ),
         text:
           partner.defaultPayoutMethod && partner.payoutsEnabledAt
             ? `${getPayoutMethodLabel(partner.defaultPayoutMethod)} connected ${formatDateTimeSmart(partner.payoutsEnabledAt)}`

@@ -25,6 +25,7 @@ export function NetworkBanBanner() {
       </div>
       <a
         href="https://dub.co/contact/support"
+        target="_blank"
         className={cn(
           buttonVariants({ variant: "secondary" }),
           "flex h-6 w-fit shrink-0 items-center whitespace-nowrap rounded-lg border px-1.5 text-xs font-medium",
