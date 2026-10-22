@@ -358,8 +358,11 @@ export const createLinkBodySchema = z.object({
     .describe("The ID of the program the short link is associated with."),
   partnerId: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
-    .describe("The ID of the partner the short link is associated with."),
+    .describe(
+      "The ID of the partner the short link is associated with. Pass `null` or an empty string to remove the partner. Removing the partner also removes the program association.",
+    ),
   prefix: z
     .string()
     .optional()
