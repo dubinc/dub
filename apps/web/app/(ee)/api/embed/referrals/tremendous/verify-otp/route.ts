@@ -84,7 +84,7 @@ export const POST = withReferralsEmbedToken(
       throw new DubApiError({
         code: "forbidden",
         message:
-          "Your account is banned from the Dub Partner Network, so you can't connect a payout method.",
+          "Your partner account is banned, so you can't connect a payout method.",
       });
     }
 

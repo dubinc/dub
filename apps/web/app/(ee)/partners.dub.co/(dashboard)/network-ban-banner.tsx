@@ -18,8 +18,8 @@ export function NetworkBanBanner() {
             You&rsquo;re banned from the Dub Partner Network.
           </span>
           <span className="hidden sm:inline">
-            Your account is banned from the Dub Partner Network. Payouts and new
-            program applications are disabled.
+            Your partner account is banned. Payouts and new program applications
+            are disabled.
           </span>
         </p>
       </div>

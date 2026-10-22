@@ -22,7 +22,9 @@ export const GET = withAdmin(async ({ searchParams }) => {
     sortByParam ??
     (networkStatus === "submitted"
       ? "submittedAt"
-      : networkStatus === "approved" || networkStatus === "rejected"
+      : networkStatus === "approved" ||
+          networkStatus === "rejected" ||
+          networkStatus === "banned"
         ? "reviewedAt"
         : "createdAt");
 
