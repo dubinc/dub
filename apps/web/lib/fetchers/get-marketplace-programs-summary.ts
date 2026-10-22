@@ -11,7 +11,7 @@ import {
   MarketplaceProgramsSummarySchema,
   NetworkProgramSchema,
 } from "@/lib/zod/schemas/program-network";
-import { Category, Prisma } from "@prisma/client";
+import { Category, Prisma, WorkspaceEnvironment } from "@prisma/client";
 import { cache } from "react";
 
 const programInclude = {
@@ -146,6 +146,7 @@ function selectCategoryRows(programMeta: ProgramMeta[], usedIds: Set<string>) {
 export const getMarketplaceProgramsSummary = cache(async () => {
   const programs = await prisma.program.findMany({
     where: {
+      environment: WorkspaceEnvironment.production,
       addedToMarketplaceAt: {
         not: null,
       },

@@ -5,6 +5,7 @@ import {
   NetworkProgramSchema,
   PROGRAM_NETWORK_MAX_PAGE_SIZE,
 } from "@/lib/zod/schemas/program-network";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { cache } from "react";
 import * as z from "zod/v4";
 
@@ -25,6 +26,7 @@ export const getPublicNetworkPrograms = cache(
 
     const programs = await prisma.program.findMany({
       where: {
+        environment: WorkspaceEnvironment.production,
         addedToMarketplaceAt: {
           not: null,
         },

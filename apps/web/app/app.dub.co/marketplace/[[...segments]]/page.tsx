@@ -23,6 +23,8 @@ export async function generateMetadata(props: {
   let description = `Browse and apply to the best SaaS affiliate programs on Dub's Partner Network.`;
   let image = "https://assets.dub.co/og/marketplace.jpg";
 
+  let noIndex = false;
+
   if (segments.length === 1 && segments[0] === "all") {
     title = `Top SaaS affiliate programs in ${currentYear}`;
   } else if (
@@ -40,6 +42,10 @@ export async function generateMetadata(props: {
       image =
         program.marketplaceHeaderImage ||
         `${APP_DOMAIN}/api/og/program?slug=${program.slug}`;
+    } else {
+      // Missing/non-production program slugs redirect in the page — don't
+      // soft-index `/marketplace/{slug}-staging` with a marketplace canonical.
+      noIndex = true;
     }
   } else if (segments.length === 2 && segments[0] === "c") {
     const category = Object.values(Category).find(
@@ -55,6 +61,8 @@ export async function generateMetadata(props: {
         categoryMeta?.listPageDescription ??
         `Browse the best ${label} affiliate programs on Dub's Program Marketplace.`;
       image = `${APP_DOMAIN}/api/og/program/categories?categorySlug=${category.toLowerCase()}`;
+    } else {
+      noIndex = true;
     }
   }
 
@@ -62,7 +70,10 @@ export async function generateMetadata(props: {
     title,
     description,
     image,
-    canonicalUrl: `https://dub.co${pathname.startsWith("/") ? pathname : `/${pathname}`}`,
+    ...(!noIndex && {
+      canonicalUrl: `https://dub.co${pathname.startsWith("/") ? pathname : `/${pathname}`}`,
+    }),
+    noIndex,
   });
 }
 
