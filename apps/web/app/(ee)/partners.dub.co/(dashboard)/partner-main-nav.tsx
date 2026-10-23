@@ -17,7 +17,7 @@ export function PartnerMainNav({ children }: { children: ReactNode }) {
       <MainNav
         toolContent={<HelpButton />}
         sidebar={PartnersSidebarNav}
-        hasBanner={isBannedFromNetwork}
+        // hasBanner={isBannedFromNetwork}
       >
         {children}
       </MainNav>
