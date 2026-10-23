@@ -259,7 +259,25 @@ export const RichTextProvider = forwardRef<
           : []),
 
         Placeholder.configure({
-          placeholder: () => placeholderRef.current,
+          placeholder: ({ editor, node, pos }) => {
+            const text = placeholderRef.current;
+            if (!text) return "";
+
+            // The placeholder decorates the top-level empty node. An empty
+            // table is that node, so the text would show inside the first cell.
+            const isTable = (name: string) =>
+              name === "table" ||
+              name === "tableCell" ||
+              name === "tableHeader";
+            if (isTable(node.type.name)) return "";
+
+            const $pos = editor.state.doc.resolve(pos);
+            for (let depth = $pos.depth; depth > 0; depth--) {
+              if (isTable($pos.node(depth).type.name)) return "";
+            }
+
+            return text;
+          },
           emptyEditorClass:
             "before:content-[attr(data-placeholder)] before:float-left before:text-content-muted before:h-0 before:pointer-events-none",
         }),

@@ -14,7 +14,7 @@ export function LanderRichTextEditor({
   id,
   value,
   onChange,
-  placeholder = "Start typing...",
+  placeholder = "",
   error,
   editorClassName,
   maxLength,

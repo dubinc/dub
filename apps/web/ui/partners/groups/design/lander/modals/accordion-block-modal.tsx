@@ -227,7 +227,6 @@ function AccordionBlockModalInner({
                                 id={`${id}-${field.id}-content`}
                                 value={contentField.value}
                                 onChange={contentField.onChange}
-                                placeholder="Start typing"
                                 error={Boolean(fieldErrors?.content)}
                                 editorClassName="max-h-32 min-h-16"
                                 maxLength={ACCORDION_ITEM_CONTENT_MAX_LENGTH}
