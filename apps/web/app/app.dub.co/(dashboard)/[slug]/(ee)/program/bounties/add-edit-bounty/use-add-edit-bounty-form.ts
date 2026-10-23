@@ -545,6 +545,13 @@ export function useAddEditBountyForm({
         if (!socialMetrics.minCount || socialMetrics.minCount <= 0) {
           return "Minimum metric count must be greater than 0.";
         }
+
+        const bonusPerIncrement =
+          socialMetrics.incrementalBonus?.bonusPerIncrement;
+
+        if (bonusPerIncrement != null && bonusPerIncrement <= 0) {
+          return "Bonus per increment must be greater than 0.";
+        }
       }
     }
 

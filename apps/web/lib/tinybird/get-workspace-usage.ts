@@ -1,14 +1,16 @@
 import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { sanitizeTimezone } from "@/lib/analytics/utils/sanitize-timezone";
 import { prisma } from "@/lib/prisma";
 import { usageQuerySchema, usageResponse } from "@/lib/zod/schemas/usage";
 import * as z from "zod/v4";
 import { tb } from "./client";
 
 const usagePipe = tb.buildPipe({
-  pipe: "v3_usage",
+  pipe: "v4_usage",
   parameters: usageQuerySchema.extend({
     workspaceId: z.string(),
+    granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
   }),
   data: usageResponse,
 });
@@ -38,7 +40,9 @@ export async function getWorkspaceUsage({
   end,
   timezone = "UTC",
 }: GetWorkspaceUsageParams) {
-  const { startDate, endDate } = getStartEndDates({
+  timezone = sanitizeTimezone(timezone);
+
+  const { startDate, endDate, granularity } = getStartEndDates({
     interval,
     start,
     end,
@@ -51,6 +55,7 @@ export async function getWorkspaceUsage({
     start: formatUTCDateTimeClickhouse(startDate),
     end: formatUTCDateTimeClickhouse(endDate),
     timezone,
+    granularity,
     ...(folderId && { folderId }),
     ...(domain && { domain }),
     ...(groupBy && { groupBy }),

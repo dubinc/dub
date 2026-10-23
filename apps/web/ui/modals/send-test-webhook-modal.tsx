@@ -1,8 +1,8 @@
 import { sendTestWebhookEvent } from "@/lib/actions/send-test-webhook";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps } from "@/lib/types";
-import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import type { WebhookTrigger } from "@/lib/webhook/types";
+import { getAvailableWebhookTriggers } from "@/lib/webhook/utils";
 import { Button, Combobox, ComboboxOption, Modal } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -27,6 +27,16 @@ function SendTestWebhookModal({
   const [selectedTrigger, setSelectedTrigger] = useState<ComboboxOption | null>(
     null,
   );
+
+  const availableTriggers = getAvailableWebhookTriggers({
+    defaultProgramId: workspace.defaultProgramId,
+    subscribedTriggers: webhook?.triggers,
+  });
+
+  const triggerOptions = availableTriggers.map((trigger) => ({
+    value: trigger,
+    label: trigger,
+  }));
 
   const { execute, isPending } = useAction(sendTestWebhookEvent, {
     onSuccess: () => {
@@ -70,10 +80,7 @@ function SendTestWebhookModal({
 
           <div className="mt-4">
             <Combobox
-              options={WEBHOOK_TRIGGERS.map((trigger) => ({
-                value: trigger,
-                label: trigger,
-              }))}
+              options={triggerOptions}
               selected={selectedTrigger}
               setSelected={setSelectedTrigger}
               placeholder="Select a webhook event"
@@ -120,7 +127,7 @@ export function useSendTestWebhookModal({
         webhook={webhook}
       />
     );
-  }, [showSendTestWebhookModal, setShowSendTestWebhookModal]);
+  }, [showSendTestWebhookModal, setShowSendTestWebhookModal, webhook]);
 
   return useMemo(
     () => ({

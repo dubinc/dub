@@ -1,4 +1,5 @@
 import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/constants/misc";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { PartnerEarningsResponse } from "@/lib/types";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import {
@@ -16,6 +17,7 @@ import {
   formatDateTime,
 } from "@dub/utils";
 import { motion } from "motion/react";
+import { useMemo } from "react";
 import useSWR from "swr";
 import { useEmbedToken } from "../../embed/use-embed-token";
 import { useReferralsEmbedData } from "./page-client";
@@ -24,7 +26,9 @@ export function ReferralsEmbedEarnings() {
   const token = useEmbedToken();
   const {
     earnings: { totalCount: earningsCount },
+    group,
   } = useReferralsEmbedData();
+  const hidePartnerRevenue = isPartnerRevenueHidden(group);
 
   const { pagination, setPagination } = usePagination(
     REFERRALS_EMBED_EARNINGS_LIMIT,
@@ -42,10 +46,8 @@ export function ReferralsEmbedEarnings() {
     },
   );
 
-  const { table, ...tableProps } = useTable({
-    data: earnings || [],
-    loading: isLoading,
-    columns: [
+  const columns = useMemo(
+    () => [
       {
         id: "customer",
         header: "Customer",
@@ -62,13 +64,17 @@ export function ReferralsEmbedEarnings() {
           </p>
         ),
       },
-      {
-        id: "amount",
-        header: "Amount",
-        cell: ({ row }) => {
-          return currencyFormatter(row.original.amount);
-        },
-      },
+      ...(!hidePartnerRevenue
+        ? [
+            {
+              id: "amount",
+              header: "Amount",
+              cell: ({ row }) => {
+                return currencyFormatter(row.original.amount);
+              },
+            },
+          ]
+        : []),
       {
         id: "earnings",
         header: "Earnings",
@@ -77,6 +83,15 @@ export function ReferralsEmbedEarnings() {
           return currencyFormatter(row.original.earnings);
         },
       },
+    ],
+    [hidePartnerRevenue],
+  );
+
+  const { table, ...tableProps } = useTable({
+    data: earnings || [],
+    loading: isLoading,
+    columns: [
+      ...columns,
       {
         header: "Status",
         cell: ({ row }) => {

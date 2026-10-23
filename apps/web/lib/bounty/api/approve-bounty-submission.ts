@@ -1,7 +1,11 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { Session } from "@/lib/auth";
-import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
+import {
+  buildMilestonesCommissionDescription,
+  getPendingSocialMetricsMilestones,
+  getSocialMetricsEarningCap,
+} from "@/lib/bounty/social-metrics-milestones";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { prisma } from "@/lib/prisma";
@@ -11,6 +15,12 @@ import {
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyApproved from "@dub/email/templates/bounty-approved";
+import { nFormatter } from "@dub/utils";
+import {
+  BountySubmissionStatus,
+  CommissionSource,
+  Prisma,
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
@@ -21,6 +31,49 @@ interface ApproveBountySubmissionParams
   submissionId: string;
   user: Session["user"];
 }
+
+const submissionApprovalInclude = {
+  partner: {
+    select: {
+      id: true,
+      email: true,
+    },
+  },
+  program: {
+    select: {
+      workspaceId: true,
+      id: true,
+      name: true,
+      slug: true,
+      supportEmail: true,
+    },
+  },
+} satisfies Prisma.BountySubmissionInclude;
+
+type ApprovedSubmission = Prisma.BountySubmissionGetPayload<{
+  include: typeof submissionApprovalInclude;
+}>;
+
+const submissionApprovalSelect = {
+  programId: true,
+  partnerId: true,
+  bountyId: true,
+  status: true,
+  socialMetricCount: true,
+  approvedSocialMetricThreshold: true,
+  bounty: {
+    select: {
+      name: true,
+      type: true,
+      rewardAmount: true,
+      submissionRequirements: true,
+    },
+  },
+} satisfies Prisma.BountySubmissionSelect;
+
+type SubmissionToApprove = Prisma.BountySubmissionGetPayload<{
+  select: typeof submissionApprovalSelect;
+}>;
 
 export async function approveBountySubmission({
   bountyId,
@@ -33,21 +86,7 @@ export async function approveBountySubmission({
     where: {
       id: submissionId,
     },
-    select: {
-      programId: true,
-      partnerId: true,
-      bountyId: true,
-      status: true,
-      socialMetricCount: true,
-      bounty: {
-        select: {
-          name: true,
-          type: true,
-          rewardAmount: true,
-          submissionRequirements: true,
-        },
-      },
-    },
+    select: submissionApprovalSelect,
   });
 
   if (!submission) {
@@ -88,16 +127,17 @@ export async function approveBountySubmission({
   const bounty = submission.bounty;
   const bountyInfo = resolveBountyDetails(bounty);
 
-  let finalRewardAmount = bounty.rewardAmount ?? rewardAmount;
-
-  if (bountyInfo?.hasSocialMetrics) {
-    const socialRewardAmount = calculateSocialMetricsRewardAmount({
-      bounty,
+  // If the bounty has social metrics, approve the milestones
+  if (bountyInfo?.socialMetrics) {
+    return approveSocialMetricsMilestones({
+      submissionId,
       submission,
+      metric: bountyInfo.socialMetrics.metric,
+      user,
     });
-
-    finalRewardAmount = socialRewardAmount;
   }
+
+  const finalRewardAmount = bounty.rewardAmount ?? rewardAmount;
 
   if (!finalRewardAmount) {
     throw new DubApiError({
@@ -106,35 +146,37 @@ export async function approveBountySubmission({
     });
   }
 
-  const approvedSubmission = await prisma.bountySubmission.update({
-    where: {
-      id: submissionId,
-    },
-    data: {
-      status: "approved",
-      reviewedAt: new Date(),
-      userId: user.id,
-      rejectionNote: null,
-      rejectionReason: null,
-    },
-    include: {
-      partner: {
-        select: {
-          id: true,
-          email: true,
+  const approvedSubmission = await prisma.bountySubmission
+    .update({
+      where: {
+        id: submissionId,
+        status: {
+          notIn: [
+            BountySubmissionStatus.approved,
+            BountySubmissionStatus.draft,
+          ],
         },
       },
-      program: {
-        select: {
-          workspaceId: true,
-          id: true,
-          name: true,
-          slug: true,
-          supportEmail: true,
-        },
+      data: {
+        status: "approved",
+        reviewedAt: new Date(),
+        userId: user.id,
+        rejectionNote: null,
+        rejectionReason: null,
       },
-    },
-  });
+      include: submissionApprovalInclude,
+    })
+    .catch((error) => {
+      if (error.code === "P2025") {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "This bounty submission is no longer awaiting review and cannot be approved.",
+        });
+      }
+
+      throw error;
+    });
 
   await queuePartnerCommissionCreation({
     event: "custom",
@@ -143,10 +185,153 @@ export async function approveBountySubmission({
     amount: finalRewardAmount,
     quantity: 1,
     userId: user.id,
-    description: `Commission for successfully completed "${bounty.name}" bounty.`,
+    source: CommissionSource.user,
+    description: `Commission for successfully completing "${bounty.name}" bounty.`,
     bountySubmissionId: submissionId,
   });
 
+  runApprovalSideEffects({
+    approvedSubmission,
+    bounty,
+    user,
+    description: `Bounty submission approved for ${approvedSubmission.partner.id}`,
+    notifyPartner: true,
+  });
+
+  return BountySubmissionSchema.parse(approvedSubmission);
+}
+
+async function approveSocialMetricsMilestones({
+  submissionId,
+  submission,
+  metric,
+  user,
+}: {
+  submissionId: string;
+  submission: SubmissionToApprove;
+  metric: string;
+  user: Session["user"];
+}) {
+  const { bounty } = submission;
+
+  const pendingMilestones = getPendingSocialMetricsMilestones({
+    bounty,
+    submission,
+  });
+
+  const earningCap = getSocialMetricsEarningCap(bounty);
+
+  if (pendingMilestones.length === 0 || earningCap == null) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "The partner hasn't reached a new milestone for this bounty yet, so there is nothing to approve.",
+    });
+  }
+
+  const firstPendingMilestone = pendingMilestones[0];
+  const approvedThreshold =
+    pendingMilestones[pendingMilestones.length - 1].threshold;
+  const completesEarningCap = approvedThreshold >= earningCap;
+
+  const approvedSubmission = await prisma.bountySubmission
+    .update({
+      where: {
+        id: submissionId,
+        approvedSocialMetricThreshold: submission.approvedSocialMetricThreshold,
+        // A sync can change the count after we read it, so the status would be based on stale milestones
+        socialMetricCount: submission.socialMetricCount,
+        status: {
+          notIn: [
+            BountySubmissionStatus.approved,
+            BountySubmissionStatus.draft,
+          ],
+        },
+      },
+      data: {
+        approvedSocialMetricThreshold: approvedThreshold,
+        status: completesEarningCap
+          ? BountySubmissionStatus.approved
+          : BountySubmissionStatus.partiallyApproved,
+        reviewedAt: new Date(),
+        userId: user.id,
+        rejectionNote: null,
+        rejectionReason: null,
+      },
+      include: submissionApprovalInclude,
+    })
+    .catch((error) => {
+      if (error.code === "P2025") {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "These milestones have already been approved, the social metrics changed, or the submission is no longer awaiting review. Refresh and try again.",
+        });
+      }
+
+      throw error;
+    });
+
+  const rewardAmount = pendingMilestones.reduce(
+    (sum, { rewardAmount }) => sum + rewardAmount,
+    0,
+  );
+
+  const description = buildMilestonesCommissionDescription({
+    bountyName: bounty.name,
+    metric,
+    milestone: {
+      fromThreshold: firstPendingMilestone.fromThreshold,
+      threshold: approvedThreshold,
+    },
+  });
+
+  await queuePartnerCommissionCreation({
+    event: "custom",
+    partnerId: submission.partnerId,
+    programId: submission.programId,
+    amount: rewardAmount,
+    quantity: 1,
+    userId: user.id,
+    source: CommissionSource.user,
+    description,
+    bountySubmissionId: submissionId,
+    metadata: {
+      socialMetrics: {
+        metric,
+        fromThreshold: firstPendingMilestone.fromThreshold,
+        threshold: approvedThreshold,
+        milestones: pendingMilestones,
+      },
+    },
+  });
+
+  runApprovalSideEffects({
+    approvedSubmission,
+    bounty,
+    user,
+    description: completesEarningCap
+      ? `Bounty submission approved for ${approvedSubmission.partner.id}`
+      : `Bounty milestones approved up to ${nFormatter(approvedThreshold, { full: true })} ${metric} for ${approvedSubmission.partner.id}`,
+    notifyPartner: completesEarningCap,
+  });
+
+  return BountySubmissionSchema.parse(approvedSubmission);
+}
+
+function runApprovalSideEffects({
+  approvedSubmission,
+  bounty,
+  user,
+  description,
+  notifyPartner,
+}: {
+  approvedSubmission: ApprovedSubmission;
+  bounty: Pick<SubmissionToApprove["bounty"], "name" | "type">;
+  user: Session["user"];
+  description: string;
+  notifyPartner: boolean;
+}) {
   const { program, partner } = approvedSubmission;
 
   waitUntil(
@@ -155,18 +340,19 @@ export async function approveBountySubmission({
         workspaceId: program.workspaceId,
         programId: program.id,
         action: "bounty_submission.approved",
-        description: `Bounty submission approved for ${partner.id}`,
+        description,
         actor: user,
         targets: [
           {
             type: "bounty_submission",
-            id: submissionId,
+            id: approvedSubmission.id,
             metadata: BountySubmissionSchema.parse(approvedSubmission),
           },
         ],
       }),
 
-      partner.email &&
+      notifyPartner &&
+        partner.email &&
         sendEmail({
           subject: "Bounty approved!",
           to: partner.email,
@@ -186,6 +372,4 @@ export async function approveBountySubmission({
         }),
     ]),
   );
-
-  return BountySubmissionSchema.parse(approvedSubmission);
 }

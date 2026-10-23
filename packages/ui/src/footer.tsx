@@ -81,17 +81,18 @@ const navigation = {
     { name: "Contact", href: "/contact" },
     { name: "Privacy", href: "/privacy" },
   ],
-  compare: COMPARE_PAGES.map(({ name, slug }) => ({
-    name,
-    href: `/compare/${slug}`,
-    product: "links",
-  })).concat(
-    ["Rewardful", "PartnerStack", "FirstPromoter", "Tolt"].map((name) => ({
+  compare: [
+    ...["Rewardful", "PartnerStack", "FirstPromoter", "Tolt"].map((name) => ({
       name,
       href: `/blog/dub-vs-${name.toLowerCase()}`,
       product: "partners",
     })),
-  ),
+    ...COMPARE_PAGES.map(({ name, slug }) => ({
+      name,
+      href: `/compare/${slug}`,
+      product: "links",
+    })),
+  ],
 };
 
 const linkListHeaderClassName = "text-sm font-medium text-neutral-900";

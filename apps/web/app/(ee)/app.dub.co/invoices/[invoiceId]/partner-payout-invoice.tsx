@@ -23,6 +23,7 @@ import {
 import { endOfMonth, startOfMonth } from "date-fns";
 import { createTw } from "react-pdf-tailwind";
 import Stripe from "stripe";
+import { InvoiceEnvironmentBanner } from "./environment-banner";
 
 const tw = createTw({
   theme: {
@@ -37,7 +38,10 @@ export async function PartnerPayoutInvoice({
   workspace,
 }: {
   invoice: Invoice;
-  workspace: Pick<Project, "id" | "name" | "slug" | "stripeId">;
+  workspace: Pick<
+    Project,
+    "id" | "name" | "slug" | "stripeId" | "environment"
+  >;
 }) {
   const firstEightPayouts = await prisma.payout.findMany({
     where: {
@@ -237,6 +241,8 @@ export async function PartnerPayoutInvoice({
   return await renderToBuffer(
     <Document>
       <Page size="A4" style={tw("p-20 bg-white")}>
+        <InvoiceEnvironmentBanner environment={workspace.environment} />
+
         <View style={tw("flex-row justify-between items-center mb-4")}>
           <Image src={DUB_WORDMARK} style={tw("w-20 h-10")} />
         </View>

@@ -1,3 +1,4 @@
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import {
@@ -24,8 +25,14 @@ export async function notifyPartnerCommission({
   commission,
   isFirstCommission,
 }: {
-  program: Pick<Program, "name" | "slug" | "logo" | "supportEmail">;
-  group: Pick<PartnerGroup, "holdingPeriodDays">;
+  program: Pick<
+    Program,
+    "name" | "slug" | "logo" | "supportEmail" | "environment"
+  >;
+  group: Pick<
+    PartnerGroup,
+    "holdingPeriodDays" | "revenueDataSharingDisabledAt"
+  >;
   workspace: Pick<Project, "id" | "slug" | "name">;
   commission: Pick<
     Commission,
@@ -117,9 +124,11 @@ export async function notifyPartnerCommission({
       slug: program.slug,
       logo: program.logo,
       supportEmail: program.supportEmail,
+      environment: program.environment,
     },
     group: {
       holdingPeriodDays: group.holdingPeriodDays,
+      revenueDataSharingDisabled: isPartnerRevenueHidden(group),
     },
     partner: {
       id: commission.partnerId,

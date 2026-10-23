@@ -25,29 +25,30 @@ enum ProgramPayoutMode {
 }
 
 model Program {
-  id                 String            @id
+  id                 String               @id
   workspaceId        String
   defaultFolderId    String
   defaultGroupId     String
   name               String
-  slug               String            @unique
-  domain             String?           @unique
+  slug               String               @unique
+  domain             String?              @unique
   url                String?
   logo               String?
-  description        String?           @db.Text
-  primaryRewardEvent EventType         @default(sale)
-  minPayoutAmount    Int               @default(0) // Default minimum payout amount of $0
-  payoutMode         ProgramPayoutMode @default(internal)
+  description        String?              @db.Text
+  primaryRewardEvent EventType            @default(sale)
+  minPayoutAmount    Int                  @default(0) // Default minimum payout amount of $0
+  payoutMode         ProgramPayoutMode    @default(internal)
+  environment        WorkspaceEnvironment @default(production)
 
-  inviteEmailData         Json?   @db.Json
-  embedData               Json?   @db.Json
-  resources               Json?   @db.Json
-  referralFormData        Json?   @db.Json
-  applicationRequirements Json?   @db.Json
-  termsUrl                String? @db.Text
-  helpUrl                 String? @db.Text
-  supportEmail            String?
-  tremendousCampaignId    String?
+  inviteEmailData              Json?   @db.Json
+  embedData                    Json?   @db.Json
+  resources                    Json?   @db.Json
+  applicationRequirements      Json?   @db.Json
+  applicationScreeningCriteria String? @db.Text
+  termsUrl                     String? @db.Text
+  helpUrl                      String? @db.Text
+  supportEmail                 String?
+  tremendousCampaignId         String?
 
   messagingEnabledAt      DateTime?
   partnerNetworkEnabledAt DateTime?
@@ -115,6 +116,7 @@ model ProgramEnrollment {
   leadRewardId     String?
   saleRewardId     String?
   referralRewardId String?
+  customRewardId   String?
   discountId       String?
   status           ProgramEnrollmentStatus @default(pending)
 
@@ -147,6 +149,8 @@ model ProgramEnrollment {
   reapplicationTimeframe       ReapplicationTimeframe @default(standard)
   riskMonitoringDisabledAt     DateTime?
 
+  partnerPreferences Json? // UI prefs for this enrollment (e.g. linksDisplay)
+
   partner            Partner                  @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   program            Program                  @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   links              Link[]
@@ -157,6 +161,7 @@ model ProgramEnrollment {
   leadReward         Reward?                  @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
   saleReward         Reward?                  @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
   referralReward     Reward?                  @relation("ReferralRewardEnrollments", fields: [referralRewardId], references: [id])
+  customReward       Reward?                  @relation("CustomRewardEnrollments", fields: [customRewardId], references: [id])
   discount           Discount?                @relation(fields: [discountId], references: [id])
   bountySubmissions  BountySubmission[]
   discountCodes      DiscountCode[]
@@ -194,5 +199,6 @@ model ProgramEnrollment {
   @@index(leadRewardId)
   @@index(saleRewardId)
   @@index(referralRewardId)
+  @@index(customRewardId)
   @@index(discountId)
 }

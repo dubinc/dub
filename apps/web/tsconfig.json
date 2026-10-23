@@ -8,6 +8,7 @@
     "baseUrl": ".",
     "paths": {
       "@/pages/*": ["pages/*"],
+      "@/scripts/*": ["scripts/*"],
       "@/styles/*": ["styles/*"],
       "@/ui/*": ["ui/*"],
       "@/lib/*": ["lib/*"]

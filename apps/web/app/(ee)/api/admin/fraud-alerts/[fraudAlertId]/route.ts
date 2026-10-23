@@ -1,4 +1,5 @@
-import { reportNetworkLevelBan } from "@/lib/api/fraud/report-network-level-ban";
+import { confirmPartnerFraudAlerts } from "@/lib/api/fraud/confirm-partner-fraud-alerts";
+import { banPartnerFromNetwork } from "@/lib/api/partners/network-ban";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MAX_FRAUD_REASON_LENGTH } from "@/lib/zod/schemas/partners";
@@ -9,15 +10,18 @@ import * as z from "zod/v4";
 const reviewSchema = z.object({
   status: z.enum(["confirmed", "dismissed"]),
   reviewNote: z.string().trim().max(MAX_FRAUD_REASON_LENGTH).optional(),
+  banFromNetwork: z.boolean().optional(),
 });
 
 // PATCH /api/admin/fraud-alerts/[fraudAlertId]
 export const PATCH = withAdmin(
   async ({ req, params, session }) => {
     const { fraudAlertId } = params;
-    const { status: newStatus, reviewNote } = reviewSchema.parse(
-      await req.json(),
-    );
+    const {
+      status: newStatus,
+      reviewNote,
+      banFromNetwork,
+    } = reviewSchema.parse(await req.json());
 
     const fraudAlert = await prisma.fraudAlert.findUnique({
       where: {
@@ -25,11 +29,28 @@ export const PATCH = withAdmin(
       },
       select: {
         partnerId: true,
+        status: true,
       },
     });
 
     if (!fraudAlert) {
       return new Response("Fraud alert not found.", { status: 404 });
+    }
+
+    // A retry after a failed ban runs only the ban, since the alert is already confirmed
+    if (
+      newStatus === "confirmed" &&
+      fraudAlert.status === "confirmed" &&
+      banFromNetwork
+    ) {
+      await banPartnerFromNetwork(fraudAlert.partnerId);
+      return NextResponse.json({ success: true });
+    }
+
+    if (newStatus === "confirmed" && fraudAlert.status !== "pending") {
+      return new Response("Fraud alert has already been reviewed.", {
+        status: 409,
+      });
     }
 
     const reviewData: Prisma.FraudAlertUpdateManyArgs["data"] = {
@@ -59,63 +80,22 @@ export const PATCH = withAdmin(
       return NextResponse.json({ success: true });
     }
 
-    // Fetch all pending fraud alerts for this partner (for network-level ban reporting)
-    const pendingFraudAlerts = await prisma.fraudAlert.findMany({
-      where: {
-        partnerId: fraudAlert.partnerId,
-        status: "pending",
-      },
-      select: {
-        id: true,
-        createdAt: true,
-        programEnrollment: {
-          select: {
-            programId: true,
-            partnerId: true,
-            bannedReason: true,
-            bannedAt: true,
-            application: {
-              select: {
-                reviewedAt: true,
-              },
-            },
-          },
-        },
-      },
+    const { confirmedCount } = await confirmPartnerFraudAlerts({
+      partnerId: fraudAlert.partnerId,
+      reviewedById: session.user.id,
+      reviewNote,
     });
 
-    if (pendingFraudAlerts.length === 0) {
+    if (confirmedCount === 0) {
       return new Response("Fraud alert has already been reviewed.", {
         status: 409,
       });
     }
 
-    await prisma.fraudAlert.updateMany({
-      where: {
-        id: {
-          in: pendingFraudAlerts.map((fa) => fa.id),
-        },
-        status: "pending",
-      },
-      data: {
-        status: "confirmed",
-        ...reviewData,
-      },
-    });
-
-    await Promise.allSettled(
-      pendingFraudAlerts.map(({ programEnrollment, createdAt }) =>
-        reportNetworkLevelBan({
-          partnerId: programEnrollment.partnerId,
-          programId: programEnrollment.programId,
-          bannedReason: programEnrollment.bannedReason ?? "fraud",
-          bannedAt:
-            programEnrollment.bannedAt ??
-            programEnrollment.application?.reviewedAt ??
-            createdAt,
-        }),
-      ),
-    );
+    // Ban only after the confirmation, so a dismissal that wins the race leaves no ban
+    if (banFromNetwork) {
+      await banPartnerFromNetwork(fraudAlert.partnerId);
+    }
 
     return NextResponse.json({ success: true });
   },

@@ -1,7 +1,6 @@
 import * as z from "zod/v4";
 
 export const stripeIntegrationSettingsSchema = z.object({
-  stripeMode: z.enum(["live", "test", "sandbox"]).optional().default("live"),
   freeTrials: z
     .object({
       enabled: z

@@ -4,14 +4,17 @@ import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-cust
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
+  CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS,
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
 import {
-  PartnerProfileCustomerSchema,
   getPartnerCustomersQuerySchema,
+  mapPartnerLinkDetails,
+  PartnerProfileCustomerSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { toCentsNumber } from "@dub/utils";
 import { CommissionType } from "@prisma/client";
@@ -32,14 +35,28 @@ export const GET = withPartnerProfile(
       pageSize,
     } = getPartnerCustomersQuerySchema.parse(searchParams);
 
-    const { program, totalCommissions, customerDataSharingEnabledAt } =
-      await getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId: programId,
-        include: {
-          program: true,
+    const {
+      program,
+      totalCommissions,
+      customerDataSharingEnabledAt,
+      partnerGroup,
+    } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: programId,
+      include: {
+        program: {
+          select: {
+            id: true,
+            workspaceId: true,
+          },
         },
-      });
+        partnerGroup: {
+          select: {
+            revenueDataSharingDisabledAt: true,
+          },
+        },
+      },
+    });
 
     if (
       LARGE_PROGRAM_IDS.includes(program.id) &&
@@ -48,6 +65,17 @@ export const GET = withPartnerProfile(
     ) {
       throw new DubApiError({
         code: "forbidden",
+        message: "This feature is not available for your program.",
+      });
+    }
+
+    const ltvExcluded =
+      CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id) ||
+      isPartnerRevenueHidden(partnerGroup);
+
+    if (sortBy === "saleAmount" && ltvExcluded) {
+      throw new DubApiError({
+        code: "bad_request",
         message: "This feature is not available for your program.",
       });
     }
@@ -71,7 +99,11 @@ export const GET = withPartnerProfile(
           : {}),
       },
       include: {
-        link: true,
+        link: {
+          include: {
+            partnerLinkDetails: true,
+          },
+        },
         commissions: {
           where: {
             partnerId: partner.id,
@@ -92,22 +124,27 @@ export const GET = withPartnerProfile(
 
     // Map customers with their data
     const customersWithData = customers.map((customer) => {
+      const transformed = transformCustomer({
+        ...customer,
+        firstSaleAt: customer.commissions[0]?.createdAt ?? null,
+        email: customer.email
+          ? customerDataSharingEnabledAt
+            ? customer.email
+            : obfuscateCustomerEmail(customer.email)
+          : customer.name || generateRandomName(),
+      });
+
       return PartnerProfileCustomerSchema.extend({
         ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
       }).parse({
-        ...transformCustomer({
-          ...customer,
-          firstSaleAt: customer.commissions[0]?.createdAt ?? null,
-          email: customer.email
-            ? customerDataSharingEnabledAt
-              ? customer.email
-              : obfuscateCustomerEmail(customer.email)
-            : customer.name || generateRandomName(),
-        }),
+        ...transformed,
+        ...(ltvExcluded && { saleAmount: null }),
         activity: {
           ...customer,
           events: [],
-          link: customer.link,
+          link: customer.link
+            ? mapPartnerLinkDetails(customer.link)
+            : customer.link,
         },
       });
     });

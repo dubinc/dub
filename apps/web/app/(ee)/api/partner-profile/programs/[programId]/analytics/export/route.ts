@@ -15,7 +15,10 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
-import { ratelimit } from "@/lib/upstash";
+import { nullifyAnalyticsSaleAmounts } from "@/lib/partners/hide-partner-revenue";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { parseFilterValue, toCentsNumber } from "@dub/utils";
 
@@ -24,25 +27,36 @@ export const maxDuration = 300;
 // GET /api/partner-profile/programs/[programId]/analytics/export – get export data for partner profile analytics
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { success } = await ratelimit(1, "30 s").limit(
-      `analyticsExport:partner:${partner.id}:${params.programId}`,
-    );
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.partnerAnalyticsExport,
+      identifier: [partner.id, params.programId],
+    });
 
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message:
-          "Analytics export is limited to once every 30 seconds. Please try again shortly.",
-      });
-    }
-
-    const { program, links, totalCommissions } =
+    const { program, links, totalCommissions, partnerGroup } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId: params.programId,
         include: {
-          program: true,
-          links: true,
+          program: {
+            select: {
+              id: true,
+              workspaceId: true,
+              startedAt: true,
+              createdAt: true,
+            },
+          },
+          links: {
+            select: {
+              id: true,
+              domain: true,
+              key: true,
+            },
+          },
+          partnerGroup: {
+            select: {
+              revenueDataSharingDisabledAt: true,
+            },
+          },
         },
       });
 
@@ -123,13 +137,21 @@ export const GET = withPartnerProfile(
       useComposite: true,
       skipEndpoints: PARTNER_PROFILE_SKIP_ENDPOINTS,
       skipTopLinksForSingleLink: hasExactlyOneLinkIdFilter(parsedParams.linkId),
-      formatRows: formatPartnerAnalyticsForExport,
-      getAnalyticsParams: () =>
-        parsedParams.linkId
+      formatRows: (rows) => {
+        const formatted = formatPartnerAnalyticsForExport(rows);
+
+        return isPartnerRevenueHidden(partnerGroup)
+          ? nullifyAnalyticsSaleAmounts(formatted)
+          : formatted;
+      },
+      getAnalyticsParams: () => ({
+        includePartnerLinkTitle: true,
+        ...(parsedParams.linkId
           ? { linkId: parsedParams.linkId }
           : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
             ? { partnerId: partner.id }
-            : { linkId: parseFilterValue(links.map((link) => link.id)) },
+            : { linkId: parseFilterValue(links.map((link) => link.id)) }),
+      }),
       getDataAvailableFrom: () => dataAvailableFrom,
     });
 

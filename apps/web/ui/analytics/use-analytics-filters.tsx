@@ -3,6 +3,7 @@ import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useCustomer from "@/lib/swr/use-customer";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
@@ -17,6 +18,7 @@ import {
   UTM_PARAMETERS,
 } from "@dub/ui";
 import {
+  Bolt,
   Calendar6,
   Cube,
   CursorRays,
@@ -339,6 +341,11 @@ export function useAnalyticsFilters({
     omitGroupByFilterKey: true,
     context,
   });
+  const { data: eventNames } = useAnalyticsFilterOption("event_names", {
+    disabled: !isRequested("eventName") || selectedTab === "clicks",
+    omitGroupByFilterKey: true,
+    context,
+  });
   const { data: referers } = useAnalyticsFilterOption("referers", {
     disabled: !isRequested("referer"),
     omitGroupByFilterKey: true,
@@ -422,6 +429,9 @@ export function useAnalyticsFilters({
 
   const [streaming, setStreaming] = useState<boolean>(false);
 
+  const { displayProperties: partnerDisplayProperties } =
+    usePartnerLinksDisplay();
+
   const LinkFilterItem = {
     key: "linkId",
     icon: Hyperlink,
@@ -432,11 +442,16 @@ export function useAnalyticsFilters({
       return <LinkIcon url={url} />;
     },
     options:
-      links?.map(({ id, domain, key, url, ...rest }) => ({
+      links?.map(({ id, domain, key, url, partnerLinkTitle, ...rest }) => ({
         value: id,
-        label: linkConstructor({ domain, key, pretty: true }),
+        label:
+          partnerPage &&
+          partnerDisplayProperties.includes("title") &&
+          partnerLinkTitle
+            ? partnerLinkTitle
+            : linkConstructor({ domain, key, pretty: true }),
         right: getFilterOptionTotal(rest),
-        data: { url, domain, key },
+        data: { url, domain, key, partnerLinkTitle },
       })) ?? null,
   };
 
@@ -772,6 +787,18 @@ export function useAnalyticsFilters({
             },
           ]),
       {
+        key: "eventName",
+        icon: Bolt,
+        label: "Event name",
+        hideInFilterDropdown: selectedTab === "clicks",
+        options:
+          eventNames?.map(({ eventName, ...rest }) => ({
+            value: eventName,
+            label: eventName,
+            right: getFilterOptionTotal(rest),
+          })) ?? null,
+      },
+      {
         key: "referer",
         icon: ReferredVia,
         label: "Referrer",
@@ -895,12 +922,15 @@ export function useAnalyticsFilters({
       devices,
       browsers,
       os,
+      eventNames,
+      selectedTab,
       referers,
       refererUrls,
       baseUrls,
       utmData,
       searchParamsObj.tagId,
       searchParamsObj.domain,
+      partnerDisplayProperties,
     ],
   );
 

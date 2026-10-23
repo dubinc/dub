@@ -2,8 +2,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { throwIfNoAccess } from "@/lib/api/tokens/throw-if-no-access";
 import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan";
 import { withWorkspace } from "@/lib/auth";
+import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
+import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
@@ -34,6 +36,9 @@ export const GET = withWorkspace(
       include: {
         user: true,
       },
+      orderBy: {
+        createdAt: "asc",
+      },
     });
 
     const parsedUsers = users.map(({ user, ...rest }) =>
@@ -49,6 +54,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.read"],
+    requiredRoles: ["owner", "member", "billing"],
   },
 );
 
@@ -60,6 +66,8 @@ const updateRoleSchema = z.object({
 // PATCH /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
+    assertNotStagingWorkspace(workspace);
+
     const { userId, role } = updateRoleSchema.parse(await req.json());
 
     assertRoleAllowedForPlan({
@@ -67,7 +75,7 @@ export const PATCH = withWorkspace(
       plan: workspace.plan,
     });
 
-    const response = await prisma.projectUsers.update({
+    const workspaceUser = await prisma.projectUsers.update({
       where: {
         userId_projectId: {
           projectId: workspace.id,
@@ -81,7 +89,14 @@ export const PATCH = withWorkspace(
         role,
       },
     });
-    return NextResponse.json(response);
+
+    await syncStagingWorkspaceJob.dispatch({
+      action: "update-member-role",
+      workspaceId: workspace.id,
+      userId: workspaceUser.userId,
+    });
+
+    return NextResponse.json(workspaceUser);
   },
   {
     requiredPermissions: ["workspaces.write"],
@@ -117,6 +132,7 @@ export const DELETE = withWorkspace(
           role: true,
           user: {
             select: {
+              id: true,
               isMachine: true,
               defaultWorkspace: true,
             },
@@ -138,6 +154,10 @@ export const DELETE = withWorkspace(
         message: "User not found.",
       });
     }
+
+    assertNotStagingWorkspace(workspace, {
+      when: !projectUser.user.isMachine,
+    });
 
     // If there is only one owner and the user is an owner and the user is trying to remove themselves
     if (
@@ -170,7 +190,7 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const [response] = await Promise.allSettled([
+    await Promise.all([
       // Remove the user from the workspace
       prisma.projectUsers.delete({
         where: {
@@ -201,6 +221,14 @@ export const DELETE = withWorkspace(
         }),
     ]);
 
+    if (!projectUser.user.isMachine) {
+      await syncStagingWorkspaceJob.dispatch({
+        action: "remove-member",
+        workspaceId: workspace.id,
+        userId,
+      });
+    }
+
     // delete the user if it's a machine user
     if (projectUser.user.isMachine) {
       await prisma.user.delete({
@@ -210,6 +238,8 @@ export const DELETE = withWorkspace(
       });
     }
 
-    return NextResponse.json(response);
+    return NextResponse.json({
+      userId,
+    });
   },
 );

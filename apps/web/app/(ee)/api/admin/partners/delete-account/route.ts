@@ -1,6 +1,7 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { deletePartnerAccounts } from "@/lib/api/partners/delete-partner-accounts";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { withAdmin } from "@/lib/auth";
-import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { prettyPrint } from "@dub/utils";
@@ -19,6 +20,9 @@ export const POST = withAdmin(
         commissions: true,
         programs: {
           select: {
+            // Needed to clear these enrollments from the search index once they
+            // are gone, since nothing can resolve their IDs afterwards.
+            id: true,
             program: true,
             links: true,
             groupId: true,
@@ -130,9 +134,14 @@ export const POST = withAdmin(
         console.log(
           `Deleted ${partner.programs.length} program enrollments for partner ${partner.email} (${partner.id})`,
         );
+
+        // Queue an index update because the partner's enrollments were deleted.
+        await queuePartnerSearchSync({
+          enrollmentIds: partner.programs.map(({ id }) => id),
+        });
       }
 
-      await conn.execute(`DELETE FROM Partner WHERE id = ?`, [partner.id]);
+      await deletePartnerAccounts({ partnerIds: [partner.id] });
       console.log(`Deleted partner ${partner.email} (${partner.id})`);
     }
 

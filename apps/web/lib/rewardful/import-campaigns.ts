@@ -20,10 +20,6 @@ import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
 
-const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { mode: "live" }),
-});
-
 export async function importCampaigns(payload: RewardfulImportPayload) {
   const { programId, campaignIds } = payload;
 
@@ -35,6 +31,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
       workspace: {
         select: {
           stripeConnectId: true,
+          stripeConnectMode: true,
         },
       },
       groups: {
@@ -55,12 +52,19 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
     brandColor,
     holdingPeriodDays,
     autoApprovePartnersEnabledAt,
+    revenueDataSharingDisabledAt,
     additionalLinks,
     maxPartnerLinks,
     linkStructure,
     applicationFormData,
     landerData,
+    submittedLeadFormData,
+    submittedLeadsEnabledAt,
   } = program.groups[0] ?? {};
+
+  const stripe = stripeAppClient({
+    mode: program.workspace.stripeConnectMode,
+  });
 
   const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
 
@@ -103,6 +107,8 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         brandColor,
         holdingPeriodDays,
         autoApprovePartnersEnabledAt,
+        revenueDataSharingDisabledAt,
+        submittedLeadsEnabledAt,
         ...(additionalLinks && {
           additionalLinks: sanitizeAdditionalLinks(additionalLinks),
         }),
@@ -110,6 +116,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         ...(linkStructure && { linkStructure }),
         ...(applicationFormData && { applicationFormData }),
         ...(landerData && { landerData }),
+        ...(submittedLeadFormData && { submittedLeadFormData }),
         // Create default link for the group
         partnerGroupDefaultLinks: {
           create: {
@@ -141,6 +148,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         data: {
           id: createId({ prefix: "rw_" }),
           programId,
+          groupId: createdGroup.id,
           // connect the reward to the group
           salePartnerGroup: {
             connect: {
@@ -208,12 +216,13 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         data: {
           id: createId({ prefix: "disc_" }),
           programId,
+          groupId: createdGroup.id,
           amount: dubDiscountAttrs?.amount ?? 0,
           type: dubDiscountAttrs?.type ?? "percentage",
           maxDuration: dubDiscountAttrs?.maxDuration ?? null,
           couponId: campaign.stripe_coupon_id,
-          // connect the discount to the group
-          partnerGroup: {
+          // connect the discount as the group's default
+          defaultForPartnerGroup: {
             connect: {
               id: createdGroup.id,
             },

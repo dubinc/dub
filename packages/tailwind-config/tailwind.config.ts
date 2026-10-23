@@ -76,6 +76,11 @@ const config: Config = {
         blink: "blink 1.4s infinite both",
         // Custom pulse animation
         pulse: "pulse 1s linear infinite alternate",
+        // Aurora background (drift + breathe on separate cycles so it never visibly loops)
+        aurora:
+          "aurora-drift 20s ease-in-out infinite alternate, aurora-breathe 9s ease-in-out infinite alternate",
+        "aurora-reverse":
+          "aurora-drift 26s ease-in-out infinite alternate-reverse, aurora-breathe 12s ease-in-out infinite alternate-reverse",
       },
       keyframes: {
         // Modal
@@ -198,8 +203,21 @@ const config: Config = {
             opacity: "1",
           },
         },
+        // Aurora background
+        "aurora-drift": {
+          from: { translate: "-6% 0" },
+          to: { translate: "6% 0" },
+        },
+        "aurora-breathe": {
+          from: { scale: "1 1" },
+          to: { scale: "1 1.25" },
+        },
       },
       colors: {
+        // Merged into Tailwind's default neutral scale
+        neutral: {
+          150: "#ededed",
+        },
         brown: {
           50: "#fdf8f6",
           100: "#f2e8e5",

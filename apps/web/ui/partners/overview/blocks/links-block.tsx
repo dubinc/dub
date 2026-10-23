@@ -2,7 +2,7 @@ import { editQueryString } from "@/lib/analytics/utils";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
-import { ArrowRight, LinkLogo, LoadingSpinner, useRouterStuff } from "@dub/ui";
+import { LinkLogo, LoadingSpinner, useRouterStuff } from "@dub/ui";
 import {
   currencyFormatter,
   fetcher,
@@ -10,11 +10,11 @@ import {
   getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
-import Link from "next/link";
 import { useContext } from "react";
 import useSWR from "swr";
 import { ExceededEventsLimit } from "../exceeded-events-limit";
 import { ProgramOverviewBlock } from "../program-overview-block";
+import { ProgramOverviewRow } from "../program-overview-row";
 
 export function LinksBlock() {
   const { slug: workspaceSlug, exceededEvents } = useWorkspace();
@@ -51,8 +51,10 @@ export function LinksBlock() {
           include: ["interval", "start", "end"],
         },
       )}`}
+      className="pb-3.5"
+      contentClassName="px-3"
     >
-      <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
+      <div className="@2xl:h-[257px] flex h-auto flex-col">
         {exceededEvents ? (
           <ExceededEventsLimit />
         ) : isLoading ? (
@@ -71,10 +73,9 @@ export function LinksBlock() {
           data
             ?.slice(0, 6)
             .map(({ shortLink, url, domain, key, leads, saleAmount }) => (
-              <Link
+              <ProgramOverviewRow
                 key={shortLink}
                 href={`/${workspaceSlug}/links/${domain}/${key}`}
-                className="text-content-default group flex h-10 items-center justify-between text-xs font-medium"
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <LinkLogo
@@ -84,7 +85,6 @@ export function LinksBlock() {
                   <span className="min-w-0 truncate">
                     {getPrettyUrl(shortLink)}
                   </span>
-                  <ArrowRight className="text-content-emphasis size-2.5 -translate-x-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100 [&_*]:stroke-2" />
                 </div>
 
                 <span>
@@ -92,7 +92,7 @@ export function LinksBlock() {
                     ? nFormatter(leads, { full: true })
                     : currencyFormatter(saleAmount)}
                 </span>
-              </Link>
+              </ProgramOverviewRow>
             ))
         )}
       </div>

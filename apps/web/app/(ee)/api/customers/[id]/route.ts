@@ -3,6 +3,7 @@ import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import {
@@ -39,6 +40,7 @@ export const GET = withWorkspace(
     return NextResponse.json(responseSchema.parse(transformCustomer(customer)));
   },
   {
+    requiredPermissions: ["customers.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
@@ -50,8 +52,15 @@ export const PATCH = withWorkspace(
     const { includeExpandedFields } =
       getCustomersQuerySchema.parse(searchParams);
 
-    const { name, email, avatar, externalId, stripeCustomerId } =
-      updateCustomerBodySchema.parse(await parseRequestBody(req));
+    const {
+      name,
+      email,
+      avatar,
+      externalId,
+      stripeCustomerId,
+      country,
+      subscriptionCanceledAt,
+    } = updateCustomerBodySchema.parse(await parseRequestBody(req));
 
     const customer = await getCustomerOrThrow(
       {
@@ -81,9 +90,14 @@ export const PATCH = withWorkspace(
         data: {
           name,
           email,
+          ...(email !== undefined && {
+            normalizedEmail: getNormalizedEmail(email),
+          }),
           avatar: finalCustomerAvatar,
           externalId,
           stripeCustomerId,
+          country,
+          subscriptionCanceledAt,
         },
       });
 
@@ -143,8 +157,8 @@ export const PATCH = withWorkspace(
     }
   },
   {
+    requiredPermissions: ["customers.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );
 
@@ -173,7 +187,7 @@ export const DELETE = withWorkspace(
     });
   },
   {
+    requiredPermissions: ["customers.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );

@@ -282,6 +282,41 @@ describe("getAIRewardGenerationSchema — unsupported refusal", () => {
     expect(result.success).toBe(true);
   });
 
+  it("accepts supported=false with an unavailable customer source", () => {
+    const result = getAIRewardGenerationSchema("lead").safeParse({
+      supported: false,
+      reason: "HubSpot must be installed first.",
+      unavailableSource: "hubspot",
+      reward: null,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("does not send an empty enum for click rewards", () => {
+    const json = JSON.stringify(
+      getAIRewardGenerationSchema("click").toJSONSchema(),
+    );
+    expect(json).not.toContain('"enum":[]');
+  });
+
+  it("rejects an unavailable customer source the event doesn't offer", () => {
+    const result = getAIRewardGenerationSchema("click").safeParse({
+      supported: false,
+      unavailableSource: "hubspot",
+      reward: null,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an unknown unavailable customer source", () => {
+    const result = getAIRewardGenerationSchema("lead").safeParse({
+      supported: false,
+      unavailableSource: "salesforce",
+      reward: null,
+    });
+    expect(result.success).toBe(false);
+  });
+
   it("defers app validation to getAIRewardSchema (not generation envelope)", () => {
     const clickSchema = getAIRewardGenerationSchema("click");
     const result = clickSchema.safeParse({

@@ -1,12 +1,11 @@
 "use client";
 
-import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { useConnectPayoutModal } from "@/ui/partners/payouts/connect-payout-modal";
 import { Button, ButtonProps, TooltipContent } from "@dub/ui";
-import { COUNTRIES } from "@dub/utils";
 import { PartnerPayoutMethod } from "@prisma/client";
 import { useCallback, useMemo } from "react";
+import { getConnectPayoutDisabledTooltip } from "./connect-payout-disabled-tooltip";
 import { usePayoutConnectFlow } from "./use-payout-connect-flow";
 
 interface ConnectPayoutButtonProps extends ButtonProps {
@@ -44,19 +43,14 @@ export function ConnectPayoutButton({
     setShowConnectPayoutModal(true);
   }, [payoutMethod, connect, setShowConnectPayoutModal]);
 
-  const errorMessage = useMemo(
+  const disabledTooltipConfig = useMemo(
     () =>
-      !partner?.country
-        ? "You haven't set your country yet. Please update your country or contact support."
-        : availablePayoutMethods.length === 0
-          ? `Your current country (${COUNTRIES[partner.country]}) is not supported for payout. Please update your country or contact support.`
-          : undefined,
+      getConnectPayoutDisabledTooltip({
+        partner,
+        availablePayoutMethods,
+      }),
     [partner, availablePayoutMethods],
   );
-
-  if (partner && !hasPermission(partner.role, "payout_settings.update")) {
-    return null;
-  }
 
   return (
     <>
@@ -73,15 +67,15 @@ export function ConnectPayoutButton({
               : props.text || "Connect payout method"
         }
         loading={isPending}
-        disabledTooltip={
-          errorMessage && (
+        {...(disabledTooltipConfig && {
+          disabledTooltip: (
             <TooltipContent
-              title={errorMessage}
-              cta="Update profile settings"
-              href="/profile"
+              title={disabledTooltipConfig.title}
+              cta={disabledTooltipConfig.cta}
+              href={disabledTooltipConfig.href}
             />
-          )
-        }
+          ),
+        })}
         {...props}
       />
     </>

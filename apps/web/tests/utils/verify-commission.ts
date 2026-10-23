@@ -3,7 +3,9 @@ import {
   VITEST_TEST_TIMEOUT_MS,
 } from "@/lib/constants/misc";
 import { CommissionResponse, Customer } from "@/lib/types";
+import { sleep } from "@dub/utils";
 import { expect } from "vitest";
+
 import { HttpClient } from "./http";
 
 interface VerifyCommissionProps {
@@ -105,9 +107,7 @@ export const verifyCommission = async ({
     }
 
     // Wait before next poll
-    await new Promise((resolve) =>
-      setTimeout(resolve, VITEST_POLL_INTERVAL_MS),
-    );
+    await sleep(VITEST_POLL_INTERVAL_MS);
   }
 
   // Timeout reached - fail the test

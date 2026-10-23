@@ -4,12 +4,13 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { qstash } from "@/lib/cron";
 import { getDiscountProvider } from "@/lib/discounts/discount-provider";
+import { attachDiscountJob } from "@/lib/jobs/handlers/attach-discount-job";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
+import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { DubDiscountAttributes } from "@/lib/stripe/coupon-discount-converter";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { DiscountProvider } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
@@ -28,12 +29,20 @@ export const createDiscountAction = authActionClient
       couponTestId,
       groupId,
       autoProvision,
+      isDefault,
     } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
       requiredRoles: ["owner", "member"],
     });
+
+    if (
+      !isDefault &&
+      !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
+    ) {
+      throw new Error(PARTNER_LEVEL_REWARDS_PLAN_ERROR);
+    }
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -42,10 +51,8 @@ export const createDiscountAction = authActionClient
       programId,
     });
 
-    if (group.discountId) {
-      throw new Error(
-        `You can't create a discount for this group because it already has a discount.`,
-      );
+    if (isDefault && group.discountId) {
+      throw new Error("This group already has a default discount.");
     }
 
     const discountProvider = getDiscountProvider(provider);
@@ -72,12 +79,13 @@ export const createDiscountAction = authActionClient
       });
     }
 
-    // Create the discount and update the group and program enrollment
+    // Create the discount and assign it to the group when it is the default
     const discount = await prisma.$transaction(async (tx) => {
       const discount = await tx.discount.create({
         data: {
           id: createId({ prefix: "disc_" }),
           programId,
+          groupId,
           amount,
           type,
           maxDuration,
@@ -92,72 +100,53 @@ export const createDiscountAction = authActionClient
         },
       });
 
-      await tx.partnerGroup.update({
-        where: {
-          id: groupId,
-        },
-        data: {
-          discountId: discount.id,
-        },
-      });
-
-      await tx.programEnrollment.updateMany({
-        where: {
-          groupId,
-        },
-        data: {
-          discountId: discount.id,
-        },
-      });
-
-      await tx.discountCode.updateMany({
-        where: {
-          programEnrollment: {
-            groupId,
+      if (isDefault) {
+        const { count } = await tx.partnerGroup.updateMany({
+          where: {
+            id: groupId,
+            discountId: null,
           },
-        },
-        data: {
-          discountId: discount.id,
-        },
-      });
+          data: {
+            discountId: discount.id,
+          },
+        });
+
+        // This means that the group already has a default discount
+        if (count === 0) {
+          throw new Error("This group already has a default discount.");
+        }
+      }
 
       return discount;
     });
 
+    // No need to attach the discount to the group if it is not the default
+    // because the default discount is attached to the group when the discount is created
+    if (isDefault) {
+      await attachDiscountJob.dispatch(
+        { discountId: discount.id },
+        { label: discount.id },
+      );
+    }
+
     waitUntil(
-      Promise.allSettled([
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-          body: {
-            groupId,
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "discount.created",
+        description: `Discount ${discount.id} created`,
+        actor: user,
+        targets: [
+          {
+            type: "discount",
+            id: discount.id,
+            metadata: discount,
           },
-        }),
-
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "discount.created",
-          description: `Discount ${discount.id} created`,
-          actor: user,
-          targets: [
-            {
-              type: "discount",
-              id: discount.id,
-              metadata: discount,
-            },
-          ],
-        }),
-
-        ...(discount.autoProvisionEnabledAt
-          ? [
-              qstash.publishJSON({
-                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create/queue-batches`,
-                body: {
-                  discountId: discount.id,
-                },
-              }),
-            ]
-          : []),
-      ]),
+        ],
+      }),
     );
+
+    return {
+      id: discount.id,
+    };
   });

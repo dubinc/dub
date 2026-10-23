@@ -5,7 +5,6 @@ import {
   eventsQuerySchema,
 } from "../zod/schemas/analytics";
 import { analyticsResponse } from "../zod/schemas/analytics-response";
-import { getPartnerEarningsTimeseriesSchema } from "../zod/schemas/partner-profile";
 import {
   ANALYTICS_SALE_UNIT,
   ANALYTICS_VIEWS,
@@ -52,6 +51,8 @@ export type AnalyticsFilters = Partial<
   // Accept plain string (from partner-profile/cron routes) or ParsedFilter (from API schema)
   partnerId?: string | ParsedFilter;
   linkId?: string | ParsedFilter;
+  // Partner-profile callers only. Not part of the public analytics query schema.
+  includePartnerLinkTitle?: boolean;
 };
 
 // Structural fields from eventsQuerySchema that should remain required
@@ -91,6 +92,3 @@ const partnerAnalyticsSchema = analyticsQuerySchema
 export type PartnerAnalyticsFilters = z.infer<typeof partnerAnalyticsSchema> & {
   linkId?: string;
 };
-export type PartnerEarningsTimeseriesFilters = z.infer<
-  typeof getPartnerEarningsTimeseriesSchema
->;

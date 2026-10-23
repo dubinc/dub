@@ -4,10 +4,15 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   bountyEligibilityIncludes,
   canPartnerSeeBounty,
-  getEffectiveBountyPeriod,
+  programEnrollmentEligibilityIncludes,
 } from "@/lib/bounty/api/bounty-availability";
+import { toPartnerBounty } from "@/lib/bounty/api/get-bounties-for-partner";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
-import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import {
+  aggregatePartnerLinksStats,
+  partnerLinkStatsSelect,
+} from "@/lib/partners/aggregate-partner-links-stats";
+import { hidePartnerTotalSaleAmount } from "@/lib/partners/hide-partner-revenue";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
 
@@ -15,7 +20,7 @@ import { NextResponse } from "next/server";
 export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { programId, bountyId } = params;
 
-  const { program, links, ...programEnrollment } =
+  const { program, links, partnerGroup, ...programEnrollment } =
     await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId,
@@ -27,19 +32,14 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           },
         },
         links: {
+          select: partnerLinkStatsSelect,
+        },
+        partnerGroup: {
           select: {
-            clicks: true,
-            leads: true,
-            conversions: true,
-            sales: true,
-            saleAmount: true,
+            revenueDataSharingDisabledAt: true,
           },
         },
-        programPartnerTags: {
-          select: {
-            partnerTagId: true,
-          },
-        },
+        ...programEnrollmentEligibilityIncludes,
       },
     });
 
@@ -58,12 +58,16 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           partnerId: partner.id,
         },
         include: {
-          commission: {
+          commissions: {
             select: {
               id: true,
               earnings: true,
               status: true,
+              description: true,
               createdAt: true,
+            },
+            orderBy: {
+              createdAt: "asc",
             },
           },
         },
@@ -84,23 +88,16 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
-  const { startsAt, endsAt } = getEffectiveBountyPeriod({
-    programEnrollment,
+  const partnerBounty = toPartnerBounty({
     bounty,
+    programEnrollment,
+    partnerLinksStats: aggregatePartnerLinksStats(links),
   });
-
-  const { groups, partnerTags, ...bountyWithoutGroups } = bounty;
 
   return NextResponse.json(
     PartnerBountySchema.parse({
-      ...bountyWithoutGroups,
-      startsAt,
-      endsAt,
-      performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
-      partner: {
-        ...aggregatePartnerLinksStats(links),
-        totalCommissions: programEnrollment.totalCommissions,
-      },
+      ...partnerBounty,
+      partner: hidePartnerTotalSaleAmount(partnerBounty.partner, partnerGroup),
     }),
   );
 });

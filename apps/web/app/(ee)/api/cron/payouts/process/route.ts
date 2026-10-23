@@ -1,5 +1,4 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
@@ -24,12 +23,8 @@ const processPayoutsCronSchema = z.object({
 // POST /api/cron/payouts/process
 // This route is used to process payouts for a given invoice
 // we're intentionally offloading this to a cron job to avoid blocking the main thread
-export async function POST(req: Request) {
+export const POST = withCron(async ({ rawBody }) => {
   try {
-    const rawBody = await req.text();
-
-    await verifyQstashSignature({ req, rawBody });
-
     const {
       workspaceId,
       userId,
@@ -101,12 +96,17 @@ export async function POST(req: Request) {
 
     return logAndRespond(`Processed payouts for program ${program.name}.`);
   } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+
     await log({
-      message: `Error confirming payouts for program: ${error.message}`,
+      message: `Error confirming payouts for program: ${errorMessage}`,
       type: "errors",
       mention: true,
     });
 
-    return handleAndReturnErrorResponse(error);
+    return logAndRespond(
+      `Error processing payouts for program: ${errorMessage}`,
+    );
   }
-}
+});

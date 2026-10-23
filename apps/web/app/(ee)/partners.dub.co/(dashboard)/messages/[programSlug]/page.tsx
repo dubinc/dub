@@ -1,24 +1,26 @@
 "use client";
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { PARTNER_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
 import { useProgramMessages } from "@/lib/messages/hooks/use-program-messages";
 import { markProgramMessagesReadAction } from "@/lib/messages/mark-program-messages-read";
 import { messageProgramAction } from "@/lib/messages/message-program";
 import { uploadPartnerMessageAttachmentAction } from "@/lib/messages/upload-partner-message-attachment";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
+import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useUser from "@/lib/swr/use-user";
-import { ProgramEnrollmentProps } from "@/lib/types";
+import { PartnerProfileProgramEnrollmentProps } from "@/lib/types";
 import {
   COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
+import { appendPersistedMessage } from "@/ui/messages/optimistic-message";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { ProgramHelpLinks } from "@/ui/partners/program-help-links";
 import { ProgramRewardsPanel } from "@/ui/partners/program-rewards-panel";
@@ -177,8 +179,7 @@ export default function PartnerMessagesProgramPage() {
           const result = await uploadAttachment({
             programSlug,
             fileName: file.name,
-            contentType:
-              file.type as (typeof PARTNER_ALLOWED_ATTACHMENT_TYPES)[number],
+            contentType: file.type,
             contentLength: file.size,
           });
 
@@ -304,7 +305,9 @@ export default function PartnerMessagesProgramPage() {
               pendingAttachments={pendingAttachments}
               onAddFiles={handleAddFiles}
               onRemoveAttachment={handleRemoveAttachment}
-              allowedFileTypes={PARTNER_ALLOWED_ATTACHMENT_TYPES}
+              allowedFileTypes={
+                UPLOAD_POLICIES.partnerMessageAttachments.contentTypes
+              }
               {...(shouldShowExternalSupportEmptyState && messages?.length
                 ? {
                     footerSlot: (
@@ -316,6 +319,7 @@ export default function PartnerMessagesProgramPage() {
                 : {})}
               onSendMessage={async (message, attachments) => {
                 const createdAt = new Date();
+                const optimisticId = `tmp_${uuid()}`;
 
                 try {
                   await mutateProgramMessages(
@@ -326,15 +330,18 @@ export default function PartnerMessagesProgramPage() {
                         attachments,
                       });
 
-                      if (result?.data?.message) {
-                        return data
+                      const sentMessage = result?.data?.message;
+
+                      if (sentMessage) {
+                        return data?.[0]
                           ? [
                               {
                                 ...data[0],
-                                messages: [
-                                  ...data[0].messages,
-                                  result.data.message,
-                                ],
+                                messages: appendPersistedMessage(
+                                  data[0].messages,
+                                  optimisticId,
+                                  sentMessage,
+                                ),
                               },
                             ]
                           : [];
@@ -350,7 +357,7 @@ export default function PartnerMessagesProgramPage() {
                                   ...data[0].messages,
                                   {
                                     delivered: false,
-                                    id: `tmp_${uuid()}`,
+                                    id: optimisticId,
                                     programId: program!.id,
                                     partnerId: partner!.id,
                                     text: message,
@@ -439,7 +446,7 @@ export default function PartnerMessagesProgramPage() {
 function ProgramInfoPanel({
   programEnrollment,
 }: {
-  programEnrollment: ProgramEnrollmentProps;
+  programEnrollment: PartnerProfileProgramEnrollmentProps;
 }) {
   const program = programEnrollment.program;
   const partnerLink = constructPartnerLink({
@@ -457,6 +464,7 @@ function ProgramInfoPanel({
   const isActiveEnrollment = COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES.includes(
     programEnrollment.status,
   );
+  const hidePartnerRevenue = isPartnerRevenueHidden(programEnrollment.group);
 
   return (
     <>
@@ -564,9 +572,16 @@ function ProgramInfoPanel({
               </div>
             ))}
           </div>
-          <div className="divide-border-subtle grid grid-cols-2 divide-x">
+          <div
+            className={cn(
+              "divide-border-subtle grid divide-x",
+              hidePartnerRevenue ? "grid-cols-1" : "grid-cols-2",
+            )}
+          >
             {[
-              { label: "Revenue", value: statsTotals?.saleAmount },
+              ...(!hidePartnerRevenue
+                ? [{ label: "Revenue", value: statsTotals?.saleAmount }]
+                : []),
               { label: "Earnings", value: programEnrollment.totalCommissions },
             ].map(({ label, value }) => (
               <div key={label} className="flex flex-col px-3 py-2.5">

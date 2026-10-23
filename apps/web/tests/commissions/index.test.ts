@@ -42,23 +42,41 @@ describe.sequential("/commissions/**", async () => {
   let testPaidCommissionId: string;
 
   test("GET /commissions", async () => {
-    const { status, data: commissions } = await http.get<CommissionResponse[]>({
+    const { status: saleCommissionStatus, data: saleCommissions } =
+      await http.get<CommissionResponse[]>({
+        path: "/commissions",
+        query: {
+          status: "processed",
+          type: "sale",
+          sortBy: "createdAt",
+          sortOrder: "desc",
+        },
+      });
+
+    expect(saleCommissionStatus).toEqual(200);
+    expect(Array.isArray(saleCommissions)).toBe(true);
+    expect(saleCommissions.length).toBeGreaterThan(0);
+    expectCommissionResponse(saleCommissions[0]);
+
+    const { status: leadStatus, data: leadCommissions } = await http.get<
+      CommissionResponse[]
+    >({
       path: "/commissions",
       query: {
         status: "processed",
+        type: "lead",
         sortBy: "createdAt",
         sortOrder: "desc",
       },
     });
-
-    expect(status).toEqual(200);
-    expect(Array.isArray(commissions)).toBe(true);
-    expect(commissions.length).toBeGreaterThan(0);
-    expectCommissionResponse(commissions[0]);
+    expect(leadStatus).toEqual(200);
+    expect(Array.isArray(leadCommissions)).toBe(true);
+    expect(leadCommissions.length).toBeGreaterThan(0);
+    expectCommissionResponse(leadCommissions[0]);
 
     // Store the first sale and lead commission's ID for subsequent tests
-    testCommissionId = commissions.find((c) => c.type === "sale")!.id;
-    testLeadCommissionId = commissions.find((c) => c.type === "lead")!.id;
+    testCommissionId = saleCommissions[0].id;
+    testLeadCommissionId = leadCommissions[0].id;
   });
 
   test("GET /commissions with filters", async () => {

@@ -1,7 +1,9 @@
 import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
+import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
@@ -9,6 +11,21 @@ import { BitlyGroupProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+const importBitlySchema = z.object({
+  selectedDomains: z.array(
+    z.object({
+      domain: z
+        .string()
+        .trim()
+        .refine(isValidDomainFormat, { message: "Invalid domain" }),
+      bitlyGroup: z.string(),
+    }),
+  ),
+  selectedGroupTags: z.array(z.string()).default([]),
+  folderId: z.string().nullish(),
+});
 
 // GET /api/workspaces/[idOrSlug]/import/bitly – get all bitly groups for a workspace
 export const GET = withWorkspace(async ({ workspace }) => {
@@ -60,7 +77,8 @@ export const GET = withWorkspace(async ({ workspace }) => {
 // POST /api/workspaces/[idOrSlug]/import/bitly - create job to import links from bitly
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    const { selectedDomains, selectedGroupTags, folderId } = await req.json();
+    const { selectedDomains, selectedGroupTags, folderId } =
+      importBitlySchema.parse(await parseRequestBody(req));
 
     const domains = await prisma.domain.findMany({
       where: { projectId: workspace.id },
@@ -101,7 +119,9 @@ export const POST = withWorkspace(
     }
 
     // convert data to array of groups with their respective domains
-    const groups = selectedDomains.reduce((result, { domain, bitlyGroup }) => {
+    const groups = selectedDomains.reduce<
+      { bitlyGroup: string; domains: string[]; importTags: boolean }[]
+    >((result, { domain, bitlyGroup }) => {
       const existingGroup = result.find(
         (item) => item.bitlyGroup === bitlyGroup,
       );

@@ -1,5 +1,6 @@
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { prisma } from "@/lib/prisma";
-import { chunk, nanoid } from "@dub/utils";
+import { chunk, nanoid, sleep } from "@dub/utils";
 import { Customer, Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
@@ -135,7 +136,7 @@ export async function importCustomers(payload: ToltImportPayload) {
       );
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await sleep(2000);
 
     processedBatches++;
     startingAfter = customers[customers.length - 1].id;
@@ -242,6 +243,7 @@ async function createReferral({
             ? customer.email
             : customer.name,
         email: customer.email,
+        normalizedEmail: getNormalizedEmail(customer.email),
         projectId: workspace.id,
         projectConnectId: workspace.stripeConnectId,
         clickId: clickEvent.click_id,

@@ -11,6 +11,7 @@ export enum CustomerEmailMatchType {
   EXACT = "exact",
   DOMAIN_MATCH = "domainMatch",
   HISTORICAL_DOMAIN_MATCH = "historicalDomainMatch",
+  SIMILAR_EMAIL_MATCH = "similarEmailMatch",
 }
 
 export const fraudGroupSchema = z.object({
@@ -27,6 +28,7 @@ export const fraudGroupSchema = z.object({
     email: true,
     image: true,
     status: true,
+    networkStatus: true,
   }),
   user: UserSchema.nullable(),
 });
@@ -291,6 +293,7 @@ export const fraudEventSchemas = {
     metadata: z
       .object({
         matchType: z.enum(CustomerEmailMatchType),
+        matchedCustomerId: z.string().optional(),
       })
       .nullable()
       .optional(),

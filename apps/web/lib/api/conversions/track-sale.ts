@@ -3,6 +3,7 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
@@ -27,7 +28,7 @@ import {
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
 import { nanoid, R2_URL } from "@dub/utils";
-import { Customer, EventType } from "@prisma/client";
+import { CommissionSource, Customer, EventType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../create-id";
@@ -37,6 +38,8 @@ import { executeWorkflows } from "../workflows/execute-workflows";
 type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   source?: CustomerSource; // default is "tracked"
+  commissionSource?: CommissionSource; // default is api
+  userId?: string; // only passed if CommissionSource.user
 };
 
 export const trackSale = async ({
@@ -54,6 +57,8 @@ export const trackSale = async ({
   metadata,
   workspace,
   source = "tracked",
+  commissionSource = CommissionSource.api,
+  userId,
 }: TrackSaleParams) => {
   let existingCustomer: Customer | null = null;
   let newCustomer: Customer | null = null;
@@ -219,6 +224,7 @@ export const trackSale = async ({
           id: finalCustomerId,
           name: finalCustomerName,
           email: customerEmail,
+          normalizedEmail: getNormalizedEmail(customerEmail),
           avatar: finalCustomerAvatar,
           externalId: customerExternalId,
           linkId: clickData.link_id,
@@ -347,6 +353,8 @@ export const trackSale = async ({
       leadEventData,
       customer,
       source,
+      commissionSource,
+      userId,
     }),
   ]);
 
@@ -471,6 +479,8 @@ const _trackSale = async ({
   leadEventData,
   customer,
   source,
+  commissionSource = CommissionSource.api,
+  userId,
 }: Omit<TrackSaleParams, "customerExternalId"> & {
   leadEventData: LeadEventTB | null;
   customer: Customer;
@@ -577,6 +587,8 @@ const _trackSale = async ({
           quantity: 1,
           invoiceId,
           currency,
+          source: commissionSource,
+          userId,
           ...(metadata != null && { metadata }),
           context: {
             customer: {
@@ -645,13 +657,14 @@ const _trackSale = async ({
         queueGoogleAdsConversionUpload({
           workspaceId: workspace.id,
           eventType: EventType.sale,
+          eventName: saleData.event_name,
           conversionDateTime: new Date().toISOString(),
           eventId: saleData.event_id,
-          conversionValue: amount / 100, // Data Manager expects major currency units
-          currencyCode: currency,
+          conversionValue: saleData.amount,
+          currencyCode: saleData.currency,
           click: {
-            id: leadEventData.click_id,
-            url: leadEventData.url,
+            id: saleData.click_id,
+            url: saleData.url,
           },
         }),
 
@@ -659,6 +672,7 @@ const _trackSale = async ({
           ? [
               sendPartnerPostback({
                 partnerId: link.partnerId,
+                programId: link.programId,
                 event: "sale.created",
                 data: {
                   ...saleData,

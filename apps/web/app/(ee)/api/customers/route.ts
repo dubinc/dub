@@ -5,6 +5,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getCustomers } from "@/lib/customers/api/get-customers";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
@@ -49,6 +50,7 @@ export const GET = withWorkspace(
     return NextResponse.json(response);
   },
   {
+    requiredPermissions: ["customers.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
@@ -72,6 +74,7 @@ export const POST = withWorkspace(
           id: customerId,
           name: finalCustomerName,
           email,
+          normalizedEmail: getNormalizedEmail(email),
           avatar: finalCustomerAvatar,
           externalId,
           stripeCustomerId,
@@ -128,7 +131,7 @@ export const POST = withWorkspace(
     }
   },
   {
+    requiredPermissions: ["customers.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );

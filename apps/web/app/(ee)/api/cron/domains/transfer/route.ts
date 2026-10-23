@@ -4,7 +4,7 @@ import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log, sleep } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 import { sendDomainTransferredEmail } from "./utils";
@@ -103,7 +103,7 @@ export async function POST(req: Request) {
       ]);
 
       // wait 500 ms before making another request
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await sleep(500);
 
       await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/transfer`,

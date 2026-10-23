@@ -8,20 +8,40 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
+import { nullifyAnalyticsSaleAmounts } from "@/lib/partners/hide-partner-revenue";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { parseFilterValue, serializeError, toCentsNumber } from "@dub/utils";
+import { parseFilterValue, toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/analytics – get analytics for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { program, links, totalCommissions } =
+    const { program, links, totalCommissions, partnerGroup } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId: params.programId,
         include: {
-          program: true,
-          links: true,
+          program: {
+            select: {
+              id: true,
+              workspaceId: true,
+              startedAt: true,
+              createdAt: true,
+            },
+          },
+          links: {
+            select: {
+              id: true,
+              domain: true,
+              key: true,
+            },
+          },
+          partnerGroup: {
+            select: {
+              revenueDataSharingDisabledAt: true,
+            },
+          },
         },
       });
 
@@ -81,34 +101,26 @@ export const GET = withPartnerProfile(
       };
     }
 
-    try {
-      const response = await getAnalytics({
-        ...(LARGE_PROGRAM_IDS.includes(program.id) &&
-        toCentsNumber(totalCommissions) <
-          LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
-          ? { event: parsedParams.event, groupBy: "count", interval: "all" }
-          : parsedParams),
-        workspaceId: program.workspaceId,
-        ...(parsedParams.linkId
-          ? { linkId: parsedParams.linkId }
-          : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
-            ? { partnerId: partner.id }
-            : { linkId: parseFilterValue(links.map((link) => link.id)) }),
-        dataAvailableFrom: program.startedAt ?? program.createdAt,
-      });
+    const response = await getAnalytics({
+      ...(LARGE_PROGRAM_IDS.includes(program.id) &&
+      toCentsNumber(totalCommissions) <
+        LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
+        ? { event: parsedParams.event, groupBy: "count", interval: "all" }
+        : parsedParams),
+      workspaceId: program.workspaceId,
+      ...(parsedParams.linkId
+        ? { linkId: parsedParams.linkId }
+        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
+          ? { partnerId: partner.id }
+          : { linkId: parseFilterValue(links.map((link) => link.id)) }),
+      includePartnerLinkTitle: true,
+      dataAvailableFrom: program.startedAt ?? program.createdAt,
+    });
 
-      return NextResponse.json(response);
-    } catch (error) {
-      // Tinybird times out after 30s on heavy partner queries; return a 400
-      // instead of 500 so the UI can show a retry hint.
-      if (serializeError(error).includes("Timeout exceeded")) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Failed to fetch analytics. Refresh the page and try again.",
-        });
-      }
-
-      throw error;
-    }
+    return NextResponse.json(
+      isPartnerRevenueHidden(partnerGroup)
+        ? nullifyAnalyticsSaleAmounts(response)
+        : response,
+    );
   },
 );

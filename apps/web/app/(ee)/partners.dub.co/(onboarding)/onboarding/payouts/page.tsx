@@ -1,3 +1,4 @@
+import { testIds } from "@/lib/e2e/test-ids";
 import { getSession } from "@/lib/auth";
 import { getPartnerPayoutMethods } from "@/lib/payouts/get-partner-payout-methods";
 import { prisma } from "@/lib/prisma";
@@ -86,6 +87,7 @@ async function PayoutRSC() {
       />
       <Link
         href="/programs"
+        data-testid={testIds.partnerOnboarding.skip}
         className="mt-6 block text-center text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-800"
       >
         I'll complete this later

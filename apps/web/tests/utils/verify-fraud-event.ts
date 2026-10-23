@@ -1,5 +1,6 @@
 import { Customer } from "@/lib/types";
 import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
+import { sleep } from "@dub/utils";
 import { FraudRuleType, Partner } from "@prisma/client";
 import { HttpClient } from "tests/utils/http";
 import { expect } from "vitest";
@@ -54,9 +55,7 @@ export const verifyFraudEvent = async ({
     }
 
     // Wait before next poll
-    await new Promise((resolve) =>
-      setTimeout(resolve, VITEST_POLL_INTERVAL_MS),
-    );
+    await sleep(VITEST_POLL_INTERVAL_MS);
   }
 
   if (!fraudEvent) {

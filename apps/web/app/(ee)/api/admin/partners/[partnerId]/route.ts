@@ -1,9 +1,8 @@
 import { withAdmin } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
+import { updatePartnerCountry } from "@/lib/partners/update-partner-country";
 import { prisma } from "@/lib/prisma";
-import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
-import { APP_DOMAIN_WITH_NGROK, COUNTRIES } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
+import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
+import { COUNTRIES } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -23,6 +22,7 @@ export const GET = withAdmin(async ({ params }) => {
       country: true,
       companyName: true,
       createdAt: true,
+      networkStatus: true,
       platforms: true,
     },
   });
@@ -56,11 +56,25 @@ export const GET = withAdmin(async ({ params }) => {
         partnerId,
       },
       include: {
+        partner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
         program: {
           select: {
             id: true,
             name: true,
             logo: true,
+          },
+        },
+        reviewedBy: {
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
@@ -96,7 +110,7 @@ export const GET = withAdmin(async ({ params }) => {
       subscribers: p.subscribers ? Number(p.subscribers) : null,
     })),
     programEnrollments,
-    fraudAlerts,
+    fraudAlerts: adminFraudAlertSchema.array().parse(fraudAlerts),
     payouts,
   });
 });
@@ -105,6 +119,7 @@ const adminUpdatePartnerSchema = z.object({
   country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]),
 });
 
+// PATCH /api/admin/partners/[partnerId] – update the partner country
 export const PATCH = withAdmin(async ({ params, req }) => {
   const { partnerId } = params;
   const { country } = adminUpdatePartnerSchema.parse(await req.json());
@@ -116,9 +131,6 @@ export const PATCH = withAdmin(async ({ params, req }) => {
     select: {
       id: true,
       country: true,
-      changeHistoryLog: true,
-      veriffSessionId: true,
-      identityVerifiedAt: true,
     },
   });
 
@@ -130,44 +142,16 @@ export const PATCH = withAdmin(async ({ params, req }) => {
     return new Response("Partner is already in this country.", { status: 400 });
   }
 
-  const partnerChangeHistoryLog = partner.changeHistoryLog
-    ? partnerProfileChangeHistoryLogSchema.parse(partner.changeHistoryLog)
-    : [];
-
-  partnerChangeHistoryLog.push({
-    field: "country",
-    from: partner.country,
-    to: country,
-    changedAt: new Date(),
-  });
-
-  await prisma.partner.update({
-    where: {
-      id: partner.id,
-    },
-    data: {
+  try {
+    await updatePartnerCountry({
+      partnerId: partner.id,
       country,
-      changeHistoryLog: partnerChangeHistoryLog,
-      // reset all payout fields
-      defaultPayoutMethod: null,
-      payoutsEnabledAt: null,
-      paypalEmail: null,
-      stripeConnectId: null,
-      stripeRecipientId: null,
-      payoutMethodHash: null,
-      cryptoWalletAddress: null,
-    },
-  });
-
-  // if there was an existing veriff session, trigger a country change verification
-  if (partner.identityVerifiedAt) {
-    waitUntil(
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/verify-country-change`,
-        body: {
-          partnerId: partner.id,
-        },
-      }),
+      isAdmin: true,
+    });
+  } catch (error) {
+    return new Response(
+      error instanceof Error ? error.message : "Failed to update country.",
+      { status: 400 },
     );
   }
 

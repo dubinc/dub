@@ -2,6 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -100,19 +101,24 @@ export const deleteProgramInviteAction = authActionClient
     ]);
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "partner.invite_deleted",
-        description: `Partner ${partner.id} invite deleted`,
-        actor: user,
-        targets: [
-          {
-            type: "partner",
-            id: partner.id,
-            metadata: partner,
-          },
-        ],
-      }),
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "partner.invite_deleted",
+          description: `Partner ${partner.id} invite deleted`,
+          actor: user,
+          targets: [
+            {
+              type: "partner",
+              id: partner.id,
+              metadata: partner,
+            },
+          ],
+        }),
+
+        // Queue an index update because the invited enrollment was deleted.
+        queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
+      ]),
     );
   });

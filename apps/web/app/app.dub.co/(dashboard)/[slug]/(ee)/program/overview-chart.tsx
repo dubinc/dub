@@ -121,7 +121,7 @@ export function OverviewChart() {
               }
               setSelected={(option) => option && setViewType(option.value)}
               options={chartOptions}
-              optionClassName="w-36"
+              optionClassName="w-full sm:w-36"
               caret={true}
               hideSearch={true}
               buttonProps={{

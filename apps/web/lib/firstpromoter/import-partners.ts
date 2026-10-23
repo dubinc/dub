@@ -7,8 +7,12 @@ import {
   Program,
 } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
 import { bulkCreateLinks } from "../api/links";
 import { upsertPartnerPlatform } from "../api/partner-profile/upsert-partner-platform";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { FirstPromoterApi } from "./api";
 import { firstPromoterImporter, MAX_BATCHES } from "./importer";
@@ -62,6 +66,10 @@ export async function importPartners(payload: FirstPromoterImportPayload) {
     );
 
     if (affiliates.length > 0) {
+      // Filled as soon as each enrollment is saved, so a partner whose later
+      // step throws still reaches the search sync and the ban check.
+      const enrolled: { id: string; partnerId: string }[] = [];
+
       const results = await Promise.allSettled(
         affiliates.map((affiliate) => {
           const promoterCampaigns = affiliate.promoter_campaigns;
@@ -76,6 +84,7 @@ export async function importPartners(payload: FirstPromoterImportPayload) {
             affiliate,
             group,
             userId,
+            enrolled,
           });
         }),
       );
@@ -88,6 +97,17 @@ export async function importPartners(payload: FirstPromoterImportPayload) {
             result.reason,
           );
         }
+      });
+
+      // Queue an index update because the imported partners were enrolled.
+      // Queued per page rather than per partner.
+      await queuePartnerSearchSync({
+        enrollmentIds: enrolled.map(({ id }) => id),
+      });
+
+      await detectAndRecordNetworkLevelBans({
+        programId: program.id,
+        partnerIds: enrolled.map(({ partnerId }) => partnerId),
       });
     }
 
@@ -108,11 +128,13 @@ async function createPartnerAndLinks({
   affiliate,
   group,
   userId,
+  enrolled,
 }: {
   program: Program;
   affiliate: FirstPromoterPartner;
   group: PartnerGroup & { partnerGroupDefaultLinks: PartnerGroupDefaultLink[] };
   userId: string;
+  enrolled: { id: string; partnerId: string }[];
 }) {
   const partner = await prisma.partner.upsert({
     where: {
@@ -170,41 +192,52 @@ async function createPartnerAndLinks({
     );
   }
 
-  const programEnrollment = await prisma.programEnrollment.upsert({
-    where: {
-      partnerId_programId: {
-        partnerId: partner.id,
-        programId: program.id,
-      },
-    },
-    create: {
-      id: createId({ prefix: "pge_" }),
-      programId: program.id,
+  const { enrollment: programEnrollment, preservedBan } =
+    await upsertImportedProgramEnrollment({
       partnerId: partner.id,
-      status: "approved",
-      groupId: group.id,
-      clickRewardId: group.clickRewardId,
-      leadRewardId: group.leadRewardId,
-      saleRewardId: group.saleRewardId,
-      referralRewardId: group.referralRewardId,
-      discountId: group.discountId,
-    },
-    update: {
-      status: "approved",
-    },
-    include: {
-      links: true,
-    },
+      programId: program.id,
+      create: {
+        id: createId({ prefix: "pge_" }),
+        programId: program.id,
+        partnerId: partner.id,
+        status: "approved",
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        referralRewardId: group.referralRewardId,
+        customRewardId: group.customRewardId,
+        discountId: group.discountId,
+      },
+      include: {
+        links: true,
+      },
+    });
+
+  enrolled.push({
+    id: programEnrollment.id,
+    partnerId: programEnrollment.partnerId,
   });
+
+  if (!preservedBan) {
+    await approveLinkedApplication({
+      applicationId: programEnrollment.applicationId,
+      userId,
+    });
+  }
 
   if (!program.domain || !program.url) {
     console.error("Program domain or url not found", program.id);
-    return;
+    return programEnrollment;
+  }
+
+  if (preservedBan) {
+    return programEnrollment;
   }
 
   if (programEnrollment.links.length > 0) {
     console.log("Partner already has links", partner.id);
-    return;
+    return programEnrollment;
   }
 
   const links = affiliate.promoter_campaigns.map((campaign, idx) => ({
@@ -221,7 +254,16 @@ async function createPartnerAndLinks({
       idx === 0 ? group.partnerGroupDefaultLinks[0]?.id ?? null : null,
   }));
 
-  await bulkCreateLinks({
-    links,
-  });
+  try {
+    await bulkCreateLinks({
+      links,
+    });
+  } catch (error) {
+    console.error(
+      `Failed to create links for imported affiliate ${affiliate.id}`,
+      error,
+    );
+  }
+
+  return programEnrollment;
 }

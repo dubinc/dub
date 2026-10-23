@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { PayoutStatus, Webhook } from "@prisma/client";
 import * as z from "zod/v4";
 import { payoutWebhookEventSchema } from "../zod/schemas/payouts";
+import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "./constants";
 
 interface WebhookPayload {
   webhook: Pick<Webhook, "id" | "installationId">;
@@ -9,7 +10,7 @@ interface WebhookPayload {
   payload: {
     id: string;
     data: z.infer<typeof payoutWebhookEventSchema>;
-    event: "payout.confirmed";
+    event: typeof EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER;
   };
 }
 
@@ -18,8 +19,10 @@ export async function handleExternalPayoutEvent({
   status,
   payload,
 }: WebhookPayload) {
-  if (payload.event !== "payout.confirmed") {
-    console.log("Event is not a payout.confirmed event. Skipping...");
+  if (payload.event !== EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER) {
+    console.log(
+      `Event is not a ${EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER} event. Skipping...`,
+    );
     return;
   }
 

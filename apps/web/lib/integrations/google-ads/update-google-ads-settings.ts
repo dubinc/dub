@@ -9,10 +9,19 @@ import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
 import { inferLoginCustomerId } from "./api";
 import { googleAdsSettingsSchema } from "./schema";
+import { getGoogleAdsEventMappingsError } from "./utils";
 
 const schema = googleAdsSettingsSchema.omit({ customers: true }).extend({
   workspaceId: z.string(),
 });
+
+const uniqueMappingEventNames = (
+  mappings: z.infer<typeof googleAdsSettingsSchema>["leadMappings"],
+) =>
+  mappings.map((mapping) => ({
+    ...mapping,
+    eventNames: [...new Set(mapping.eventNames)],
+  }));
 
 export const updateGoogleAdsSettingsAction = authActionClient
   .inputSchema(schema)
@@ -21,8 +30,9 @@ export const updateGoogleAdsSettingsAction = authActionClient
     const {
       customerId,
       customerName,
-      leadConversionAction,
-      saleConversionAction,
+      loginCustomerId: submittedLoginCustomerId,
+      leadMappings,
+      saleMappings,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -67,13 +77,14 @@ export const updateGoogleAdsSettingsAction = authActionClient
     }
 
     const resolvedLoginCustomerId = customerId
-      ? inferLoginCustomerId({
+      ? submittedLoginCustomerId?.replace(/-/g, "") ||
+        inferLoginCustomerId({
           customers: currentSettings.customers,
           selectedCustomerId: customerId,
         })
       : null;
 
-    if (!customerId && (leadConversionAction || saleConversionAction)) {
+    if (!customerId && (leadMappings.length || saleMappings.length)) {
       throw new Error(
         "A Google Ads account is required to configure conversion actions.",
       );
@@ -84,18 +95,30 @@ export const updateGoogleAdsSettingsAction = authActionClient
       const expectedPrefix = `customers/${normalizedCustomerId}/conversionActions/`;
 
       if (
-        leadConversionAction &&
-        !leadConversionAction.startsWith(expectedPrefix)
+        leadMappings.some(
+          (mapping) => !mapping.conversionAction.startsWith(expectedPrefix),
+        )
       ) {
         throw new Error("Invalid lead conversion action.");
       }
 
       if (
-        saleConversionAction &&
-        !saleConversionAction.startsWith(expectedPrefix)
+        saleMappings.some(
+          (mapping) => !mapping.conversionAction.startsWith(expectedPrefix),
+        )
       ) {
         throw new Error("Invalid sale conversion action.");
       }
+    }
+
+    const leadMappingsError = getGoogleAdsEventMappingsError(leadMappings);
+    if (leadMappingsError) {
+      throw new Error(`Lead events: ${leadMappingsError}`);
+    }
+
+    const saleMappingsError = getGoogleAdsEventMappingsError(saleMappings);
+    if (saleMappingsError) {
+      throw new Error(`Sale events: ${saleMappingsError}`);
     }
 
     await prisma.installedIntegration.update({
@@ -108,8 +131,8 @@ export const updateGoogleAdsSettingsAction = authActionClient
           customerId,
           loginCustomerId: resolvedLoginCustomerId,
           customerName,
-          leadConversionAction,
-          saleConversionAction,
+          leadMappings: uniqueMappingEventNames(leadMappings),
+          saleMappings: uniqueMappingEventNames(saleMappings),
         },
       },
     });

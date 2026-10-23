@@ -1,13 +1,18 @@
 import { getConfigResponse } from "@/lib/api/domains/get-config-response";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
+import { serializeVerificationResponse } from "@/lib/api/domains/serialize-verification-response";
 import { verifyDomainWithRetry } from "@/lib/api/domains/verify-domain";
 import { withWorkspace } from "@/lib/auth";
-import { discoverDomainConnectIfEligible } from "@/lib/domain-connect/discover";
+import { DEFAULT_DC_SERVICE_SUBDOMAIN } from "@/lib/domain-connect/constants";
+import {
+  discoverDomainConnectIfEligible,
+  fetchDomainConnectTemplateVersion,
+} from "@/lib/domain-connect/discover";
 import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import { prisma } from "@/lib/prisma";
 import { DomainVerificationStatusProps } from "@/lib/types";
-import { getApexDomain } from "@dub/utils";
+import { getApexDomain, getSubdomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const maxDuration = 30;
@@ -34,14 +39,14 @@ export const GET = withWorkspace(
       status = "Domain Not Found";
       return NextResponse.json({
         status,
-        response: { configJson, domainJson },
+        response: serializeVerificationResponse({ domainJson, configJson }),
         domainConnect: null,
       });
     } else if (domainJson.error) {
       status = "Unknown Error";
       return NextResponse.json({
         status,
-        response: { configJson, domainJson },
+        response: serializeVerificationResponse({ domainJson, configJson }),
         domainConnect: null,
       });
     }
@@ -53,7 +58,7 @@ export const GET = withWorkspace(
       status = "Conflicting DNS Records";
       return NextResponse.json({
         status,
-        response: { configJson, domainJson },
+        response: serializeVerificationResponse({ domainJson, configJson }),
         domainConnect: null,
       });
     }
@@ -89,29 +94,41 @@ export const GET = withWorkspace(
 
         return NextResponse.json({
           status,
-          response: {
-            configJson: freshConfig,
+          response: serializeVerificationResponse({
             domainJson: { ...domainJson, verified: true },
-            verificationJson,
-          },
+            configJson: freshConfig,
+          }),
           domainConnect,
         });
       }
 
-      const domainConnect: DomainConnectDiscovery | null =
+      let domainConnect: DomainConnectDiscovery | null =
         await discoverDomainConnectIfEligible(apex, status);
+
+      // links-subdomain v1 cannot write the ownership TXT at _vercel.<apex>.
+      // Vercel still serves that version, so skip auto-configure until it is v2.
+      if (
+        domainConnect?.providerKind === "vercel" &&
+        domainConnect.urlAPI &&
+        getSubdomain(domain.toLowerCase(), apex)
+      ) {
+        const version = await fetchDomainConnectTemplateVersion(
+          domainConnect.urlAPI,
+          DEFAULT_DC_SERVICE_SUBDOMAIN,
+        );
+        if (version !== undefined && version < 2) domainConnect = null;
+      }
 
       return NextResponse.json({
         status,
-        response: { configJson, domainJson, verificationJson },
+        response: serializeVerificationResponse({ domainJson, configJson }),
         domainConnect,
       });
     }
 
-    let prismaResponse: any = null;
     let domainConnect: DomainConnectDiscovery | null = null;
     if (!configJson.misconfigured) {
-      prismaResponse = await prisma.domain.update({
+      await prisma.domain.update({
         where: {
           slug: domain,
         },
@@ -122,7 +139,7 @@ export const GET = withWorkspace(
       });
     } else {
       status = "Invalid Configuration";
-      [prismaResponse, domainConnect] = await Promise.all([
+      [, domainConnect] = await Promise.all([
         prisma.domain.update({
           where: { slug: domain },
           data: { verified: false, lastChecked: new Date() },
@@ -133,7 +150,7 @@ export const GET = withWorkspace(
 
     return NextResponse.json({
       status,
-      response: { configJson, domainJson, prismaResponse },
+      response: serializeVerificationResponse({ domainJson, configJson }),
       domainConnect,
     });
   },

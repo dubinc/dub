@@ -1,4 +1,8 @@
+import { sleep } from "@dub/utils";
+import { assertValidDomainFormat } from "./utils";
+
 export const verifyDomain = async (domain: string) => {
+  assertValidDomainFormat(domain);
   const res = await fetch(
     `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains/${domain.toLowerCase()}/verify?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
@@ -22,7 +26,7 @@ export const verifyDomainWithRetry = async (
   let last: any = null;
   for (let i = 0; i < attempts; i++) {
     if (i > 0) {
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      await sleep(delayMs);
     }
     try {
       last = await verifyDomain(domain);

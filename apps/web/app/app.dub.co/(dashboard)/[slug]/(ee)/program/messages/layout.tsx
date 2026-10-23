@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { usePartnerMessages } from "@/lib/messages/hooks/use-partner-messages";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
@@ -28,9 +29,15 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
 }
 
 function CapableLayout({ children }: { children: ReactNode }) {
-  const { slug: workspaceSlug } = useWorkspace();
+  const { slug: workspaceSlug, role } = useWorkspace();
   const { partnerId } = useParams() as { partnerId?: string };
   const { program } = useProgram();
+
+  const permissionsError = clientAccessCheck({
+    action: "messages.write",
+    role,
+    customPermissionDescription: "message partners",
+  }).error;
 
   const router = useRouter();
 
@@ -44,7 +51,7 @@ function CapableLayout({ children }: { children: ReactNode }) {
 
   return (
     <MessagesContext.Provider value={{ currentPanel, setCurrentPanel }}>
-      <div className="@container/page h-[calc(100dvh-var(--page-top-margin)-var(--page-bottom-margin)-1px)] w-full overflow-hidden rounded-t-[inherit] bg-white">
+      <div className="@container/page h-[calc(100dvh-var(--page-banner-height)-var(--page-top-margin)-var(--page-bottom-margin)-1px)] w-full overflow-hidden rounded-t-[inherit] bg-white">
         <div
           className="@[800px]/page:grid-cols-[min-content_minmax(340px,1fr)] @[800px]/page:translate-x-0 grid h-full translate-x-[calc(var(--current-panel)*-100%)] grid-cols-[100%_100%]"
           style={
@@ -69,22 +76,32 @@ function CapableLayout({ children }: { children: ReactNode }) {
                   />
                 </div>
               </div>
-              <PartnerSelector
-                selectedPartnerId={partnerId ?? null}
-                setSelectedPartnerId={(id) =>
-                  router.push(`/${workspaceSlug}/program/messages/${id}`)
-                }
-                trigger={
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    icon={<Pen2 className="size-4" />}
-                    className="size-8 rounded-lg p-0"
-                  />
-                }
-                matchTriggerWidth={false}
-                optionClassName="sm:max-w-[320px]"
-              />
+              {permissionsError ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  icon={<Pen2 className="size-4" />}
+                  className="size-8 rounded-lg p-0"
+                  disabledTooltip={permissionsError}
+                />
+              ) : (
+                <PartnerSelector
+                  selectedPartnerId={partnerId ?? null}
+                  setSelectedPartnerId={(id) =>
+                    router.push(`/${workspaceSlug}/program/messages/${id}`)
+                  }
+                  trigger={
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      icon={<Pen2 className="size-4" />}
+                      className="size-8 rounded-lg p-0"
+                    />
+                  }
+                  matchTriggerWidth={false}
+                  optionClassName="sm:max-w-[320px]"
+                />
+              )}
             </div>
             <div className="scrollbar-hide grow overflow-y-auto">
               {partnerMessages?.length || isLoading ? (

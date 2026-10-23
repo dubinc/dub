@@ -4,6 +4,7 @@ import {
   parseRegisteredDomainSlugs,
 } from "@/lib/api/domains/is-domain-registration-invoice";
 import { qstash } from "@/lib/cron";
+import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Invoice } from "@prisma/client";
@@ -136,17 +137,22 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
     return `No domains found for invoice ${invoice.id}, skipping...`;
   }
 
-  const qstashResponse = await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/renewal-succeeded`,
-    deduplicationId: `domain-renewal-${invoice.id}`,
-    body: {
+  const { results } = await dispatchWorkflows({
+    name: "renew-domains-workflow",
+    payload: {
       invoiceId: invoice.id,
+    },
+    options: {
+      deduplicationId: `domain-renewal-${invoice.id}`,
+      label: invoice.id,
     },
   });
 
-  if (qstashResponse.messageId) {
-    return `Message sent to Qstash with id ${qstashResponse.messageId}`;
+  const [result] = results;
+
+  if (result?.status === "published") {
+    return `Renew domains workflow triggered for invoice ${invoice.id}`;
   } else {
-    return `Error sending message to Qstash: ${JSON.stringify(qstashResponse)}`;
+    return `Error triggering renew domains workflow for invoice ${invoice.id}: ${result?.lastError}`;
   }
 }

@@ -16,14 +16,17 @@ import { DiscountProviderError } from "./discount-error";
 
 const MAX_ATTEMPTS = 3;
 
-async function requireInstalledIntegration(
-  workspace: Pick<Project, "id" | "stripeConnectId">,
-) {
+type Workspace = Pick<
+  Project,
+  "id" | "environment" | "stripeConnectId" | "stripeConnectMode"
+>;
+
+async function requireInstalledIntegration(workspace: Workspace) {
   if (!workspace.stripeConnectId) {
     throw new DiscountProviderError(
       "stripe",
       "INTEGRATION_NOT_AVAILABLE",
-      "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create a discount.",
+      `STRIPE_CONNECTION_REQUIRED: Your workspace (${workspace.environment}) isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create a discount.`,
     );
   }
 
@@ -32,13 +35,16 @@ async function requireInstalledIntegration(
       projectId: workspace.id,
       integrationId: STRIPE_INTEGRATION_ID,
     },
+    select: {
+      settings: true,
+    },
   });
 
   if (!installation) {
     throw new DiscountProviderError(
       "stripe",
       "INTEGRATION_NOT_AVAILABLE",
-      "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create a discount.",
+      `STRIPE_CONNECTION_REQUIRED: Your workspace (${workspace.environment}) isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create a discount.`,
     );
   }
 
@@ -47,7 +53,6 @@ async function requireInstalledIntegration(
   );
 
   return {
-    ...installation,
     settings,
   };
 }
@@ -77,10 +82,10 @@ function createStripeDiscountProvider() {
     couponId: string;
     workspace: Project;
   }) => {
-    const { settings } = await requireInstalledIntegration(workspace);
+    await requireInstalledIntegration(workspace);
 
     const stripeApp = stripeAppClient({
-      mode: settings.stripeMode,
+      mode: workspace.stripeConnectMode,
     });
 
     try {
@@ -115,14 +120,17 @@ function createStripeDiscountProvider() {
     group,
     data,
   }: {
-    workspace: Project;
-    group: PartnerGroup;
-    data: z.infer<typeof createDiscountSchema>;
+    workspace: Workspace;
+    group: Pick<PartnerGroup, "name">;
+    data: Pick<
+      z.infer<typeof createDiscountSchema>,
+      "amount" | "type" | "maxDuration"
+    >;
   }) => {
-    const { settings } = await requireInstalledIntegration(workspace);
+    await requireInstalledIntegration(workspace);
 
     const stripeApp = stripeAppClient({
-      mode: settings.stripeMode,
+      mode: workspace.stripeConnectMode,
     });
 
     const stripeCouponData = dubDiscountToStripeCoupon({
@@ -155,7 +163,7 @@ function createStripeDiscountProvider() {
     code,
     shouldRetry = true,
   }: {
-    workspace: Pick<Project, "id" | "stripeConnectId">;
+    workspace: Workspace;
     discount: Pick<DiscountProps, "id" | "couponId" | "amount" | "type">;
     code: string;
     shouldRetry?: boolean; // we don't retry if the code is provided by the user
@@ -163,7 +171,7 @@ function createStripeDiscountProvider() {
     const { settings } = await requireInstalledIntegration(workspace);
 
     const stripeApp = stripeAppClient({
-      mode: settings.stripeMode,
+      mode: workspace.stripeConnectMode,
     });
 
     if (!discount.couponId) {
@@ -262,13 +270,13 @@ function createStripeDiscountProvider() {
     workspace,
     code,
   }: {
-    workspace: Pick<Project, "id" | "stripeConnectId">;
+    workspace: Workspace;
     code: string;
   }) => {
-    const { settings } = await requireInstalledIntegration(workspace);
+    await requireInstalledIntegration(workspace);
 
     const stripeApp = stripeAppClient({
-      mode: settings.stripeMode,
+      mode: workspace.stripeConnectMode,
     });
 
     try {
@@ -322,7 +330,7 @@ function createStripeDiscountProvider() {
   const assertDiscountIntegration = async ({
     workspace,
   }: {
-    workspace: Pick<Project, "id" | "stripeConnectId" | "shopifyStoreId">;
+    workspace: Workspace;
   }) => {
     await requireInstalledIntegration(workspace);
   };

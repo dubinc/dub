@@ -3,6 +3,7 @@ import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
+import { UserSchema } from "./users";
 import { centsSchema } from "./utils";
 
 export const submittedLeadSchema = z.object({
@@ -115,3 +116,45 @@ export const updateSubmittedLeadStatusSchema = z.discriminatedUnion("status", [
     status: z.literal("closedLost"),
   }),
 ]);
+
+export const MAX_SUBMITTED_LEAD_COMMENT_LENGTH = 2000;
+
+export const SubmittedLeadCommentSchema = z.object({
+  id: z.string(),
+  leadId: z.string(),
+  userId: z.string(),
+  partnerId: z.string().nullable(),
+  text: z.string(),
+  partnerVisible: z.boolean(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  user: UserSchema.pick({
+    id: true,
+    name: true,
+    image: true,
+  }),
+});
+
+export const createSubmittedLeadCommentSchema = z.object({
+  workspaceId: z.string(),
+  leadId: z.string(),
+  text: z.string().trim().min(1).max(MAX_SUBMITTED_LEAD_COMMENT_LENGTH),
+  partnerVisible: z.boolean().default(false),
+});
+
+export const updateSubmittedLeadCommentSchema = z.object({
+  workspaceId: z.string(),
+  commentId: z.string(),
+  text: z.string().trim().min(1).max(MAX_SUBMITTED_LEAD_COMMENT_LENGTH),
+});
+
+export const deleteSubmittedLeadCommentSchema = z.object({
+  workspaceId: z.string(),
+  commentId: z.string(),
+});
+
+export const createPartnerSubmittedLeadCommentSchema = z.object({
+  programId: z.string(),
+  leadId: z.string(),
+  text: z.string().trim().min(1).max(MAX_SUBMITTED_LEAD_COMMENT_LENGTH),
+});

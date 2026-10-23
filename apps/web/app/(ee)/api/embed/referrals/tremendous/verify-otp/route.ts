@@ -4,7 +4,9 @@ import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { prisma } from "@/lib/prisma";
 import { TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS } from "@/lib/tremendous/constants";
-import { ratelimit, redis } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { TREMENDOUS_SUPPORTED_COUNTRIES } from "@dub/utils";
@@ -31,16 +33,10 @@ export const POST = withReferralsEmbedToken(
     const { email, code } = verifyOtpSchema.parse(await parseRequestBody(req));
     const { partnerId } = programEnrollment;
 
-    const { success } = await ratelimit(10, "24 h").limit(
-      `tremendous-verify-otp:${partnerId}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Too many requests. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.tremendousVerifyOtp,
+      identifier: partnerId,
+    });
 
     const emailDomain = extractEmailDomain(email)!;
 
@@ -80,8 +76,17 @@ export const POST = withReferralsEmbedToken(
         id: true,
         country: true,
         defaultPayoutMethod: true,
+        networkStatus: true,
       },
     });
+
+    if (partner.networkStatus === "banned") {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "Your partner account is banned, so you can't connect a payout method.",
+      });
+    }
 
     if (
       partner.country &&
@@ -154,6 +159,10 @@ export const POST = withReferralsEmbedToken(
             id: partner.id,
             defaultPayoutMethod: null,
             payoutsEnabledAt: null,
+            // A ban saved after the check above must not enable payouts
+            networkStatus: {
+              not: "banned",
+            },
           },
           data: {
             tremendousEmail: email,

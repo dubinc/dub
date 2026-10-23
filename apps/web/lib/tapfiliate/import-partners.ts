@@ -2,8 +2,12 @@ import { prisma } from "@/lib/prisma";
 import { PartnerGroup, Program } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { WorkspaceProps } from "../types";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -26,6 +30,8 @@ export async function importPartners(payload: TapfiliateImportPayload) {
           clickRewardId: true,
           leadRewardId: true,
           saleRewardId: true,
+          referralRewardId: true,
+          customRewardId: true,
           discountId: true,
         },
       },
@@ -83,6 +89,10 @@ export async function importPartners(payload: TapfiliateImportPayload) {
       break;
     }
 
+    // Filled as soon as each enrollment is saved, so a partner whose later step
+    // throws still reaches the search sync and the ban check.
+    const enrolledPartnerIds: string[] = [];
+
     const partnersPromise = await Promise.allSettled(
       affiliates.map((affiliate) => {
         let group = defaultGroup;
@@ -99,6 +109,7 @@ export async function importPartners(payload: TapfiliateImportPayload) {
           group,
           userId,
           importId,
+          enrolledPartnerIds,
         });
       }),
     );
@@ -109,6 +120,15 @@ export async function importPartners(payload: TapfiliateImportPayload) {
           p.status === "fulfilled" && p.value != null,
       )
       .map((p) => p.value);
+
+    // Queue an index update because the imported partners were enrolled.
+    // Queued per page rather than per partner.
+    await queuePartnerSearchSync({ partnerIds: enrolledPartnerIds, programId });
+
+    await detectAndRecordNetworkLevelBans({
+      programId,
+      partnerIds: enrolledPartnerIds,
+    });
 
     if (partnerIds.length > 0) {
       await tapfiliateImporter.trackImportedPartnerIds({
@@ -168,6 +188,7 @@ async function createPartnerAndLinks({
   group,
   userId,
   importId,
+  enrolledPartnerIds,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan">;
   program: Pick<
@@ -177,10 +198,17 @@ async function createPartnerAndLinks({
   affiliate: TapfiliatePartner;
   group: Pick<
     PartnerGroup,
-    "id" | "discountId" | "clickRewardId" | "leadRewardId" | "saleRewardId"
+    | "id"
+    | "discountId"
+    | "clickRewardId"
+    | "leadRewardId"
+    | "saleRewardId"
+    | "referralRewardId"
+    | "customRewardId"
   >;
   userId: string;
   importId: string;
+  enrolledPartnerIds: string[];
 }) {
   if (!affiliate.email) {
     await logImportError({
@@ -213,13 +241,9 @@ async function createPartnerAndLinks({
     update: {},
   });
 
-  const { links } = await prisma.programEnrollment.upsert({
-    where: {
-      partnerId_programId: {
-        partnerId: partner.id,
-        programId: program.id,
-      },
-    },
+  const { enrollment, preservedBan } = await upsertImportedProgramEnrollment({
+    partnerId: partner.id,
+    programId: program.id,
     create: {
       id: createId({ prefix: "pge_" }),
       programId: program.id,
@@ -229,12 +253,11 @@ async function createPartnerAndLinks({
       clickRewardId: group.clickRewardId,
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
+      referralRewardId: group.referralRewardId,
+      customRewardId: group.customRewardId,
       discountId: group.discountId,
     },
-    update: {
-      status: "approved",
-    },
-    select: {
+    include: {
       links: {
         select: {
           key: true,
@@ -243,7 +266,18 @@ async function createPartnerAndLinks({
     },
   });
 
-  if (links.length > 0 && links.some((link) => link.key === affiliate.id)) {
+  enrolledPartnerIds.push(partner.id);
+
+  if (preservedBan) {
+    return partner.id;
+  }
+
+  await approveLinkedApplication({
+    applicationId: enrollment.applicationId,
+    userId,
+  });
+
+  if (enrollment.links.some((link) => link.key === affiliate.id)) {
     console.log(
       `Partner ${partner.email} already has a link with key ${affiliate.id}, skipping...`,
     );

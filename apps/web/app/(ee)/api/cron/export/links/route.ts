@@ -82,7 +82,7 @@ export async function POST(req: Request) {
 
     const { folderIds } = await validateLinksQueryFilters({
       ...filters,
-      userId,
+      sessionUserId: userId,
       workspace: {
         ...workspace,
         plan: workspace.plan as PlanProps,

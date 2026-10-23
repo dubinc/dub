@@ -1,4 +1,5 @@
 export * from "./client";
+export * from "./delete-customer-events";
 export * from "./get-click-event";
 export * from "./get-lead-event";
 export * from "./record-click";

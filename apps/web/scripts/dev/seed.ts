@@ -1,6 +1,8 @@
 import { createId } from "@/lib/api/create-id";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
+import { createStagingProgram } from "@/lib/sandbox/create-staging-program";
+import { createStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
 import {
   Domain,
   EmailDomain,
@@ -45,6 +47,7 @@ type Workspace = Pick<
   | "webhookEnabled"
   | "dotLinkClaimed"
   | "fastDirectDebitPayouts"
+  | "publishableKey"
 >;
 
 type DomainSeed = Pick<Domain, "id" | "slug" | "verified">;
@@ -57,6 +60,7 @@ type RewardSeed = Pick<
   Reward,
   | "id"
   | "programId"
+  | "groupId"
   | "event"
   | "type"
   | "amountInCents"
@@ -296,6 +300,7 @@ const createRewards = async (data: SeedData) => {
     data: rewards.map((reward) => ({
       id: reward.id,
       programId: program.id,
+      groupId: reward.groupId ?? null,
       event: reward.event,
       type: reward.type,
       amountInCents: reward.amountInCents,
@@ -464,13 +469,35 @@ const createPartners = async (data: SeedData) => {
     `Created ${notificationPreferencesCount} partner notification preferences`,
   );
 
+  const applications = partners.map((partner) => ({
+    id: createId({ prefix: "pga_" }),
+    programId: program.id,
+    partnerId: partner.id,
+    groupId: program.defaultGroupId,
+    name: partner.name,
+    email: partner.email ?? `${partner.id}@dub-internal-test.com`,
+    country: partner.country,
+    formData: { fields: [] },
+    status: "pending" as const,
+    createdAt: new Date(partner.createdAt),
+  }));
+
+  const { count: applicationCount } =
+    await prisma.programApplication.createMany({
+      data: applications,
+    });
+
+  console.log(`Created ${applicationCount} program applications`);
+
   // Create program enrollments
   const { count: enrollmentCount } = await prisma.programEnrollment.createMany({
-    data: partners.map((partner) => ({
+    data: partners.map((partner, index) => ({
       id: createId({ prefix: "pge_" }),
       partnerId: partner.id,
       programId: program.id,
       groupId: program.defaultGroupId,
+      applicationId: applications[index].id,
+      status: "pending" as const,
     })),
   });
 
@@ -513,6 +540,12 @@ const truncate = async () => {
   });
 
   const tables = [
+    "Job",
+    "jackson_index",
+    "jackson_store",
+    "jackson_ttl",
+    "OAuthCode",
+    "OAuthApp",
     "InstalledIntegration",
     "FolderWebhook",
     "LinkWebhook",
@@ -527,7 +560,10 @@ const truncate = async () => {
     "VerificationToken",
     "EmailVerificationToken",
     "NotificationPreference",
+    "UserNotificationPreferences",
     "Integration",
+    "LinkReward",
+    "SubmittedLead",
     "Commission",
     "PartnerComment",
     "Payout",
@@ -538,32 +574,57 @@ const truncate = async () => {
     "Discount",
     "FolderAccessRequest",
     "EmailDomain",
+    "MessageAttachment",
+    "NotificationEmail",
     "Message",
     "PartnerGroupDefaultLink",
     "FolderUser",
     "Folder",
     "Link",
     "Workflow",
+    "BountyPartnerTag",
     "BountyGroup",
     "BountySubmission",
     "Bounty",
+    "CampaignPartnerTag",
     "CampaignGroup",
     "Campaign",
+    "FraudAlert",
     "FraudEvent",
     "FraudEventGroup",
     "FraudRule",
     "ActivityLog",
+    "ProgramPartnerTag",
     "ProgramApplicationEvent",
     "ProgramApplication",
     "ProgramEnrollment",
     "PartnerGroup",
+    "PartnerNotificationPreferences",
     "PartnerUser",
+    "Postback",
+    "PartnerIndustryInterest",
+    "PartnerPreferredEarningStructure",
+    "PartnerSalesChannel",
+    "PartnerPlatform",
+    "PartnerRewind",
     "Partner",
     "PartnerInvite",
     "Domain",
+    "Account",
+    "Session",
+    "Dashboard",
     "ProjectUsers",
     "User",
+    "PartnerTag",
+    "ProgramCategory",
+    "ProgramSimilarity",
+    "DiscoveredPartner",
     "Program",
+    "RegisteredDomain",
+    "DefaultDomains",
+    "ProjectInvite",
+    "SentEmail",
+    "YearInReview",
     "Project",
   ];
 
@@ -616,9 +677,12 @@ async function main() {
   await createDomains(data);
   await createFolders(data);
   await createProgram(data);
+  await createStagingWorkspace(data.workspace.id);
   await createEmailDomains(data);
   await createRewards(data);
   await createGroups(data);
+  await createStagingProgram(data.workspace.id);
+  console.log("Created staging workspace and program");
   await createPartners(data);
   await createIntegrations(data);
 }

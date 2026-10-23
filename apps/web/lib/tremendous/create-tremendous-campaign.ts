@@ -1,9 +1,13 @@
 import { logger, toErrorFields } from "@/lib/axiom/server";
 import { prisma } from "@/lib/prisma";
+import { fetchWithTimeout } from "@dub/utils";
 import { Program } from "@prisma/client";
 import { CampaignsApi, CreateCampaign200Response } from "tremendous";
 import { tremendousConfiguration } from "./configuration";
-import { TREMENDOUS_PRODUCT_IDS } from "./constants";
+import {
+  TREMENDOUS_LOGO_CONTENT_TYPES,
+  TREMENDOUS_PRODUCT_IDS,
+} from "./constants";
 
 export async function createTremendousCampaign(
   program: Pick<Program, "id" | "tremendousCampaignId" | "name" | "logo">,
@@ -22,7 +26,7 @@ export async function createTremendousCampaign(
       fee_charged_to: "RECIPIENT",
       webpage_style: {
         headline: `${program.name} sent you a {{ amount }} gift card`,
-        logo_image_url: program.logo,
+        logo_image_url: await getTremendousLogoUrl(program.logo),
       },
     });
 
@@ -67,4 +71,37 @@ export async function createTremendousCampaign(
 
     throw error;
   }
+}
+
+// Tremendous rejects WebP and AVIF logos, which programs can upload.
+// For those, pass a PNG copy from wsrv.nl. Tremendous copies the image
+// to its own storage, so it reads this URL only once.
+async function getTremendousLogoUrl(logo: string | null) {
+  if (!logo) {
+    return null;
+  }
+
+  try {
+    const response = await fetchWithTimeout(logo, { method: "HEAD" });
+    const contentType = response.headers
+      .get("content-type")
+      ?.split(";")[0]
+      .trim()
+      .toLowerCase();
+
+    if (contentType && TREMENDOUS_LOGO_CONTENT_TYPES.includes(contentType)) {
+      return logo;
+    }
+  } catch (error) {
+    console.error(
+      `[getTremendousLogoUrl] Failed to read the content type of ${logo}`,
+      error,
+    );
+  }
+
+  const pngUrl = new URL("https://wsrv.nl");
+  pngUrl.searchParams.set("url", logo);
+  pngUrl.searchParams.set("output", "png");
+
+  return pngUrl.toString();
 }

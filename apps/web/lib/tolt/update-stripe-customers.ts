@@ -1,16 +1,14 @@
 import { prisma } from "@/lib/prisma";
+import { sleep } from "@dub/utils";
 import { Customer, Project } from "@prisma/client";
 import Stripe from "stripe";
+
 import { stripeAppClient } from "../stripe";
 import { logImportError } from "../tinybird/log-import-error";
 import { MAX_BATCHES, toltImporter } from "./importer";
 import { ToltImportPayload } from "./types";
 
 const CUSTOMERS_PER_BATCH = 20;
-
-const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { mode: "live" }),
-});
 
 // Tolt API doesn't return the Stripe customer ID,
 // so we'll search for Stripe customers by email and update the customer record with the Stripe customer ID, if found.
@@ -27,6 +25,7 @@ export async function updateStripeCustomers(payload: ToltImportPayload) {
           id: true,
           slug: true,
           stripeConnectId: true,
+          stripeConnectMode: true,
         },
       },
     },
@@ -43,6 +42,10 @@ export async function updateStripeCustomers(payload: ToltImportPayload) {
     });
     return;
   }
+
+  const stripe = stripeAppClient({
+    mode: workspace.stripeConnectMode,
+  });
 
   let hasMore = true;
   let processedBatches = 0;
@@ -78,6 +81,7 @@ export async function updateStripeCustomers(payload: ToltImportPayload) {
     await Promise.allSettled(
       customers.map((customer) =>
         searchStripeAndUpdateCustomer({
+          stripe,
           workspace,
           customer,
           importId,
@@ -85,7 +89,7 @@ export async function updateStripeCustomers(payload: ToltImportPayload) {
       ),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await sleep(2000);
 
     processedBatches++;
     startingAfter = customers[customers.length - 1].id;
@@ -99,10 +103,12 @@ export async function updateStripeCustomers(payload: ToltImportPayload) {
 }
 
 async function searchStripeAndUpdateCustomer({
+  stripe,
   workspace,
   customer,
   importId,
 }: {
+  stripe: Stripe;
   workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
   customer: Pick<Customer, "id" | "email">;
   importId: string;

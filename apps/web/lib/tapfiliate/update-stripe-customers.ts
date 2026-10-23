@@ -1,17 +1,15 @@
 import { prisma } from "@/lib/prisma";
+import { sleep } from "@dub/utils";
 import { Customer, Project } from "@prisma/client";
 import Stripe from "stripe";
 import * as z from "zod/v4";
+
 import { stripeAppClient } from "../stripe";
 import { logImportError } from "../tinybird/log-import-error";
 import { TAPFILIATE_MAX_BATCHES, tapfiliateImporter } from "./importer";
 import { TapfiliateImportPayload } from "./types";
 
 const CUSTOMERS_PER_BATCH = 20;
-
-const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { mode: "live" }),
-});
 
 export async function updateStripeCustomers(payload: TapfiliateImportPayload) {
   const { importId, programId } = payload;
@@ -27,6 +25,7 @@ export async function updateStripeCustomers(payload: TapfiliateImportPayload) {
           id: true,
           slug: true,
           stripeConnectId: true,
+          stripeConnectMode: true,
         },
       },
     },
@@ -43,6 +42,10 @@ export async function updateStripeCustomers(payload: TapfiliateImportPayload) {
     });
     return;
   }
+
+  const stripe = stripeAppClient({
+    mode: workspace.stripeConnectMode,
+  });
 
   let hasMore = true;
   let processedBatches = 0;
@@ -79,6 +82,7 @@ export async function updateStripeCustomers(payload: TapfiliateImportPayload) {
     await Promise.allSettled(
       customers.map((customer) =>
         searchStripeAndUpdateCustomer({
+          stripe,
           workspace,
           customer,
           importId,
@@ -86,7 +90,7 @@ export async function updateStripeCustomers(payload: TapfiliateImportPayload) {
       ),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await sleep(2000);
 
     processedBatches++;
     startingAfter = customers[customers.length - 1].id;
@@ -100,10 +104,12 @@ export async function updateStripeCustomers(payload: TapfiliateImportPayload) {
 }
 
 async function searchStripeAndUpdateCustomer({
+  stripe,
   workspace,
   customer,
   importId,
 }: {
+  stripe: Stripe;
   workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
   customer: Pick<Customer, "id" | "email" | "externalId">;
   importId: string;

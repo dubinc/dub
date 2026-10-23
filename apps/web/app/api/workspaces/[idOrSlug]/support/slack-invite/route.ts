@@ -2,8 +2,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { SLACK_SUPPORT_INVITE_MAX_EMAILS } from "@/lib/constants/misc";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import { requestSlackConnectSupportInvite } from "@/lib/slack/support-invite";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -24,6 +26,11 @@ function dedupeEmails(emails: string[]): string[] {
 // POST /api/workspaces/[idOrSlug]/support/slack-invite — Slack Connect invite to priority support
 export const POST = withWorkspace(
   async ({ workspace, session, req }) => {
+    assertProductionWorkspace(workspace, {
+      message:
+        "Priority Slack support is not available in staging or sandbox workspaces.",
+    });
+
     if (!getPlanCapabilities(workspace.plan).canRequestSlackSupportInvite) {
       throw new DubApiError({
         code: "forbidden",
@@ -72,29 +79,15 @@ export const POST = withWorkspace(
       emails = [email];
     }
 
-    const { success: workspaceSuccess } = await ratelimit(5, "1 d").limit(
-      `slack-support-invite:workspace:${workspace.id}`,
-    );
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.slackSupportInviteWorkspace,
+      identifier: workspace.id,
+    });
 
-    if (!workspaceSuccess) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message:
-          "This workspace has reached the daily limit for Slack invite requests. Please try again tomorrow.",
-      });
-    }
-
-    const { success: userSuccess } = await ratelimit(10, "1 h").limit(
-      `slack-support-invite:${workspace.id}:${session.user.id}`,
-    );
-
-    if (!userSuccess) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message:
-          "You've requested too many Slack invites recently. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.slackSupportInviteUser,
+      identifier: [workspace.id, session.user.id],
+    });
 
     const { inviteIds } = await requestSlackConnectSupportInvite({
       workspaceSlug: workspace.slug,

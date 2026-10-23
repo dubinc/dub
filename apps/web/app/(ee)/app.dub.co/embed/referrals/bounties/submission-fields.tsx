@@ -6,6 +6,7 @@ import {
   BOUNTY_MAX_SUBMISSION_URLS,
 } from "@/lib/bounty/constants";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import { PartnerBountyProps, PartnerPlatformProps } from "@/lib/types";
 import { evaluateSocialContentRequirements } from "@/ui/partners/bounties/evaluate-social-content-requirements";
 import { X } from "@/ui/shared/icons";
@@ -17,7 +18,7 @@ import {
   LoadingSpinner,
   Trash,
 } from "@dub/ui";
-import { cn, formatDate } from "@dub/utils";
+import { cn, formatDate, toErrorMessage } from "@dub/utils";
 import { AlertTriangle } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import ReactTextareaAutosize from "react-textarea-autosize";
@@ -85,7 +86,8 @@ export function EmbedImagesField({
       );
 
       if (!uploadUrlRes.ok) {
-        toast.error("Failed to get signed upload URL.");
+        const { error } = await uploadUrlRes.json();
+        toast.error(toErrorMessage(error, "Failed to get signed upload URL."));
         setFiles((prev) => {
           const updated = prev.filter((f) => f.id !== newFile.id);
           onUploadingChange(updated.some((f) => f.uploading));
@@ -106,7 +108,14 @@ export function EmbedImagesField({
       });
 
       if (!uploadResponse.ok) {
-        toast.error("Failed to upload screenshot.");
+        let errorMessage = "Failed to upload screenshot.";
+        try {
+          const res = await uploadResponse.json();
+          errorMessage = toErrorMessage(res.error, errorMessage);
+        } catch {
+          // ignore JSON parse errors; use the default message
+        }
+        toast.error(errorMessage);
         setFiles((prev) => {
           const updated = prev.filter((f) => f.id !== newFile.id);
           onUploadingChange(updated.some((f) => f.uploading));
@@ -125,10 +134,8 @@ export function EmbedImagesField({
         onUploadingChange(updated.some((f) => f.uploading));
         return updated;
       });
-    } catch {
-      toast.error(
-        "An unexpected error occurred while uploading. Please try again.",
-      );
+    } catch (e) {
+      toast.error(toErrorMessage(e));
       setFiles((prev) => {
         const updated = prev.filter((f) => f.id !== newFile.id);
         onUploadingChange(updated.some((f) => f.uploading));
@@ -186,19 +193,21 @@ export function EmbedImagesField({
         ))}
 
         <FileUpload
-          accept="images"
+          acceptedFileTypes={
+            UPLOAD_POLICIES.bountySubmissionImages.contentTypes
+          }
           className={cn(
             "border-border-subtle h-full w-auto rounded-md border",
             files.length > 0 ? "aspect-square" : "aspect-[unset] w-full",
           )}
           iconClassName="size-5 shrink-0"
           variant="plain"
-          content={
-            files.length > 0 ? null : "SVG, JPG, PNG or WEBP\nMax size 5MB"
-          }
+          content={files.length > 0 ? null : "JPG, PNG or WEBP\nMax size 5MB"}
           onChange={async ({ file }) => await handleUpload(file)}
           disabled={files.length >= maxFiles}
-          maxFileSizeMB={5}
+          maxFileSizeMB={
+            UPLOAD_POLICIES.bountySubmissionImages.maxBytes / (1024 * 1024)
+          }
         />
       </div>
     </div>

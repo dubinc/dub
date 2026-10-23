@@ -6,7 +6,13 @@
     "name": "Rural Red Goldfish",
     "email": "rural.red.goldfish@example.com",
     "avatar": "https://api.dub.co/og/avatar/cus_jTrfVKYN3Buc3F80JoqBiY0g",
-    "createdAt": "2024-10-12T04:55:36.007Z"
+    "stripeCustomerId": null,
+    "country": null,
+    "sales": null,
+    "saleAmount": null,
+    "createdAt": "2024-10-12T04:55:36.007Z",
+    "firstSaleAt": null,
+    "subscriptionCanceledAt": null
   },
   "click": {
     "id": "GWGrkftJdYlZD2mq",
@@ -20,6 +26,7 @@
     "browser": "Chrome",
     "os": "Mac OS",
     "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+    "trigger": null,
     "referer": "(direct)",
     "refererUrl": "(direct)",
     "qr": false,
@@ -68,6 +75,7 @@
     "clicks": 882,
     "lastClicked": "2025-01-14T04:49:10.000Z",
     "leads": 3632,
+    "conversions": 0,
     "sales": 2812,
     "saleAmount": 290400,
     "createdAt": "2024-09-02T18:49:56.136Z",
@@ -83,5 +91,6 @@
     "paymentProcessor": "stripe",
     "invoiceId": "INV_AUTi534JCiBUVdYmevCSYQ9G"
   },
+  "partner": null,
   "metadata": null
 }

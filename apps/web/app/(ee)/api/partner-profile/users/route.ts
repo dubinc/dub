@@ -41,6 +41,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     include: {
       user: true,
     },
+    orderBy: {
+      createdAt: "asc",
+    },
   });
 
   const parsedUsers = users.map(({ user, ...rest }) =>
@@ -151,6 +154,13 @@ export const DELETE = withPartnerProfile(
               partnerId: partner.id,
             },
           },
+          include: {
+            user: {
+              select: {
+                defaultPartnerId: true,
+              },
+            },
+          },
         }),
 
         tx.partnerUser.count({
@@ -186,11 +196,24 @@ export const DELETE = withPartnerProfile(
         });
       }
 
-      return tx.partnerUser.delete({
+      const deletedPartnerUser = await tx.partnerUser.delete({
         where: {
           id: userToRemove.id,
         },
       });
+
+      if (userToRemove.user.defaultPartnerId === partner.id) {
+        await tx.user.update({
+          where: {
+            id: userId,
+          },
+          data: {
+            defaultPartnerId: null,
+          },
+        });
+      }
+
+      return deletedPartnerUser;
     });
 
     return NextResponse.json(response);

@@ -1,8 +1,5 @@
 import { createId } from "@/lib/api/create-id";
-import {
-  ATTACHMENT_MIME_TYPE_LABELS,
-  PREVIEWABLE_IMAGE_TYPES,
-} from "./constants";
+import { PREVIEWABLE_IMAGE_TYPES } from "./constants";
 
 export const messageAttachmentsOrderBy = { createdAt: "asc" } as const;
 
@@ -38,20 +35,19 @@ export function sortMessageAttachments<
   );
 }
 
-// Normalize a user-supplied file name
+// Normalize a user-supplied file name into one storage-key segment.
 export function sanitizeFileName(name: string): string {
-  return name
+  const sanitized = name
     .trim()
     .replace(/\s+/g, " ")
-    .replace(/[\x00-\x1F\x7F/\\?#%]/g, (ch) => encodeURIComponent(ch));
-}
+    .replace(/[/\\]/g, "-")
+    .replace(/[\x00-\x1F\x7F?#%]/g, (ch) => encodeURIComponent(ch));
 
-export function getAttachmentTypeLabel(mimeType: string): string {
-  return (
-    ATTACHMENT_MIME_TYPE_LABELS[mimeType] ||
-    mimeType.split("/").pop()?.toUpperCase() ||
-    "FILE"
-  );
+  if (sanitized === "" || sanitized === "." || sanitized === "..") {
+    return "_";
+  }
+
+  return sanitized;
 }
 
 export function isPreviewableImageType(mimeType: string): boolean {

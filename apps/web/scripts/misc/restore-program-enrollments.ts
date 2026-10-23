@@ -27,6 +27,7 @@ import { includeProgramEnrollment } from "@/lib/api/links/include-program-enroll
 import { includeTags } from "@/lib/api/links/include-tags";
 // import { prisma, prismaOld } from "@/lib/prisma";
 import { prisma, prisma as prismaOld } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import "dotenv-flow/config";
 import { stripeAppClient } from "../../lib/stripe";
 import { recordLink } from "../../lib/tinybird";
@@ -42,7 +43,13 @@ async function main() {
     });
 
   const res = await prisma.programEnrollment.createMany({
-    data: programEnrollmentsToRestore,
+    data: programEnrollmentsToRestore.map(
+      ({ partnerPreferences, ...enrollment }) => ({
+        ...enrollment,
+        partnerPreferences:
+          partnerPreferences === null ? Prisma.DbNull : partnerPreferences,
+      }),
+    ),
   });
   console.log(`Restored ${res.count} program enrollments`);
 

@@ -2,11 +2,15 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { prisma } from "@/lib/prisma";
 import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { parseFilterValue } from "@dub/utils";
-import { CommissionStatus, CommissionType } from "@prisma/client";
+import { CommissionStatus, CommissionType, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
 import { getFraudEventGroupEventIds } from "../fraud/get-fraud-event-group-event-ids";
 import { buildPaginationQuery } from "../pagination";
+import {
+  buildCommissionMetadataWhere,
+  parseCommissionMetadataQuery,
+} from "./metadata-filters";
 
 type CommissionsFilters = Omit<
   z.infer<typeof getCommissionsQuerySchema>,
@@ -17,6 +21,17 @@ type CommissionsFilters = Omit<
   fraudEventGroupId?: string;
 };
 
+const commissionIncludes = {
+  customer: true,
+  partner: true,
+  programEnrollment: true,
+  payout: {
+    select: {
+      paidAt: true,
+    },
+  },
+} satisfies Prisma.CommissionInclude;
+
 export async function getCommissions(filters: CommissionsFilters) {
   const {
     invoiceId,
@@ -26,6 +41,7 @@ export async function getCommissions(filters: CommissionsFilters) {
     type,
     customerId,
     payoutId,
+    bountySubmissionId,
     groupId,
     partnerTagId,
     fraudEventGroupId,
@@ -35,7 +51,26 @@ export async function getCommissions(filters: CommissionsFilters) {
     timezone,
     startingAfter,
     endingBefore,
+    query,
   } = filters;
+
+  // Metadata filter
+  const parsedMetadataQuery = parseCommissionMetadataQuery(query);
+  const metadataWhere = buildCommissionMetadataWhere(parsedMetadataQuery);
+
+  // InvoiceId is unique within a program
+  if (invoiceId) {
+    return await prisma.commission.findMany({
+      where: {
+        invoiceId,
+        programId,
+        ...metadataWhere,
+      },
+      include: {
+        ...commissionIncludes,
+      },
+    });
+  }
 
   const paginationQuery = buildPaginationQuery(filters);
 
@@ -105,7 +140,7 @@ export async function getCommissions(filters: CommissionsFilters) {
 
   const statusFilter = status
     ? status
-    : type || customerId || payoutId || partnerId
+    : type || customerId || payoutId || bountySubmissionId || partnerId
       ? undefined
       : {
           notIn: [
@@ -131,53 +166,43 @@ export async function getCommissions(filters: CommissionsFilters) {
   };
 
   return await prisma.commission.findMany({
-    where: invoiceId
-      ? {
-          invoiceId,
-          programId,
-        }
-      : {
-          earnings: {
-            not: 0,
-          },
-          programId,
-          ...(partnerFilter && {
-            partnerId:
-              partnerFilter.sqlOperator === "NOT IN"
-                ? { notIn: partnerFilter.values }
-                : { in: partnerFilter.values },
-          }),
-          status: statusFilter,
-          ...(typeFilter && {
-            type:
-              typeFilter.sqlOperator === "NOT IN"
-                ? { notIn: typeFilter.values }
-                : { in: typeFilter.values },
-          }),
-          customerId,
-          payoutId,
-          ...(eventIds && {
-            eventId: {
-              in: eventIds,
-            },
-          }),
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
-          ...(Object.keys(programEnrollmentFilter).length > 0 && {
-            programEnrollment: programEnrollmentFilter,
-          }),
-        },
-    include: {
-      customer: true,
-      partner: true,
-      programEnrollment: true,
-      payout: {
-        select: {
-          paidAt: true,
-        },
+    where: {
+      earnings: {
+        not: 0,
       },
+      programId,
+      ...(partnerFilter && {
+        partnerId:
+          partnerFilter.sqlOperator === "NOT IN"
+            ? { notIn: partnerFilter.values }
+            : { in: partnerFilter.values },
+      }),
+      status: statusFilter,
+      ...(typeFilter && {
+        type:
+          typeFilter.sqlOperator === "NOT IN"
+            ? { notIn: typeFilter.values }
+            : { in: typeFilter.values },
+      }),
+      customerId,
+      payoutId,
+      bountySubmissionId,
+      ...(eventIds && {
+        eventId: {
+          in: eventIds,
+        },
+      }),
+      createdAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+      ...(Object.keys(programEnrollmentFilter).length > 0 && {
+        programEnrollment: programEnrollmentFilter,
+      }),
+      ...metadataWhere,
+    },
+    include: {
+      ...commissionIncludes,
     },
     ...paginationQuery,
   });

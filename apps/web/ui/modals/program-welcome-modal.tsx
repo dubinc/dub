@@ -32,20 +32,24 @@ function ProgramWelcomeModal({
 
   const NEXT_STEPS = [
     {
-      text: "Create your program application form",
+      text: "Configure your program rewards",
+      href: `/${workspaceSlug}/program/rewards`,
+    },
+    {
+      text: "Publish your program application form",
       href: `/${workspaceSlug}/program/groups/default/branding`,
     },
     {
-      text: "Set up a bank account for partner payouts",
+      text: "Set up conversion tracking",
+      href: `/${workspaceSlug}/settings/tracking`,
+    },
+    {
+      text: "Connect your bank account for partner payouts",
       href: "https://dub.co/help/article/how-to-set-up-bank-account",
     },
     {
       text: "Invite more partners to your program",
       href: "https://dub.co/help/article/inviting-partners",
-    },
-    {
-      text: "Set up click, lead, and sale-based rewards",
-      href: `/${workspaceSlug}/program/rewards`,
     },
   ];
 

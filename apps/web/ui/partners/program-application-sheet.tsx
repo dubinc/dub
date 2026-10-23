@@ -3,11 +3,11 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
 import {
-  DEFAULT_PARTNER_GROUP,
-  PartnerProgramGroupSchema,
-} from "@/lib/zod/schemas/groups";
+  PartnerProfileProgramEnrollmentProps,
+  ProgramProps,
+} from "@/lib/types";
+import { PartnerProgramGroupSchema } from "@/lib/zod/schemas/groups";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
 import {
@@ -38,7 +38,7 @@ interface ProgramApplicationSheetProps {
     ProgramProps,
     "id" | "slug" | "defaultGroupId" | "name" | "domain" | "logo" | "termsUrl"
   >;
-  programEnrollment?: ProgramEnrollmentProps;
+  programEnrollment?: PartnerProfileProgramEnrollmentProps;
   backDestination?: "programs" | "marketplace";
   onSuccess?: () => void;
 }
@@ -55,24 +55,11 @@ function ProgramApplicationSheetContent({
   programEnrollment,
   ...rest
 }: ProgramApplicationSheetProps) {
-  const groupIdOrSlug =
-    programEnrollment?.groupId ||
-    program?.defaultGroupId ||
-    DEFAULT_PARTNER_GROUP.slug;
-
-  const {
-    data: group,
-    isLoading: isGroupLoading,
-    error: groupError,
-  } = useSWR<z.infer<typeof PartnerProgramGroupSchema>>(
-    groupIdOrSlug
-      ? `/api/partner-profile/programs/${program.id}/groups/${groupIdOrSlug}`
-      : null,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  const { data: group, error: groupError } = useSWR<
+    z.infer<typeof PartnerProgramGroupSchema>
+  >(`/api/partner-profile/programs/${program.id}/default-group`, fetcher, {
+    keepPreviousData: true,
+  });
 
   return group ? (
     <ProgramApplicationSheetForm
@@ -118,11 +105,13 @@ function ProgramApplicationSheetForm({
     register,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors, isSubmitting },
   } = form;
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const { executeAsync } = useAction(createProgramApplicationAction, {
     onSuccess: () => {
+      setIsSubmitted(true);
       mutate(`/api/partner-profile/programs/${program!.slug}`);
       onSuccess?.();
     },
@@ -165,10 +154,10 @@ function ProgramApplicationSheetForm({
         onSubmit={handleSubmit(onSubmit)}
         className={cn(
           "flex h-full flex-col transition-opacity duration-200",
-          isSubmitSuccessful && "pointer-events-none opacity-0",
+          isSubmitted && "pointer-events-none opacity-0",
         )}
         {...{
-          inert: isSubmitSuccessful,
+          inert: isSubmitted,
         }}
       >
         <div className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50">
@@ -276,11 +265,11 @@ function ProgramApplicationSheetForm({
       <div
         className={cn(
           "absolute inset-0 flex items-center justify-center transition-[transform,opacity]",
-          isSubmitSuccessful
+          isSubmitted
             ? "translate-y-0 opacity-100"
             : "pointer-events-none translate-y-4 opacity-0",
         )}
-        inert={!isSubmitSuccessful}
+        inert={!isSubmitted}
       >
         <Grid
           cellSize={60}

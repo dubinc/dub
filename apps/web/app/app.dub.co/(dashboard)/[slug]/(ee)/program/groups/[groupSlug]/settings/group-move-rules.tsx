@@ -112,8 +112,13 @@ export function GroupMoveRules() {
     [metricRuleIndexes],
   );
 
+  const hasIncompleteMetricRule = metricRuleIndexes.some(
+    ({ rule }) => !rule.attribute,
+  );
+
   const canAddMetricRule =
-    usedMetricAttributes.length < GROUP_MOVE_METRIC_ATTRIBUTE_KEYS.length;
+    !hasIncompleteMetricRule &&
+    metricRuleIndexes.length < GROUP_MOVE_METRIC_ATTRIBUTE_KEYS.length;
 
   // Source group is only an additional condition after a complete metric rule
   const canAddPartnerGroupCondition =
@@ -220,7 +225,9 @@ export function GroupMoveRules() {
           disabled={!canAddMetricRule && ruleFields.length > 0}
           disabledTooltip={
             !canAddMetricRule && ruleFields.length > 0
-              ? "All rules are in use. Delete existing rules."
+              ? hasIncompleteMetricRule
+                ? "Select an activity before adding another rule"
+                : "All available rules have been added"
               : undefined
           }
         />

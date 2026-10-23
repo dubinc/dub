@@ -1,6 +1,6 @@
 import { decrypt, encrypt } from "@/lib/encryption";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, nanoid, sleep } from "@dub/utils";
 import { InstalledIntegration } from "@prisma/client";
 import * as z from "zod/v4";
 import { redis } from "../../upstash";
@@ -164,7 +164,7 @@ class GoogleAdsOAuthProvider extends OAuthProvider<
 
     while (Date.now() < deadline) {
       const delay = pollIntervalMs + Math.floor(Math.random() * pollIntervalMs);
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      await sleep(delay);
 
       const credentials = await this.loadCredentials(installationId);
 

@@ -10,26 +10,57 @@ import {
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
+import { nullifyPartnerEventRevenue } from "@/lib/partners/hide-partner-revenue";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import {
-  PartnerProfileLinkSchema,
+  parsePartnerProfileEventLink,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { parseFilterValue, serializeError, toCentsNumber } from "@dub/utils";
+import { parseFilterValue, toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/events – get events for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { program, links, totalCommissions, customerDataSharingEnabledAt } =
-      await getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId: params.programId,
-        include: {
-          program: true,
-          links: true,
+    const {
+      program,
+      links,
+      totalCommissions,
+      customerDataSharingEnabledAt,
+      partnerGroup,
+    } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: params.programId,
+      include: {
+        program: {
+          select: {
+            id: true,
+            workspaceId: true,
+            startedAt: true,
+            createdAt: true,
+          },
         },
-      });
+        links: {
+          select: {
+            id: true,
+            domain: true,
+            key: true,
+            partnerLinkDetails: {
+              select: {
+                title: true,
+                comments: true,
+              },
+            },
+          },
+        },
+        partnerGroup: {
+          select: {
+            revenueDataSharingDisabledAt: true,
+          },
+        },
+      },
+    });
 
     if (
       LARGE_PROGRAM_IDS.includes(program.id) &&
@@ -97,32 +128,19 @@ export const GET = withPartnerProfile(
       };
     }
 
-    let events: Awaited<ReturnType<typeof getEvents>> = [];
+    const events = await getEvents({
+      ...parsedParams,
+      workspaceId: program.workspaceId,
+      includeMetadata: false,
+      ...(parsedParams.linkId
+        ? { linkId: parsedParams.linkId }
+        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
+          ? { partnerId: partner.id }
+          : { linkId: parseFilterValue(links.map((link) => link.id)) }),
+      dataAvailableFrom: program.startedAt ?? program.createdAt,
+    });
 
-    try {
-      events = await getEvents({
-        ...parsedParams,
-        workspaceId: program.workspaceId,
-        includeMetadata: false,
-        ...(parsedParams.linkId
-          ? { linkId: parsedParams.linkId }
-          : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
-            ? { partnerId: partner.id }
-            : { linkId: parseFilterValue(links.map((link) => link.id)) }),
-        dataAvailableFrom: program.startedAt ?? program.createdAt,
-      });
-    } catch (error) {
-      // Tinybird times out after 30s on heavy partner queries; return a 400
-      // instead of 500 so the UI can show a retry hint.
-      if (serializeError(error).includes("Timeout exceeded")) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Failed to fetch events. Refresh the page and try again.",
-        });
-      }
-
-      throw error;
-    }
+    const hidePartnerRevenue = isPartnerRevenueHidden(partnerGroup);
 
     const response = events.map((event) => {
       // don't return ip address for partner profile
@@ -130,10 +148,12 @@ export const GET = withPartnerProfile(
       const { ip, click, customer, ...eventRest } = event;
       const { ip: _, ...clickRest } = click;
 
-      return {
+      const mapped = {
         ...eventRest,
         click: clickRest,
-        link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
+        link: event?.link
+          ? parsePartnerProfileEventLink(event.link, links)
+          : null,
         ...(customer && {
           customer: z
             .object({
@@ -154,6 +174,8 @@ export const GET = withPartnerProfile(
             }),
         }),
       };
+
+      return hidePartnerRevenue ? nullifyPartnerEventRevenue(mapped) : mapped;
     });
 
     return NextResponse.json(response);

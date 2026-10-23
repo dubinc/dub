@@ -1,14 +1,10 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
-import { EXTERNAL_PAYOUTS_PROGRAM_IDS } from "@/lib/constants/program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
-import {
-  LINK_CLICK_WEBHOOK_TRIGGER,
-  PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
-  WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
-} from "@/lib/webhook/constants";
+import { LINK_CLICK_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
+import { getAvailableWebhookTriggers } from "@/lib/webhook/utils";
 import { Button, CopyButton, InfoTooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useRouter } from "next/navigation";
@@ -163,19 +159,10 @@ export default function AddEditWebhookForm({
         ? permissionsError
         : undefined;
 
-  const allWebhookTriggers = useMemo(
-    () => [
-      ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
-      ...(defaultProgramId
-        ? PROGRAM_LEVEL_WEBHOOK_TRIGGERS.filter(
-            (trigger) =>
-              trigger !== "payout.confirmed" ||
-              EXTERNAL_PAYOUTS_PROGRAM_IDS.includes(defaultProgramId),
-          )
-        : []),
-    ],
-    [defaultProgramId],
-  );
+  const allWebhookTriggers = getAvailableWebhookTriggers({
+    defaultProgramId,
+    subscribedTriggers: webhook ? webhook.triggers : null,
+  });
 
   return (
     <FormProvider {...methods}>

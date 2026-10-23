@@ -1,6 +1,7 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
+import { mockPayoutCompletion } from "@/lib/sandbox/mock-payout-completion";
 import { log } from "@dub/utils";
 import { PartnerPayoutMethod } from "@prisma/client";
 import * as z from "zod/v4";
@@ -21,11 +22,8 @@ const payloadSchema = z.object({
 // POST /api/cron/payouts/charge-succeeded
 // This route is used to process the charge-succeeded event from Stripe.
 // We're intentionally offloading this to a cron job so we can return a 200 to Stripe immediately.
-export async function POST(req: Request) {
+export const POST = withCron(async ({ rawBody }) => {
   try {
-    const rawBody = await req.text();
-    await verifyQstashSignature({ req, rawBody });
-
     const { invoiceId } = payloadSchema.parse(JSON.parse(rawBody));
 
     const invoice = await prisma.invoice.findUnique({
@@ -38,6 +36,16 @@ export async function POST(req: Request) {
             payouts: {
               where: {
                 status: "processing",
+              },
+            },
+          },
+        },
+        program: {
+          select: {
+            workspace: {
+              select: {
+                id: true,
+                environment: true,
               },
             },
           },
@@ -55,6 +63,18 @@ export async function POST(req: Request) {
       );
     }
 
+    const workspace = invoice.program?.workspace;
+
+    if (!invoice.program || !workspace) {
+      return logAndRespond(
+        `Invoice ${invoiceId} has no program or workspace, skipping...`,
+      );
+    }
+
+    const isProductionWorkspace = isProductionEnvironment(
+      workspace.environment,
+    );
+
     // Set the method for each payout in the invoice to the corresponding partner's default payout method
     await prisma.$executeRaw`
       UPDATE Payout p
@@ -67,8 +87,8 @@ export async function POST(req: Request) {
 
     let fundsAvailable = true;
 
-    // if invoice payment method is card, we need to check if the funds have settled yet
-    if (invoice.paymentMethod === "card") {
+    // for production workspaces, if invoice payment method is card, we need to check if the funds have settled yet
+    if (isProductionWorkspace && invoice.paymentMethod === "card") {
       const fundSettlementTiming = await getFundSettlementTiming(invoice);
       if (!fundSettlementTiming.fundsAvailable) {
         // set fundsAvailable to false so we don't queue any payouts that require funds to be available
@@ -102,6 +122,7 @@ export async function POST(req: Request) {
     await Promise.allSettled([
       // Queue Stripe payouts (need to pass along fundsAvailable to handle stablecoin payouts)
       queueStripePayouts({
+        workspace,
         invoice,
         fundsAvailable,
       }),
@@ -110,16 +131,28 @@ export async function POST(req: Request) {
       ...(fundsAvailable
         ? [
             sendPaypalPayouts({
+              workspace,
               invoice,
             }),
+
             queueTremendousPayouts({
+              workspace,
               invoice,
             }),
           ]
         : []),
 
-      // Queue external payouts (doesn't rely on fundsAvailable)
       queueExternalPayouts(invoice),
+
+      // For non-production workspaces, mock the payout completion
+      ...(!isProductionWorkspace
+        ? [
+            mockPayoutCompletion({
+              workspace,
+              invoice,
+            }),
+          ]
+        : []),
     ]);
 
     return logAndRespond(
@@ -131,6 +164,6 @@ export async function POST(req: Request) {
       type: "cron",
     });
 
-    return handleAndReturnErrorResponse(error);
+    throw error;
   }
-}
+});

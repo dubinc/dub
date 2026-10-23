@@ -1,4 +1,4 @@
-import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
+import { updateProgramDomain } from "@/lib/api/domains/update-program-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -70,34 +70,11 @@ export const PATCH = withWorkspace(
     // - Update all default links across groups to use the new domain
     // - Update all partner links to use the new domain (via cron job)
     if (domain !== defaultLink.domain) {
-      await prisma.$transaction([
-        prisma.program.update({
-          where: {
-            id: programId,
-          },
-          data: {
-            domain,
-          },
-        }),
-
-        prisma.partnerGroupDefaultLink.updateMany({
-          where: {
-            programId,
-          },
-          data: {
-            domain,
-          },
-        }),
-      ]);
-
-      // Queue domain update for all partner links
-      waitUntil(
-        queueDomainUpdate({
-          newDomain: domain,
-          oldDomain: defaultLink.domain,
-          programId,
-        }),
-      );
+      await updateProgramDomain({
+        programId,
+        oldDomain: defaultLink.domain,
+        newDomain: domain,
+      });
     }
 
     if (url !== defaultLink.url) {

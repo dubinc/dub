@@ -342,16 +342,16 @@ test.describe("Event path", () => {
     });
 
     const match = await ctx.createPartner({ hoursAgo: null });
-    const matchClick1 = await trackClick({
+    await setLinkStats({
+      partnerId: match.id,
+      programId: campaign.programId,
+      leads: 1,
+    });
+    const matchClick = await trackClick({
       domain: match.links![0].domain,
       key: match.links![0].key,
     });
-    await trackLead({ clickId: matchClick1.clickId });
-    const matchClick2 = await trackClick({
-      domain: match.links![0].domain,
-      key: match.links![0].key,
-    });
-    await trackLead({ clickId: matchClick2.clickId });
+    await trackLead({ clickId: matchClick.clickId });
 
     const miss = await ctx.createPartner({ hoursAgo: null });
     const missClick = await trackClick({

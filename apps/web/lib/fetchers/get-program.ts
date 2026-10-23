@@ -9,14 +9,29 @@ type Result = Program & {
   groups: GroupWithFormDataProps[];
 };
 
+// Partner pages serialize this loader to the client. Screening config stays on
+// the workspace program API.
+export function omitInternalProgramFields<
+  T extends {
+    applicationScreeningCriteria?: string | null;
+  },
+>(program: T) {
+  const {
+    applicationScreeningCriteria: _applicationScreeningCriteria,
+    ...publicProgram
+  } = program;
+
+  return publicProgram;
+}
+
 export const getProgram = cache(
   async ({ slug, groupSlug }: { slug: string; groupSlug?: string }) => {
     const programData = await prisma.program.findUnique({
       where: {
         slug,
       },
-      ...(groupSlug && {
-        include: {
+      include: {
+        ...(groupSlug && {
           groups: {
             where: {
               slug: groupSlug,
@@ -29,8 +44,8 @@ export const getProgram = cache(
               discount: true,
             },
           },
-        },
-      }),
+        }),
+      },
     });
 
     if (!programData) {
@@ -40,7 +55,7 @@ export const getProgram = cache(
     // If no group slug is provided, return the program data with no rewards or discount
     if (!groupSlug) {
       return {
-        ...programData,
+        ...omitInternalProgramFields(programData),
         group: null,
         rewards: [],
         discount: null,
@@ -74,7 +89,7 @@ export const getProgram = cache(
     const discount = group.discount;
 
     return {
-      ...program,
+      ...omitInternalProgramFields(program),
       group: {
         ...group,
         bounties,

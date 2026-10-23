@@ -11,6 +11,10 @@ export type WebhookHandlerInput<T extends Stripe.Event> = {
   mode: StripeMode;
   workspace: Pick<
     Project,
-    "id" | "stripeConnectId" | "defaultProgramId" | "webhookEnabled"
+    | "id"
+    | "stripeConnectId"
+    | "defaultProgramId"
+    | "webhookEnabled"
+    | "environment"
   >;
 };

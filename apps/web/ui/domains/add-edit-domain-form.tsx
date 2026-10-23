@@ -1,4 +1,5 @@
 import { isValidDomain } from "@/lib/api/domains/is-valid-domain";
+import { testIds } from "@/lib/e2e/test-ids";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
@@ -121,6 +122,8 @@ export function AddEditDomainForm({
   initialDomain,
   fixedDomainSuffix,
   isOnboardingSubdomainFlow = false,
+  submitTestId,
+  domainInputTestId,
 }: {
   props?: DomainProps;
   onSuccess?: (data: DomainProps) => void;
@@ -128,6 +131,8 @@ export function AddEditDomainForm({
   fixedDomainSuffix?: string;
   initialDomain?: string;
   isOnboardingSubdomainFlow?: boolean;
+  submitTestId?: string;
+  domainInputTestId?: string;
 }) {
   const { id: workspaceId, plan } = useWorkspace();
   const [lockDomain, setLockDomain] = useState(true);
@@ -462,6 +467,7 @@ export function AddEditDomainForm({
                       className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
                       placeholder="go.acme.com"
                       autoFocus={!isMobile}
+                      data-testid={domainInputTestId}
                     />
                   )}
                 </div>
@@ -471,7 +477,13 @@ export function AddEditDomainForm({
                   transition={{ ease: "easeInOut", duration: 0.1 }}
                 >
                   <div className="flex items-center justify-between gap-4 p-2 text-sm">
-                    <p>
+                    <p
+                      data-testid={
+                        domainStatus === "available"
+                          ? testIds.onboarding.domainAvailable
+                          : undefined
+                      }
+                    >
                       {domainStatus !== "idle" ? (
                         domainStatus === "invalid" ||
                         domainStatus === "error" ? (
@@ -743,6 +755,7 @@ export function AddEditDomainForm({
           text={props ? "Save changes" : "Add domain"}
           disabled={saveDisabled}
           loading={isSubmitting}
+          data-testid={submitTestId}
         />
       </div>
     </form>

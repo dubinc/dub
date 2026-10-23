@@ -1,3 +1,4 @@
+import { canAccessAdminPath } from "@/lib/auth/admin-access-guard";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { DUB_WORKSPACE_ID } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
@@ -23,7 +24,10 @@ export async function AdminMiddleware(req: NextRequest) {
 
     if (!isAdminUser) {
       return NextResponse.next(); // throw 404 page
-    } else if (path === "/login") {
+    } else if (
+      path === "/login" ||
+      !canAccessAdminPath({ userId: user.id, pathname: path })
+    ) {
       return NextResponse.redirect(new URL("/", req.url));
     }
   }

@@ -10,6 +10,9 @@ export const WEBHOOK_EVENT_ID_PREFIX = "evt_";
 
 export const LINK_CLICK_WEBHOOK_TRIGGER = "link.clicked" as const;
 
+export const EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER =
+  "external_payout.confirmed" as const;
+
 export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
   "link.created",
   "link.updated",
@@ -21,12 +24,13 @@ export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
 
 export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
   "partner.application_submitted",
+  "program_application.created",
   "partner.enrolled",
   "partner.merged",
   "commission.created",
   "bounty.created",
   "bounty.updated",
-  "payout.confirmed",
+  EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER,
   "discount_code.created",
   "discount_code.deleted",
 ] as const;
@@ -35,6 +39,12 @@ export const WEBHOOK_TRIGGERS = [
   ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
   ...PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
 ] as const;
+
+// Maps each deprecated event to the current event that replaces it (Eg: old:new)
+export const DEPRECATED_WEBHOOK_TRIGGERS = new Map<
+  WebhookTrigger,
+  WebhookTrigger
+>([["partner.application_submitted", "program_application.created"]]);
 
 export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
   "link.created": "Occurs whenever a link is created",
@@ -45,6 +55,8 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
   "sale.created": "Occurs whenever a sale is created",
   "partner.application_submitted":
     "Occurs whenever a partner submits an application to your program",
+  "program_application.created":
+    "Occurs whenever a partner submits an application to your program",
   "partner.enrolled":
     "Occurs whenever a partner is enrolled in your program (either their application was approved, they accepted your invite, or via the API)",
   "partner.merged": "Occurs when two partner accounts are merged",
@@ -52,7 +64,8 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
     "Occurs whenever a commission is created for a partner (clawbacks will also trigger this event with a negative amount)",
   "bounty.created": "Occurs whenever a bounty is created in your program",
   "bounty.updated": "Occurs whenever a bounty in your program is updated",
-  "payout.confirmed": "Occurs whenever a payout in your program is confirmed",
+  [EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER]:
+    "Occurs whenever an external payout in your program is confirmed",
   "discount_code.created":
     "Occurs whenever a discount code is created for a partner",
   "discount_code.deleted":

@@ -1,3 +1,5 @@
+import { isPrivateIp } from "@/lib/api/is-private-ip";
+import { assertSafeStorageKey } from "@/lib/storage/assert-safe-storage-key";
 import { OG_AVATAR_URL, R2_URL, fetchWithTimeout } from "@dub/utils";
 import { AwsClient } from "aws4fetch";
 import { promises as dns } from "dns";
@@ -49,7 +51,9 @@ class StorageClient {
     }
 
     const headers = {
-      "Content-Length": uploadBody.size.toString(),
+      "Content-Length": String(
+        uploadBody instanceof Blob ? uploadBody.size : uploadBody.byteLength,
+      ),
       ...opts?.headers,
     };
 
@@ -57,15 +61,14 @@ class StorageClient {
       headers["Content-Type"] = opts.contentType;
     }
 
+    const requestUrl = this.objectRequestUrl(key, bucket);
+
     try {
-      const response = await this.client.fetch(
-        `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
-        {
-          method: "PUT",
-          headers,
-          body: uploadBody,
-        },
-      );
+      const response = await this.client.fetch(requestUrl, {
+        method: "PUT",
+        headers,
+        body: uploadBody,
+      });
 
       if (!response.ok) {
         throw new Error(response.statusText);
@@ -87,13 +90,12 @@ class StorageClient {
     key: string;
     bucket?: BucketType;
   }) {
+    const requestUrl = this.objectRequestUrl(key, bucket);
+
     try {
-      const response = await this.client.fetch(
-        `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
-        {
-          method: "DELETE",
-        },
-      );
+      const response = await this.client.fetch(requestUrl, {
+        method: "DELETE",
+      });
 
       if (!response.ok) {
         throw new Error(response.statusText);
@@ -102,6 +104,69 @@ class StorageClient {
       console.error("storage.delete failed", error);
       throw new Error("Failed to delete file. Please try again later.");
     }
+  }
+
+  // Fetch object metadata (Content-Type, size, eTag) without downloading the body
+  async head({ key, bucket = "public" }: { key: string; bucket?: BucketType }) {
+    const response = await this.client.fetch(
+      this.objectRequestUrl(key, bucket),
+      {
+        method: "HEAD",
+      },
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `storage.head failed (${response.status}): ${response.statusText}`,
+      );
+    }
+
+    const contentLengthHeader = response.headers.get("content-length");
+
+    return {
+      contentType: response.headers.get("content-type"),
+      contentLength: contentLengthHeader
+        ? Number.parseInt(contentLengthHeader, 10)
+        : null,
+      eTag: response.headers.get("etag"),
+    };
+  }
+
+  // Read the first N bytes of an object (for magic-byte sniffing)
+  async getBytes({
+    key,
+    bucket = "public",
+    length = 4100,
+  }: {
+    key: string;
+    bucket?: BucketType;
+    length?: number;
+  }) {
+    const response = await this.client.fetch(
+      this.objectRequestUrl(key, bucket),
+      {
+        method: "GET",
+        headers: {
+          Range: `bytes=0-${Math.max(length - 1, 0)}`,
+        },
+      },
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok && response.status !== 206) {
+      throw new Error(
+        `storage.getBytes failed (${response.status}): ${response.statusText}`,
+      );
+    }
+
+    return new Uint8Array(await response.arrayBuffer());
   }
 
   async getSignedUrl({
@@ -117,9 +182,7 @@ class StorageClient {
     expiresIn: number;
     headers?: Record<string, string>;
   }) {
-    const url = new URL(
-      `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
-    );
+    const url = new URL(this.objectRequestUrl(key, bucket));
 
     url.searchParams.set("X-Amz-Expires", String(expiresIn));
 
@@ -215,6 +278,7 @@ class StorageClient {
     }
   }
 
+  // Uses the same deny-list as `safeFetch` in `lib/api/safe-fetch.ts`.
   private async assertSafeUrl(url: string): Promise<void> {
     const { hostname, protocol } = new URL(url);
 
@@ -230,29 +294,7 @@ class StorageClient {
       address = result.address;
     }
 
-    const addr = address.toLowerCase();
-    const mappedIPv4 = addr.startsWith("::ffff:");
-    const parts = (mappedIPv4 ? addr.slice("::ffff:".length) : address)
-      .split(".")
-      .map(Number);
-    const isPrivateIPv4 =
-      parts.length === 4 &&
-      (parts[0] === 127 || // loopback 127.0.0.0/8
-        parts[0] === 10 || // private 10.0.0.0/8
-        (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) || // private 172.16.0.0/12
-        (parts[0] === 192 && parts[1] === 168) || // private 192.168.0.0/16
-        (parts[0] === 169 && parts[1] === 254) || // link-local 169.254.0.0/16
-        parts[0] === 0); // unspecified 0.0.0.0/8
-
-    const isPrivateIPv6 =
-      addr === "::1" || // loopback
-      addr === "::" || // unspecified
-      mappedIPv4 || // IPv4-mapped IPv6, e.g. ::ffff:127.0.0.1
-      addr.startsWith("fc") || // unique local fc00::/7
-      addr.startsWith("fd") || // unique local fc00::/7
-      /^fe[89ab]/.test(addr); // link-local fe80::/10
-
-    if (isPrivateIPv4 || isPrivateIPv6) {
+    if (isPrivateIp(address)) {
       throw new Error("URL resolves to a private or internal IP address.");
     }
   }
@@ -261,7 +303,11 @@ class StorageClient {
     const maxRedirects = 5;
     let currentUrl = url;
 
-    for (let redirectCount = 0; redirectCount <= maxRedirects; redirectCount++) {
+    for (
+      let redirectCount = 0;
+      redirectCount <= maxRedirects;
+      redirectCount++
+    ) {
       await this.assertSafeUrl(currentUrl);
 
       const response = await fetchWithTimeout(currentUrl, {
@@ -313,6 +359,12 @@ class StorageClient {
       return new Blob([blob], { type: opts.contentType });
     }
     return blob;
+  }
+
+  private objectRequestUrl(key: string, bucket: BucketType) {
+    assertSafeStorageKey(key);
+
+    return `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`;
   }
 
   private _getBucketName(bucket: BucketType) {

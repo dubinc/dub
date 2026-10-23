@@ -63,6 +63,7 @@ export default function UpdateDefaultWorkspace() {
           <WorkspaceSelector
             selectedWorkspace={selectedWorkspace || ""}
             setSelectedWorkspace={setSelectedWorkspace}
+            showAddWorkspaceButton={false}
           />
         </div>
       </div>

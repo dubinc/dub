@@ -1,3 +1,4 @@
+import { testIds } from "@/lib/e2e/test-ids";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
@@ -12,7 +13,10 @@ import { OnboardingPlatformsPageClient } from "./page-client";
 export default function OnboardingPlatformsPage() {
   return (
     <div className="mx-auto flex w-full max-w-[430px] flex-col text-center md:mt-4">
-      <h1 className="animate-slide-up-fade text-center text-xl font-semibold [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
+      <h1
+        className="animate-slide-up-fade text-center text-xl font-semibold [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]"
+        data-testid={testIds.partnerOnboarding.platforms}
+      >
         Your social and web platforms
       </h1>
 

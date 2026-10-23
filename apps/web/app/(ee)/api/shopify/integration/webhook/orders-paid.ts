@@ -1,28 +1,28 @@
-import { qstash } from "@/lib/cron";
-import { createShopifySale } from "@/lib/integrations/shopify/create-sale";
 import {
-  attributeViaDiscountCode,
-  processOrder,
-} from "@/lib/integrations/shopify/process-order";
-import { orderSchema } from "@/lib/integrations/shopify/schema";
+  shopifyCheckoutCache,
+  tryDispatchShopifyOrderJob,
+} from "@/lib/integrations/shopify/checkout-cache";
+import { shopifyOrderSchema } from "@/lib/integrations/shopify/schema";
+import { processShopifyOrderJob } from "@/lib/jobs/handlers/process-shopify-order-job";
 import { prisma } from "@/lib/prisma";
+import { getClickEvent } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
-import { redis } from "@/lib/upstash";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
 export async function ordersPaid({
   event,
   workspace,
 }: {
   event: any;
-  workspace: Pick<WorkspaceProps, "id" | "defaultProgramId" | "webhookEnabled">;
+  workspace: Pick<WorkspaceProps, "id" | "defaultProgramId">;
 }) {
+  const order = shopifyOrderSchema.parse(event);
   const {
     customer: orderCustomer,
     checkout_token: checkoutToken,
     discount_codes: discountCodes,
-  } = orderSchema.parse(event);
+  } = order;
 
+  // If the order has a customer, try to find the customer in our database
   if (orderCustomer) {
     const { id: externalId } = orderCustomer;
 
@@ -33,17 +33,24 @@ export async function ordersPaid({
           externalId: externalId.toString(),
         },
       },
+      select: {
+        id: true,
+      },
     });
 
-    // customer is found, process the order right away
     if (customer) {
-      await processOrder({
-        event,
-        workspaceId: workspace.id,
-        customerId: customer.id,
-      });
+      await processShopifyOrderJob.dispatch(
+        {
+          order,
+          clickId: null,
+          workspaceId: workspace.id,
+        },
+        {
+          deduplicationId: `shopify-order-${checkoutToken}`,
+        },
+      );
 
-      return "[Shopify] Order event processed successfully.";
+      return `[Shopify] Existing customer ${customer.id} found. Order queued for processing.`;
     }
   }
 
@@ -65,63 +72,54 @@ export async function ordersPaid({
     });
 
     if (programDiscountCodes.length > 0) {
-      const { customer, leadEvent: leadData } = await attributeViaDiscountCode({
-        event,
-        workspace,
-        link: programDiscountCodes[0].link,
-      });
+      await processShopifyOrderJob.dispatch(
+        {
+          order,
+          clickId: null,
+          workspaceId: workspace.id,
+        },
+        {
+          deduplicationId: `shopify-order-${checkoutToken}`,
+        },
+      );
 
-      await createShopifySale({
-        leadData,
-        event,
-        workspaceId: workspace.id,
-        customerId: customer.id,
-      });
-
-      return "[Shopify] Order event processed successfully with discount codes.";
+      return `[Shopify] Partner discount code ${programDiscountCodes[0].code} found. Order queued for processing.`;
     }
   }
 
-  // Check the cache to see the pixel event for this checkout token exist before publishing the event to the queue
-  const clickId = await redis.hget<string>(
-    `shopify:checkout:${checkoutToken}`,
-    "clickId",
-  );
+  // At this stage, we know the order has no customer or partner discount code
+  // Prefer dubClickId from note_attributes when present; otherwise wait for the pixel
+  let clickId =
+    order.note_attributes.find(({ name }) => name === "dubClickId")?.value ||
+    undefined;
 
-  // clickId is empty, order is not from a Dub link
-  if (clickId === "") {
-    await redis.del(`shopify:checkout:${checkoutToken}`);
+  if (clickId) {
+    const clickEvent = await getClickEvent({ clickId });
 
-    return "[Shopify] Order is not from a Dub link. Skipping...";
+    if (!clickEvent) {
+      return "[Shopify] Click event not found. Skipping the order...";
+    }
+
+    if (clickEvent.workspace_id !== workspace.id) {
+      return "[Shopify] Click event not found in the workspace. Skipping the order...";
+    }
   }
 
-  // clickId is found, process the order for the new customer
-  else if (clickId) {
-    await processOrder({
-      event,
+  const checkout = await shopifyCheckoutCache.set({
+    checkoutToken,
+    fields: {
+      order,
       workspaceId: workspace.id,
-      clickId,
-    });
+      ...(clickId && { clickId }),
+    },
+  });
 
-    return "[Shopify] Order event processed successfully.";
-  }
+  const dispatched = await tryDispatchShopifyOrderJob({
+    checkoutToken,
+    checkout,
+  });
 
-  // clickId is not found, we need to wait for the pixel event to come in so that we can decide if the order is from a Dub link or not
-  else {
-    await redis.hset(`shopify:checkout:${checkoutToken}`, {
-      order: event,
-    });
-
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/shopify/order-paid`,
-      body: {
-        checkoutToken,
-        workspaceId: workspace.id,
-      },
-      retries: 5,
-      delay: 3,
-    });
-
-    return "[Shopify] clickId not found, waiting for pixel event to arrive...";
-  }
+  return dispatched
+    ? `[Shopify] Click ID ${checkout.clickId} found. Order queued for processing.`
+    : "[Shopify] Waiting for pixel event to arrive...";
 }

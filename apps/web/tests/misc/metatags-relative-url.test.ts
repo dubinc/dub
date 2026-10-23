@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("server-only", () => ({}));
+
 import { getRelativeUrl } from "../../app/api/links/metatags/utils";
 
 const PAGE = "https://example.com/blog/post";

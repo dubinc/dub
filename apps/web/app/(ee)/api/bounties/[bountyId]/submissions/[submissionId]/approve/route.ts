@@ -38,7 +38,7 @@ export const POST = withWorkspace(
     return NextResponse.json(approvedSubmission);
   },
   {
+    requiredPermissions: ["bounties.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );

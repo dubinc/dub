@@ -1,6 +1,13 @@
+import { RESERVED_WORKSPACE_SLUG_SUFFIXES } from "@/lib/sandbox/constants";
 import { workspaceSiteVisitTrackingSettingsFieldSchema } from "@/lib/sitemaps/site-visit-tracking";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
-import { DubProduct, PlanPeriod, WorkspaceRole } from "@prisma/client";
+import {
+  DubProduct,
+  PlanPeriod,
+  StripeConnectMode,
+  WorkspaceEnvironment,
+  WorkspaceRole,
+} from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
 import { DomainSchema } from "./domains";
@@ -68,10 +75,20 @@ export const WorkspaceSchema = z
       .date()
       .nullable()
       .describe("The date and time when the payment failed for the workspace."),
+    disabledAt: z
+      .date()
+      .nullable()
+      .describe("The date and time when the workspace was disabled."),
     stripeConnectId: z
       .string()
       .nullable()
       .describe("The Stripe Connect ID of the workspace."),
+    stripeConnectMode: z
+      .enum(StripeConnectMode)
+      .nullish()
+      .describe(
+        "The Stripe mode the workspace's Stripe account is connected in.",
+      ),
     totalLinks: z
       .number()
       .describe("The total number of links in the workspace."),
@@ -176,6 +193,8 @@ export const WorkspaceSchema = z
       .meta({ example: ["dub.sh"] }),
     ssoEmailDomain: z.string().nullable(),
     ssoEnforcedAt: z.date().nullable(),
+    environment: z.enum(WorkspaceEnvironment),
+    stagingWorkspaceId: z.string().nullable(),
   })
   .meta({
     title: "Workspace",
@@ -191,7 +210,14 @@ export const createWorkspaceSchema = z.object({
     .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" })
     .refine((v) => !(RESERVED_SLUGS.includes(v) || DEFAULT_REDIRECTS[v]), {
       message: "Cannot use reserved slugs",
-    }),
+    })
+    .refine(
+      (v) =>
+        !RESERVED_WORKSPACE_SLUG_SUFFIXES.some((suffix) => v.endsWith(suffix)),
+      {
+        message: "Slugs ending in -staging or -sandbox are reserved",
+      },
+    ),
   logo: z
     .union([uploadedImageSchema, googleUserContentUrlSchema])
     .transform((v) => v || null)
@@ -243,9 +269,11 @@ export const workspaceStoreKeys = z.enum([
   "analyticsSettingsConversionTrackingEnabled", // boolean
   "analyticsSettingsSiteVisitTrackingEnabled", // boolean
   "analyticsSettingsOutboundDomainTrackingEnabled", // boolean
+  "analyticsSettingsSelectedStack", // string[]
   "analyticsSettingsConnectionSetupComplete", // boolean
   "analyticsSettingsLeadTrackingSetupComplete", // boolean
   "analyticsSettingsSaleTrackingSetupComplete", // boolean
+  "analyticsSettingsInstallationVerified", // { hostname, verifiedAt, user }
 ]);
 
 export const getWorkspaceUsersQuerySchema = z.object({

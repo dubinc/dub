@@ -60,6 +60,11 @@ export const GET = withPartnerProfile(
       take: 100,
     });
 
-    return NextResponse.json(z.array(activityLogSchema).parse(activityLogs));
+    // Hide the workspace user who made each change from the partner
+    return NextResponse.json(
+      z
+        .array(activityLogSchema)
+        .parse(activityLogs.map((log) => ({ ...log, user: null }))),
+    );
   },
 );

@@ -3,13 +3,12 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { qstash } from "@/lib/cron";
+import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
+import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
+import { publishDiscountCodesCreationJob } from "@/lib/jobs/handlers/publish-discount-codes-creation-job";
 import { prisma } from "@/lib/prisma";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
@@ -31,80 +30,65 @@ export const updateDiscountAction = authActionClient
       discountId,
     });
 
-    const { program, partnerGroup, ...updatedDiscount } =
-      await prisma.discount.update({
-        where: {
-          id: discountId,
-        },
-        data: {
-          couponTestId: couponTestId || null,
-          ...(autoProvision !== undefined && {
-            autoProvisionEnabledAt: autoProvision
-              ? discount.autoProvisionEnabledAt ?? new Date()
-              : null,
-          }),
-        },
-        include: {
-          program: true,
-          partnerGroup: true,
-        },
-      });
+    const updatedDiscount = await prisma.discount.update({
+      where: {
+        id: discountId,
+      },
+      data: {
+        couponTestId: couponTestId || null,
+        ...(autoProvision !== undefined && {
+          autoProvisionEnabledAt: autoProvision
+            ? discount.autoProvisionEnabledAt ?? new Date()
+            : null,
+        }),
+      },
+    });
+
+    const shouldExpireCache =
+      discount.couponTestId !== updatedDiscount.couponTestId;
+
+    if (shouldExpireCache) {
+      revalidateProgramPublicPages(programId);
+    }
+
+    await Promise.all([
+      ...(shouldExpireCache
+        ? [
+            invalidateLinksForDiscountsJob.dispatch(
+              {
+                by: "discount",
+                programId,
+                discountId: discount.id,
+              },
+              { label: discount.id },
+            ),
+          ]
+        : []),
+
+      ...(updatedDiscount.autoProvisionEnabledAt
+        ? [
+            publishDiscountCodesCreationJob.dispatch(
+              { discountId: discount.id },
+              { label: discount.id },
+            ),
+          ]
+        : []),
+    ]);
 
     waitUntil(
-      (async () => {
-        const shouldExpireCache =
-          discount.couponTestId !== updatedDiscount.couponTestId;
-
-        await Promise.allSettled([
-          ...(shouldExpireCache
-            ? [
-                qstash.publishJSON({
-                  url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-                  body: {
-                    groupId: partnerGroup?.id,
-                  },
-                }),
-
-                // we only cache default group pages for now so we need to invalidate them
-                ...(partnerGroup?.slug === DEFAULT_PARTNER_GROUP.slug
-                  ? [
-                      revalidatePath(`/partners.dub.co/${program.slug}`),
-                      revalidatePath(`/partners.dub.co/${program.slug}/apply`),
-                      program.addedToMarketplaceAt &&
-                        revalidatePath(
-                          `/partners.dub.co/marketplace/${program.slug}`,
-                        ),
-                    ]
-                  : []),
-              ]
-            : []),
-
-          ...(updatedDiscount.autoProvisionEnabledAt
-            ? [
-                qstash.publishJSON({
-                  url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create/queue-batches`,
-                  body: {
-                    discountId: discount.id,
-                  },
-                }),
-              ]
-            : []),
-
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "discount.updated",
-            description: `Discount ${discount.id} updated`,
-            actor: user,
-            targets: [
-              {
-                type: "discount",
-                id: discount.id,
-                metadata: updatedDiscount,
-              },
-            ],
-          }),
-        ]);
-      })(),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "discount.updated",
+        description: `Discount ${discount.id} updated`,
+        actor: user,
+        targets: [
+          {
+            type: "discount",
+            id: discount.id,
+            metadata: updatedDiscount,
+          },
+        ],
+      }),
     );
   });

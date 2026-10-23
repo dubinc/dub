@@ -5,12 +5,12 @@ import { PartnerProps } from "@/lib/types";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { ExceededEventsLimit } from "@/ui/partners/overview/exceeded-events-limit";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { ArrowRight, LoadingSpinner } from "@dub/ui";
+import { LoadingSpinner } from "@dub/ui";
 import { currencyFormatter, fetcher, nFormatter } from "@dub/utils";
-import Link from "next/link";
 import { useContext } from "react";
 import useSWR from "swr";
 import { ProgramOverviewBlock } from "../program-overview-block";
+import { ProgramOverviewRow } from "../program-overview-row";
 
 export function PartnersBlock() {
   const { slug: workspaceSlug, exceededEvents } = useWorkspace();
@@ -38,8 +38,10 @@ export function PartnersBlock() {
     <ProgramOverviewBlock
       title={`Top partners by ${program?.primaryRewardEvent === "lead" ? "leads" : "revenue"}`}
       viewAllHref={`/${workspaceSlug}/program/partners`}
+      className="pb-3.5"
+      contentClassName="px-3"
     >
-      <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
+      <div className="@2xl:h-[257px] flex h-auto flex-col">
         {exceededEvents ? (
           <ExceededEventsLimit />
         ) : isLoading ? (
@@ -56,15 +58,13 @@ export function PartnersBlock() {
           </div>
         ) : (
           data?.slice(0, 6).map((partner) => (
-            <Link
+            <ProgramOverviewRow
               key={partner.partnerId}
               href={`/${workspaceSlug}/program/partners/${partner.partnerId}`}
-              className="text-content-default group flex h-10 items-center justify-between text-xs font-medium"
             >
               <div className="flex min-w-0 items-center gap-2">
                 <PartnerAvatar partner={partner.partner} className="size-4" />
                 <span className="min-w-0 truncate">{partner.partner.name}</span>
-                <ArrowRight className="text-content-emphasis size-2.5 -translate-x-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100 [&_*]:stroke-2" />
               </div>
 
               <span>
@@ -72,7 +72,7 @@ export function PartnersBlock() {
                   ? nFormatter(partner.leads, { full: true })
                   : currencyFormatter(partner.saleAmount)}
               </span>
-            </Link>
+            </ProgramOverviewRow>
           ))
         )}
       </div>

@@ -8,7 +8,8 @@ import {
   parseTrackedSitemaps,
   replaceTrackedSitemapsInColumn,
 } from "@/lib/sitemaps/site-visit-tracking";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -43,15 +44,10 @@ export const POST = withWorkspace(
       });
     }
 
-    const rateLimitKey = `sitemap-import:${workspace.id}:${sitemapUrl ?? "all"}`;
-    const { success } = await ratelimit(5, "1 m").limit(rateLimitKey);
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message:
-          "Sitemap import was requested too recently. Please wait a minute and try again.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.sitemapImport,
+      identifier: [workspace.id, sitemapUrl ?? "all"],
+    });
 
     const selectedDomain = await getSiteLinksDomain(
       workspace.id,

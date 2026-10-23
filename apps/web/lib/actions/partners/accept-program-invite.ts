@@ -1,5 +1,6 @@
 "use server";
 
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { generateDiscountCodeForPartner } from "@/lib/discounts/generate-discount-code-for-partner";
@@ -45,6 +46,9 @@ export const acceptProgramInviteAction = authPartnerActionClient
       },
     });
 
+    // Queue an index update because the enrollment status moved to approved.
+    waitUntil(queuePartnerSearchSync({ enrollmentIds: [enrollment.id] }));
+
     waitUntil(
       (async () => {
         const workspace = await prisma.project.findUnique({
@@ -55,7 +59,9 @@ export const acceptProgramInviteAction = authPartnerActionClient
             id: true,
             webhookEnabled: true,
             stripeConnectId: true,
+            stripeConnectMode: true,
             shopifyStoreId: true,
+            environment: true,
           },
         });
 

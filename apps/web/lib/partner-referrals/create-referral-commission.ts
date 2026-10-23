@@ -266,6 +266,7 @@ export const createReferralCommission = async (
       slug: true,
       logo: true,
       supportEmail: true,
+      environment: true,
       groups: true,
       workspace: {
         select: {
@@ -291,6 +292,7 @@ export const createReferralCommission = async (
 
     sendPartnerPostback({
       partnerId: referredByPartnerId,
+      programId,
       event: "commission.created",
       data: commission,
     }),

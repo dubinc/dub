@@ -1,9 +1,8 @@
 import usePartners from "@/lib/swr/use-partners";
 import { PartnerProps } from "@/lib/types";
-import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { Combobox, ComboboxProps } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { PartnerAvatar } from "./partner-avatar";
 
@@ -32,12 +31,15 @@ export function PartnerSelector({
   ...rest
 }: PartnerSelectorProps) {
   const [search, setSearch] = useState("");
-  const [useAsync, setUseAsync] = useState(false);
   const [debouncedSearch] = useDebounce(search, 500);
   const [openPopover, setOpenPopover] = useState(false);
 
+  const trimmedSearch = debouncedSearch.trim();
+
   const { partners, loading } = usePartners({
-    query: useAsync ? { search: debouncedSearch } : undefined,
+    query: trimmedSearch
+      ? { search: trimmedSearch, sortBy: "relevance" }
+      : undefined,
   });
 
   const { partners: selectedPartners, loading: selectedPartnersLoading } =
@@ -46,12 +48,6 @@ export function PartnerSelector({
         ? { partnerIds: [selectedPartnerId] }
         : undefined,
     });
-
-  useEffect(() => {
-    if (partners && !useAsync && partners.length >= PARTNERS_MAX_PAGE_SIZE) {
-      setUseAsync(true);
-    }
-  }, [partners, useAsync]);
 
   const partnerOptions = useMemo(() => {
     return partners?.map((partner) => ({
@@ -103,7 +99,7 @@ export function PartnerSelector({
       placeholder={variant === "header" ? "" : "Select partner"}
       searchPlaceholder="Search partners..."
       onSearchChange={setSearch}
-      shouldFilter={!useAsync}
+      shouldFilter={false}
       matchTriggerWidth
       open={openPopover}
       onOpenChange={setOpenPopover}
