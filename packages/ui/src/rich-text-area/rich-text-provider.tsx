@@ -24,6 +24,7 @@ import { configureCampaignEditorImage } from "./campaign-editor-image";
 import { RichTextLinkHoverTooltip } from "./link-hover-tooltip";
 import { RichTextLinkModal } from "./link-modal";
 import { TableHoverControls } from "./table-hover-controls";
+import { deleteTableStructureOnKey } from "./table-keyboard";
 import { RichTextVariableInfo, suggestions } from "./variables";
 
 export const PROSE_STYLES = {
@@ -258,7 +259,23 @@ export const RichTextProvider = forwardRef<
           : []),
 
         Placeholder.configure({
-          placeholder: () => placeholderRef.current,
+          placeholder: ({ editor }) => {
+            const text = placeholderRef.current;
+            if (!text) return "";
+
+            // TipTap treats a table of empty cells as an empty doc, so the
+            // placeholder would show in the first cell. A table is content.
+            let hasTable = false;
+            editor.state.doc.descendants((node) => {
+              if (hasTable) return false;
+              if (node.type.name === "table") {
+                hasTable = true;
+                return false;
+              }
+            });
+
+            return hasTable ? "" : text;
+          },
           emptyEditorClass:
             "before:content-[attr(data-placeholder)] before:float-left before:text-content-muted before:h-0 before:pointer-events-none",
         }),
@@ -415,6 +432,20 @@ export const RichTextProvider = forwardRef<
             ),
           );
           return true;
+        },
+        handleKeyDown: (view, event) => {
+          if (editorProps?.handleKeyDown?.(view, event)) return true;
+
+          const currentEditor = editorRef.current;
+          if (
+            currentEditor &&
+            features.includes("tables") &&
+            deleteTableStructureOnKey(currentEditor, event)
+          ) {
+            return true;
+          }
+
+          return false;
         },
         handleClick: (view, pos, event) => {
           if (editorProps?.handleClick?.(view, pos, event)) return true;

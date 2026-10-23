@@ -1,76 +1,111 @@
 "use client";
 
 import { cn } from "@dub/utils";
+import { CellSelection } from "@tiptap/pm/tables";
 import type { Editor } from "@tiptap/react";
 import { CSSProperties, ReactNode, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { GripDotsVertical, Plus } from "../icons";
+import { GripDotsVertical, Plus, Trash } from "../icons";
+import { IconTooltip, IconTooltipProvider } from "./icon-tooltip";
 import { useRichTextContext } from "./rich-text-provider";
+import {
+  deleteEditorColumn,
+  deleteEditorRow,
+  deleteEditorTable,
+  textPosInCell,
+} from "./table-keyboard";
 
 const CONTROL_ATTR = "data-table-controls";
 const EDGE_PX = 10;
 
-type HoverZone =
-  | {
-      kind: "add-row";
-      table: HTMLTableElement;
-    }
-  | {
-      kind: "add-col";
-      table: HTMLTableElement;
-    }
-  | {
-      kind: "row";
-      table: HTMLTableElement;
-      row: HTMLTableRowElement;
-      cell: HTMLTableCellElement;
-    }
-  | {
-      kind: "col";
-      table: HTMLTableElement;
-      cell: HTMLTableCellElement;
-    };
+type CellTarget = {
+  table: HTMLTableElement;
+  row: HTMLTableRowElement;
+  cell: HTMLTableCellElement;
+};
+
+type PointerTarget = {
+  table: HTMLTableElement;
+  cell: HTMLTableCellElement | null;
+  addRow: boolean;
+  addCol: boolean;
+};
 
 type MenuState = {
   kind: "row" | "col";
   cellPos: number;
+  target: CellTarget;
 };
 
 export function TableHoverControls() {
   const { editor, editable } = useRichTextContext();
-  const [zone, setZone] = useState<HoverZone | null>(null);
+  const [pointer, setPointer] = useState<PointerTarget | null>(null);
+  const [selectionTarget, setSelectionTarget] = useState<CellTarget | null>(
+    null,
+  );
+  const [editorFocused, setEditorFocused] = useState(false);
   const [menu, setMenu] = useState<MenuState | null>(null);
   const [, setTick] = useState(0);
 
   useEffect(() => {
-    if (!editor || editable === false) return;
+    if (!editor || editable === false || editor.isDestroyed) return;
 
-    const remasure = () => setTick((value) => value + 1);
-    const editorDom = editor.view.dom as HTMLElement;
+    let editorDom: HTMLElement;
+    try {
+      editorDom = editor.view.dom as HTMLElement;
+    } catch {
+      return;
+    }
+
+    const remeasure = () => setTick((value) => value + 1);
+
+    const syncSelection = () => {
+      setSelectionTarget(cellTargetFromSelection(editor));
+      setMenu((current) => (current?.target.cell.isConnected ? current : null));
+      setPointer((current) => (current?.table.isConnected ? current : null));
+    };
+
+    const syncFocus = () => {
+      const active = document.activeElement;
+      setEditorFocused(active === editorDom || editorDom.contains(active));
+    };
 
     const onMouseMove = (event: MouseEvent) => {
       const el = document.elementFromPoint(event.clientX, event.clientY);
       if (el instanceof Element && el.closest(`[${CONTROL_ATTR}]`)) return;
       if (menu) return;
 
-      setZone(getHoverZone(event.clientX, event.clientY, editorDom));
+      setPointer((current) => {
+        const next = getPointerTarget(event.clientX, event.clientY, editorDom);
+        return samePointer(current, next) ? current : next;
+      });
     };
 
+    syncSelection();
+    syncFocus();
     document.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("scroll", remasure, true);
-    window.addEventListener("resize", remasure);
-    editor.on("update", remasure);
+    editorDom.addEventListener("focusin", syncFocus);
+    editorDom.addEventListener("focusout", syncFocus);
+    window.addEventListener("scroll", remeasure, true);
+    window.addEventListener("resize", remeasure);
+    editor.on("selectionUpdate", syncSelection);
+    editor.on("update", syncSelection);
+    editor.on("update", remeasure);
 
     return () => {
       document.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("scroll", remasure, true);
-      window.removeEventListener("resize", remasure);
-      editor.off("update", remasure);
+      editorDom.removeEventListener("focusin", syncFocus);
+      editorDom.removeEventListener("focusout", syncFocus);
+      window.removeEventListener("scroll", remeasure, true);
+      window.removeEventListener("resize", remeasure);
+      editor.off("selectionUpdate", syncSelection);
+      editor.off("update", syncSelection);
+      editor.off("update", remeasure);
     };
   }, [editor, editable, menu]);
 
   useEffect(() => {
-    if (!menu) return;
+    if (!menu || !editor) return;
 
     const onPointerDown = (event: PointerEvent) => {
       if (
@@ -92,314 +127,409 @@ export function TableHoverControls() {
       document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [menu]);
+  }, [menu, editor]);
 
-  if (!editor || editable === false || !zone?.table.isConnected) {
+  if (!editor || editable === false || editor.isDestroyed) return null;
+
+  let editorDom: HTMLElement;
+  try {
+    editorDom = editor.view.dom as HTMLElement;
+  } catch {
     return null;
   }
+  const pointerCell = pointer?.cell ? targetFromCell(pointer.cell) : null;
+  const active =
+    (menu?.target.cell.isConnected ? menu.target : null) ??
+    (pointerCell?.cell.isConnected ? pointerCell : null) ??
+    (editorFocused && selectionTarget?.cell.isConnected
+      ? selectionTarget
+      : null);
 
-  const tableRect = zone.table.getBoundingClientRect();
-  const visible = intersectRect(
-    tableRect,
-    (editor.view.dom as HTMLElement).getBoundingClientRect(),
-  );
+  const edgeTable = pointer?.table.isConnected ? pointer.table : null;
+
+  if (!active && !edgeTable) return null;
 
   const runOnCell = (cellPos: number, command: () => void) => {
     editor.chain().focus().setTextSelection(cellPos).run();
     command();
     setMenu(null);
-    setZone(null);
+    setPointer(null);
   };
 
-  const lastRowCell = zone.table.rows[zone.table.rows.length - 1]?.cells[0];
-  const lastColCell =
-    zone.table.rows[0]?.cells[zone.table.rows[0].cells.length - 1];
+  const tableForEdge = edgeTable ?? active?.table ?? null;
+  const lastRowCell =
+    tableForEdge?.rows[tableForEdge.rows.length - 1]?.cells[0] ?? null;
+  const lastColCell = tableForEdge?.rows[0]
+    ? tableForEdge.rows[0].cells[tableForEdge.rows[0].cells.length - 1]
+    : null;
 
-  const addRowPos = visible && {
-    x: visible.left + visible.width / 2,
-    y: tableRect.bottom,
-  };
+  const tableRect = tableForEdge?.getBoundingClientRect();
+  const visible =
+    tableRect && intersectRect(tableRect, editorDom.getBoundingClientRect());
 
-  const addColPos = visible && {
-    x: tableRect.right,
-    y: visible.top + visible.height / 2,
-  };
+  const addRowPos =
+    pointer?.addRow && visible && tableRect
+      ? { x: visible.left + visible.width / 2, y: tableRect.bottom }
+      : null;
+  const addColPos =
+    pointer?.addCol && visible && tableRect
+      ? { x: tableRect.right, y: visible.top + visible.height / 2 }
+      : null;
 
   let menuPos: { top: number; left: number } | null = null;
-  if (menu && zone.kind === "row") {
-    const rowRect = zone.row.getBoundingClientRect();
-    menuPos = {
-      top: rowRect.top + rowRect.height / 2,
-      left: tableRect.left - 16,
-    };
-  } else if (menu && zone.kind === "col") {
-    const colRect = getColumnRect(zone.table, zone.cell.cellIndex);
-    if (colRect) {
+  if (menu && active) {
+    const anchorRect = active.table.getBoundingClientRect();
+    if (menu.kind === "row") {
+      const rowRect = active.row.getBoundingClientRect();
       menuPos = {
-        top: tableRect.top - 16,
-        left: colRect.left + colRect.width / 2,
+        top: rowRect.top + rowRect.height / 2,
+        left: anchorRect.left - 16,
       };
+    } else {
+      const colRect = getColumnRect(active.table, active.cell.cellIndex);
+      if (colRect) {
+        menuPos = {
+          top: anchorRect.top - 16,
+          left: colRect.left + colRect.width / 2,
+        };
+      }
     }
   }
 
   return createPortal(
-    <div className="pointer-events-none fixed inset-0 z-[99]">
-      {zone.kind === "add-row" && lastRowCell && addRowPos && (
-        <ControlButton
-          label="Add row"
-          style={{
-            top: addRowPos.y,
-            left: addRowPos.x,
-            transform: "translate(-50%, -50%)",
-          }}
-          onClick={() =>
-            runOnCell(posAtCell(editor, lastRowCell), () =>
-              editor.chain().focus().addRowAfter().run(),
-            )
-          }
-        >
-          <Plus className="size-3.5" />
-        </ControlButton>
-      )}
+    <IconTooltipProvider>
+      <div className="pointer-events-none fixed inset-0 z-[99]">
+        {addRowPos && lastRowCell && (
+          <ControlButton
+            label="Add row"
+            className="absolute"
+            style={{
+              top: addRowPos.y,
+              left: addRowPos.x,
+              transform: "translate(-50%, -50%)",
+            }}
+            onClick={() =>
+              runOnCell(posAtCell(editor, lastRowCell), () =>
+                editor.chain().focus().addRowAfter().run(),
+              )
+            }
+          >
+            <Plus className="size-3.5" />
+          </ControlButton>
+        )}
 
-      {zone.kind === "add-col" && lastColCell && addColPos && (
-        <ControlButton
-          label="Add column"
-          style={{
-            top: addColPos.y,
-            left: addColPos.x,
-            transform: "translate(-50%, -50%)",
-          }}
-          onClick={() =>
-            runOnCell(posAtCell(editor, lastColCell), () =>
-              editor.chain().focus().addColumnAfter().run(),
-            )
-          }
-        >
-          <Plus className="size-3.5" />
-        </ControlButton>
-      )}
+        {addColPos && lastColCell && (
+          <ControlButton
+            label="Add column"
+            className="absolute"
+            style={{
+              top: addColPos.y,
+              left: addColPos.x,
+              transform: "translate(-50%, -50%)",
+            }}
+            onClick={() =>
+              runOnCell(posAtCell(editor, lastColCell), () =>
+                editor.chain().focus().addColumnAfter().run(),
+              )
+            }
+          >
+            <Plus className="size-3.5" />
+          </ControlButton>
+        )}
 
-      {zone.kind === "row" && (
-        <RowHandle editor={editor} zone={zone} menu={menu} setMenu={setMenu} />
-      )}
+        {active && (
+          <RowControls
+            editor={editor}
+            editorDom={editorDom}
+            target={active}
+            menu={menu}
+            onDelete={(cellPos) =>
+              runOnCell(cellPos, () => deleteEditorRow(editor))
+            }
+            onToggleMenu={(next) => setMenu(next)}
+          />
+        )}
 
-      {zone.kind === "col" && (
-        <ColumnHandle
-          editor={editor}
-          zone={zone}
-          menu={menu}
-          setMenu={setMenu}
-        />
-      )}
+        {active && (
+          <ColumnControls
+            editor={editor}
+            editorDom={editorDom}
+            target={active}
+            menu={menu}
+            onDelete={(cellPos) =>
+              runOnCell(cellPos, () => deleteEditorColumn(editor))
+            }
+            onToggleMenu={(next) => setMenu(next)}
+          />
+        )}
 
-      {menu && menuPos && (
-        <div
-          data-table-controls=""
-          className="pointer-events-auto absolute min-w-36 rounded-lg border border-neutral-200 bg-white p-1 shadow-md"
-          style={{
-            top: menuPos.top,
-            left: menuPos.left,
-            transform:
-              menu.kind === "row"
-                ? "translate(-100%, -50%)"
-                : "translate(-50%, -100%)",
-          }}
-        >
-          {menu.kind === "row" ? (
-            <>
-              <MenuButton
-                onClick={() =>
-                  runOnCell(menu.cellPos, () =>
-                    editor.chain().focus().addRowBefore().run(),
-                  )
-                }
-              >
-                Insert row above
-              </MenuButton>
-              <MenuButton
-                onClick={() =>
-                  runOnCell(menu.cellPos, () =>
-                    editor.chain().focus().addRowAfter().run(),
-                  )
-                }
-              >
-                Insert row below
-              </MenuButton>
-              <MenuButton
-                danger
-                onClick={() =>
-                  runOnCell(menu.cellPos, () =>
-                    editor.chain().focus().deleteRow().run(),
-                  )
-                }
-              >
-                Delete row
-              </MenuButton>
-              <div className="my-1 h-px bg-neutral-200" />
-              <MenuButton
-                danger
-                onClick={() =>
-                  runOnCell(menu.cellPos, () =>
-                    editor.chain().focus().deleteTable().run(),
-                  )
-                }
-              >
-                Delete table
-              </MenuButton>
-            </>
-          ) : (
-            <>
-              <MenuButton
-                onClick={() =>
-                  runOnCell(menu.cellPos, () =>
-                    editor.chain().focus().addColumnBefore().run(),
-                  )
-                }
-              >
-                Insert column left
-              </MenuButton>
-              <MenuButton
-                onClick={() =>
-                  runOnCell(menu.cellPos, () =>
-                    editor.chain().focus().addColumnAfter().run(),
-                  )
-                }
-              >
-                Insert column right
-              </MenuButton>
-              <MenuButton
-                danger
-                onClick={() =>
-                  runOnCell(menu.cellPos, () =>
-                    editor.chain().focus().deleteColumn().run(),
-                  )
-                }
-              >
-                Delete column
-              </MenuButton>
-              <div className="my-1 h-px bg-neutral-200" />
-              <MenuButton
-                danger
-                onClick={() =>
-                  runOnCell(menu.cellPos, () =>
-                    editor.chain().focus().deleteTable().run(),
-                  )
-                }
-              >
-                Delete table
-              </MenuButton>
-            </>
-          )}
-        </div>
-      )}
-    </div>,
+        {menu && menuPos && (
+          <div
+            data-table-controls=""
+            className="pointer-events-auto absolute min-w-36 rounded-lg border border-neutral-200 bg-white p-1 shadow-md"
+            style={{
+              top: menuPos.top,
+              left: menuPos.left,
+              transform:
+                menu.kind === "row"
+                  ? "translate(-100%, -50%)"
+                  : "translate(-50%, -100%)",
+            }}
+          >
+            {menu.kind === "row" ? (
+              <>
+                <MenuButton
+                  onClick={() =>
+                    runOnCell(menu.cellPos, () =>
+                      editor.chain().focus().addRowBefore().run(),
+                    )
+                  }
+                >
+                  Insert row above
+                </MenuButton>
+                <MenuButton
+                  onClick={() =>
+                    runOnCell(menu.cellPos, () =>
+                      editor.chain().focus().addRowAfter().run(),
+                    )
+                  }
+                >
+                  Insert row below
+                </MenuButton>
+                <MenuButton
+                  danger
+                  onClick={() =>
+                    runOnCell(menu.cellPos, () => deleteEditorRow(editor))
+                  }
+                >
+                  Delete row
+                </MenuButton>
+                <div className="my-1 h-px bg-neutral-200" />
+                <MenuButton
+                  danger
+                  onClick={() =>
+                    runOnCell(menu.cellPos, () => deleteEditorTable(editor))
+                  }
+                >
+                  Delete table
+                </MenuButton>
+              </>
+            ) : (
+              <>
+                <MenuButton
+                  onClick={() =>
+                    runOnCell(menu.cellPos, () =>
+                      editor.chain().focus().addColumnBefore().run(),
+                    )
+                  }
+                >
+                  Insert column left
+                </MenuButton>
+                <MenuButton
+                  onClick={() =>
+                    runOnCell(menu.cellPos, () =>
+                      editor.chain().focus().addColumnAfter().run(),
+                    )
+                  }
+                >
+                  Insert column right
+                </MenuButton>
+                <MenuButton
+                  danger
+                  onClick={() =>
+                    runOnCell(menu.cellPos, () => deleteEditorColumn(editor))
+                  }
+                >
+                  Delete column
+                </MenuButton>
+                <div className="my-1 h-px bg-neutral-200" />
+                <MenuButton
+                  danger
+                  onClick={() =>
+                    runOnCell(menu.cellPos, () => deleteEditorTable(editor))
+                  }
+                >
+                  Delete table
+                </MenuButton>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </IconTooltipProvider>,
     document.body,
   );
 }
 
-function RowHandle({
+function RowControls({
   editor,
-  zone,
+  editorDom,
+  target,
   menu,
-  setMenu,
+  onDelete,
+  onToggleMenu,
 }: {
   editor: Editor;
-  zone: Extract<HoverZone, { kind: "row" }>;
+  editorDom: HTMLElement;
+  target: CellTarget;
   menu: MenuState | null;
-  setMenu: (menu: MenuState | null) => void;
+  onDelete: (cellPos: number) => void;
+  onToggleMenu: (menu: MenuState | null) => void;
 }) {
-  const tableRect = zone.table.getBoundingClientRect();
-  const rowRect = zone.row.getBoundingClientRect();
+  const editorRect = editorDom.getBoundingClientRect();
+  const tableRect = target.table.getBoundingClientRect();
+  const rowRect = target.row.getBoundingClientRect();
+
+  if (rowRect.bottom < editorRect.top || rowRect.top > editorRect.bottom) {
+    return null;
+  }
+  if (tableRect.right < editorRect.left || tableRect.left > editorRect.right) {
+    return null;
+  }
+
+  const top = Math.min(
+    Math.max(rowRect.top + rowRect.height / 2, editorRect.top + 14),
+    editorRect.bottom - 14,
+  );
+  const cellPos = posAtCell(editor, target.cell);
 
   return (
-    <ControlButton
-      label="Row options"
+    <div
+      data-table-controls=""
+      className="pointer-events-auto absolute flex flex-col gap-0.5"
       style={{
-        top: rowRect.top + rowRect.height / 2,
+        top,
         left: tableRect.left,
         transform: "translate(-50%, -50%)",
       }}
-      active={menu?.kind === "row"}
-      onClick={() => {
-        const cellPos = posAtCell(editor, zone.cell);
-        setMenu(menu?.kind === "row" ? null : { kind: "row", cellPos });
-      }}
     >
-      <GripDotsVertical className="size-3.5" />
-    </ControlButton>
+      <ControlButton
+        label="Delete row"
+        danger
+        onClick={() => onDelete(cellPos)}
+      >
+        <Trash className="size-3" />
+      </ControlButton>
+      <ControlButton
+        label="Row options"
+        active={menu?.kind === "row"}
+        onClick={() =>
+          onToggleMenu(
+            menu?.kind === "row" ? null : { kind: "row", cellPos, target },
+          )
+        }
+      >
+        <GripDotsVertical className="size-3.5" />
+      </ControlButton>
+    </div>
   );
 }
 
-function ColumnHandle({
+function ColumnControls({
   editor,
-  zone,
+  editorDom,
+  target,
   menu,
-  setMenu,
+  onDelete,
+  onToggleMenu,
 }: {
   editor: Editor;
-  zone: Extract<HoverZone, { kind: "col" }>;
+  editorDom: HTMLElement;
+  target: CellTarget;
   menu: MenuState | null;
-  setMenu: (menu: MenuState | null) => void;
+  onDelete: (cellPos: number) => void;
+  onToggleMenu: (menu: MenuState | null) => void;
 }) {
-  const tableRect = zone.table.getBoundingClientRect();
-  const colRect = getColumnRect(zone.table, zone.cell.cellIndex);
+  const editorRect = editorDom.getBoundingClientRect();
+  const tableRect = target.table.getBoundingClientRect();
+  const colRect = getColumnRect(target.table, target.cell.cellIndex);
   if (!colRect) return null;
 
+  if (tableRect.bottom < editorRect.top || tableRect.top > editorRect.bottom) {
+    return null;
+  }
+  if (colRect.right < editorRect.left || colRect.left > editorRect.right) {
+    return null;
+  }
+
+  const cellPos = posAtCell(editor, target.cell);
+  const top = Math.max(tableRect.top, editorRect.top + 10);
+
   return (
-    <ControlButton
-      label="Column options"
+    <div
+      data-table-controls=""
+      className="pointer-events-auto absolute flex gap-0.5"
       style={{
-        top: tableRect.top,
+        top,
         left: colRect.left + colRect.width / 2,
         transform: "translate(-50%, -50%)",
       }}
-      active={menu?.kind === "col"}
-      onClick={() => {
-        const cellPos = posAtCell(editor, zone.cell);
-        setMenu(menu?.kind === "col" ? null : { kind: "col", cellPos });
-      }}
     >
-      <GripDotsVertical className="size-3.5 rotate-90" />
-    </ControlButton>
+      <ControlButton
+        label="Delete column"
+        danger
+        onClick={() => onDelete(cellPos)}
+      >
+        <Trash className="size-3" />
+      </ControlButton>
+      <ControlButton
+        label="Column options"
+        active={menu?.kind === "col"}
+        onClick={() =>
+          onToggleMenu(
+            menu?.kind === "col" ? null : { kind: "col", cellPos, target },
+          )
+        }
+      >
+        <GripDotsVertical className="size-3.5 rotate-90" />
+      </ControlButton>
+    </div>
   );
 }
 
 function ControlButton({
   label,
   style,
+  className,
   active,
+  danger,
   onClick,
   children,
 }: {
   label: string;
-  style: CSSProperties;
+  style?: CSSProperties;
+  className?: string;
   active?: boolean;
+  danger?: boolean;
   onClick: () => void;
   children: ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      title={label}
-      style={style}
-      data-table-controls=""
-      onMouseDown={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-      }}
-      onClick={onClick}
-      className={cn(
-        "pointer-events-auto absolute flex size-5 items-center justify-center rounded-md border bg-white text-neutral-500 shadow-sm",
-        "hover:bg-neutral-50 hover:text-neutral-800",
-        active
-          ? "border-neutral-300 bg-neutral-50 text-neutral-800"
-          : "border-neutral-200",
-      )}
-    >
-      {children}
-      <span className="sr-only">{label}</span>
-    </button>
+    <IconTooltip label={label}>
+      <button
+        type="button"
+        style={style}
+        aria-label={label}
+        data-table-controls=""
+        onMouseDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        onClick={onClick}
+        className={cn(
+          "pointer-events-auto flex size-5 items-center justify-center rounded-md border bg-white text-neutral-500 shadow-sm",
+          "hover:bg-neutral-50 hover:text-neutral-800",
+          danger && "hover:border-red-200 hover:bg-red-50 hover:text-red-600",
+          active
+            ? "border-neutral-300 bg-neutral-50 text-neutral-800"
+            : "border-neutral-200",
+          className,
+        )}
+      >
+        {children}
+        <span className="sr-only">{label}</span>
+      </button>
+    </IconTooltip>
   );
 }
 
@@ -432,85 +562,164 @@ function MenuButton({
   );
 }
 
-function getHoverZone(
+function getPointerTarget(
   x: number,
   y: number,
   editorDom: HTMLElement,
-): HoverZone | null {
+): PointerTarget | null {
+  const direct = document.elementFromPoint(x, y);
+  const directCell =
+    direct instanceof Element ? direct.closest("td, th") : null;
+
+  if (
+    directCell instanceof HTMLTableCellElement &&
+    editorDom.contains(directCell)
+  ) {
+    const table = directCell.closest("table");
+    if (table instanceof HTMLTableElement) {
+      return {
+        table,
+        cell: directCell,
+        ...edgeFlags(table, x, y, editorDom),
+      };
+    }
+  }
+
   const clip = editorDom.getBoundingClientRect();
   const tables = editorDom.querySelectorAll("table");
 
-  for (const table of tables) {
+  for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
+    const table = tables[tableIndex];
     if (!(table instanceof HTMLTableElement)) continue;
 
     const rect = table.getBoundingClientRect();
-    const visible = intersectRect(rect, clip);
-    if (!visible) continue;
+    if (!intersectRect(rect, clip)) continue;
 
-    const nearVisible =
-      x >= visible.left - EDGE_PX &&
-      x <= visible.right + EDGE_PX &&
-      y >= visible.top - EDGE_PX &&
-      y <= visible.bottom + EDGE_PX;
+    const near =
+      x >= rect.left - EDGE_PX &&
+      x <= rect.right + EDGE_PX &&
+      y >= rect.top - EDGE_PX &&
+      y <= rect.bottom + EDGE_PX;
 
-    if (!nearVisible) continue;
+    if (!near) continue;
 
-    const distBottom = Math.abs(y - rect.bottom);
-    const distRight = Math.abs(x - rect.right);
-    const distLeft = Math.abs(x - rect.left);
-    const distTop = Math.abs(y - rect.top);
-    const alongX = x >= visible.left && x <= visible.right;
-    const alongY = y >= visible.top && y <= visible.bottom;
-    const bottomVisible = rect.bottom >= clip.top && rect.bottom <= clip.bottom;
-    const rightVisible = rect.right >= clip.left && rect.right <= clip.right;
-    const leftVisible = rect.left >= clip.left && rect.left <= clip.right;
-    const topVisible = rect.top >= clip.top && rect.top <= clip.bottom;
+    const { addRow, addCol } = edgeFlags(table, x, y, editorDom);
+    if (!addRow && !addCol) continue;
 
-    if (
-      bottomVisible &&
-      alongX &&
-      distBottom <= EDGE_PX &&
-      distBottom <= distRight
-    ) {
-      return { kind: "add-row", table };
+    return { table, cell: cellNearPoint(table, x, y), addRow, addCol };
+  }
+
+  return null;
+}
+
+function edgeFlags(
+  table: HTMLTableElement,
+  x: number,
+  y: number,
+  editorDom: HTMLElement,
+) {
+  const rect = table.getBoundingClientRect();
+  const clip = editorDom.getBoundingClientRect();
+  const visible = intersectRect(rect, clip);
+  const alongX = !!visible && x >= visible.left && x <= visible.right;
+  const alongY = !!visible && y >= visible.top && y <= visible.bottom;
+  const bottomVisible = rect.bottom >= clip.top && rect.bottom <= clip.bottom;
+  const rightVisible = rect.right >= clip.left && rect.right <= clip.right;
+
+  return {
+    addRow: bottomVisible && alongX && Math.abs(y - rect.bottom) <= EDGE_PX,
+    addCol: rightVisible && alongY && Math.abs(x - rect.right) <= EDGE_PX,
+  };
+}
+
+function cellNearPoint(table: HTMLTableElement, x: number, y: number) {
+  let closest: HTMLTableCellElement | null = null;
+  let best = Infinity;
+
+  for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+    const row = table.rows[rowIndex];
+    const rowRect = row.getBoundingClientRect();
+    if (y < rowRect.top - EDGE_PX || y > rowRect.bottom + EDGE_PX) continue;
+
+    for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
+      const cell = row.cells[cellIndex];
+      const cellRect = cell.getBoundingClientRect();
+      const dx =
+        x < cellRect.left
+          ? cellRect.left - x
+          : x > cellRect.right
+            ? x - cellRect.right
+            : 0;
+      const dy =
+        y < cellRect.top
+          ? cellRect.top - y
+          : y > cellRect.bottom
+            ? y - cellRect.bottom
+            : 0;
+      const distance = dx + dy;
+      if (distance < best) {
+        best = distance;
+        closest = cell;
+      }
     }
+  }
 
-    if (
-      rightVisible &&
-      alongY &&
-      distRight <= EDGE_PX &&
-      distRight <= distBottom
-    ) {
-      return { kind: "add-col", table };
-    }
+  return closest;
+}
 
-    if (leftVisible && alongY && distLeft <= EDGE_PX && distLeft < distRight) {
-      const row =
-        [...table.rows].find((candidate) => {
-          const rowRect = candidate.getBoundingClientRect();
-          return y >= rowRect.top && y <= rowRect.bottom;
-        }) ?? null;
-      const cell = row?.cells[0];
-      if (row && cell) return { kind: "row", table, row, cell };
-    }
+function samePointer(
+  current: PointerTarget | null,
+  next: PointerTarget | null,
+) {
+  if (current === next) return true;
+  if (!current || !next) return false;
+  return (
+    current.table === next.table &&
+    current.cell === next.cell &&
+    current.addRow === next.addRow &&
+    current.addCol === next.addCol
+  );
+}
 
-    if (topVisible && alongX && distTop <= EDGE_PX && distTop < distBottom) {
-      const header = table.rows[0];
-      const cell = header
-        ? [...header.cells].find((candidate) => {
-            const cellRect = candidate.getBoundingClientRect();
-            return x >= cellRect.left && x <= cellRect.right;
-          }) ?? null
-        : null;
-      if (cell) return { kind: "col", table, cell };
-    }
+function targetFromCell(cell: HTMLTableCellElement): CellTarget | null {
+  const row = cell.parentElement;
+  const table = cell.closest("table");
+  if (
+    !(row instanceof HTMLTableRowElement) ||
+    !(table instanceof HTMLTableElement)
+  ) {
+    return null;
+  }
+  return { table, row, cell };
+}
+
+function cellTargetFromSelection(editor: Editor): CellTarget | null {
+  if (editor.isDestroyed) return null;
+
+  const { selection } = editor.state;
+  const $pos =
+    selection instanceof CellSelection
+      ? selection.$anchorCell
+      : selection.$from;
+
+  for (let depth = $pos.depth; depth > 0; depth--) {
+    const name = $pos.node(depth).type.name;
+    if (name !== "tableCell" && name !== "tableHeader") continue;
+
+    const dom = editor.view.nodeDOM($pos.before(depth));
+    if (!(dom instanceof HTMLTableCellElement)) return null;
+    return targetFromCell(dom);
   }
 
   return null;
 }
 
 function posAtCell(editor: Editor, cell: HTMLTableCellElement) {
-  return editor.view.posAtDOM(cell, 0);
+  try {
+    return textPosInCell(editor, editor.view.posAtDOM(cell, 0));
+  } catch {
+    return editor.state.selection.from;
+  }
 }
 
 function intersectRect(a: DOMRect, b: DOMRect) {
@@ -525,9 +734,11 @@ function intersectRect(a: DOMRect, b: DOMRect) {
 }
 
 function getColumnRect(table: HTMLTableElement, columnIndex: number) {
-  const cells = [...table.rows]
-    .map((row) => row.cells[columnIndex])
-    .filter(Boolean);
+  const cells: HTMLTableCellElement[] = [];
+  for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+    const cell = table.rows[rowIndex]?.cells[columnIndex];
+    if (cell) cells.push(cell);
+  }
 
   if (!cells.length) return null;
 
