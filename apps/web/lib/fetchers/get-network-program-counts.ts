@@ -1,7 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { getPublicNetworkProgramsQuerySchema } from "@/lib/zod/schemas/program-network";
-import { Category, Prisma, ProgramEnrollmentStatus } from "@prisma/client";
+import {
+  Category,
+  Prisma,
+  ProgramEnrollmentStatus,
+  WorkspaceEnvironment,
+} from "@prisma/client";
 import { cache } from "react";
 import * as z from "zod/v4";
 
@@ -38,6 +43,7 @@ export function buildNetworkProgramCountWhereSql({
 
   return Prisma.sql`
     p.addedToMarketplaceAt IS NOT NULL
+    AND p.environment = ${WorkspaceEnvironment.production}
     AND EXISTS (
       SELECT 1 FROM PartnerGroup pg
       WHERE

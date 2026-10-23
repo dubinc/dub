@@ -25,6 +25,8 @@ export async function generateMetadata(props: {
   }
 
   if (program) {
+    const isProduction = isProductionEnvironment(program.environment);
+
     return constructMetadata({
       title: `${program.name} Affiliate Program`,
       description: `Join the ${program.name} affiliate program and ${
@@ -33,8 +35,10 @@ export async function generateMetadata(props: {
           : "earn commissions"
       } by referring ${program.name} to your friends and followers.`,
       image: `${PARTNERS_DOMAIN}/api/og/program?slug=${program.slug}`,
-      canonicalUrl: `${PARTNERS_DOMAIN}/${program.slug}`,
-      noIndex: !isProductionEnvironment(program.environment),
+      ...(isProduction && {
+        canonicalUrl: `${PARTNERS_DOMAIN}/${program.slug}`,
+      }),
+      noIndex: !isProduction,
     });
   }
 

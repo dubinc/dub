@@ -5,6 +5,7 @@ import {
   NetworkProgramSchema,
   getNetworkProgramsQuerySchema,
 } from "@/lib/zod/schemas/program-network";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -24,6 +25,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 
   const programs = await prisma.program.findMany({
     where: {
+      environment: WorkspaceEnvironment.production,
       // Added to marketplace
       addedToMarketplaceAt: {
         not: null,

@@ -9,7 +9,17 @@ import { ProgramApplicationForm } from "@/ui/partners/groups/design/application-
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
+import { getProgramApplyMetadata } from "../get-program-apply-metadata";
 import { ApplyHeader } from "../header";
+
+export async function generateMetadata(props: {
+  params: Promise<{ programSlug: string; groupSlug?: string }>;
+}) {
+  return getProgramApplyMetadata({
+    params: props.params,
+    page: "applicationForm",
+  });
+}
 
 export default async function ApplicationPage(props: {
   params: Promise<{ programSlug: string; groupSlug?: string }>;
@@ -32,11 +42,16 @@ export default async function ApplicationPage(props: {
     !program.group.applicationFormPublishedAt
   ) {
     // for the default group:
-    // - if the program is featured on the marketplace (and not deactivated), redirect to the marketplace program page
+    // - if the program is a production program featured on the marketplace (and not deactivated), redirect to the marketplace program page
     // - otherwise, throw 404
     // for other groups: redirect to the default group variant
     if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
-      if (program && program.addedToMarketplaceAt && !program.deactivatedAt) {
+      if (
+        program &&
+        program.addedToMarketplaceAt &&
+        !program.deactivatedAt &&
+        isProductionEnvironment(program.environment)
+      ) {
         redirect(`/marketplace/${programSlug}`);
       }
       notFound();

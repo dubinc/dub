@@ -9,7 +9,11 @@ import {
   NetworkPartnerSchema,
   getNetworkPartnersQuerySchema,
 } from "@/lib/zod/schemas/partner-network";
-import { PreferredEarningStructure, SalesChannel } from "@prisma/client";
+import {
+  PreferredEarningStructure,
+  SalesChannel,
+  WorkspaceEnvironment,
+} from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -27,6 +31,10 @@ export const GET = withWorkspace(
           where: {
             similarityScore: {
               gt: PROGRAM_SIMILARITY_SCORE_THRESHOLD,
+            },
+            // Ignore stale rows for staging/sandbox programs.
+            similarProgram: {
+              environment: WorkspaceEnvironment.production,
             },
           },
           orderBy: {

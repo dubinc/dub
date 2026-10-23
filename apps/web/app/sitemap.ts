@@ -54,6 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (isAppHostname(domain)) {
     const marketplacePrograms = await prisma.program.findMany({
       where: {
+        environment: WorkspaceEnvironment.production,
         addedToMarketplaceAt: {
           not: null,
         },

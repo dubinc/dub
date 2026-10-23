@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { Category } from "@prisma/client";
+import { Category, WorkspaceEnvironment } from "@prisma/client";
 
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
   const programs = await prisma.program.findMany({
     where: {
+      environment: WorkspaceEnvironment.production,
       addedToMarketplaceAt: {
         not: null,
       },

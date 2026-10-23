@@ -1,43 +1,10 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { getProgramSlugs } from "@/lib/fetchers/get-program-slugs";
-import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { Wordmark } from "@dub/ui";
-import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
-import { constructMetadata } from "@dub/utils/src/functions";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
-
-export async function generateMetadata(props: {
-  params: Promise<{ programSlug: string; groupSlug?: string }>;
-}) {
-  const { programSlug, groupSlug } = await props.params;
-
-  const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
-
-  const program = await getProgram({
-    slug: programSlug,
-    groupSlug: partnerGroupSlug,
-  });
-
-  if (!program) {
-    notFound();
-  }
-
-  return constructMetadata({
-    title: `${program.name} Affiliate Program`,
-    description: `Join the ${program.name} affiliate program and ${
-      program.rewards && program.rewards.length > 0
-        ? formatRewardDescription(program.rewards[0]).toLowerCase()
-        : "earn commissions"
-    } by referring ${program.name} to your friends and followers.`,
-    image: `${APP_DOMAIN}/api/og/program?slug=${program.slug}${groupSlug ? `&groupSlug=${groupSlug}` : ""}`,
-    canonicalUrl: `${PARTNERS_DOMAIN}/${program.slug}`,
-    noIndex: !isProductionEnvironment(program.environment),
-  });
-}
 
 export async function generateStaticParams() {
   const programs = await getProgramSlugs();

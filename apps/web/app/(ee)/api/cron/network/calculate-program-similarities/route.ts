@@ -4,7 +4,7 @@ import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { ProgramSimilarity } from "@prisma/client";
+import { ProgramSimilarity, WorkspaceEnvironment } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { calculateCategorySimilarity } from "./calculate-category-similarity";
@@ -66,6 +66,7 @@ async function calculateProgramSimilarity({
       id: {
         gt: currentProgram.id,
       },
+      environment: WorkspaceEnvironment.production,
       deactivatedAt: null,
       OR: [
         {
@@ -225,6 +226,7 @@ async function findNextProgram({
     return await prisma.program.findUnique({
       where: {
         id: programId,
+        environment: WorkspaceEnvironment.production,
       },
       select: {
         id: true,
@@ -241,6 +243,7 @@ async function findNextProgram({
           gt: afterProgramId,
         },
       }),
+      environment: WorkspaceEnvironment.production,
       OR: [
         {
           addedToMarketplaceAt: {
