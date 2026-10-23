@@ -7,18 +7,23 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import type { PartnerPayoutMethodSetting } from "@/lib/types";
 import { partnerPayoutMethodSchema } from "@/lib/zod/schemas/partner-profile";
 import { getPayoutMethodIconConfig } from "@/ui/partners/payouts/payout-method-config";
-import { Button, Popover } from "@dub/ui";
+import { Button, Popover, Tooltip, TooltipContent } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PartnerPayoutMethod } from "@prisma/client";
 import { ChevronsUpDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { getConnectPayoutDisabledTooltip } from "./connect-payout-disabled-tooltip";
 import { usePayoutConnectFlow } from "./use-payout-connect-flow";
 
 export function PayoutMethodDropdown() {
   const [openPopover, setOpenPopover] = useState(false);
-  const { partner, loading: isPartnerLoading } = usePartnerProfile();
+  const {
+    partner,
+    loading: isPartnerLoading,
+    availablePayoutMethods,
+  } = usePartnerProfile();
 
   const {
     connect,
@@ -84,55 +89,87 @@ export function PayoutMethodDropdown() {
     payoutMethods?.find((m) => m.connected);
 
   const isLoading = isPartnerLoading || isSettingsLoading;
+  const disabledTooltipConfig = useMemo(
+    () =>
+      getConnectPayoutDisabledTooltip({
+        partner,
+        availablePayoutMethods,
+      }),
+    [partner, availablePayoutMethods],
+  );
 
   if (!partner || !hasConnected) {
     return null;
   }
+
+  const triggerContent =
+    isLoading || !selectedMethod ? (
+      <PayoutMethodSkeleton />
+    ) : (
+      <SelectedMethodDisplay method={selectedMethod} />
+    );
 
   return (
     <>
       {BankAccountRequirementsModal}
       {StablecoinPayoutModal}
       <div>
-        <Popover
-          popoverContentClassName="w-[var(--radix-popover-trigger-width)]"
-          content={
-            <div className="relative w-full">
-              <div className="w-full space-y-0.5 rounded-lg bg-white p-1 text-sm">
-                <div className="flex flex-col gap-2">
-                  {payoutMethods?.map((method) => (
-                    <PayoutMethodItem
-                      key={method.type}
-                      method={method}
-                      onAction={handleAction}
-                      onSetDefault={handleSetDefault}
-                      isActionPending={isPending}
-                      pendingDefaultType={pendingDefaultType}
-                    />
-                  ))}
+        {disabledTooltipConfig ? (
+          <Tooltip
+            content={
+              <TooltipContent
+                title={disabledTooltipConfig.title}
+                cta={disabledTooltipConfig.cta}
+                href={disabledTooltipConfig.href}
+              />
+            }
+          >
+            <div
+              className={cn(
+                "flex w-full cursor-not-allowed items-center justify-between rounded-lg bg-white p-2 text-left text-sm",
+                "border border-neutral-200",
+              )}
+            >
+              {triggerContent}
+            </div>
+          </Tooltip>
+        ) : (
+          <Popover
+            popoverContentClassName="w-[var(--radix-popover-trigger-width)]"
+            content={
+              <div className="relative w-full">
+                <div className="w-full space-y-0.5 rounded-lg bg-white p-1 text-sm">
+                  <div className="flex flex-col gap-2">
+                    {payoutMethods?.map((method) => (
+                      <PayoutMethodItem
+                        key={method.type}
+                        method={method}
+                        onAction={handleAction}
+                        onSetDefault={handleSetDefault}
+                        isActionPending={isPending}
+                        pendingDefaultType={pendingDefaultType}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          }
-          align="start"
-          openPopover={openPopover}
-          setOpenPopover={setOpenPopover}
-        >
-          <button
-            type="button"
-            onClick={() => setOpenPopover(!openPopover)}
-            className={cn(
-              "flex w-full cursor-pointer items-center justify-between rounded-lg bg-white p-2 text-left text-sm transition-colors duration-75",
-              "border border-neutral-200 outline-none hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-black/50",
-            )}
+            }
+            align="start"
+            openPopover={openPopover}
+            setOpenPopover={setOpenPopover}
           >
-            {isLoading || !selectedMethod ? (
-              <PayoutMethodSkeleton />
-            ) : (
-              <SelectedMethodDisplay method={selectedMethod} />
-            )}
-          </button>
-        </Popover>
+            <button
+              type="button"
+              onClick={() => setOpenPopover(!openPopover)}
+              className={cn(
+                "flex w-full cursor-pointer items-center justify-between rounded-lg bg-white p-2 text-left text-sm transition-colors duration-75",
+                "border border-neutral-200 outline-none hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-black/50",
+              )}
+            >
+              {triggerContent}
+            </button>
+          </Popover>
+        )}
       </div>
     </>
   );
