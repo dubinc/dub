@@ -10,6 +10,7 @@ import { OG_AVATAR_URL } from "@dub/utils";
 import { Store } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
+import { getProgramApplyMetadata } from "../../get-program-apply-metadata";
 import { ApplyHeader } from "../../header";
 import { CTAButtons } from "./cta-buttons";
 import { Screenshot } from "./screenshot";
@@ -42,6 +43,15 @@ const FEATURES = [
       "Dub gives you the power to track every click, lead, and conversion. Knowledge of non-knowledge is power.",
   },
 ];
+
+export async function generateMetadata(props: {
+  params: Promise<{ programSlug: string; groupSlug?: string }>;
+}) {
+  return getProgramApplyMetadata({
+    params: props.params,
+    page: "applicationForm",
+  });
+}
 
 export default async function SuccessPage(props: {
   params: Promise<{ programSlug: string; groupSlug?: string }>;

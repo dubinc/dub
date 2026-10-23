@@ -9,7 +9,17 @@ import { ProgramApplicationForm } from "@/ui/partners/groups/design/application-
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
+import { getProgramApplyMetadata } from "../get-program-apply-metadata";
 import { ApplyHeader } from "../header";
+
+export async function generateMetadata(props: {
+  params: Promise<{ programSlug: string; groupSlug?: string }>;
+}) {
+  return getProgramApplyMetadata({
+    params: props.params,
+    page: "applicationForm",
+  });
+}
 
 export default async function ApplicationPage(props: {
   params: Promise<{ programSlug: string; groupSlug?: string }>;

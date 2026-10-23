@@ -10,7 +10,14 @@ import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyButton } from "./apply-button";
+import { getProgramApplyMetadata } from "./get-program-apply-metadata";
 import { ApplyHeader } from "./header";
+
+export async function generateMetadata(props: {
+  params: Promise<{ programSlug: string; groupSlug?: string }>;
+}) {
+  return getProgramApplyMetadata({ params: props.params, page: "lander" });
+}
 
 export default async function ApplyPage(props: {
   params: Promise<{ programSlug: string; groupSlug?: string }>;

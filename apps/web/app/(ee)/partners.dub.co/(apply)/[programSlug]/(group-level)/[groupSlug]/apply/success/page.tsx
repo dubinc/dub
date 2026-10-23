@@ -1,1 +1,4 @@
-export { default } from "../../../../(default)/apply/success/page";
+export {
+  default,
+  generateMetadata,
+} from "../../../../(default)/apply/success/page";
