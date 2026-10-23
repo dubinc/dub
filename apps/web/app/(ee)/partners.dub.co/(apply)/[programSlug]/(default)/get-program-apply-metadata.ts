@@ -57,9 +57,11 @@ export async function getProgramApplyMetadata({
     } by referring ${program.name} to your friends and followers.`,
     image: `${APP_DOMAIN}/api/og/program?slug=${program.slug}${groupSlug ? `&groupSlug=${groupSlug}` : ""}`,
     // Avoid self-canonicalizing non-production URLs into the index.
-    // Without a lander, /{slug} 404s or redirects, so point at the application form instead.
+    // Without a lander, /{slug} 404s or redirects, so point at this group's application form instead.
     ...(isProduction && {
-      canonicalUrl: `${PARTNERS_DOMAIN}/${program.slug}${isLanderPublished ? "" : "/apply"}`,
+      canonicalUrl: isLanderPublished
+        ? `${PARTNERS_DOMAIN}/${program.slug}`
+        : `${PARTNERS_DOMAIN}/${program.slug}${partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug ? "" : `/${partnerGroupSlug}`}/apply`,
     }),
     noIndex: !isProduction,
   });
