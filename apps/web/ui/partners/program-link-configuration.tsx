@@ -1,3 +1,5 @@
+import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useDomains from "@/lib/swr/use-domains";
@@ -63,7 +65,7 @@ export function ProgramLinkConfiguration({
 
       <div className="space-y-2">
         <label className="block text-sm font-medium text-neutral-800">
-          Website URL
+          Website URL <span className="text-red-800">*</span>
         </label>
         <Input
           value={url || ""}
@@ -139,14 +141,14 @@ export function ProgramLinkConfiguration({
 }
 
 function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
-  const { slug, trialEndsAt } = useWorkspace();
+  const { slug, trialEndsAt, environment } = useWorkspace();
   const { allWorkspaceDomains: domains, loading: isLoadingDomains } =
     useDomains();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const [state, setState] = useState<"idle" | "select">(
-    domain ? "select" : "idle",
-  );
+  // null = derive from domain (so a domain restored from workspace store shows as selected)
+  const [state, setState] = useState<"idle" | "select" | null>(null);
+  const resolvedState = state ?? (domain ? "select" : "idle");
   const [showSubdomainModal, setShowSubdomainModal] = useState(false);
 
   const { AddEditDomainModal, setShowAddEditDomainModal } =
@@ -181,29 +183,36 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
         },
         loading: isLoadingDomains,
       },
-      trialActive
-        ? {
-            icon: <Wordmark className="h-3 text-neutral-900" />,
-            title: "Use .dub.link subdomain",
-            badge: "Instant setup",
-            badgeClassName: "bg-bg-inverted/10 text-neutral-800",
-            description:
-              "A fast way to launch. Switch to a custom domain later.",
-            onSelect: () => setShowSubdomainModal(true),
-          }
-        : {
-            icon: "https://assets.dub.co/icons/crown.webp",
-            title: "Claim a free .link domain",
-            badge: "No setup",
-            badgeClassName: "bg-green-100 text-green-800",
-            description: "Free for one year with your paid account.",
-            onSelect: () => setShowRegisterDomainModal(true),
-          },
+      ...(trialActive
+        ? [
+            {
+              icon: <Wordmark className="h-3 text-neutral-900" />,
+              title: "Use .dub.link subdomain",
+              badge: "Instant setup",
+              badgeClassName: "bg-bg-inverted/10 text-neutral-800",
+              description:
+                "A fast way to launch. Switch to a custom domain later.",
+              onSelect: () => setShowSubdomainModal(true),
+            },
+          ]
+        : isProductionEnvironment(environment)
+          ? [
+              {
+                icon: "https://assets.dub.co/icons/crown.webp",
+                title: "Claim a free .link domain",
+                badge: "No setup",
+                badgeClassName: "bg-green-100 text-green-800",
+                description: "Free for one year with your paid account.",
+                onSelect: () => setShowRegisterDomainModal(true),
+              },
+            ]
+          : []),
     ],
     [
       domains,
       isLoadingDomains,
       trialActive,
+      environment,
       setShowAddEditDomainModal,
       setShowRegisterDomainModal,
       setShowSubdomainModal,
@@ -237,11 +246,11 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-x-2">
             <label className="block text-sm font-medium text-neutral-800">
-              Program domain
+              Program domain <span className="text-red-800">*</span>
             </label>
             <InfoTooltip content="A connected domain or sub-domain is required to create a program. [Learn more](https://dub.co/help/article/choosing-a-custom-domain)" />
           </div>
-          {state === "select" && (
+          {resolvedState === "select" && (
             <button
               type="button"
               onClick={() => setState("idle")}
@@ -258,7 +267,7 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
         >
           <div className="p-1">
             <AnimatePresence initial={false} mode="popLayout">
-              {state === "idle" && (
+              {resolvedState === "idle" && (
                 <motion.div
                   key="idle"
                   initial={{ opacity: 0, y: -10 }}
@@ -328,7 +337,7 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
                 </motion.div>
               )}
 
-              {state === "select" && (
+              {resolvedState === "select" && (
                 <motion.div
                   key="select"
                   initial={{ opacity: 0, y: 10 }}
@@ -433,7 +442,7 @@ function DubLinkSubdomainForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ slug: domain }),
+        body: JSON.stringify({ slug: domain, isOnboardingSubdomainFlow: true }),
       });
 
       if (!res.ok) {
@@ -588,11 +597,12 @@ function DomainOnboardingSelection({
   domain,
   onDomainChange,
 }: DomainProps & { onBack: () => void }) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const { data: verificationData } = useSWRImmutable<{
     status: DomainVerificationStatusProps;
     response: any;
+    domainConnect?: DomainConnectDiscovery | null;
   }>(
     workspaceId && domain
       ? `/api/domains/${domain}/verify?workspaceId=${workspaceId}`
@@ -623,7 +633,13 @@ function DomainOnboardingSelection({
               transition={{ duration: 0.2 }}
               className="mt-6 overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 px-5 pb-5"
             >
-              <DomainConfiguration data={verificationData} />
+              <DomainConfiguration
+                data={verificationData}
+                domainConnect={verificationData.domainConnect}
+                domain={domain ?? undefined}
+                workspaceId={workspaceId ?? undefined}
+                workspaceSlug={workspaceSlug ?? undefined}
+              />
             </motion.div>
           )}
       </AnimatePresence>

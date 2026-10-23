@@ -1,5 +1,9 @@
+import { isPrivateIp } from "@/lib/api/is-private-ip";
+import { assertSafeStorageKey } from "@/lib/storage/assert-safe-storage-key";
 import { OG_AVATAR_URL, R2_URL, fetchWithTimeout } from "@dub/utils";
 import { AwsClient } from "aws4fetch";
+import { promises as dns } from "dns";
+import { isIP } from "net";
 
 interface imageOptions {
   contentType?: string;
@@ -47,7 +51,9 @@ class StorageClient {
     }
 
     const headers = {
-      "Content-Length": uploadBody.size.toString(),
+      "Content-Length": String(
+        uploadBody instanceof Blob ? uploadBody.size : uploadBody.byteLength,
+      ),
       ...opts?.headers,
     };
 
@@ -55,15 +61,14 @@ class StorageClient {
       headers["Content-Type"] = opts.contentType;
     }
 
+    const requestUrl = this.objectRequestUrl(key, bucket);
+
     try {
-      const response = await this.client.fetch(
-        `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
-        {
-          method: "PUT",
-          headers,
-          body: uploadBody,
-        },
-      );
+      const response = await this.client.fetch(requestUrl, {
+        method: "PUT",
+        headers,
+        body: uploadBody,
+      });
 
       if (!response.ok) {
         throw new Error(response.statusText);
@@ -85,13 +90,12 @@ class StorageClient {
     key: string;
     bucket?: BucketType;
   }) {
+    const requestUrl = this.objectRequestUrl(key, bucket);
+
     try {
-      const response = await this.client.fetch(
-        `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
-        {
-          method: "DELETE",
-        },
-      );
+      const response = await this.client.fetch(requestUrl, {
+        method: "DELETE",
+      });
 
       if (!response.ok) {
         throw new Error(response.statusText);
@@ -100,6 +104,69 @@ class StorageClient {
       console.error("storage.delete failed", error);
       throw new Error("Failed to delete file. Please try again later.");
     }
+  }
+
+  // Fetch object metadata (Content-Type, size, eTag) without downloading the body
+  async head({ key, bucket = "public" }: { key: string; bucket?: BucketType }) {
+    const response = await this.client.fetch(
+      this.objectRequestUrl(key, bucket),
+      {
+        method: "HEAD",
+      },
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `storage.head failed (${response.status}): ${response.statusText}`,
+      );
+    }
+
+    const contentLengthHeader = response.headers.get("content-length");
+
+    return {
+      contentType: response.headers.get("content-type"),
+      contentLength: contentLengthHeader
+        ? Number.parseInt(contentLengthHeader, 10)
+        : null,
+      eTag: response.headers.get("etag"),
+    };
+  }
+
+  // Read the first N bytes of an object (for magic-byte sniffing)
+  async getBytes({
+    key,
+    bucket = "public",
+    length = 4100,
+  }: {
+    key: string;
+    bucket?: BucketType;
+    length?: number;
+  }) {
+    const response = await this.client.fetch(
+      this.objectRequestUrl(key, bucket),
+      {
+        method: "GET",
+        headers: {
+          Range: `bytes=0-${Math.max(length - 1, 0)}`,
+        },
+      },
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok && response.status !== 206) {
+      throw new Error(
+        `storage.getBytes failed (${response.status}): ${response.statusText}`,
+      );
+    }
+
+    return new Uint8Array(await response.arrayBuffer());
   }
 
   async getSignedUrl({
@@ -115,9 +182,7 @@ class StorageClient {
     expiresIn: number;
     headers?: Record<string, string>;
   }) {
-    const url = new URL(
-      `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
-    );
+    const url = new URL(this.objectRequestUrl(key, bucket));
 
     url.searchParams.set("X-Amz-Expires", String(expiresIn));
 
@@ -213,6 +278,63 @@ class StorageClient {
     }
   }
 
+  // Uses the same deny-list as `safeFetch` in `lib/api/safe-fetch.ts`.
+  private async assertSafeUrl(url: string): Promise<void> {
+    const { hostname, protocol } = new URL(url);
+
+    if (protocol !== "http:" && protocol !== "https:") {
+      throw new Error("Only http and https URLs are allowed.");
+    }
+
+    let address: string;
+    if (isIP(hostname) !== 0) {
+      address = hostname;
+    } else {
+      const result = await dns.lookup(hostname);
+      address = result.address;
+    }
+
+    if (isPrivateIp(address)) {
+      throw new Error("URL resolves to a private or internal IP address.");
+    }
+  }
+
+  private async safeFetch(url: string): Promise<Response> {
+    const maxRedirects = 5;
+    let currentUrl = url;
+
+    for (
+      let redirectCount = 0;
+      redirectCount <= maxRedirects;
+      redirectCount++
+    ) {
+      await this.assertSafeUrl(currentUrl);
+
+      const response = await fetchWithTimeout(currentUrl, {
+        redirect: "manual",
+      });
+
+      if (response.ok) {
+        return response;
+      }
+
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location");
+        if (!location) {
+          throw new Error("Redirect response missing location header");
+        }
+        currentUrl = new URL(location, currentUrl).href;
+        continue;
+      }
+
+      throw new Error(
+        `Failed to fetch URL: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    throw new Error("Too many redirects");
+  }
+
   private async urlToBlob(url: string, opts?: imageOptions): Promise<Blob> {
     let response: Response;
     if (opts?.height || opts?.width) {
@@ -224,10 +346,10 @@ class StorageClient {
         proxyUrl.searchParams.set("fit", "cover");
         response = await fetchWithTimeout(proxyUrl.toString());
       } catch (error) {
-        response = await fetch(url);
+        response = await this.safeFetch(url);
       }
     } else {
-      response = await fetch(url);
+      response = await this.safeFetch(url);
     }
     if (!response.ok) {
       throw new Error(`Failed to fetch URL: ${response.statusText}`);
@@ -237,6 +359,12 @@ class StorageClient {
       return new Blob([blob], { type: opts.contentType });
     }
     return blob;
+  }
+
+  private objectRequestUrl(key: string, bucket: BucketType) {
+    assertSafeStorageKey(key);
+
+    return `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`;
   }
 
   private _getBucketName(bucket: BucketType) {

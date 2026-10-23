@@ -1,11 +1,12 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
+import { prisma } from "@/lib/prisma";
 import {
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
 } from "@/lib/zod/schemas/bounties";
-import { prisma } from "@dub/prisma";
+import { BountySubmissionStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/bounties/[bountyId]/submissions - get all submissions for a bounty
@@ -17,9 +18,6 @@ export const GET = withWorkspace(
     await getBountyOrThrow({
       bountyId,
       programId,
-      include: {
-        groups: true,
-      },
     });
 
     const {
@@ -36,7 +34,12 @@ export const GET = withWorkspace(
       where: {
         bountyId,
         status: status ?? {
-          in: ["draft", "submitted", "approved"],
+          in: [
+            BountySubmissionStatus.draft,
+            BountySubmissionStatus.submitted,
+            BountySubmissionStatus.partiallyApproved,
+            BountySubmissionStatus.approved,
+          ],
         },
         ...(groupId && {
           programEnrollment: {
@@ -49,7 +52,11 @@ export const GET = withWorkspace(
       },
       include: {
         user: true,
-        commission: true,
+        commissions: {
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
         partner: true,
         programEnrollment: true,
       },
@@ -61,7 +68,7 @@ export const GET = withWorkspace(
     });
 
     const bountySubmissions = submissions.map(
-      ({ partner, programEnrollment, commission, user, ...submissionData }) =>
+      ({ partner, programEnrollment, commissions, user, ...submissionData }) =>
         BountySubmissionExtendedSchema.parse({
           ...submissionData,
           partner: {
@@ -70,7 +77,7 @@ export const GET = withWorkspace(
             id: partner.id,
             status: programEnrollment?.status ?? null,
           },
-          commission,
+          commissions,
           user,
         }),
     );
@@ -78,13 +85,7 @@ export const GET = withWorkspace(
     return NextResponse.json(bountySubmissions);
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPermissions: ["bounties.read"],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

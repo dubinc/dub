@@ -17,7 +17,11 @@
       "schedule": "0 8 * * *"
     },
     {
-      "path": "/api/cron/streams/update-workspace-clicks",
+      "path": "/api/cron/streams/send-link-clicked-webhooks",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/streams/update-click-stats",
       "schedule": "* * * * *"
     },
     {
@@ -27,6 +31,10 @@
     {
       "path": "/api/cron/streams/update-partner-stats",
       "schedule": "*/2 * * * *"
+    },
+    {
+      "path": "/api/cron/partner-platforms/website",
+      "schedule": "* * * * *"
     },
     {
       "path": "/api/cron/partner-program-summary",
@@ -43,6 +51,10 @@
     {
       "path": "/api/cron/payouts/aggregate-due-commissions",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/payouts/reconcile-amounts",
+      "schedule": "* * * * *"
     },
     {
       "path": "/api/cron/trigger-withdrawal",
@@ -71,6 +83,22 @@
     {
       "path": "/api/cron/sitemaps/queue",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/sync-redis-resources",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/queue/retry",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/campaigns/queue-scheduled",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/rewards/queue-custom-commissions",
+      "schedule": "0 0 * * *"
     }
   ],
   "functions": {

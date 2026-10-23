@@ -30,13 +30,15 @@ export const getResourceDiff = (
 ): ResourceDiff | null => {
   const { fields } = options ?? {};
 
-  const diffpatcher = jsondiffpatch.create({
-    propertyFilter: fields
-      ? (name: string) => fields.includes(name)
-      : undefined,
-  });
+  const filteredOld = fields
+    ? Object.fromEntries(fields.map((f) => [f, oldResource[f]]))
+    : oldResource;
 
-  const delta = diffpatcher.diff(oldResource, newResource);
+  const filteredNew = fields
+    ? Object.fromEntries(fields.map((f) => [f, newResource[f]]))
+    : newResource;
+
+  const delta = jsondiffpatch.diff(filteredOld, filteredNew);
 
   if (!delta) {
     return null;
@@ -48,8 +50,8 @@ export const getResourceDiff = (
     if (!Array.isArray(value)) {
       // Nested object change - store as-is
       result[key] = {
-        old: oldResource[key],
-        new: newResource[key],
+        old: filteredOld[key],
+        new: filteredNew[key],
       };
     } else if (value.length === 2) {
       // Modified: [oldValue, newValue]

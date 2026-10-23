@@ -1,10 +1,10 @@
 import { createLink, processLink } from "@/lib/api/links";
 import { decryptOrPassthrough } from "@/lib/encryption";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
-import { prisma } from "@dub/prisma";
-import { User } from "@dub/prisma/client";
 import { APP_DOMAIN, SLACK_INTEGRATION_ID } from "@dub/utils";
+import { User } from "@prisma/client";
 import * as z from "zod/v4";
 import { SlackAuthToken } from "../types";
 import { slackSlashCommandSchema } from "./schema";

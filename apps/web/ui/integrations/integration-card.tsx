@@ -3,13 +3,12 @@
 import useIntegrations from "@/lib/swr/use-integrations";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationProps } from "@/lib/types";
-import { DubCraftedShield, Tooltip } from "@dub/ui";
-import { DUB_WORKSPACE_ID } from "@dub/utils";
 import { cn } from "@dub/utils/src";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { HTMLProps, PropsWithChildren } from "react";
 import { IntegrationLogo } from "./integration-logo";
+import { IntegrationStatusBadge } from "./integration-status-badge";
 
 export default function IntegrationCard(
   integration: InstalledIntegrationProps,
@@ -17,8 +16,6 @@ export default function IntegrationCard(
   const { integrations: activeIntegrations } = useIntegrations();
 
   const installed = activeIntegrations?.some((i) => i.id === integration.id);
-
-  const dubCrafted = integration.projectId === DUB_WORKSPACE_ID;
 
   return (
     <Wrapper integration={integration}>
@@ -37,13 +34,10 @@ export default function IntegrationCard(
       <IntegrationLogo src={integration.logo ?? null} alt={integration.name} />
       <h3 className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-neutral-800">
         {integration.name}
-        {dubCrafted && (
-          <Tooltip content="This is an official integration built and maintained by Dub">
-            <div>
-              <DubCraftedShield className="size-4 -translate-y-px" />
-            </div>
-          </Tooltip>
-        )}
+        <IntegrationStatusBadge
+          projectId={integration.projectId}
+          verified={integration.verified}
+        />
       </h3>
       <p className="mt-2 line-clamp-3 text-sm text-neutral-600">
         {integration.description}

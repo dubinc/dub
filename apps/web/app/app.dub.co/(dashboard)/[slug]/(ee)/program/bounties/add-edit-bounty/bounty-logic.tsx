@@ -1,25 +1,42 @@
 "use client";
 
+import {
+  AWARD_BOUNTY_ATTRIBUTE_KEYS,
+  AWARD_BOUNTY_OPERATORS,
+} from "@/lib/api/workflows/award-bounty/schema";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
-import { WORKFLOW_ATTRIBUTES } from "@/lib/zod/schemas/workflows";
 import {
   InlineBadgePopover,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
+import { DynamicTooltipWrapper } from "@dub/ui";
 import { Trophy } from "@dub/ui/icons";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
+import { BountyStartMode } from "@prisma/client";
+import { useParams } from "next/navigation";
 import { Controller } from "react-hook-form";
 import { BountyAmountInput } from "./bounty-amount-input";
 import { useBountyFormContext } from "./bounty-form-context";
 
+const PERFORMANCE_SCOPE_DESCRIPTIONS = {
+  new: "Only net-new stats after the bounty start date will be counted",
+  lifetime: "Include the partner's historical stats in your program",
+} as const;
+
 export function BountyLogic({ className }: { className?: string }) {
+  const { bountyId } = useParams();
+  const isEditing = !!bountyId;
+
   const { control, watch } = useBountyFormContext();
 
-  const [attribute, value] = watch([
+  const [attribute, value, startMode] = watch([
     "performanceCondition.attribute",
     "performanceCondition.value",
+    "startMode",
   ]);
+
+  const isRelative = startMode === BountyStartMode.relative;
 
   return (
     <div className={cn("flex w-full items-center gap-1.5", className)}>
@@ -33,16 +50,45 @@ export function BountyLogic({ className }: { className?: string }) {
             control={control}
             name="performanceScope"
             render={({ field }) => (
-              <InlineBadgePopover text={field.value} invalid={!field.value}>
-                <InlineBadgePopoverMenu
-                  selectedValue={field.value}
-                  onSelect={field.onChange}
-                  items={[
-                    { text: "new", value: "new" },
-                    { text: "lifetime", value: "lifetime" },
-                  ]}
-                />
-              </InlineBadgePopover>
+              <DynamicTooltipWrapper
+                tooltipProps={
+                  isEditing
+                    ? {
+                        content:
+                          "Performance scope cannot be changed after bounty creation.",
+                      }
+                    : undefined
+                }
+              >
+                <span>
+                  <InlineBadgePopover
+                    text={field.value}
+                    invalid={!field.value}
+                    align="center"
+                    disabled={isEditing}
+                  >
+                    <InlineBadgePopoverMenu
+                      selectedValue={field.value}
+                      onSelect={field.onChange}
+                      items={[
+                        {
+                          text: "new",
+                          value: "new",
+                          description: PERFORMANCE_SCOPE_DESCRIPTIONS.new,
+                        },
+                        {
+                          text: isRelative
+                            ? "lifetime (not available)"
+                            : "lifetime",
+                          value: "lifetime",
+                          description: `${PERFORMANCE_SCOPE_DESCRIPTIONS.lifetime}${isRelative ? " (not available for relative start dates)" : ""}`,
+                          disabled: isRelative,
+                        },
+                      ]}
+                    />
+                  </InlineBadgePopover>
+                </span>
+              </DynamicTooltipWrapper>
             )}
           />
           <Controller
@@ -58,13 +104,12 @@ export function BountyLogic({ className }: { className?: string }) {
                     : "activity"
                 }
                 invalid={!field.value}
+                align="center"
               >
                 <InlineBadgePopoverMenu
                   selectedValue={field.value}
                   onSelect={field.onChange}
-                  items={WORKFLOW_ATTRIBUTES.filter(
-                    (attr) => PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[attr],
-                  ).map((attribute) => ({
+                  items={AWARD_BOUNTY_ATTRIBUTE_KEYS.map((attribute) => ({
                     text: PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[
                       attribute
                     ].toLowerCase(),
@@ -78,7 +123,7 @@ export function BountyLogic({ className }: { className?: string }) {
         {attribute && (
           <>
             {" "}
-            is at least{" "}
+            {AWARD_BOUNTY_OPERATORS.gte.label}{" "}
             <InlineBadgePopover
               text={
                 value

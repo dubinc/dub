@@ -1,15 +1,17 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { OnboardingStep } from "@/lib/onboarding/types";
 import {
-  BoltFill,
+  Bolt,
   Button,
-  CircleCheckFill,
+  CircleCheck,
   Crown,
   CursorRays,
   Flask,
   Globe,
   type Icon,
+  withFillVariant,
 } from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
 import { usePlausible } from "next-plausible";
@@ -31,7 +33,7 @@ export function DefaultDomainSelector() {
         <DomainOption
           step="domain/custom"
           icon="https://assets.dub.co/icons/domain-sign.webp"
-          bannerIcon={CircleCheckFill}
+          bannerIcon={withFillVariant(CircleCheck)}
           bannerText="Recommended setup"
           bannerVariant="recommended"
           title="Connect a custom domain"
@@ -76,12 +78,13 @@ export function DefaultDomainSelector() {
               : undefined
           }
           cta="Connect domain"
+          testId={testIds.onboarding.connectDomain}
         />
         {product === "partners" && (
           <DomainOption
             step="domain/subdomain"
             icon="https://assets.dub.co/icons/gift.webp"
-            bannerIcon={BoltFill}
+            bannerIcon={withFillVariant(Bolt)}
             bannerText="Instant setup"
             title={
               <>
@@ -94,7 +97,7 @@ export function DefaultDomainSelector() {
                 text: "Best for testing purposes",
               },
               {
-                icon: BoltFill,
+                icon: withFillVariant(Bolt),
                 text: "Instant subdomain setup",
               },
             ]}
@@ -130,7 +133,11 @@ export function DefaultDomainSelector() {
       </div>
       {product === "links" && (
         <div className="mx-auto mt-8 w-full max-w-sm">
-          <LaterButton next="plan" className="mt-4" />
+          <LaterButton
+            next="plan"
+            className="mt-4"
+            data-testid={testIds.onboarding.skipDomain}
+          />
         </div>
       )}
     </>
@@ -147,6 +154,7 @@ function DomainOption({
   bannerIcon: BannerIcon,
   bannerText,
   bannerVariant = "default",
+  testId,
 }: {
   step: OnboardingStep;
   icon: string;
@@ -160,6 +168,7 @@ function DomainOption({
   bannerIcon?: Icon;
   bannerText?: string;
   bannerVariant?: "default" | "recommended";
+  testId?: string;
 }) {
   const plausible = usePlausible();
   const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
@@ -232,6 +241,7 @@ function DomainOption({
             }}
             loading={isLoading || isSuccessful}
             text={cta}
+            data-testid={testId}
           />
         </div>
       </div>

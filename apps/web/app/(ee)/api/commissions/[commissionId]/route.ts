@@ -4,91 +4,98 @@ import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import {
   CommissionDetailSchema,
   CommissionEnrichedSchema,
   updateCommissionSchemaExtended,
 } from "@/lib/zod/schemas/commissions";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/commissions/:commissionId - get a single commission by ID
-export const GET = withWorkspace(async ({ workspace, params }) => {
-  const programId = getDefaultProgramIdOrThrow(workspace);
+export const GET = withWorkspace(
+  async ({ workspace, params }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const { commissionId } = params;
+    const { commissionId } = params;
 
-  const commission = await prisma.commission.findUnique({
-    where: {
-      id: commissionId,
-      programId,
-    },
-    include: {
-      partner: true,
-      programEnrollment: {
-        select: {
-          partnerGroup: {
-            select: {
-              id: true,
-              holdingPeriodDays: true,
+    const commission = await prisma.commission.findUnique({
+      where: {
+        id: commissionId,
+        programId,
+      },
+      include: {
+        partner: true,
+        programEnrollment: {
+          select: {
+            partnerGroup: {
+              select: {
+                id: true,
+                holdingPeriodDays: true,
+              },
             },
           },
         },
-      },
-      customer: true,
-      reward: {
-        select: {
-          description: true,
-          type: true,
-          event: true,
-          amountInCents: true,
-          amountInPercentage: true,
+        customer: true,
+        reward: {
+          select: {
+            description: true,
+            type: true,
+            event: true,
+            amountInCents: true,
+            amountInPercentage: true,
+          },
+        },
+        user: true,
+        payout: {
+          select: {
+            id: true,
+            paidAt: true,
+            initiatedAt: true,
+            user: true,
+          },
         },
       },
-      user: true,
-      payout: {
-        select: {
-          id: true,
-          paidAt: true,
-          initiatedAt: true,
-          user: true,
-        },
-      },
-    },
-  });
-
-  if (!commission) {
-    throw new DubApiError({
-      code: "not_found",
-      message: `Commission ${commissionId} not found.`,
     });
-  }
 
-  const { partner, programEnrollment, customer, reward, ...rest } = commission;
+    if (!commission) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Commission ${commissionId} not found.`,
+      });
+    }
 
-  return NextResponse.json(
-    CommissionDetailSchema.parse({
-      ...rest,
-      partner: {
-        ...partner,
-        groupId: programEnrollment.partnerGroup?.id ?? null,
-      },
-      customer: transformCustomerForCommission(customer),
-      reward: reward
-        ? {
-            ...reward,
-            amountInPercentage: reward.amountInPercentage
-              ? Number(reward.amountInPercentage)
-              : null,
-          }
-        : null,
-      holdingPeriodDays:
-        rest.type === "custom"
-          ? 0
-          : programEnrollment.partnerGroup?.holdingPeriodDays ?? 0,
-    }),
-  );
-});
+    const { partner, programEnrollment, customer, reward, ...rest } =
+      commission;
+
+    return NextResponse.json(
+      CommissionDetailSchema.parse({
+        ...rest,
+        paidAt: rest.payout?.paidAt ?? null,
+        partner: {
+          ...partner,
+          groupId: programEnrollment.partnerGroup?.id ?? null,
+        },
+        customer: transformCustomerForCommission(customer),
+        reward: reward
+          ? {
+              ...reward,
+              amountInPercentage: reward.amountInPercentage
+                ? Number(reward.amountInPercentage)
+                : null,
+            }
+          : null,
+        holdingPeriodDays:
+          rest.type === "custom"
+            ? 0
+            : programEnrollment.partnerGroup?.holdingPeriodDays ?? 0,
+      }),
+    );
+  },
+  {
+    requiredPermissions: ["commissions.read"],
+  },
+);
 
 // PATCH /api/commissions/:commissionId - update a commission
 export const PATCH = withWorkspace(
@@ -125,11 +132,12 @@ export const PATCH = withWorkspace(
     return NextResponse.json(
       CommissionEnrichedSchema.parse({
         ...updatedCommission,
+        paidAt: updatedCommission.payout?.paidAt ?? null,
         customer: transformCustomerForCommission(updatedCommission.customer),
       }),
     );
   },
   {
-    requiredRoles: ["owner", "member"],
+    requiredPermissions: ["commissions.write"],
   },
 );

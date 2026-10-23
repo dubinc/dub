@@ -2,6 +2,7 @@
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import useCommissionAnalytics from "@/lib/swr/use-commission-analytics";
+import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import {
   Areas,
   ChartContext,
@@ -9,7 +10,6 @@ import {
   XAxis,
   YAxis,
 } from "@dub/ui/charts";
-import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { useId } from "react";

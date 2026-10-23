@@ -1,17 +1,27 @@
+import { WorkspaceEnvironmentIndicator } from "@/lib/sandbox/components/workspace-environment-indicator";
+import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspaces from "@/lib/swr/use-workspaces";
-import { Button, Combobox } from "@dub/ui";
-import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { BlurImage, Button, Combobox } from "@dub/ui";
+import { cn } from "@dub/utils";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { useMemo, useState } from "react";
 import { useAddWorkspaceModal } from "../modals/add-workspace-modal";
 
 interface WorkspaceSelectorProps {
   selectedWorkspace: string;
-  setSelectedWorkspace: (workspace: string) => void;
+  setSelectedWorkspace: (workspace: string | null) => void;
+  environments?: WorkspaceEnvironment[]; // only display workspaces in these environments (defaults to production and sandbox)
+  showAddWorkspaceButton?: boolean;
 }
 
 export function WorkspaceSelector({
   selectedWorkspace,
   setSelectedWorkspace,
+  environments = [
+    WorkspaceEnvironment.production,
+    WorkspaceEnvironment.sandbox,
+  ],
+  showAddWorkspaceButton = true,
 }: WorkspaceSelectorProps) {
   const [openPopover, setOpenPopover] = useState(false);
   const { workspaces, loading } = useWorkspaces();
@@ -19,26 +29,55 @@ export function WorkspaceSelector({
   const { AddWorkspaceModal, setShowAddWorkspaceModal } =
     useAddWorkspaceModal();
 
-  const workspaceOptions = useMemo(() => {
-    return workspaces?.map((workspace) => ({
-      value: workspace.slug,
-      label: workspace.name,
-      icon: (
-        <img
-          src={workspace.logo || `${OG_AVATAR_URL}${workspace.name}`}
-          alt={workspace.name}
-          className="size-4 rounded-full"
-        />
+  const filteredWorkspaces = useMemo(() => {
+    if (!workspaces) {
+      return [];
+    }
+
+    return workspaces.filter((workspace) =>
+      environments
+        ? environments.includes(workspace.environment)
+        : !isStagingEnvironment(workspace.environment),
+    );
+  }, [workspaces, environments]);
+
+  const workspaceOptions = useMemo(
+    () =>
+      filteredWorkspaces.map((workspace) => ({
+        value: workspace.slug,
+        label: workspace.name,
+        icon: (
+          <BlurImage
+            src={workspace.logo || `https://avatar.vercel.sh/${workspace.id}`}
+            alt={workspace.id}
+            width={16}
+            height={16}
+            className="size-4 rounded-full"
+          />
+        ),
+      })),
+    [filteredWorkspaces],
+  );
+
+  const environmentBySlug = useMemo(
+    () =>
+      new Map(
+        filteredWorkspaces.map((workspace) => [
+          workspace.slug,
+          workspace.environment,
+        ]),
       ),
-    }));
-  }, [workspaces]);
+    [filteredWorkspaces],
+  );
 
   const selectedOption = useMemo(() => {
     if (!selectedWorkspace) {
       return null;
     }
 
-    const workspace = workspaces?.find((w) => w.slug === selectedWorkspace);
+    const workspace = filteredWorkspaces.find(
+      (w) => w.slug === selectedWorkspace,
+    );
 
     if (!workspace) {
       return null;
@@ -48,22 +87,24 @@ export function WorkspaceSelector({
       value: workspace.slug,
       label: workspace.name,
       icon: (
-        <img
-          src={workspace.logo || `${OG_AVATAR_URL}${workspace.name}`}
-          alt={workspace.name}
+        <BlurImage
+          src={workspace.logo || `https://avatar.vercel.sh/${workspace.id}`}
+          alt={workspace.id}
+          width={16}
+          height={16}
           className="size-4 rounded-full"
         />
       ),
     };
-  }, [workspaces, selectedWorkspace]);
+  }, [filteredWorkspaces, selectedWorkspace]);
 
   return (
     <>
-      <AddWorkspaceModal />
+      {showAddWorkspaceButton && <AddWorkspaceModal />}
       <Combobox
         options={loading ? undefined : workspaceOptions}
         setSelected={(option) => {
-          setSelectedWorkspace(option.value);
+          setSelectedWorkspace(option?.value ?? null);
         }}
         selected={selectedOption}
         icon={loading ? null : selectedOption?.icon}
@@ -80,18 +121,25 @@ export function WorkspaceSelector({
             "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
           ),
         }}
+        optionRight={(option) => (
+          <WorkspaceEnvironmentIndicator
+            environment={environmentBySlug.get(option.value)}
+          />
+        )}
         emptyState={
           <div className="flex w-full flex-col items-center gap-2 py-4">
             No workspaces found
-            <Button
-              onClick={() => {
-                setOpenPopover(false);
-                setShowAddWorkspaceModal(true);
-              }}
-              variant="primary"
-              className="h-7 w-fit px-2"
-              text="Create new workspace"
-            />
+            {showAddWorkspaceButton && (
+              <Button
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowAddWorkspaceModal(true);
+                }}
+                variant="primary"
+                className="h-7 w-fit px-2"
+                text="Create new workspace"
+              />
+            )}
           </div>
         }
       >
@@ -100,9 +148,14 @@ export function WorkspaceSelector({
             <div className="size-4 animate-pulse rounded-full bg-neutral-200" />
             <div className="h-4 w-32 animate-pulse rounded-md bg-neutral-200" />
           </div>
-        ) : (
-          selectedOption?.label
-        )}
+        ) : selectedOption ? (
+          <span className="flex w-full min-w-0 items-center gap-1.5">
+            <span className="min-w-0 truncate">{selectedOption.label}</span>
+            <WorkspaceEnvironmentIndicator
+              environment={environmentBySlug.get(selectedOption.value)}
+            />
+          </span>
+        ) : null}
       </Combobox>
     </>
   );

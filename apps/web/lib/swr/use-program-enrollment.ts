@@ -6,17 +6,20 @@ import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import useSWR, { SWRConfiguration } from "swr";
-import { ProgramEnrollmentProps } from "../types";
+import { PartnerProfileProgramEnrollmentProps } from "../types";
 
 export default function useProgramEnrollment({
   enabled = true,
+  programSlug: programSlugProp,
   swrOpts,
 }: {
   enabled?: boolean;
+  programSlug?: string;
   swrOpts?: SWRConfiguration;
 } = {}) {
   const { data: session, status } = useSession();
-  const { programSlug } = useParams();
+  const { programSlug: programSlugParam } = useParams();
+  const programSlug = programSlugProp ?? programSlugParam;
 
   const partnerId = session?.user?.["defaultPartnerId"];
 
@@ -24,7 +27,7 @@ export default function useProgramEnrollment({
     data: programEnrollment,
     error,
     isLoading,
-  } = useSWR<ProgramEnrollmentProps>(
+  } = useSWR<PartnerProfileProgramEnrollmentProps>(
     enabled && partnerId && programSlug
       ? `/api/partner-profile/programs/${programSlug}`
       : undefined,
@@ -38,12 +41,22 @@ export default function useProgramEnrollment({
   return {
     programEnrollment,
     showDetailedAnalytics:
-      programEnrollment &&
-      (!LARGE_PROGRAM_IDS.includes(programEnrollment.programId) ||
-        (programEnrollment.status === "approved" &&
-          programEnrollment.totalCommissions >=
-            LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS)),
+      programEnrollment && getShowDetailedAnalytics(programEnrollment),
     error,
     loading: status === "loading" || isLoading,
   };
+}
+
+export function getShowDetailedAnalytics(
+  programEnrollment: Pick<
+    PartnerProfileProgramEnrollmentProps,
+    "programId" | "status" | "totalCommissions"
+  >,
+) {
+  return (
+    !LARGE_PROGRAM_IDS.includes(programEnrollment.programId) ||
+    (programEnrollment.status === "approved" &&
+      programEnrollment.totalCommissions >=
+        LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS)
+  );
 }

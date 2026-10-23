@@ -1,7 +1,7 @@
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import { prisma } from "@dub/prisma";
-import { Invoice, Project } from "@dub/prisma/client";
 import { currencyFormatter, DUB_WORDMARK, formatDate } from "@dub/utils";
+import { Invoice, Project } from "@prisma/client";
 import {
   Document,
   Image,
@@ -13,6 +13,7 @@ import {
 } from "@react-pdf/renderer";
 import { createTw } from "react-pdf-tailwind";
 import Stripe from "stripe";
+import { InvoiceEnvironmentBanner } from "./environment-banner";
 
 const tw = createTw({
   theme: {
@@ -27,7 +28,7 @@ export async function DomainRenewalInvoice({
   workspace,
 }: {
   invoice: Invoice;
-  workspace: Pick<Project, "id" | "name" | "stripeId">;
+  workspace: Pick<Project, "id" | "name" | "stripeId" | "environment">;
 }) {
   const domains = await prisma.registeredDomain.findMany({
     where: {
@@ -118,6 +119,8 @@ export async function DomainRenewalInvoice({
   return await renderToBuffer(
     <Document>
       <Page size="A4" style={tw("p-20 bg-white")}>
+        <InvoiceEnvironmentBanner environment={workspace.environment} />
+
         <View style={tw("flex-row justify-between items-center mb-10")}>
           <Image src={DUB_WORDMARK} style={tw("w-20 h-10")} />
         </View>

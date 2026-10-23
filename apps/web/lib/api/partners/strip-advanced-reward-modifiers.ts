@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 export async function stripAdvancedRewardModifiersForProgram({
   programId,

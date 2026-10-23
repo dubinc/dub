@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma";
 import { CreateFraudEventInput } from "@/lib/types";
 import {
   VeriffDecisionEvent,
@@ -5,10 +6,11 @@ import {
   veriffRiskLabels,
 } from "@/lib/veriff/schema";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { FraudRuleType, ProgramEnrollment } from "@dub/prisma/client";
+import { FraudRuleType, ProgramEnrollment } from "@prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
 import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
+import { holdPendingCommissions } from "./hold-pending-commissions";
+import { holdProcessedCommissions } from "./hold-processed-commissions";
 
 // Check for duplicate identities: if multiple partners share the same identity,
 // create fraud events for all their active program enrollments to flag potential fraud
@@ -55,6 +57,7 @@ export async function detectDuplicateIdentityFraud({
       programId: true,
       partnerId: true,
       status: true,
+      riskMonitoringDisabledAt: true,
       program: {
         select: {
           fraudRules: true,
@@ -85,10 +88,11 @@ export async function detectDuplicateIdentityFraud({
     map.get(e.programId)!.push({
       partnerId: e.partnerId,
       status: e.status,
+      riskMonitoringDisabledAt: e.riskMonitoringDisabledAt,
     });
 
     return map;
-  }, new Map<string, Pick<ProgramEnrollment, "partnerId" | "status">[]>());
+  }, new Map<string, Pick<ProgramEnrollment, "partnerId" | "status" | "riskMonitoringDisabledAt">[]>());
 
   // Filter out programs with only one partner
   partnersByProgram = new Map(
@@ -106,7 +110,11 @@ export async function detectDuplicateIdentityFraud({
 
   for (const [programId, partners] of partnersByProgram.entries()) {
     for (const sourcePartner of partners) {
-      if (INACTIVE_ENROLLMENT_STATUSES.includes(sourcePartner.status)) {
+      // Skip if the partner is inactive or risk detection is disabled
+      if (
+        INACTIVE_ENROLLMENT_STATUSES.includes(sourcePartner.status) ||
+        sourcePartner.riskMonitoringDisabledAt
+      ) {
         continue;
       }
 
@@ -124,5 +132,13 @@ export async function detectDuplicateIdentityFraud({
     }
   }
 
-  await createFraudEvents(fraudEvents);
+  const { affectedGroups } = await createFraudEvents(fraudEvents);
+
+  const results = await Promise.allSettled([
+    holdPendingCommissions(affectedGroups),
+    holdProcessedCommissions(affectedGroups),
+  ]);
+  results
+    .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+    .forEach((r) => console.error("Failed to hold commissions:", r.reason));
 }

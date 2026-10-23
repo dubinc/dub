@@ -145,7 +145,7 @@ function PlanChangeConfirmationModal({
     "- [Email campaigns](https://dub.co/help/article/email-campaigns) will be paused or canceled.",
     "- [Messaging center](https://dub.co/help/article/messaging-partners) will be disabled.",
     "- [Advanced reward conditions](https://dub.co/help/article/partner-rewards) will be removed.",
-    "- [Fraud events](https://dub.co/help/article/fraud-detection) will still be tracked, but you need to upgrade to view them.",
+    "- [Risk events](https://dub.co/help/article/risk-monitoring) will still be tracked, but you need to upgrade to view them.",
     "- If you've set up the [Embedded Referral Dashboard](https://dub.co/docs/partners/embedded-referrals), it will no longer work.",
   ].join("\n");
 
@@ -233,13 +233,17 @@ function PlanChangeConfirmationModal({
         <Button
           variant="primary"
           className="h-8 w-fit px-3"
-          text="Continue"
+          text="Confirm change"
           loading={isSubmitting}
           disabled={isSubmitting}
           onClick={async () => {
             if (isSubmitting) return;
             setIsSubmitting(true);
-            await onConfirm();
+            try {
+              await onConfirm();
+            } finally {
+              setIsSubmitting(false);
+            }
           }}
         />
       </div>

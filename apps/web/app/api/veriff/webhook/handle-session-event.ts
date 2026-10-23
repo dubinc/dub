@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { veriffSessionEventSchema } from "@/lib/veriff/schema";
 import { mergeVeriffMetadata } from "@/lib/veriff/veriff-metadata";
-import { prisma } from "@dub/prisma";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import * as z from "zod/v4";
 

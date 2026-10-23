@@ -1,12 +1,17 @@
+import {
+  WorkflowContext,
+  WorkflowTriggerEvent,
+} from "@/lib/api/workflows/types";
+import { logger, toErrorFields } from "@/lib/axiom/server";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
-import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
+import { prisma } from "@/lib/prisma";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
-import { prisma } from "@dub/prisma";
-import { Workflow } from "@dub/prisma/client";
-import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
-import { executeMoveGroupWorkflow } from "./execute-move-group-workflow";
-import { executeSendCampaignWorkflow } from "./execute-send-campaign-workflow";
+import { CommissionStatus, Workflow } from "@prisma/client";
+import { WorkflowAttributeKey } from "./attribute-definitions";
+import { executeAwardBountyWorkflow } from "./award-bounty/execute";
+import { executeMoveGroupWorkflow } from "./move-group/execute";
 import { parseWorkflowConfig } from "./parse-workflow-config";
+import { executeSendCampaignWorkflow } from "./send-campaign/execute";
 
 interface WorkflowActionHandler {
   execute(params: {
@@ -17,7 +22,7 @@ interface WorkflowActionHandler {
 
 const ACTION_HANDLERS: Record<WORKFLOW_ACTION_TYPES, WorkflowActionHandler> = {
   [WORKFLOW_ACTION_TYPES.AwardBounty]: {
-    execute: executeCompleteBountyWorkflow,
+    execute: executeAwardBountyWorkflow,
   },
 
   [WORKFLOW_ACTION_TYPES.SendCampaign]: {
@@ -29,41 +34,55 @@ const ACTION_HANDLERS: Record<WORKFLOW_ACTION_TYPES, WorkflowActionHandler> = {
   },
 };
 
-// Map reason to expected attributes for early filtering optimization.
-// This prevents workflows from executing unnecessarily
-const REASON_TO_ATTRIBUTES: Record<
-  NonNullable<WorkflowContext["reason"]>,
-  WorkflowConditionAttribute[]
-> = {
-  lead: ["totalLeads"],
-  sale: ["totalConversions", "totalSaleAmount"],
-  commission: ["totalCommissions"],
+const EVENT_ATTRIBUTES: Record<WorkflowTriggerEvent, WorkflowAttributeKey[]> = {
+  partnerEnrolled: ["partnerJoined"],
+  leadRecorded: ["totalLeads", "partnerGroup"],
+  saleRecorded: ["totalConversions", "totalSaleAmount", "partnerGroup"],
+  commissionRecorded: ["totalCommissions", "partnerGroup"],
 };
 
 export async function executeWorkflows({
-  trigger,
-  reason,
+  event,
   identity,
   metrics,
 }: WorkflowContext) {
   const { programId, partnerId } = identity;
 
-  let workflows = await prisma.workflow.findMany({
+  console.log("[Workflows] Executing workflows...", {
+    event,
+    programId,
+    partnerId,
+    identity,
+    metrics,
+  });
+
+  const attributes = EVENT_ATTRIBUTES[event];
+
+  if (attributes.length === 0) {
+    console.log("[Workflows] No attributes found to execute workflows.");
+    return;
+  }
+
+  const workflows = await prisma.workflow.findMany({
     where: {
       programId,
       disabledAt: null,
-      trigger,
+      OR: attributes.map((attribute) => ({
+        triggerConditions: {
+          path: "$[*].attribute",
+          array_contains: attribute,
+        },
+      })),
     },
   });
 
   if (workflows.length === 0) {
-    console.log(
-      `No workflows found to execute for trigger ${trigger} and reason ${reason}.`,
-    );
+    console.log("[Workflows] No workflows found to execute for trigger.");
     return;
   }
 
-  // Parse all workflow configs once upfront, filtering out any that fail to parse
+  console.log(`[Workflows] Found ${workflows.length} workflows to execute.`);
+
   const parsedWorkflows = workflows
     .map((workflow) => {
       try {
@@ -72,10 +91,6 @@ export async function executeWorkflows({
           config: parseWorkflowConfig(workflow),
         };
       } catch (error) {
-        console.error(
-          `Failed to parse workflow config for workflow ${workflow.id}, skipping:`,
-          error,
-        );
         return null;
       }
     })
@@ -89,33 +104,13 @@ export async function executeWorkflows({
     );
 
   if (parsedWorkflows.length === 0) {
-    console.log(
-      `No valid workflows found to execute for trigger ${trigger} and reason ${reason}.`,
-    );
+    console.log("[Workflows] No valid workflows found to execute.");
     return;
-  }
-
-  // Filter by reason if provided
-  let filteredWorkflows = parsedWorkflows;
-  if (reason) {
-    const expectedAttributes = REASON_TO_ATTRIBUTES[reason];
-    filteredWorkflows = parsedWorkflows.filter(({ config }) =>
-      config.conditions.some(({ attribute }) =>
-        expectedAttributes.includes(attribute),
-      ),
-    );
-
-    if (filteredWorkflows.length === 0) {
-      console.log(
-        `No relevant workflows found to execute for trigger ${trigger} and reason ${reason}.`,
-      );
-      return;
-    }
   }
 
   // Commissions require a separate expensive aggregate query.
   // We only fetch if needed to avoid unnecessary database queries.
-  const shouldFetchCommissions = filteredWorkflows.some(({ config }) =>
+  const shouldFetchCommissions = parsedWorkflows.some(({ config }) =>
     config.conditions.some((c) => c.attribute === "totalCommissions"),
   );
 
@@ -127,9 +122,7 @@ export async function executeWorkflows({
           programId,
         },
       },
-      select: {
-        partnerId: true,
-        groupId: true,
+      include: {
         links: {
           select: {
             clicks: true,
@@ -139,36 +132,51 @@ export async function executeWorkflows({
             saleAmount: true,
           },
         },
+        programPartnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
       },
     }),
 
     shouldFetchCommissions
       ? prisma.commission.aggregate({
           where: {
-            earnings: { not: 0 },
+            earnings: {
+              not: 0,
+            },
             programId,
             partnerId,
             status: {
-              in: ["pending", "processed", "paid"],
+              in: [
+                CommissionStatus.pending,
+                CommissionStatus.processed,
+                CommissionStatus.paid,
+              ],
             },
           },
           _sum: {
             earnings: true,
           },
         })
-      : Promise.resolve({ _sum: { earnings: null } }),
+      : Promise.resolve({
+          _sum: {
+            earnings: null,
+          },
+        }),
   ]);
 
   if (!programEnrollment) {
     console.error(
-      `Partner ${partnerId} is not enrolled in program ${programId}.`,
+      `[Workflows] Partner ${partnerId} is not enrolled in program ${programId}.`,
     );
     return;
   }
 
   if (!programEnrollment.groupId) {
     console.error(
-      `Partner ${partnerId} is not enrolled in a group in program ${programId}.`,
+      `[Workflows] Partner ${partnerId} is not enrolled in any group in program ${programId}.`,
     );
     return;
   }
@@ -177,8 +185,15 @@ export async function executeWorkflows({
     aggregatePartnerLinksStats(programEnrollment.links);
 
   const workflowContext: WorkflowContext = {
-    trigger,
-    reason,
+    event,
+    programEnrollment: {
+      groupId: programEnrollment.groupId,
+      createdAt: programEnrollment.createdAt,
+      partnerId: programEnrollment.partnerId,
+      programId: programEnrollment.programId,
+      status: programEnrollment.status,
+      programPartnerTags: programEnrollment.programPartnerTags,
+    },
     identity: {
       ...identity,
       groupId: programEnrollment.groupId,
@@ -194,7 +209,7 @@ export async function executeWorkflows({
     },
   };
 
-  for (const { workflow, config } of filteredWorkflows) {
+  for (const { workflow, config } of parsedWorkflows) {
     try {
       const handler = ACTION_HANDLERS[config.action.type];
 
@@ -207,8 +222,21 @@ export async function executeWorkflows({
         context: workflowContext,
       });
     } catch (error) {
-      console.error(`Failed to execute workflow ${workflow.id}:`, error);
+      console.error(
+        `[Workflows] Failed to execute workflow ${workflow.id}:`,
+        error,
+      );
+
+      logger.error("workflows.execute_failed", {
+        error: toErrorFields(error),
+        correlation: {
+          workflowId: workflow.id,
+        },
+      });
+
       continue;
     }
   }
+
+  await logger.flush();
 }

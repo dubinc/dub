@@ -3,9 +3,10 @@
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
 import { paypalOAuthProvider } from "@/lib/paypal/oauth";
-import { PartnerPayoutMethod } from "@dub/prisma/client";
 import { COUNTRIES } from "@dub/utils";
+import { PartnerPayoutMethod } from "@prisma/client";
 import { authPartnerActionClient } from "../safe-action";
+import { throwIfNegativeNetworkBalance } from "./throw-if-negative-network-balance";
 
 export const generatePaypalOAuthUrl = authPartnerActionClient.action(
   async ({ ctx }) => {
@@ -31,6 +32,9 @@ export const generatePaypalOAuthUrl = authPartnerActionClient.action(
         `Your current country (${COUNTRIES[partner.country]}) is not supported for PayPal payouts. Please go to partners.dub.co/settings to update your country, or contact support.`,
       );
     }
+
+    // edge case: cannot switch to PayPal if partner has negative network balance
+    await throwIfNegativeNetworkBalance(partner.id);
 
     return {
       url: await paypalOAuthProvider.generateAuthUrl(user.id),

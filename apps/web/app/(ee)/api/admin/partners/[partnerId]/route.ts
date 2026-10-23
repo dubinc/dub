@@ -1,6 +1,10 @@
 import { withAdmin } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
+import { updatePartnerCountry } from "@/lib/partners/update-partner-country";
+import { prisma } from "@/lib/prisma";
+import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
+import { COUNTRIES } from "@dub/utils";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
 
 // GET /api/admin/partners/[partnerId]
 export const GET = withAdmin(async ({ params }) => {
@@ -18,6 +22,7 @@ export const GET = withAdmin(async ({ params }) => {
       country: true,
       companyName: true,
       createdAt: true,
+      networkStatus: true,
       platforms: true,
     },
   });
@@ -51,11 +56,25 @@ export const GET = withAdmin(async ({ params }) => {
         partnerId,
       },
       include: {
+        partner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
         program: {
           select: {
             id: true,
             name: true,
             logo: true,
+          },
+        },
+        reviewedBy: {
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
@@ -91,7 +110,50 @@ export const GET = withAdmin(async ({ params }) => {
       subscribers: p.subscribers ? Number(p.subscribers) : null,
     })),
     programEnrollments,
-    fraudAlerts,
+    fraudAlerts: adminFraudAlertSchema.array().parse(fraudAlerts),
     payouts,
   });
+});
+
+const adminUpdatePartnerSchema = z.object({
+  country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]),
+});
+
+// PATCH /api/admin/partners/[partnerId] – update the partner country
+export const PATCH = withAdmin(async ({ params, req }) => {
+  const { partnerId } = params;
+  const { country } = adminUpdatePartnerSchema.parse(await req.json());
+
+  const partner = await prisma.partner.findUnique({
+    where: {
+      id: partnerId,
+    },
+    select: {
+      id: true,
+      country: true,
+    },
+  });
+
+  if (!partner) {
+    return new Response("Partner not found.", { status: 404 });
+  }
+
+  if (partner.country === country) {
+    return new Response("Partner is already in this country.", { status: 400 });
+  }
+
+  try {
+    await updatePartnerCountry({
+      partnerId: partner.id,
+      country,
+      isAdmin: true,
+    });
+  } catch (error) {
+    return new Response(
+      error instanceof Error ? error.message : "Failed to update country.",
+      { status: 400 },
+    );
+  }
+
+  return NextResponse.json({ success: true });
 });

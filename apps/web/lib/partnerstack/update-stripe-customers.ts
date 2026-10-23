@@ -1,18 +1,16 @@
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
-import { prisma } from "@dub/prisma";
-import { Customer, Project } from "@dub/prisma/client";
+import { sleep } from "@dub/utils";
+import { Customer, Project } from "@prisma/client";
 import Stripe from "stripe";
+
 import { stripeAppClient } from "../stripe";
 import { logImportError } from "../tinybird/log-import-error";
 import { MAX_BATCHES, partnerStackImporter } from "./importer";
 import { PartnerStackImportPayload } from "./types";
 
 const CUSTOMERS_PER_BATCH = 20;
-
-const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { mode: "live" }),
-});
 
 // PartnerStack API doesn't return the Stripe customer ID,
 // so we'll search for Stripe customers by email and update the customer record with the Stripe customer ID, if found.
@@ -32,73 +30,81 @@ export async function updateStripeCustomers(
           id: true,
           slug: true,
           stripeConnectId: true,
+          stripeConnectMode: true,
         },
       },
     },
   });
 
-  if (!workspace.stripeConnectId) {
-    console.error(
-      `Workspace ${workspace.id} has no stripeConnectId. Skipping...`,
-    );
-    return;
-  }
-
-  let hasMore = true;
-  let processedBatches = 0;
-  let currentStartingAfter = startingAfter;
-
-  while (hasMore && processedBatches < MAX_BATCHES) {
-    const customers = await prisma.customer.findMany({
-      where: {
-        projectId: workspace.id,
-        stripeCustomerId: null,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-      },
-      orderBy: {
-        id: "asc",
-      },
-      take: CUSTOMERS_PER_BATCH,
-      skip: currentStartingAfter ? 1 : 0,
-      ...(currentStartingAfter && {
-        cursor: {
-          id: currentStartingAfter,
-        },
-      }),
+  if (workspace.stripeConnectId) {
+    const stripe = stripeAppClient({
+      mode: workspace.stripeConnectMode,
     });
 
-    if (customers.length === 0) {
-      hasMore = false;
-      break;
+    let hasMore = true;
+    let processedBatches = 0;
+    let currentStartingAfter = startingAfter;
+
+    while (hasMore && processedBatches < MAX_BATCHES) {
+      const customers = await prisma.customer.findMany({
+        where: {
+          projectId: workspace.id,
+          stripeCustomerId: null,
+          email: {
+            not: null,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+        orderBy: {
+          id: "asc",
+        },
+        take: CUSTOMERS_PER_BATCH,
+        skip: currentStartingAfter ? 1 : 0,
+        ...(currentStartingAfter && {
+          cursor: {
+            id: currentStartingAfter,
+          },
+        }),
+      });
+
+      if (customers.length === 0) {
+        hasMore = false;
+        break;
+      }
+
+      await Promise.allSettled(
+        customers.map((customer) =>
+          searchStripeAndUpdateCustomer({
+            stripe,
+            workspace,
+            customer,
+            importId,
+          }),
+        ),
+      );
+
+      await sleep(2000);
+
+      processedBatches++;
+      currentStartingAfter = customers[customers.length - 1].id;
     }
 
-    await Promise.allSettled(
-      customers.map((customer) =>
-        searchStripeAndUpdateCustomer({
-          workspace,
-          customer,
-          importId,
-        }),
-      ),
+    if (hasMore) {
+      await partnerStackImporter.queue({
+        ...payload,
+        startingAfter: currentStartingAfter,
+        action: "update-stripe-customers",
+      });
+      return;
+    }
+  } else {
+    console.error(
+      `Workspace ${workspace.id} has no stripeConnectId. Skipping Stripe customer matching.`,
     );
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    processedBatches++;
-    currentStartingAfter = customers[customers.length - 1].id;
-  }
-
-  if (hasMore) {
-    await partnerStackImporter.queue({
-      ...payload,
-      startingAfter: currentStartingAfter,
-      action: "update-stripe-customers",
-    });
-    return;
   }
 
   const workspaceUser = await prisma.projectUsers.findUniqueOrThrow({
@@ -132,10 +138,12 @@ export async function updateStripeCustomers(
 }
 
 async function searchStripeAndUpdateCustomer({
+  stripe,
   workspace,
   customer,
   importId,
 }: {
+  stripe: Stripe;
   workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
   customer: Pick<Customer, "id" | "email">;
   importId: string;
@@ -147,6 +155,10 @@ async function searchStripeAndUpdateCustomer({
     entity: "customer",
     entity_id: customer.id,
   } as const;
+
+  if (!customer.email) {
+    return null;
+  }
 
   try {
     const stripeCustomers = await stripe.customers.search(

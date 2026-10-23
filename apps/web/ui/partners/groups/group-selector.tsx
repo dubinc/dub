@@ -82,7 +82,9 @@ export function GroupSelector({
         )
       }
       caret={true}
-      placeholder={variant === "header" ? "" : "Select group"}
+      placeholder={
+        <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
+      }
       searchPlaceholder="Search groups..."
       onSearchChange={setSearch}
       shouldFilter={!useAsync}

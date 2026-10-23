@@ -1,23 +1,40 @@
 import { withAdmin } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import {
   adminNetworkPartnerQuerySchema,
   adminNetworkPartnerSchema,
 } from "@/lib/zod/schemas/admin";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/admin/partners/network
 export const GET = withAdmin(async ({ searchParams }) => {
-  const { networkStatus, country, search, sortOrder, page, pageSize } =
-    adminNetworkPartnerQuerySchema.parse(searchParams);
+  const {
+    networkStatus,
+    country,
+    search,
+    sortBy: sortByParam,
+    sortOrder,
+    page,
+    pageSize,
+  } = adminNetworkPartnerQuerySchema.parse(searchParams);
+
+  const sortBy =
+    sortByParam ??
+    (networkStatus === "submitted"
+      ? "submittedAt"
+      : networkStatus === "approved" ||
+          networkStatus === "rejected" ||
+          networkStatus === "banned"
+        ? "reviewedAt"
+        : "createdAt");
 
   const partners = await prisma.partner.findMany({
     where: {
       ...(networkStatus && { networkStatus }),
       ...(country && { country }),
-      ...(search && {
-        email: search,
-      }),
+      ...(search && search.startsWith("pn_")
+        ? { id: search }
+        : { email: search }),
     },
     include: {
       platforms: true,
@@ -33,7 +50,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
         },
       },
     },
-    orderBy: { createdAt: sortOrder },
+    orderBy: { [sortBy]: sortOrder },
     take: pageSize,
     skip: ((page ?? 1) - 1) * pageSize,
   });

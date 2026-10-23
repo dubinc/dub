@@ -1,9 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { isGenericEmail } from "@/lib/is-generic-email";
+import { isGenericEmail } from "@/lib/email/is-generic-email";
 import { jackson, samlAudience } from "@/lib/jackson";
-import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { prisma } from "@/lib/prisma";
+import { APP_DOMAIN, APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -73,8 +73,8 @@ export const POST = withWorkspace(
     const data = await apiController.createSAMLConnection({
       encodedRawMetadata: encodedRawMetadata!,
       metadataUrl: metadataUrl!,
-      defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/auth/saml`,
-      redirectUrl: process.env.NEXTAUTH_URL as string,
+      defaultRedirectUrl: `${APP_DOMAIN}/auth/saml`,
+      redirectUrl: APP_DOMAIN,
       tenant: workspace.id,
       product: "Dub",
     });

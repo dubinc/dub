@@ -1,6 +1,6 @@
 import { Session } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
 import { processPartnerDeactivation } from "./process-partner-deactivation";
 
 interface BulkDeactivatePartnersParams {

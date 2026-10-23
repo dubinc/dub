@@ -1,18 +1,16 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import {
-  MIN_WITHDRAWAL_AMOUNT_CENTS,
-  STABLECOIN_PAYOUT_FIXED_FEE_CENTS,
-} from "@/lib/constants/payouts";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
-import { prisma } from "@dub/prisma";
+import { withCron } from "@/lib/cron/with-cron";
+import { prisma } from "@/lib/prisma";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
+import { mockPayoutCompletion } from "@/lib/sandbox/mock-payout-completion";
 import { log } from "@dub/utils";
+import { PartnerPayoutMethod } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { queueExternalPayouts } from "./queue-external-payouts";
 import { queueStripePayouts } from "./queue-stripe-payouts";
+import { queueTremendousPayouts } from "./queue-tremendous-payouts";
 import { sendPaypalPayouts } from "./send-paypal-payouts";
-import { scheduleDelayedStablecoinPayouts } from "./utils";
+import { getFundSettlementTiming, scheduleDelayedPayouts } from "./utils";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 600; // This function can run for a maximum of 10 minutes
@@ -24,11 +22,8 @@ const payloadSchema = z.object({
 // POST /api/cron/payouts/charge-succeeded
 // This route is used to process the charge-succeeded event from Stripe.
 // We're intentionally offloading this to a cron job so we can return a 200 to Stripe immediately.
-export async function POST(req: Request) {
+export const POST = withCron(async ({ rawBody }) => {
   try {
-    const rawBody = await req.text();
-    await verifyQstashSignature({ req, rawBody });
-
     const { invoiceId } = payloadSchema.parse(JSON.parse(rawBody));
 
     const invoice = await prisma.invoice.findUnique({
@@ -41,6 +36,16 @@ export async function POST(req: Request) {
             payouts: {
               where: {
                 status: "processing",
+              },
+            },
+          },
+        },
+        program: {
+          select: {
+            workspace: {
+              select: {
+                id: true,
+                environment: true,
               },
             },
           },
@@ -58,6 +63,18 @@ export async function POST(req: Request) {
       );
     }
 
+    const workspace = invoice.program?.workspace;
+
+    if (!invoice.program || !workspace) {
+      return logAndRespond(
+        `Invoice ${invoiceId} has no program or workspace, skipping...`,
+      );
+    }
+
+    const isProductionWorkspace = isProductionEnvironment(
+      workspace.environment,
+    );
+
     // Set the method for each payout in the invoice to the corresponding partner's default payout method
     await prisma.$executeRaw`
       UPDATE Payout p
@@ -68,60 +85,74 @@ export async function POST(req: Request) {
       AND p.status = 'processing'
     `;
 
-    // Fund the total stablecoin payout amount for this invoice
-    const { _sum, _count } = await prisma.payout.aggregate({
-      _sum: { amount: true },
-      _count: { id: true },
-      where: {
-        invoiceId: invoice.id,
-        method: "stablecoin",
-        // only transfer funds for stablecoin payouts >= minimum withdrawal amount
-        // for payouts below the minimum withdrawal amount, we will just mark them as processed
-        // and users can force withdraw them manually later (which triggers another fundFinancialAccount call)
-        amount: {
-          gte: MIN_WITHDRAWAL_AMOUNT_CENTS,
-        },
-      },
-    });
+    let fundsAvailable = true;
 
-    let skipStablecoinPayouts = false;
-    // we need to add the STABLECOIN_PAYOUT_FIXED_FEE_CENTS for each payout to the total funding amount
-    // to make sure that `createStablecoinPayout` later has enough funds to cover Stripe's fees
-    const stablecoinFundingAmount =
-      (_sum.amount ?? 0) + _count.id * STABLECOIN_PAYOUT_FIXED_FEE_CENTS;
+    // for production workspaces, if invoice payment method is card, we need to check if the funds have settled yet
+    if (isProductionWorkspace && invoice.paymentMethod === "card") {
+      const fundSettlementTiming = await getFundSettlementTiming(invoice);
+      if (!fundSettlementTiming.fundsAvailable) {
+        // set fundsAvailable to false so we don't queue any payouts that require funds to be available
+        fundsAvailable = false;
 
-    // Send money to Financial Account to handle stablecoin payouts
-    if (stablecoinFundingAmount > 0) {
-      const { nextAction } = await scheduleDelayedStablecoinPayouts(invoice);
+        const postSettlementPayoutMethods = [
+          PartnerPayoutMethod.stablecoin,
+          PartnerPayoutMethod.paypal,
+          PartnerPayoutMethod.tremendous,
+        ];
 
-      if (nextAction === "executeNow") {
-        try {
-          await fundFinancialAccount({
-            amount: stablecoinFundingAmount,
-            idempotencyKey: invoiceId,
+        const postSettlementPayoutsCount = await prisma.payout.count({
+          where: {
+            invoiceId: invoice.id,
+            status: "processing",
+            method: {
+              in: postSettlementPayoutMethods,
+            },
+          },
+        });
+
+        if (postSettlementPayoutsCount > 0) {
+          await scheduleDelayedPayouts({
+            invoice,
+            executeAt: fundSettlementTiming.scheduledAt,
           });
-        } catch (error) {
-          await log({
-            message: `Failed to fund Dub's financial account for stablecoin payouts: ${error.message}`,
-            type: "errors",
-          });
-
-          skipStablecoinPayouts = true;
         }
-      }
-
-      if (nextAction === "skip") {
-        skipStablecoinPayouts = true;
       }
     }
 
     await Promise.allSettled([
-      // Queue Stripe payouts
-      queueStripePayouts(invoice, skipStablecoinPayouts),
-      // Send PayPal payouts
-      sendPaypalPayouts(invoice),
-      // Queue external payouts
+      // Queue Stripe payouts (need to pass along fundsAvailable to handle stablecoin payouts)
+      queueStripePayouts({
+        workspace,
+        invoice,
+        fundsAvailable,
+      }),
+
+      // only send PayPal and Tremendous payouts if funds are available
+      ...(fundsAvailable
+        ? [
+            sendPaypalPayouts({
+              workspace,
+              invoice,
+            }),
+
+            queueTremendousPayouts({
+              workspace,
+              invoice,
+            }),
+          ]
+        : []),
+
       queueExternalPayouts(invoice),
+
+      // For non-production workspaces, mock the payout completion
+      ...(!isProductionWorkspace
+        ? [
+            mockPayoutCompletion({
+              workspace,
+              invoice,
+            }),
+          ]
+        : []),
     ]);
 
     return logAndRespond(
@@ -133,6 +164,6 @@ export async function POST(req: Request) {
       type: "cron",
     });
 
-    return handleAndReturnErrorResponse(error);
+    throw error;
   }
-}
+});

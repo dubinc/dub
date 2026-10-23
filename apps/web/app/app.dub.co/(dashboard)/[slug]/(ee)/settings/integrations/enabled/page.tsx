@@ -1,10 +1,10 @@
+import { prisma } from "@/lib/prisma";
 import { IntegrationLogo } from "@/ui/integrations/integration-logo";
+import { IntegrationStatusBadge } from "@/ui/integrations/integration-status-badge";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { BackLink } from "@/ui/shared/back-link";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { prisma } from "@dub/prisma";
-import { ConnectedDots } from "@dub/ui";
+import { ConnectedDots, TimestampTooltip } from "@dub/ui";
 import { cn, formatDate, truncate } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -17,25 +17,17 @@ export default async function EnabledIntegrationsPage(props: {
   params: Promise<{ slug: string }>;
 }) {
   const params = await props.params;
+
   return (
-    <div className="mx-auto flex w-full max-w-screen-md flex-col gap-8">
-      <BackLink href={`/${params.slug}/settings/integrations`}>
-        Integrations
-      </BackLink>
-      <h1 className="text-2xl font-semibold tracking-tight text-black">
-        Enabled Integrations
-      </h1>
-      <Suspense fallback={<LayoutLoader />}>
-        <EnabledIntegrationsPageRSC slug={params.slug} />
-      </Suspense>
-    </div>
+    <Suspense fallback={<LayoutLoader />}>
+      <EnabledIntegrationsPageRSC slug={params.slug} />
+    </Suspense>
   );
 }
 
 async function EnabledIntegrationsPageRSC({ slug }: { slug: string }) {
   const integrations = await prisma.integration.findMany({
     where: {
-      verified: true,
       installations: {
         some: {
           project: {
@@ -44,14 +36,21 @@ async function EnabledIntegrationsPageRSC({ slug }: { slug: string }) {
         },
       },
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      projectId: true,
+      verified: true,
+      logo: true,
       installations: {
         where: {
           project: {
             slug,
           },
         },
-        include: {
+        select: {
+          createdAt: true,
           user: {
             select: {
               id: true,
@@ -60,6 +59,9 @@ async function EnabledIntegrationsPageRSC({ slug }: { slug: string }) {
               image: true,
             },
           },
+        },
+        orderBy: {
+          createdAt: "desc",
         },
       },
     },
@@ -104,9 +106,13 @@ async function EnabledIntegrationsPageRSC({ slug }: { slug: string }) {
                   className="size-10"
                 />
 
-                <div className="flex min-w-0 flex-col">
-                  <span className="text-sm font-medium text-neutral-800">
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-neutral-800">
                     {integration.name}
+                    <IntegrationStatusBadge
+                      projectId={integration.projectId}
+                      verified={integration.verified}
+                    />
                   </span>
                   {installation && (
                     <span className="truncate text-[0.8125rem] text-neutral-500">
@@ -123,10 +129,18 @@ async function EnabledIntegrationsPageRSC({ slug }: { slug: string }) {
                           </span>{" "}
                         </>
                       ) : null}
-                      {formatDate(installation.createdAt, {
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      •{" "}
+                      <TimestampTooltip
+                        timestamp={installation.createdAt}
+                        rows={["local", "utc", "unix"]}
+                      >
+                        <span className="text-xs text-neutral-500 underline decoration-neutral-300 decoration-dotted underline-offset-2">
+                          {formatDate(installation.createdAt, {
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
+                      </TimestampTooltip>
                     </span>
                   )}
                 </div>

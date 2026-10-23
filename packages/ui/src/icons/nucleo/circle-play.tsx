@@ -1,6 +1,9 @@
 import { SVGProps } from "react";
 
-export function CirclePlay(props: SVGProps<SVGSVGElement>) {
+export function CirclePlay({
+  variant = "outline",
+  ...props
+}: SVGProps<SVGSVGElement> & { variant?: "outline" | "fill" }) {
   return (
     <svg
       height="18"
@@ -10,24 +13,35 @@ export function CirclePlay(props: SVGProps<SVGSVGElement>) {
       {...props}
     >
       <g fill="currentColor">
-        <path
-          d="M11.652,8.568l-3.651-2.129c-.333-.194-.752,.046-.752,.432v4.259c0,.386,.419,.626,.752,.432l3.651-2.129c.331-.193,.331-.671,0-.864Z"
-          fill="none"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.5"
-        />
-        <circle
-          cx="9"
-          cy="9"
-          fill="none"
-          r="7.25"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.5"
-        />
+        {variant === "fill" ? (
+          <>
+            <path
+              d="M9,1C4.589,1,1,4.589,1,9s3.589,8,8,8,8-3.589,8-8S13.411,1,9,1Zm2.778,8.648l-3.65,2.129c-.118,.069-.248,.104-.378,.104-.128,0-.256-.034-.374-.101-.236-.135-.376-.378-.376-.65V6.871c0-.272,.141-.515,.376-.65,.236-.136,.517-.134,.751,.002l3.65,2.129c.233,.136,.373,.378,.373,.648s-.139,.512-.373,.648Z"
+              fill="currentColor"
+            />
+          </>
+        ) : (
+          <>
+            <path
+              d="M11.652,8.568l-3.651-2.129c-.333-.194-.752,.046-.752,.432v4.259c0,.386,.419,.626,.752,.432l3.651-2.129c.331-.193,.331-.671,0-.864Z"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.5"
+            />
+            <circle
+              cx="9"
+              cy="9"
+              fill="none"
+              r="7.25"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.5"
+            />
+          </>
+        )}
       </g>
     </svg>
   );

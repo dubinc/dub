@@ -16,7 +16,7 @@ const secretMap: Record<StripeMode, string | undefined> = {
 };
 
 // Stripe Integration App client
-export const stripeAppClient = ({ mode }: { mode?: StripeMode }) => {
+export const stripeAppClient = ({ mode }: { mode: StripeMode | null }) => {
   const appSecretKey = secretMap[mode ?? "live"];
 
   return new Stripe(appSecretKey!, {
@@ -27,3 +27,17 @@ export const stripeAppClient = ({ mode }: { mode?: StripeMode }) => {
     },
   });
 };
+
+export function isStripeRateLimitError(
+  error: unknown,
+): error is Stripe.errors.StripeError {
+  if (!(error instanceof Stripe.errors.StripeError)) {
+    return false;
+  }
+
+  return (
+    error instanceof Stripe.errors.StripeRateLimitError ||
+    error.statusCode === 429 ||
+    error.code === "lock_timeout"
+  );
+}

@@ -4,9 +4,9 @@ import { encrypt } from "@/lib/encryption";
 import { installIntegration } from "@/lib/integrations/install";
 import { slackOAuthProvider } from "@/lib/integrations/slack/oauth";
 import { SlackAuthToken } from "@/lib/integrations/types";
+import { prisma } from "@/lib/prisma";
 import { createWebhook } from "@/lib/webhook/create-webhook";
-import { prisma } from "@dub/prisma";
-import { Project, WebhookReceiver } from "@dub/prisma/client";
+import { Project, WebhookReceiver } from "@prisma/client";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";

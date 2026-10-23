@@ -1,9 +1,9 @@
-import { PartnerPayoutMethod } from "@dub/prisma/client";
 import {
   CONNECT_SUPPORTED_COUNTRIES,
   PAYPAL_SUPPORTED_COUNTRIES,
   STABLECOIN_SUPPORTED_COUNTRIES,
 } from "@dub/utils";
+import { PartnerPayoutMethod } from "@prisma/client";
 
 export function getPayoutMethodsForCountry({
   country,

@@ -1,5 +1,9 @@
+import { sleep } from "@dub/utils";
+import { assertValidDomainFormat } from "./utils";
+
 export const verifyDomain = async (domain: string) => {
-  return await fetch(
+  assertValidDomainFormat(domain);
+  const res = await fetch(
     `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains/${domain.toLowerCase()}/verify?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
       method: "POST",
@@ -8,5 +12,33 @@ export const verifyDomain = async (domain: string) => {
         "Content-Type": "application/json",
       },
     },
-  ).then((res) => res.json());
+  );
+  return res.json();
+};
+
+export const verifyDomainWithRetry = async (
+  domain: string,
+  {
+    attempts = 3,
+    delayMs = 2500,
+  }: { attempts?: number; delayMs?: number } = {},
+) => {
+  let last: any = null;
+  for (let i = 0; i < attempts; i++) {
+    if (i > 0) {
+      await sleep(delayMs);
+    }
+    try {
+      last = await verifyDomain(domain);
+    } catch (error) {
+      if (i === attempts - 1) {
+        throw error;
+      }
+      continue;
+    }
+    if (last?.verified) {
+      return last;
+    }
+  }
+  return last;
 };

@@ -3,14 +3,15 @@
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { DubApiError } from "@/lib/api/errors";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import { UserProps, WorkspaceProps } from "@/lib/types";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -102,6 +103,8 @@ export const banPartner = async ({
       clickRewardId: null,
       leadRewardId: null,
       saleRewardId: null,
+      referralRewardId: null,
+      customRewardId: null,
       discountId: null,
     },
   });
@@ -138,6 +141,11 @@ export const banPartner = async ({
           programId,
           partnerId,
         },
+      }),
+
+      // Queue an index update because the enrollment status moved to banned
+      queuePartnerSearchSync({
+        enrollmentIds: [programEnrollmentUpdated.id],
       }),
 
       flagForFraud && flagForFraudReason

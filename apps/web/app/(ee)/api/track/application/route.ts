@@ -12,9 +12,15 @@ import { getSession } from "@/lib/auth";
 import { withAxiom } from "@/lib/axiom/server";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
-import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
-import { Partner, Program } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import {
+  recordClickZod,
+  recordClickZodSchema,
+} from "@/lib/tinybird/record-click-zod";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
+import { publishLinkClickEvent } from "@/lib/upstash/redis-streams/link-click-events";
+import { MARKETPLACE_RESERVED_SLUGS } from "@/ui/program-marketplace/utils/urls";
 import {
   capitalize,
   EU_COUNTRY_CODES,
@@ -22,8 +28,13 @@ import {
   getSearchParams,
   LOCALHOST_GEO_DATA,
   LOCALHOST_IP,
+  nanoid,
+  NETWORK_PROGRAM_ID,
+  NETWORK_PROGRAM_SLUG,
+  NETWORK_WORKSPACE_ID,
 } from "@dub/utils";
-import { geolocation, ipAddress } from "@vercel/functions";
+import { Partner, Program } from "@prisma/client";
+import { geolocation, ipAddress, waitUntil } from "@vercel/functions";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse, userAgent } from "next/server";
 
@@ -38,16 +49,10 @@ export const POST = withAxiom(async (req) => {
     }
 
     const ip = await getIP();
-    const { success } = await ratelimit(10, "10 s").limit(
-      `track-application:${ip}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Too many requests. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.trackApplication,
+      identifier: ip,
+    });
 
     const { eventName, url, referrer } = trackApplicationEventSchema.parse(
       await parseRequestBody(req),
@@ -63,14 +68,22 @@ export const POST = withAxiom(async (req) => {
       });
     }
 
-    const program = await prisma.program.findUnique({
-      where: {
-        slug: programSlug.toLowerCase(),
-      },
-      select: {
-        id: true,
-      },
-    });
+    let program: Pick<Program, "id"> | null = null;
+
+    if (programSlug === NETWORK_PROGRAM_SLUG) {
+      program = {
+        id: NETWORK_PROGRAM_ID,
+      };
+    } else {
+      program = await prisma.program.findUnique({
+        where: {
+          slug: programSlug.toLowerCase(),
+        },
+        select: {
+          id: true,
+        },
+      });
+    }
 
     if (!program) {
       throw new DubApiError({
@@ -158,7 +171,40 @@ async function trackVisitEvent({
   }
 
   const session = await getSession();
-  const requestContext = await getRequestContext(req);
+  const partnerId = session?.user?.defaultPartnerId;
+
+  if (partnerId) {
+    const existingEnrollment = await prisma.programEnrollment.findUnique({
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId: program.id,
+        },
+      },
+      select: {
+        partnerId: true,
+      },
+    });
+
+    if (existingEnrollment) {
+      console.log(
+        `Partner ${partnerId} is already enrolled in program ${program.id}. Skipping visit tracking...`,
+      );
+      return;
+    }
+
+    const isSelfReferral =
+      referredByPartner?.id && partnerId === referredByPartner.id;
+
+    if (isSelfReferral) {
+      console.log(
+        `Self-referral detected for partner ${partnerId} on program ${program.id}. Skipping visit tracking...`,
+      );
+      return;
+    }
+  }
+
+  const requestContext = await getRequestContext(req, { referrer, url });
 
   try {
     const programApplicationEvent = await prisma.programApplicationEvent.create(
@@ -172,14 +218,10 @@ async function trackVisitEvent({
               ? getDomainWithoutWWW(referrer) || "direct"
               : "direct",
           referredByPartnerId: referredByPartner?.id,
-          partnerId: session?.user?.defaultPartnerId,
+          partnerId,
           visitedAt: new Date(),
           country: requestContext.country,
-          metadata: {
-            ...requestContext,
-            url,
-            referrer,
-          },
+          metadata: requestContext,
         },
       },
     );
@@ -197,7 +239,57 @@ async function trackVisitEvent({
       sameSite: "lax",
       path: "/",
     });
-  } catch {}
+  } catch (e) {
+    console.error(`Error tracking "visit" event for program ${program.id}`, e);
+  }
+
+  // for network program application events, track the click event
+  if (referredByPartner) {
+    waitUntil(
+      (async () => {
+        const networkReferralLink = await prisma.link.findFirst({
+          where: {
+            programId: NETWORK_PROGRAM_ID,
+            partnerId: referredByPartner.id,
+          },
+        });
+
+        if (!networkReferralLink) {
+          console.log(
+            `No network referral link found for partner ${referredByPartner.id} (not enrolled in network program yet), skipping...`,
+          );
+          return;
+        }
+
+        // add additional click event data to the request context
+        const generatedClickEvent = recordClickZodSchema.parse({
+          ...requestContext,
+          timestamp: new Date().toISOString(),
+          workspace_id: NETWORK_WORKSPACE_ID,
+          link_id: networkReferralLink.id,
+          domain: networkReferralLink.domain,
+          key: networkReferralLink.key,
+        });
+
+        await recordClickZod(generatedClickEvent);
+        console.log(
+          `Tracked click event for network partner ${referredByPartner.id}`,
+        );
+
+        await publishLinkClickEvent({
+          linkId: networkReferralLink.id,
+          timestamp: new Date().toISOString(),
+          workspaceId: NETWORK_WORKSPACE_ID,
+          programId: NETWORK_PROGRAM_ID,
+          partnerId: referredByPartner.id,
+        });
+
+        console.log(
+          `Published link click event for network referral link ${networkReferralLink.id}`,
+        );
+      })(),
+    );
+  }
 }
 
 // Track the "start" event
@@ -222,6 +314,22 @@ async function trackStartEvent({
   const partnerId = session?.user?.defaultPartnerId;
 
   try {
+    const applicationEvent = partnerId
+      ? await prisma.programApplicationEvent.findUnique({
+          where: {
+            id: eventId,
+          },
+          select: {
+            referredByPartnerId: true,
+          },
+        })
+      : null;
+
+    const isSelfReferral =
+      partnerId &&
+      applicationEvent?.referredByPartnerId &&
+      partnerId === applicationEvent.referredByPartnerId;
+
     await prisma.programApplicationEvent.update({
       where: {
         id: eventId,
@@ -230,6 +338,7 @@ async function trackStartEvent({
       data: {
         startedAt: new Date(),
         ...(partnerId ? { partnerId } : {}),
+        ...(isSelfReferral ? { referredByPartnerId: null } : {}),
       },
     });
 
@@ -240,10 +349,14 @@ async function trackStartEvent({
 }
 
 // Get the request context
-async function getRequestContext(req: NextRequest) {
+async function getRequestContext(
+  req: NextRequest,
+  { referrer, url }: { referrer: string | null | undefined; url: string },
+) {
   const isVercel = process.env.VERCEL === "1";
 
-  const identityHash = await getIdentityHash(req);
+  const click_id = nanoid(16);
+  const identity_hash = await getIdentityHash(req);
   const ua = userAgent(req);
 
   const ip = isVercel ? ipAddress(req) : LOCALHOST_IP;
@@ -260,7 +373,13 @@ async function getRequestContext(req: NextRequest) {
   const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
   return {
-    identityHash,
+    identity_hash,
+    click_id,
+    url,
+    ip:
+      typeof ip === "string" && ip.trim().length > 0 && !isEuCountry
+        ? ip
+        : undefined,
     continent,
     country: geo.country,
     region,
@@ -279,10 +398,8 @@ async function getRequestContext(req: NextRequest) {
     os_version: ua.os.version,
     cpu_architecture: ua.cpu?.architecture,
     ua: ua.ua,
-    ip:
-      typeof ip === "string" && ip.trim().length > 0 && !isEuCountry
-        ? ip
-        : undefined,
+    referer: referrer ? getDomainWithoutWWW(referrer) || "direct" : "direct",
+    referer_url: referrer || "direct",
   };
 }
 
@@ -290,7 +407,15 @@ async function getRequestContext(req: NextRequest) {
 // Supports:
 //   - https://partners.dub.co/{programSlug}
 //   - https://partners.dub.co/programs/{programSlug}/apply
-//   - https://partners.dub.co/programs/marketplace/{programSlug}
+//   - https://partners.dub.co/marketplace/{programSlug}
+//   - https://dub.co/marketplace/{programSlug}
+//   - https://partners.dub.co/programs/marketplace/{programSlug} (legacy)
+//   - https://partners.dub.co/register (platform-level signup -> network program)
+//
+// Marketplace list routes (no program slug):
+//   - /marketplace
+//   - /marketplace/all
+//   - /marketplace/c/{category}
 function identityProgramSlug(url: string) {
   try {
     const urlObj = new URL(url);
@@ -300,18 +425,60 @@ function identityProgramSlug(url: string) {
       return { programSlug: null, isMarketplace: false };
     }
 
-    const isMarketplace = parts[0] === "programs" && parts[1] === "marketplace";
-    const programSlug = isMarketplace // e.g. https://partners.dub.co/programs/marketplace/acme
-      ? parts[2]
-      : parts[0] === "programs" // e.g. https://partners.dub.co/programs/acme/apply
-        ? parts[1]
-        : parts[0]; // e.g. https://partners.dub.co/acme, or https://partners.dub.co/acme/apply, or https://partners.dub.co/acme/group/apply
+    if (parts[0] === "register") {
+      return { programSlug: NETWORK_PROGRAM_SLUG, isMarketplace: false };
+    }
+
+    if (parts[0] === "marketplace") {
+      if (parts.length === 1) {
+        return { programSlug: null, isMarketplace: true };
+      }
+
+      if (parts[1] === "c") {
+        return { programSlug: null, isMarketplace: true };
+      }
+
+      if (parts.length === 2) {
+        if (MARKETPLACE_RESERVED_SLUGS.has(parts[1])) {
+          return { programSlug: null, isMarketplace: true };
+        }
+
+        return {
+          programSlug: parts[1].toLowerCase(),
+          isMarketplace: true,
+        };
+      }
+
+      return { programSlug: null, isMarketplace: true };
+    }
+
+    if (parts[0] === "programs" && parts[1] === "marketplace") {
+      if (!parts[2] || MARKETPLACE_RESERVED_SLUGS.has(parts[2])) {
+        return { programSlug: null, isMarketplace: false };
+      }
+
+      return {
+        programSlug: parts[2].toLowerCase(),
+        isMarketplace: true,
+      };
+    }
+
+    if (parts[0] === "programs") {
+      if (!parts[1]) {
+        return { programSlug: null, isMarketplace: false };
+      }
+
+      return {
+        programSlug: parts[1].toLowerCase(),
+        isMarketplace: false,
+      };
+    }
 
     return {
-      programSlug: programSlug.toLowerCase(),
-      isMarketplace,
+      programSlug: parts[0].toLowerCase(),
+      isMarketplace: false,
     };
-  } catch (error) {
+  } catch {
     return { programSlug: null, isMarketplace: false };
   }
 }

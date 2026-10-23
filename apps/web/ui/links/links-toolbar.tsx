@@ -156,11 +156,13 @@ export const LinksToolbar = memo(
           label: "Delete",
           icon: Trash,
           action: () => setShowDeleteLinkModal(true),
-          disabledTooltip: selectedLinks.some(
-            ({ programId, clicks }) => programId && clicks > 0,
-          )
-            ? "You can't delete partner links that have active stats on them."
-            : undefined,
+          disabledTooltip: selectedLinks.some(({ key }) => key === "_root")
+            ? "You can't delete a custom domain link. You can delete the domain instead."
+            : selectedLinks.some(
+                  ({ programId, clicks }) => programId && clicks > 0,
+                )
+              ? "You can't delete partner links that have active stats on them."
+              : undefined,
           keyboardShortcut: "x",
         },
       ],
@@ -171,9 +173,9 @@ export const LinksToolbar = memo(
       bulkActions
         .map(({ keyboardShortcut }) => keyboardShortcut)
         .filter(Boolean) as string[],
-      (e) => {
+      (_, key) => {
         const action = bulkActions.find(
-          ({ keyboardShortcut }) => keyboardShortcut === e.key,
+          ({ keyboardShortcut }) => keyboardShortcut === key,
         );
         if (action && !action.disabledTooltip && hasAllFolderPermissions)
           action.action();

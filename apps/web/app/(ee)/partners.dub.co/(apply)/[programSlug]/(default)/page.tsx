@@ -1,4 +1,6 @@
 import { getProgram } from "@/lib/fetchers/get-program";
+import { ProgramEnvironmentBanner } from "@/lib/sandbox/components/workspace-environment";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { ApplicationAnalytics } from "@/ui/application-analytics";
@@ -8,7 +10,14 @@ import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyButton } from "./apply-button";
+import { getProgramApplyMetadata } from "./get-program-apply-metadata";
 import { ApplyHeader } from "./header";
+
+export async function generateMetadata(props: {
+  params: Promise<{ programSlug: string; groupSlug?: string }>;
+}) {
+  return getProgramApplyMetadata({ params: props.params, page: "lander" });
+}
 
 export default async function ApplyPage(props: {
   params: Promise<{ programSlug: string; groupSlug?: string }>;
@@ -28,8 +37,19 @@ export default async function ApplyPage(props: {
     !program.group.landerData ||
     !program.group.landerPublishedAt
   ) {
-    // throw 404 if it's the default group, else redirect to the default group page
+    // for the default group:
+    // - if the program is a production program featured on the marketplace (and not deactivated), redirect to the marketplace program page
+    // - otherwise, throw 404
+    // for other groups: redirect to the default group variant
     if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
+      if (
+        program &&
+        program.addedToMarketplaceAt &&
+        !program.deactivatedAt &&
+        isProductionEnvironment(program.environment)
+      ) {
+        redirect(`/marketplace/${programSlug}`);
+      }
       notFound();
     } else {
       redirect(`/${programSlug}`);
@@ -37,6 +57,7 @@ export default async function ApplyPage(props: {
   }
 
   const landerData = programLanderSchema.parse(program.group.landerData || {});
+  const isNonProduction = !isProductionEnvironment(program.environment);
 
   return (
     <div
@@ -48,7 +69,8 @@ export default async function ApplyPage(props: {
         } as CSSProperties
       }
     >
-      <ApplyHeader group={program.group} />
+      <ProgramEnvironmentBanner environment={program.environment} />
+      <ApplyHeader group={program.group} hasBanner={isNonProduction} />
       <ApplicationAnalytics />
       <div className="p-6">
         <LanderHero program={program} landerData={landerData} />

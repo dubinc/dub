@@ -7,7 +7,6 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PartnerNetworkStatus, PlatformType } from "@dub/prisma/client";
 import {
   Filter,
   StatusBadge,
@@ -18,12 +17,20 @@ import {
   useTable,
 } from "@dub/ui";
 import { CircleDotted, FlagWavy } from "@dub/ui/icons";
-import { cn, COUNTRIES, fetcher, formatDate } from "@dub/utils";
+import {
+  capitalize,
+  cn,
+  COUNTRIES,
+  fetcher,
+  formatDate,
+  timeAgo,
+} from "@dub/utils";
+import { PartnerNetworkStatus, PlatformType } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
-import { NetworkPartnerApplicationSheet } from "app/(ee)/admin.dub.co/(dashboard)/partners/network/network-partner-application-sheet";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { NetworkPartnerApplicationSheet } from "./network-partner-application-sheet";
 
 const SOCIAL_FIELDS = [
   { id: "website", label: "Website" },
@@ -34,6 +41,34 @@ const SOCIAL_FIELDS = [
   { id: "tiktok", label: "TikTok" },
 ] as const;
 
+function getDateColumnForNetworkStatus(networkStatus?: string) {
+  if (networkStatus === "submitted") {
+    return {
+      id: "submittedAt" as const,
+      header: "Submitted",
+      field: "submittedAt" as const,
+    };
+  }
+
+  if (
+    networkStatus === "approved" ||
+    networkStatus === "rejected" ||
+    networkStatus === "banned"
+  ) {
+    return {
+      id: "reviewedAt" as const,
+      header: capitalize(networkStatus) as string,
+      field: "reviewedAt" as const,
+    };
+  }
+
+  return {
+    id: "createdAt" as const,
+    header: "Joined",
+    field: "createdAt" as const,
+  };
+}
+
 export default function NetworkApplicationsPage() {
   const { queryParams, searchParams, searchParamsObj, getQueryString } =
     useRouterStuff();
@@ -43,21 +78,31 @@ export default function NetworkApplicationsPage() {
     | { open: true; partnerId: string }
   >({ open: false, partnerId: null });
 
+  const dateColumn = useMemo(
+    () => getDateColumnForNetworkStatus(searchParamsObj.networkStatus),
+    [searchParamsObj.networkStatus],
+  );
+  const sortBy = searchParams.get("sortBy") || dateColumn.id;
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+
   const {
     data: partners = [],
     isLoading,
     mutate,
   } = useSWR<AdminNetworkPartner[]>(
-    `/api/admin/partners/network${getQueryString(undefined, {
-      exclude: ["partnerId"],
-    })}`,
+    `/api/admin/partners/network${getQueryString(
+      { sortBy },
+      {
+        exclude: ["partnerId"],
+      },
+    )}`,
     fetcher,
     {
       keepPreviousData: true,
     },
   );
 
-  const { data: partnersCount } = useSWR<{
+  const { data: partnersCount, mutate: mutatePartnersCount } = useSWR<{
     count: number;
   }>(
     `/api/admin/partners/network/count${getQueryString(undefined, {
@@ -126,6 +171,22 @@ export default function NetworkApplicationsPage() {
     return active;
   }, [searchParamsObj.country, searchParamsObj.networkStatus]);
 
+  const onSearchChange = (value: string) => {
+    const search = value.trim();
+    const hasActiveFilters =
+      Boolean(searchParamsObj.networkStatus) ||
+      Boolean(searchParamsObj.country);
+
+    if (!search || !hasActiveFilters) {
+      return;
+    }
+
+    queryParams({
+      del: ["networkStatus", "country", "page", "sortBy"],
+      scroll: false,
+    });
+  };
+
   const platformsMapByPartnerId = useMemo(() => {
     const map = new Map<
       string,
@@ -184,6 +245,18 @@ export default function NetworkApplicationsPage() {
   }, [detailsSheetState.partnerId, partners]);
 
   const onSelectFilter = (key: string, value: unknown) => {
+    if (key === "networkStatus") {
+      const status = String(value);
+      queryParams({
+        set: {
+          networkStatus: status,
+          sortBy: getDateColumnForNetworkStatus(status).id,
+        },
+        del: "page",
+      });
+      return;
+    }
+
     queryParams({
       set: {
         [key]: String(value),
@@ -194,13 +267,13 @@ export default function NetworkApplicationsPage() {
 
   const onRemoveFilter = (key: string) => {
     queryParams({
-      del: [key, "page"],
+      del: [key, "page", ...(key === "networkStatus" ? ["sortBy"] : [])],
     });
   };
 
   const onRemoveAllFilters = () => {
     queryParams({
-      del: ["networkStatus", "country", "page"],
+      del: ["networkStatus", "country", "page", "sortBy"],
     });
   };
 
@@ -238,23 +311,48 @@ export default function NetworkApplicationsPage() {
             : "Partner rejected from the network.",
       );
 
-      await mutate();
-
       if (fallbackPartnerId) {
         queryParams({
           set: {
             partnerId: fallbackPartnerId,
           },
-          scroll: false,
         });
       } else {
         setDetailsSheetState({ open: false, partnerId: null });
-        queryParams({ del: "partnerId", scroll: false });
+        queryParams({ del: "partnerId" });
       }
+
+      mutate();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to review partner.",
       );
+    }
+  };
+
+  const handleUpdatePartnerCountry = async (
+    partner: AdminNetworkPartner,
+    country: string,
+  ) => {
+    try {
+      const response = await fetch(`/api/admin/partners/${partner.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ country }),
+      });
+
+      if (!response.ok) {
+        throw new Error((await response.text()) || "Failed to update country.");
+      }
+
+      toast.success(`Partner country updated to ${COUNTRIES[country]}.`);
+      await mutate();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to update country.";
+      toast.error(message);
     }
   };
 
@@ -273,20 +371,29 @@ export default function NetworkApplicationsPage() {
         ),
       },
       {
-        id: "createdAt",
-        header: "Joined",
-        cell: ({ row }: { row: Row<AdminNetworkPartner> }) => (
-          <TimestampTooltip
-            timestamp={row.original.createdAt}
-            rows={["local", "utc", "unix"]}
-            side="right"
-            delayDuration={150}
-          >
-            <span>
-              {formatDate(row.original.createdAt, { month: "short" })}
-            </span>
-          </TimestampTooltip>
-        ),
+        id: dateColumn.id,
+        header: dateColumn.header,
+        cell: ({ row }: { row: Row<AdminNetworkPartner> }) => {
+          const timestamp = row.original[dateColumn.field];
+          if (!timestamp) {
+            return <span>-</span>;
+          }
+
+          return (
+            <TimestampTooltip
+              timestamp={timestamp}
+              rows={["local", "utc", "unix"]}
+              side="right"
+              delayDuration={150}
+            >
+              <span>
+                {dateColumn.field === "createdAt"
+                  ? formatDate(timestamp, { month: "short" })
+                  : timeAgo(timestamp, { withAgo: true })}
+              </span>
+            </TimestampTooltip>
+          );
+        },
       },
       {
         id: "networkStatus",
@@ -334,11 +441,9 @@ export default function NetworkApplicationsPage() {
         },
       })),
     ],
-    [platformsMapByPartnerId],
+    [dateColumn, platformsMapByPartnerId],
   );
 
-  const sortBy = searchParams.get("sortBy") || "createdAt";
-  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
   const { pagination, setPagination } = usePagination();
 
   const { table, ...tableProps } = useTable<AdminNetworkPartner>({
@@ -349,10 +454,9 @@ export default function NetworkApplicationsPage() {
         set: {
           partnerId: row.original.id,
         },
-        scroll: false,
       }),
     loading: isLoading,
-    sortableColumns: ["createdAt"],
+    sortableColumns: [dateColumn.id],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -362,7 +466,6 @@ export default function NetworkApplicationsPage() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
 
     pagination,
@@ -386,7 +489,6 @@ export default function NetworkApplicationsPage() {
                     set: {
                       partnerId: previousPartnerId,
                     },
-                    scroll: false,
                   })
               : undefined
           }
@@ -397,7 +499,6 @@ export default function NetworkApplicationsPage() {
                     set: {
                       partnerId: nextPartnerId,
                     },
-                    scroll: false,
                   })
               : undefined
           }
@@ -405,6 +506,11 @@ export default function NetworkApplicationsPage() {
             setDetailsSheetState((state) => ({ ...state, open }) as any);
           }}
           onReview={handleReviewPartner}
+          onUpdateCountry={handleUpdatePartnerCountry}
+          onNetworkBanChange={async () => {
+            // A ban or unban can move the partner out of the status filter
+            await Promise.all([mutate(), mutatePartnersCount()]);
+          }}
         />
       )}
       <div className="mb-4 flex flex-col gap-3">
@@ -417,8 +523,9 @@ export default function NetworkApplicationsPage() {
             onRemove={onRemoveFilter}
           />
           <SearchBoxPersisted
-            placeholder="Search by partner email"
+            placeholder="Search by partner email or ID"
             inputClassName="w-full md:w-80"
+            onChange={onSearchChange}
           />
         </div>
         {activeFilters.length > 0 && (

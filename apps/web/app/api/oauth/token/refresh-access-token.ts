@@ -3,8 +3,9 @@ import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken } from "@/lib/api/oauth/utils";
 import { hashToken } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
+import { prisma } from "@/lib/prisma";
+import { timingSafeCompare } from "@/lib/webhook/timing-safe-compare";
 import { refreshTokenSchema } from "@/lib/zod/schemas/oauth";
-import { prisma } from "@dub/prisma";
 import { NextRequest } from "next/server";
 import * as z from "zod/v4";
 
@@ -68,7 +69,8 @@ export const refreshAccessToken = async (
       });
     }
 
-    if (oAuthApp.hashedClientSecret !== (await hashToken(clientSecret))) {
+    const hashedClientSecret = await hashToken(clientSecret);
+    if (!timingSafeCompare(hashedClientSecret, oAuthApp.hashedClientSecret)) {
       throw new DubApiError({
         code: "unauthorized",
         message: "Invalid client_secret",

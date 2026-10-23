@@ -8,7 +8,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { Button, InfoTooltip, Modal, Switch } from "@dub/ui";
+import { Button, InfoTooltip, Modal, Switch, useLatestCallback } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
@@ -22,6 +22,7 @@ import {
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
+import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
 
 type BanPartnerFormData = z.infer<typeof banPartnerSchema> & {
   confirm: string;
@@ -115,9 +116,10 @@ function BanPartnerModal({
           </div>
 
           <p className="text-sm text-neutral-600">
-            This will permanently ban the partner, disable all their active
-            links, and cancel all pending payouts. This action is not
-            reversible.
+            This will disable all their active links, cancel all pending
+            payouts, and{" "}
+            <PartnerEmailNotificationTooltipHelper text="notify them via email" />
+            . You can unban them later if needed.
           </p>
 
           <div>
@@ -252,16 +254,18 @@ export function useBanPartnerModal({
 }) {
   const [showBanPartnerModal, setShowBanPartnerModal] = useState(false);
 
+  const onConfirmCallback = useLatestCallback(onConfirm);
+
   const BanPartnerModalCallback = useCallback(() => {
     return (
       <BanPartnerModal
         showBanPartnerModal={showBanPartnerModal}
         setShowBanPartnerModal={setShowBanPartnerModal}
         partner={partner}
-        onConfirm={onConfirm}
+        onConfirm={onConfirmCallback}
       />
     );
-  }, [showBanPartnerModal, setShowBanPartnerModal, partner, onConfirm]);
+  }, [showBanPartnerModal, setShowBanPartnerModal, onConfirmCallback]);
 
   return useMemo(
     () => ({

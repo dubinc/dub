@@ -6,16 +6,18 @@ import {
   updateLink,
 } from "@/lib/api/links";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
+import { partnerRemovalOverrides } from "@/lib/api/links/partner-removal";
+import { isRootDomainLinkKey } from "@/lib/api/links/utils/is-root-domain-link-key";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   linkEventSchema,
   updateLinkBodySchemaExtended,
 } from "@/lib/zod/schemas/links";
-import { prisma } from "@dub/prisma";
 import { deepEqual, UTMTags } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -115,6 +117,7 @@ export const PATCH = withWorkspace(
           : link.expiresAt,
       geo: link.geo as NewLinkProps["geo"],
       ...body,
+      ...partnerRemovalOverrides(body),
       // Only pass UTM tags to processLink when explicitly provided in body (preserves existing values otherwise)
       ...Object.fromEntries(
         UTMTags.filter((tag) => tag in body).map((tag) => [tag, body[tag]]),
@@ -174,6 +177,8 @@ export const PATCH = withWorkspace(
           domain: link.domain,
           key: link.key,
           image: link.image,
+          programId: link.programId,
+          partnerId: link.partnerId,
         },
         updatedLink: processedLink,
       });
@@ -211,6 +216,14 @@ export const DELETE = withWorkspace(
       workspaceId: workspace.id,
       linkId: params.linkId,
     });
+
+    if (isRootDomainLinkKey(link.key)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You can't delete a custom domain link. You can delete the domain instead.",
+      });
+    }
 
     if (link.folderId) {
       await verifyFolderAccess({

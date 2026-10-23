@@ -1,5 +1,10 @@
 import { editQueryString } from "@/lib/analytics/utils";
-import { MiniAreaChart, useMediaQuery, useRouterStuff } from "@dub/ui";
+import {
+  MiniAreaChart,
+  useCurrentProduct,
+  useMediaQuery,
+  useRouterStuff,
+} from "@dub/ui";
 import { capitalize, cn, fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { useCallback, useContext, useEffect } from "react";
@@ -17,6 +22,7 @@ type TimeseriesData = {
 export default function EventsTabs() {
   const { searchParams, queryParams } = useRouterStuff();
   const { isMobile } = useMediaQuery();
+  const { product } = useCurrentProduct();
 
   const tab = searchParams.get("event") || "clicks";
 
@@ -27,14 +33,16 @@ export default function EventsTabs() {
     totalEvents,
     totalEventsLoading,
     fetchCompositeStats,
+    saleUnit,
   } = useContext(AnalyticsContext);
 
   const { data: timeseriesData, isLoading: isLoadingTimeseries } =
     useSWRImmutable<TimeseriesData>(
-      `${baseApiPath}?${editQueryString(queryString, {
-        groupBy: "timeseries",
-        event: fetchCompositeStats ? "composite" : "clicks",
-      })}`,
+      product &&
+        `${baseApiPath}?${editQueryString(queryString, {
+          groupBy: "timeseries",
+          event: fetchCompositeStats ? "composite" : "clicks",
+        })}`,
       fetcher,
       {
         shouldRetryOnError: !requiresUpgrade,
@@ -67,18 +75,9 @@ export default function EventsTabs() {
     if (tab !== "sales" && sortBy !== "timestamp") queryParams({ del: "sort" });
   }, [tab, searchParams.get("sort")]);
 
-  const tabNumberValue = (event: "clicks" | "leads" | "sales") => {
-    if (totalEvents === undefined) return undefined;
-    if (Array.isArray(totalEvents)) return 0;
-    if (event === "sales") {
-      return (totalEvents.saleAmount ?? 0) / 100;
-    }
-    return totalEvents[event] ?? 0;
-  };
-
   return (
     <div className="grid w-full grid-cols-3 gap-2 overflow-x-auto sm:gap-4">
-      {["clicks", "leads", "sales"].map((event) => (
+      {(["clicks", "leads", "sales"] as const).map((event) => (
         <button
           key={event}
           className={cn(
@@ -95,14 +94,16 @@ export default function EventsTabs() {
               {totalEvents !== undefined ? (
                 <NumberFlow
                   value={
-                    tabNumberValue(event as "clicks" | "leads" | "sales") ?? 0
+                    event === "sales" && saleUnit === "saleAmount"
+                      ? (totalEvents.saleAmount ?? 0) / 100
+                      : (totalEvents[event] ?? 0)
                   }
                   className={cn(
                     "text-2xl transition-opacity",
                     totalEventsLoading && "opacity-40",
                   )}
                   format={
-                    event === "sales"
+                    event === "sales" && saleUnit === "saleAmount"
                       ? {
                           style: "currency",
                           currency: "USD",
@@ -111,9 +112,7 @@ export default function EventsTabs() {
                         }
                       : {
                           notation:
-                            (tabNumberValue(
-                              event as "clicks" | "leads" | "sales",
-                            ) ?? 0) > 999999
+                            (totalEvents[event] ?? 0) > 999999
                               ? "compact"
                               : "standard",
                         }
@@ -136,9 +135,9 @@ export default function EventsTabs() {
                   timeseriesData?.map((d) => ({
                     date: new Date(d.start),
                     value:
-                      ((event === "sales" ? d?.saleAmount : d?.[event]) as
-                        | number
-                        | undefined) ?? 0,
+                      (event === "sales" && saleUnit === "saleAmount"
+                        ? d.saleAmount
+                        : d[event]) ?? 0,
                   })) || []
                 }
               />

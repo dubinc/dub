@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import { publishPartnerActivityEvent } from "../../lib/upstash/redis-streams/partner-activity";
 
@@ -54,7 +54,7 @@ async function main() {
       await publishPartnerActivityEvent({
         partnerId: partnerLink.partnerId!,
         programId: partnerLink.programId!,
-        eventType: "click",
+        eventType: "lead",
         timestamp: new Date().toISOString(),
       });
     }),

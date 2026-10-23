@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { Prisma, ProgramEnrollmentStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import {
   buildMetricRangeWhere,
@@ -9,6 +9,12 @@ import {
   buildProgramEnrollmentWhereForList,
   mergePartnerCountryAndSearchWhere,
 } from "./program-enrollment-query";
+import {
+  findPartnerSearchCandidates,
+  getPartnerSearchReadProvider,
+  PartnerSearchProvider,
+  resolvePartnerSearchCandidateQuery,
+} from "./search";
 
 type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
   programId: string;
@@ -19,12 +25,39 @@ type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
 
 export async function getPartnersCount<T>(
   filters: PartnersCountFilters,
+  {
+    searchProvider = getPartnerSearchReadProvider(),
+    throwOnSearchError = false,
+  }: {
+    searchProvider?: PartnerSearchProvider | null;
+    throwOnSearchError?: boolean;
+  } = {},
 ): Promise<T> {
-  // const {
-
   const { groupBy, programId, ...enrollmentFilters } = filters;
-  const enrollmentBase = { ...enrollmentFilters, programId };
+  const candidateQuery = searchProvider
+    ? await resolvePartnerSearchCandidateQuery({
+        ...enrollmentFilters,
+        programId,
+      })
+    : null;
+  const candidateResult =
+    searchProvider && candidateQuery
+      ? await findPartnerSearchCandidates(searchProvider, candidateQuery, {
+          throwOnError: throwOnSearchError,
+        })
+      : null;
+  const candidateIds = candidateResult?.hits.map(({ id }) => id);
+  const enrollmentBase = {
+    ...enrollmentFilters,
+    programId,
+    ...(candidateResult ? { search: undefined } : {}),
+  };
 
+  // Read from `enrollmentBase` so the grouping paths below see the same
+  // cleared `search` as `buildProgramEnrollmentWhereForList`. Destructuring
+  // `enrollmentFilters` here would AND the database full-text predicate on top
+  // of the relevance candidates, which drops every match the database cannot
+  // find on its own (e.g. partial emails, links, platforms, descriptions).
   const {
     status,
     country,
@@ -34,14 +67,16 @@ export async function getPartnersCount<T>(
     groupId,
     partnerTagId,
     tenantId,
+    referredByPartnerId,
     partnerTagIdOperator = "IN",
     groupIdOperator = "IN",
     countryOperator = "IN",
-  } = enrollmentFilters;
+  } = enrollmentBase;
 
   const enrollmentScope: Prisma.ProgramEnrollmentWhereInput = {
     programId,
     ...(tenantId ? { tenantId } : {}),
+    ...(candidateIds ? { id: { in: candidateIds } } : {}),
   };
 
   const partnerTagIdNotIn = partnerTagIdOperator === "NOT IN";
@@ -106,12 +141,7 @@ export async function getPartnersCount<T>(
           some: {
             ...enrollmentScope,
             ...(groupIdWhere ?? {}),
-            status:
-              status === "approved_invited"
-                ? {
-                    in: ["approved", "invited"],
-                  }
-                : status,
+            status,
             ...enrollmentMetricWhere,
           },
         },
@@ -164,12 +194,7 @@ export async function getPartnersCount<T>(
       where: {
         ...enrollmentScope,
         partner: partnerWhereWithCountry,
-        status:
-          status === "approved_invited"
-            ? {
-                in: ["approved", "invited"],
-              }
-            : status,
+        status,
         ...enrollmentMetricWhere,
       },
       _count: true,
@@ -184,10 +209,13 @@ export async function getPartnersCount<T>(
   }
 
   if (groupBy === "partnerTagId") {
-    const enrollmentWhere = buildProgramEnrollmentWhereForList({
-      ...enrollmentBase,
-      partnerTagId: undefined,
-    });
+    const enrollmentWhere: Prisma.ProgramEnrollmentWhereInput = {
+      ...buildProgramEnrollmentWhereForList({
+        ...enrollmentBase,
+        partnerTagId: undefined,
+      }),
+      ...(candidateIds ? { id: { in: candidateIds } } : {}),
+    };
 
     const partners = await prisma.programPartnerTag.groupBy({
       by: ["partnerTagId"],
@@ -206,9 +234,76 @@ export async function getPartnersCount<T>(
     return partners as T;
   }
 
-  // Get absolute count of partners
+  if (groupBy === "referredByPartnerId") {
+    const results = await prisma.programApplicationEvent.groupBy({
+      by: ["referredByPartnerId"],
+      where: {
+        programId,
+        referredByPartnerId: {
+          not: null,
+        },
+        programEnrollment: {
+          ...enrollmentScope,
+          ...(groupIdWhere ?? {}),
+          status,
+          partner: partnerWhereWithCountry,
+          ...enrollmentMetricWhere,
+        },
+      },
+      _count: true,
+      orderBy: {
+        _count: {
+          referredByPartnerId: "desc",
+        },
+      },
+    });
+
+    return results.map((row) => ({
+      referredByPartnerId: row.referredByPartnerId,
+      _count: row._count,
+    })) as T;
+  }
+
+  // Every filter the provider does not carry. `email` is absent because it stops
+  // a candidate query being built at all. Adding a filter to
+  // buildProgramEnrollmentWhereForList without adding it here or to the
+  // document would silently over-count.
+  const databaseOnlyFilters =
+    Boolean(tenantId) ||
+    Boolean(partnerIds?.length) ||
+    Boolean(referredByPartnerId) ||
+    Object.keys(buildMetricRangeWhere(enrollmentBase)).length > 0;
+
+  if (
+    searchProvider &&
+    candidateQuery &&
+    candidateResult &&
+    !databaseOnlyFilters
+  ) {
+    try {
+      const total = await searchProvider.countCandidates(candidateQuery);
+
+      if (typeof total === "number") {
+        return Math.min(total, candidateQuery.limit) as T;
+      }
+    } catch (error) {
+      console.error(
+        "[Partner Search] Count aggregation failed, falling back to counting candidates.",
+        error,
+      );
+    }
+  }
+
+  // Counting the candidate IDs reports a floor rather than a total, because the
+  // provider already truncated them to the candidate ceiling. Every path that
+  // lands here accepts that: a database-only filter, a declined short prefix, or
+  // a failed aggregation. It stays consistent with the list, which is capped at
+  // the same ceiling, but a broad query will under-report.
   const count = await prisma.programEnrollment.count({
-    where: buildProgramEnrollmentWhereForList(enrollmentBase),
+    where: {
+      ...buildProgramEnrollmentWhereForList(enrollmentBase),
+      ...(candidateIds ? { id: { in: candidateIds } } : {}),
+    },
   });
 
   return count as T;

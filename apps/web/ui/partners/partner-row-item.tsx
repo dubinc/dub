@@ -1,13 +1,22 @@
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useProgram from "@/lib/swr/use-program";
-import { PartnerPayoutMethod } from "@dub/prisma/client";
-import { CircleArrowRight, DynamicTooltipWrapper, GreekTemple } from "@dub/ui";
+import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
+import {
+  CircleArrowRight,
+  CircleXmark,
+  DynamicTooltipWrapper,
+  GreekTemple,
+  IsolatedCube,
+} from "@dub/ui";
 import { cn, formatDateTimeSmart } from "@dub/utils";
-import { CircleMinus } from "lucide-react";
+import { PartnerNetworkStatus, PartnerPayoutMethod } from "@prisma/client";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import type { ReactNode } from "react";
-import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
+import { MarkdownDescription } from "../shared/markdown-description";
+import { PartnerRiskIndicator } from "./fraud-risks/partner-risk-indicator";
 import { PartnerAvatar } from "./partner-avatar";
+import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
 import {
   getPayoutMethodIconConfig,
   getPayoutMethodLabel,
@@ -21,6 +30,8 @@ interface PartnerRowItemProps {
     id: string;
     name: string;
     image?: string | null;
+    tenantId?: string | null;
+    networkStatus?: PartnerNetworkStatus | null;
     defaultPayoutMethod?: PartnerPayoutMethod | null;
     payoutsEnabledAt?: Date | null;
   };
@@ -29,23 +40,7 @@ interface PartnerRowItemProps {
 const PAYOUT_STATUS_CONFIG = {
   external: {
     title: "External payouts enabled",
-    description: (
-      <div className="text-sm text-neutral-700">
-        This program has external payouts enabled, which means partners will
-        receive payouts externally via the{" "}
-        <code className="rounded-md bg-neutral-100 px-1 py-0.5 font-mono">
-          payout.confirmed
-        </code>{" "}
-        <a
-          href="/settings/webhooks"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="cursor-alias underline decoration-dotted underline-offset-2"
-        >
-          webhook event.
-        </a>
-      </div>
-    ),
+    description: `This program has [external payouts](https://dub.co/docs/partners/external-payouts) enabled, which means partners will receive payouts externally via the \`${EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER}\` webhook event.`,
     icon: CircleArrowRight,
     iconClassName: "border-purple-300 bg-purple-200 text-purple-800",
     indicatorColor: "bg-purple-500",
@@ -62,9 +57,17 @@ const PAYOUT_STATUS_CONFIG = {
     title: "Payouts disabled",
     description:
       "This partner has not connected a payout method yet, which means they won't be able to receive payouts.",
-    icon: CircleMinus,
+    icon: CircleXmark,
     iconClassName: "border-red-300 bg-red-200 text-red-800",
     indicatorColor: "bg-red-500",
+  },
+  simulated: {
+    title: "Payouts simulated",
+    description:
+      "This is a non-production program so payouts will be simulated and no real money will be transferred.",
+    icon: IsolatedCube,
+    iconClassName: "border-yellow-300 bg-yellow-200 text-yellow-800",
+    indicatorColor: "bg-yellow-500",
   },
 } as const;
 
@@ -72,33 +75,29 @@ function usePartnerPayoutStatus(partner: PartnerRowItemProps["partner"]) {
   const { program } = useProgram();
 
   const showPayoutsEnabled = "payoutsEnabledAt" in partner;
+  let statusKey: keyof typeof PAYOUT_STATUS_CONFIG | null = null;
 
-  const isExternalPayoutEnabled =
-    showPayoutsEnabled &&
-    (() => {
-      switch (program?.payoutMode) {
-        case "external":
-          return true;
-        case "hybrid":
-          return partner.payoutsEnabledAt === null;
-        case "internal":
-          return false;
-        default:
-          return false;
-      }
-    })();
-
-  const statusKey: keyof typeof PAYOUT_STATUS_CONFIG | null = showPayoutsEnabled
-    ? isExternalPayoutEnabled
-      ? "external"
-      : partner.payoutsEnabledAt
-        ? "enabled"
-        : "disabled"
-    : null;
+  if (showPayoutsEnabled && program) {
+    if (
+      program.payoutMode === "external" ||
+      (program.payoutMode === "hybrid" &&
+        partner.payoutsEnabledAt === null &&
+        partner.tenantId !== null)
+    ) {
+      statusKey = "external";
+    } else if (!isProductionEnvironment(program.environment)) {
+      statusKey = "simulated";
+    } else if (partner.payoutsEnabledAt) {
+      statusKey = "enabled";
+    } else {
+      statusKey = "disabled";
+    }
+  }
 
   return {
     statusKey,
     showPayoutsEnabled,
+    environment: program?.environment,
   };
 }
 
@@ -129,22 +128,17 @@ function PartnerPayoutStatusTooltip({
       : { Icon: GreekTemple, wrapperClass: "" };
 
   return (
-    <div className="max-w-xs">
+    <div className="max-w-sm">
       <div className="grid gap-2 p-2.5">
         <div className="flex items-center gap-2 text-sm font-medium">
           {title}
-          <div
-            className={cn(
-              iconClassName,
-              "flex size-5 items-center justify-center rounded-md border",
-            )}
-          >
-            <Icon className="size-3" />
+          <div className={cn(iconClassName, "rounded-md border p-0.5")}>
+            <Icon className="size-3.5" />
           </div>
         </div>
-        <div className="text-pretty text-sm text-neutral-500">
+        <MarkdownDescription className="text-sm text-neutral-500 [&_code]:rounded-md [&_code]:bg-neutral-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono">
           {description}
-        </div>
+        </MarkdownDescription>
       </div>
       {hasPayoutDetails && (
         <div className="flex items-center gap-1.5 border-t border-neutral-100 p-2.5 text-xs text-neutral-600">
@@ -173,7 +167,8 @@ export function PartnerRowItem({
   suffix,
 }: PartnerRowItemProps) {
   const { slug } = useParams();
-  const { statusKey, showPayoutsEnabled } = usePartnerPayoutStatus(partner);
+  const { statusKey, showPayoutsEnabled, environment } =
+    usePartnerPayoutStatus(partner);
 
   const As = showPermalink ? Link : "div";
 
@@ -208,23 +203,29 @@ export function PartnerRowItem({
         </DynamicTooltipWrapper>
       </div>
 
-      <As
-        href={`/${slug}/program/partners/${partner.id}`}
-        {...(showPermalink && { target: "_blank" })}
-        onClick={showPermalink ? (e) => e.stopPropagation() : undefined}
-        onAuxClick={showPermalink ? (e) => e.stopPropagation() : undefined}
-        className={cn(
-          "min-w-0 truncate",
-          showPermalink && "cursor-alias decoration-dotted hover:underline",
+      <div className="flex min-w-0 items-center gap-1">
+        <As
+          href={`/${slug}/program/partners/${partner.id}`}
+          {...(showPermalink && { target: "_blank" })}
+          onClick={showPermalink ? (e) => e.stopPropagation() : undefined}
+          onAuxClick={showPermalink ? (e) => e.stopPropagation() : undefined}
+          className={cn(
+            "min-w-0 truncate",
+            showPermalink && "cursor-alias decoration-dotted hover:underline",
+          )}
+          title={partner.name}
+        >
+          {partner.name}
+        </As>
+
+        {"networkStatus" in partner && partner.networkStatus && (
+          <PartnerNetworkStatusBadge networkStatus={partner.networkStatus} />
         )}
-        title={partner.name}
-      >
-        {partner.name}
-      </As>
+      </div>
 
       {suffix}
 
-      {showFraudIndicator && <PartnerFraudIndicator partnerId={partner.id} />}
+      {showFraudIndicator && <PartnerRiskIndicator partnerId={partner.id} />}
     </div>
   );
 }

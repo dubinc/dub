@@ -38,12 +38,26 @@ export default function NetworkPartnerApplicationRejected({
 
             <Text className="text-sm leading-6 text-neutral-600">
               {name ? `Hi ${name}, t` : "T"}hanks for your interest in joining
-              the <strong>Dub Partner Network</strong>.
+              the{" "}
+              <strong className="text-neutral-800">Dub Partner Network</strong>.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
               After a thorough review, we're sorry to say that we are unable to
               approve your application at this time.
+            </Text>
+
+            <Text className="text-sm font-semibold leading-6 text-neutral-800">
+              Please note that this Dub Partner Network rejection only affects
+              your access to the{" "}
+              <Link
+                className="text-neutral-800 underline"
+                href="https://dub.co/help/article/program-marketplace"
+              >
+                program marketplace
+              </Link>
+              . It does not impact any existing program partnerships or payouts
+              you may already have.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">

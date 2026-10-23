@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { getSearchParams } from "@dub/utils";
 import "dotenv-flow/config";
 

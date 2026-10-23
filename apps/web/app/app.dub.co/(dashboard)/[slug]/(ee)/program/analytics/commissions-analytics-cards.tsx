@@ -86,9 +86,9 @@ function useUrlListFilter(paramKey: string) {
   const applyFilterValues = useCallback(
     (values: string[]) => {
       if (values.length === 0) {
-        queryParams({ del: paramKey, scroll: false });
+        queryParams({ del: paramKey });
       } else {
-        queryParams({ set: { [paramKey]: values.join(",") }, scroll: false });
+        queryParams({ set: { [paramKey]: values.join(",") } });
       }
       setSelected([]);
     },
@@ -98,7 +98,7 @@ function useUrlListFilter(paramKey: string) {
   const clearFilter = useCallback(() => {
     setSelected([]);
     if (searchParams.has(paramKey)) {
-      queryParams({ del: paramKey, scroll: false });
+      queryParams({ del: paramKey });
     }
   }, [paramKey, queryParams, searchParams]);
 
@@ -180,7 +180,10 @@ function CommissionAnalyticsCardShell<T extends string>({
               onSelect={onSelectTab}
             />
           ) : (
-            <p className="py-3 text-sm font-medium text-neutral-900">{title}</p>
+            <TabSelect
+              options={[{ id: "single", label: title }]}
+              selected="single"
+            />
           )}
           <div className="flex items-center gap-1 pr-2 text-neutral-500">
             <StatusIcon className="hidden h-4 w-4 sm:block" />

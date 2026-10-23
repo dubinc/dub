@@ -19,7 +19,6 @@ const expectValidClickResponse = ({
       partner: expect.objectContaining({
         id: expect.any(String),
         name: expect.any(String),
-        image: expect.any(String),
       }),
     }),
     ...(hasDiscount && {
@@ -27,16 +26,13 @@ const expectValidClickResponse = ({
         id: expect.any(String),
         amount: expect.any(Number),
         type: expect.any(String),
-        maxDuration: expect.any(Number),
-        couponId: expect.any(String),
-        couponTestId: expect.any(String),
       }),
     }),
   });
 
   // Check nullish fields separately if partner exists
   if (hasPartner && response.data.partner) {
-    const { groupId, tenantId } = response.data.partner;
+    const { groupId, tenantId, image } = response.data.partner;
     expect(
       groupId === null || groupId === undefined || typeof groupId === "string",
     ).toBe(true);
@@ -45,6 +41,16 @@ const expectValidClickResponse = ({
         tenantId === undefined ||
         typeof tenantId === "string",
     ).toBe(true);
+    expect(image === null || typeof image === "string").toBe(true);
+  }
+
+  if (hasDiscount && response.data.discount) {
+    const { maxDuration, couponId, couponTestId } = response.data.discount;
+    expect(maxDuration === null || typeof maxDuration === "number").toBe(true);
+    expect(couponId === null || typeof couponId === "string").toBe(true);
+    expect(couponTestId === null || typeof couponTestId === "string").toBe(
+      true,
+    );
   }
 };
 

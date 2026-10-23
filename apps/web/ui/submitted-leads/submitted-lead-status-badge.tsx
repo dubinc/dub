@@ -1,5 +1,5 @@
-import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { StatusBadge } from "@dub/ui";
+import { SubmittedLeadStatus } from "@prisma/client";
 import { SubmittedLeadStatusBadges } from "./submitted-lead-status-badges";
 
 interface SubmittedLeadStatusBadgeProps {

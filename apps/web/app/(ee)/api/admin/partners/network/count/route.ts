@@ -1,6 +1,6 @@
 import { withAdmin } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { adminNetworkPartnerQuerySchema } from "@/lib/zod/schemas/admin";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/admin/partners/network
@@ -13,9 +13,9 @@ export const GET = withAdmin(async ({ searchParams }) => {
     where: {
       ...(networkStatus && { networkStatus }),
       ...(country && { country }),
-      ...(search && {
-        email: search,
-      }),
+      ...(search && search.startsWith("pn_")
+        ? { id: search }
+        : { email: search }),
     },
   });
 

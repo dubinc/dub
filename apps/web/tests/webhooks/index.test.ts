@@ -1,6 +1,8 @@
 import { qstash } from "@/lib/cron";
-import { WebhookTrigger } from "@/lib/types";
-import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
+import {
+  EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER,
+  WEBHOOK_TRIGGERS,
+} from "@/lib/webhook/constants";
 import { sendWebhooks } from "@/lib/webhook/qstash";
 import { samplePayload } from "@/lib/webhook/sample-events/payload";
 import {
@@ -8,13 +10,21 @@ import {
   leadWebhookEventSchema,
   saleWebhookEventSchema,
 } from "@/lib/webhook/schemas";
+import type { WebhookTrigger } from "@/lib/webhook/types";
 import { BountySchema } from "@/lib/zod/schemas/bounties";
 import { CommissionWebhookSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSchema } from "@/lib/zod/schemas/customers";
+import { DiscountCodeWebhookSchema } from "@/lib/zod/schemas/discount";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
-import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import {
+  EnrolledPartnerSchema,
+  partnerMergedWebhookSchema,
+} from "@/lib/zod/schemas/partners";
 import { payoutWebhookEventSchema } from "@/lib/zod/schemas/payouts";
-import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
+import {
+  partnerApplicationWebhookSchema,
+  programApplicationWebhookSchema,
+} from "@/lib/zod/schemas/program-application";
 import { describe, expect, test } from "vitest";
 import * as z from "zod/v4";
 
@@ -55,8 +65,18 @@ const commissionWebhookEventSchemaExtended = CommissionWebhookSchema.extend({
 });
 
 const bountyWebhookEventSchemaExtended = BountySchema.extend({
-  startsAt: z.string().transform((str) => new Date(str)),
-  endsAt: z.string().transform((str) => (str ? new Date(str) : null)),
+  startsAt: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null)),
+  endsAt: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null)),
+  submissionsOpenAt: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null)),
 });
 
 const payoutWebhookEventSchemaExtended = payoutWebhookEventSchema.extend({
@@ -69,12 +89,35 @@ const payoutWebhookEventSchemaExtended = payoutWebhookEventSchema.extend({
     .nullable()
     .transform((str) => (str ? new Date(str) : null)),
   createdAt: z.string().transform((str) => new Date(str)),
+  updatedAt: z.string().transform((str) => new Date(str)),
   initiatedAt: z.string().transform((str) => new Date(str)),
   paidAt: z
     .string()
     .nullable()
     .transform((str) => (str ? new Date(str) : null)),
 });
+
+const programApplicationWebhookSchemaExtended =
+  programApplicationWebhookSchema.extend({
+    partner: programApplicationWebhookSchema.shape.partner.extend({
+      payoutsEnabledAt: z
+        .string()
+        .transform((str) => (str ? new Date(str) : null))
+        .nullable(),
+      platforms: z
+        .array(
+          z.object({
+            type: z.string(),
+            identifier: z.string(),
+            verifiedAt: z
+              .string()
+              .transform((str) => (str ? new Date(str) : null))
+              .nullable(),
+          }),
+        )
+        .nullish(),
+    }),
+  });
 
 const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "link.created": linkEventSchema,
@@ -84,11 +127,15 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "lead.created": leadWebhookEventSchemaExtended,
   "sale.created": saleWebhookEventSchemaExtended,
   "partner.application_submitted": partnerApplicationWebhookSchema,
+  "program_application.created": programApplicationWebhookSchemaExtended,
   "partner.enrolled": enrolledPartnerSchemaExtended,
+  "partner.merged": partnerMergedWebhookSchema,
   "commission.created": commissionWebhookEventSchemaExtended,
   "bounty.created": bountyWebhookEventSchemaExtended,
   "bounty.updated": bountyWebhookEventSchemaExtended,
-  "payout.confirmed": payoutWebhookEventSchemaExtended,
+  [EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER]: payoutWebhookEventSchemaExtended,
+  "discount_code.created": DiscountCodeWebhookSchema,
+  "discount_code.deleted": DiscountCodeWebhookSchema,
 };
 
 describe("Webhooks", () => {
@@ -102,17 +149,18 @@ describe("Webhooks", () => {
 const testWebhookEvent = async (trigger: WebhookTrigger) => {
   const data = samplePayload[trigger];
 
-  const response = await sendWebhooks({
+  const results = await sendWebhooks({
     webhooks: [webhook],
     trigger,
     data,
   });
 
-  if (!response) {
+  const result = results[0];
+  if (!result?.ok || !result.messageId) {
     throw new Error("No response from sendWebhooks");
   }
 
-  await assertQstashMessage(response[0].messageId, data, trigger);
+  await assertQstashMessage(result.messageId, data, trigger);
 };
 
 const assertQstashMessage = async (

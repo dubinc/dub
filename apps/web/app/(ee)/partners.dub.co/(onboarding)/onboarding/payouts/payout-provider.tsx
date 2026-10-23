@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { ConnectPayoutButton } from "@/ui/partners/payouts/connect-payout-button";
 import Link from "next/link";
@@ -63,6 +64,7 @@ export function PayoutProvider({
 
         <Link
           href="/programs"
+          data-testid={testIds.partnerOnboarding.skip}
           className="text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-800"
         >
           I'll complete this later

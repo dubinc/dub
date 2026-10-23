@@ -1,10 +1,10 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
+import { prisma } from "@/lib/prisma";
 import { PartnerGroupProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
-import { Link, Program, ProgramEnrollment } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
+import { Link, Program, ProgramEnrollment } from "@prisma/client";
 import { headers } from "next/headers";
 import { referralsEmbedToken } from "./token-class";
 

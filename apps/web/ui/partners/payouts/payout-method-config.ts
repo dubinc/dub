@@ -1,21 +1,34 @@
 import { STABLECOIN_PAYOUT_FEE_RATE } from "@/lib/constants/payouts";
-import type { PartnerPayoutMethod } from "@dub/prisma/client";
 import {
   Calendar6,
   CircleDollar,
+  Gift,
   Globe,
   GreekTemple,
   Paypal,
   Stablecoin,
 } from "@dub/ui";
+import type { PartnerPayoutMethod } from "@prisma/client";
 import { MapPin, Zap } from "lucide-react";
 import type { ComponentType } from "react";
 
 export const PAYOUT_METHODS = [
   {
+    id: "connect" as const,
+    title: "Bank Account",
+    recommended: false,
+    icon: GreekTemple,
+    iconWrapperClass: "border-[#1717171A] bg-emerald-100 text-emerald-800",
+    features: [
+      { icon: MapPin, text: "Paid in local currency" },
+      { icon: Calendar6, text: "Payouts deposited in 2-5 business days" },
+      { icon: GreekTemple, text: "Local bank account required" },
+    ],
+  },
+  {
     id: "stablecoin" as const,
     title: "Stablecoin",
-    recommended: true,
+    recommended: false, // TODO: Add this back when stablecoin is supported in Connect
     icon: Stablecoin,
     iconWrapperClass: "border-[#1717170D] bg-blue-100",
     features: [
@@ -28,18 +41,6 @@ export const PAYOUT_METHODS = [
     ],
   },
   {
-    id: "connect" as const,
-    title: "Bank Account",
-    recommended: false,
-    icon: GreekTemple,
-    iconWrapperClass: "border-[#1717171A] bg-white text-content-emphasis",
-    features: [
-      { icon: MapPin, text: "Paid in local currency (1% FX fee)" },
-      { icon: Calendar6, text: "Payouts take up to 15 business days" },
-      { icon: GreekTemple, text: "Local bank account required" },
-    ],
-  },
-  {
     id: "paypal" as const,
     title: "PayPal",
     recommended: false,
@@ -47,12 +48,20 @@ export const PAYOUT_METHODS = [
     iconWrapperClass: "border-[#1717171A] bg-white",
     features: [
       { icon: MapPin, text: "Paid in local currency (3% FX fee)" },
-      { icon: Zap, text: "Payouts deposited in minutes" },
+      { icon: Zap, text: "Payouts deposited in 5-10 business days" },
       {
         icon: GreekTemple,
         text: "PayPal + local bank account required",
       },
     ],
+  },
+  {
+    id: "tremendous" as const,
+    title: "Gift card",
+    recommended: false,
+    icon: Gift,
+    iconWrapperClass: "border-[#1717171A] bg-white",
+    features: [],
   },
 ] as const;
 

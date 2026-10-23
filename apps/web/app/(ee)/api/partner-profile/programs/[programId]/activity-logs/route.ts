@@ -1,11 +1,11 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { prisma } from "@/lib/prisma";
 import {
   activityLogSchema,
   getActivityLogsQuerySchema,
 } from "@/lib/zod/schemas/activity-log";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -60,6 +60,11 @@ export const GET = withPartnerProfile(
       take: 100,
     });
 
-    return NextResponse.json(z.array(activityLogSchema).parse(activityLogs));
+    // Hide the workspace user who made each change from the partner
+    return NextResponse.json(
+      z
+        .array(activityLogSchema)
+        .parse(activityLogs.map((log) => ({ ...log, user: null }))),
+    );
   },
 );

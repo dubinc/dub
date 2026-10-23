@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { authorizeRequestSchema } from "../../zod/schemas/oauth";
 import { fromZodError } from "../errors";
 
@@ -30,6 +30,8 @@ export const validateAuthorizeRequest = async (params: any) => {
           website: true,
           logo: true,
           verified: true,
+          projectId: true,
+          userId: true,
         },
       },
     },

@@ -1,3 +1,4 @@
+import { getPartnerBountyTab } from "@/lib/bounty/partner-bounty-tabs";
 import { PartnerBountyProps } from "@/lib/types";
 import { StatusBadge } from "@dub/ui";
 import { formatDate } from "@dub/utils";
@@ -10,6 +11,7 @@ interface BountyBadgeStateResult {
   status: "expired" | "expiring_soon" | "completed" | "new";
   endsAtFormatted: string | null;
   completedAtFormatted: string | null;
+  isPendingReview?: boolean;
 }
 
 function getBountyBadgeState(
@@ -23,9 +25,24 @@ function getBountyBadgeState(
     ? formatDate(bounty.endsAt, { month: "short" })
     : null;
 
-  const isExpired = endsAt !== null && endsAt < now;
+  const tab = getPartnerBountyTab(bounty);
 
-  if (isExpired) {
+  if (tab === "completed") {
+    const lastSubmission = bounty.submissions?.[0];
+    const isPendingReview =
+      bounty.type === "performance" && lastSubmission?.status === "submitted";
+
+    return {
+      status: "completed",
+      endsAtFormatted,
+      completedAtFormatted: formatDate(lastSubmission?.completedAt ?? now, {
+        month: "short",
+      }),
+      isPendingReview,
+    };
+  }
+
+  if (tab === "expired") {
     return {
       status: "expired",
       endsAtFormatted,
@@ -45,25 +62,6 @@ function getBountyBadgeState(
       status: "expiring_soon",
       endsAtFormatted,
       completedAtFormatted: null,
-    };
-  }
-
-  const isCompleted =
-    bounty.type === "performance"
-      ? (bounty.submissions?.[0]?.performanceCount ?? 0) >=
-        (bounty.performanceCondition?.value ?? 0)
-      : (bounty.submissions?.filter((s) => s.status !== "draft").length ?? 0) >=
-        (bounty.maxSubmissions ?? 1);
-
-  if (isCompleted) {
-    const lastSubmission = bounty.submissions?.[0];
-
-    return {
-      status: "completed",
-      endsAtFormatted,
-      completedAtFormatted: formatDate(lastSubmission?.completedAt ?? now, {
-        month: "short",
-      }),
     };
   }
 
@@ -88,7 +86,8 @@ export function BountyStatusBadge({ bounty }: { bounty: PartnerBountyProps }) {
     return null;
   }
 
-  const { status, endsAtFormatted, completedAtFormatted } = state;
+  const { status, endsAtFormatted, completedAtFormatted, isPendingReview } =
+    state;
 
   return (
     <div className="absolute left-2 top-2 z-10">
@@ -105,8 +104,9 @@ export function BountyStatusBadge({ bounty }: { bounty: PartnerBountyProps }) {
       )}
 
       {status === "completed" && completedAtFormatted && (
-        <StatusBadge variant="success" icon={null}>
+        <StatusBadge variant={isPendingReview ? "new" : "success"} icon={null}>
           Completed {completedAtFormatted}
+          {isPendingReview && " | Pending Review"}
         </StatusBadge>
       )}
 

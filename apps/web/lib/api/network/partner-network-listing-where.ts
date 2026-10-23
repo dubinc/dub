@@ -1,11 +1,10 @@
-import { PlatformType, Prisma } from "@dub/prisma/client";
+import { PlatformType, Prisma } from "@prisma/client";
 
 /** Query params shared by `/api/network/partners` and `/count` for listing. */
 export type PartnerNetworkListingParams = {
   partnerIds?: string[];
   country?: string;
   platform?: PlatformType;
-  subscribers?: "<5000" | "5000-25000" | "25000-100000" | "100000+" | undefined;
 };
 
 export type PartnerNetworkListingParts = {
@@ -15,26 +14,13 @@ export type PartnerNetworkListingParts = {
 
 function listingPlatformSomeFromParams({
   platform,
-  subscribers,
-}: Pick<PartnerNetworkListingParams, "platform" | "subscribers">):
+}: Pick<PartnerNetworkListingParams, "platform">):
   | Prisma.PartnerPlatformWhereInput
   | undefined {
-  return platform || subscribers
+  return platform
     ? {
         verifiedAt: { not: null },
         ...(platform && { type: platform }),
-        ...(subscribers === "<5000" && {
-          subscribers: { lt: 5000 },
-        }),
-        ...(subscribers === "5000-25000" && {
-          subscribers: { gte: 5000, lt: 25000 },
-        }),
-        ...(subscribers === "25000-100000" && {
-          subscribers: { gte: 25000, lt: 100000 },
-        }),
-        ...(subscribers === "100000+" && {
-          subscribers: { gte: 100000 },
-        }),
       }
     : undefined;
 }

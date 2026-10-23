@@ -1,40 +1,33 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { DubApiError } from "../errors";
 
-export const getCampaignOrThrow = async ({
-  campaignId,
+export async function getCampaignOrThrow<
+  T extends Prisma.CampaignInclude = {},
+>({
   programId,
-  includeWorkflow = false,
-  includeGroups = false,
+  campaignId,
+  include,
 }: {
-  campaignId: string;
   programId: string;
-  includeWorkflow?: boolean;
-  includeGroups?: boolean;
-}) => {
+  campaignId: string;
+  include?: T;
+}): Promise<Prisma.CampaignGetPayload<{ include: T }>> {
   const campaign = await prisma.campaign.findUnique({
     where: {
       id: campaignId,
     },
-    include: {
-      workflow: includeWorkflow,
-      groups: includeGroups,
-    },
+    include,
   });
 
-  if (!campaign) {
+  if (!campaign || campaign.programId !== programId) {
     throw new DubApiError({
       code: "not_found",
       message: "Campaign not found.",
     });
   }
 
-  if (campaign.programId !== programId) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "You are not authorized to access this campaign.",
-    });
-  }
-
-  return campaign;
-};
+  return campaign as Prisma.CampaignGetPayload<{
+    include: T;
+  }>;
+}

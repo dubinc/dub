@@ -1,3 +1,4 @@
+import { isEventBasedReward } from "@/lib/api/rewards/custom-reward-utils";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, Table, useTable } from "@dub/ui";
@@ -5,12 +6,12 @@ import { cn, nFormatter, pluralize } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useWatch } from "react-hook-form";
-import { REWARD_EVENTS } from "../constants";
 import { ProgramRewardDescription } from "../program-reward-description";
 import {
   getRewardPayload,
   useAddEditRewardForm,
 } from "./add-edit-reward-sheet";
+import { REWARD_EVENT_ICON } from "./reward-event-icon";
 import { getRewardQuality, RewardQualityIndicator } from "./reward-quality";
 
 export function RewardPreviewCard() {
@@ -25,7 +26,7 @@ export function RewardPreviewCard() {
     return null;
   }
 
-  const Icon = REWARD_EVENTS[reward.event].icon;
+  const Icon = REWARD_EVENT_ICON[reward.event];
   const type = data.type ?? reward.type;
   const hasConditions = !!data.modifiers?.length;
   const quality = getRewardQuality({
@@ -52,18 +53,20 @@ export function RewardPreviewCard() {
         <span className="text-content-emphasis flex items-center gap-2.5 text-sm font-semibold">
           Reward preview
         </span>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-neutral-500">
-            {hasConditions ? "Base reward quality" : "Reward quality"}
-          </span>
-          <RewardQualityIndicator
-            event={reward.event}
-            quality={quality}
-            tooltipFooter={
-              hasConditions ? "Based on default reward only" : undefined
-            }
-          />
-        </div>
+        {isEventBasedReward(reward) && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-neutral-500">
+              {hasConditions ? "Base reward quality" : "Reward quality"}
+            </span>
+            <RewardQualityIndicator
+              event={reward.event}
+              quality={quality}
+              tooltipFooter={
+                hasConditions ? "Based on default reward only" : undefined
+              }
+            />
+          </div>
+        )}
       </div>
 
       <div className="border-border-subtle bg-bg-default -mx-px rounded-xl border-x border-t p-4">

@@ -1,9 +1,9 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prisma } from "@/lib/prisma";
 import { applicationRequirementsSchema } from "@/lib/zod/schemas/programs";
-import { prisma } from "@dub/prisma";
-import { Category } from "@dub/prisma/client";
+import { Category } from "@prisma/client";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -13,13 +13,19 @@ const schema = z.object({
   description: z.string().optional(),
   categories: z.array(z.enum(Category)).optional(),
   eligibilityConditions: applicationRequirementsSchema.optional(),
+  applicationScreeningCriteria: z.string().max(2000).optional(),
 });
 
 export const updateApplicationSettingsAction = authActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { description, categories, eligibilityConditions } = parsedInput;
+    const {
+      description,
+      categories,
+      eligibilityConditions,
+      applicationScreeningCriteria,
+    } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -42,6 +48,10 @@ export const updateApplicationSettingsAction = authActionClient
         }),
         ...(eligibilityConditions !== undefined && {
           applicationRequirements: eligibilityConditions,
+        }),
+        ...(applicationScreeningCriteria !== undefined && {
+          applicationScreeningCriteria:
+            applicationScreeningCriteria.trim() || null,
         }),
       },
     });

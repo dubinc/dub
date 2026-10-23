@@ -1,24 +1,49 @@
+import { sanitizeFullTextSearch } from "@/lib/prisma";
 import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
-import { sanitizeFullTextSearch } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 
 /**
- * Email / search filters on `Partner` (exact email, or full-text on email/name/company).
+ * A complete address, not merely something containing "@". `steven@` is what a
+ * half-typed query looks like, and treating that as an exact lookup returns
+ * nothing instead of the partial matches the caller wanted.
+ *
+ * `@dub.co` fails this on purpose: it is a domain search, which the email index
+ * cannot serve (a trailing-wildcard match), so it belongs on the search path.
+ */
+export function isExactEmailQuery(query: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/u.test(query);
+}
+
+/**
+ * A pasted partner ID, not a prefix of one. IDs are 24 or 25 characters after
+ * `pn_`, so a shorter suffix is someone typing, and matching it exactly would return nothing.
+ */
+export function isExactPartnerIdQuery(query: string): boolean {
+  return /^pn_[a-z0-9]{24,}$/iu.test(query);
+}
+
+/**
+ * Email / search filters on `Partner` (exact email, exact partner ID, or full-text on email/name/company).
  */
 export function buildPartnerEmailSearchWhere({
   email,
-  search,
+  search: rawSearch,
 }: {
   email?: string | null;
   search?: string | null;
 }): Prisma.PartnerWhereInput {
+  const search = rawSearch?.trim();
+
   if (email) {
     return { email };
   }
   if (search) {
-    if (search.includes("@")) {
+    if (isExactEmailQuery(search)) {
       return { email: search };
+    }
+    if (isExactPartnerIdQuery(search)) {
+      return { id: search };
     }
     const q = sanitizeFullTextSearch(search);
     return {
@@ -211,6 +236,9 @@ export function buildProgramEnrollmentWhereForList(
     search,
     email,
     partnerTagId,
+    referredByPartnerId,
+    rewardId,
+    discountId,
     partnerTagIdOperator = "IN",
     groupIdOperator = "IN",
     countryOperator = "IN",
@@ -259,6 +287,24 @@ export function buildProgramEnrollmentWhereForList(
     groupIdNotIn,
   );
 
+  const and: Prisma.ProgramEnrollmentWhereInput[] = [];
+
+  if (rewardId) {
+    and.push({
+      OR: [
+        { clickRewardId: rewardId },
+        { leadRewardId: rewardId },
+        { saleRewardId: rewardId },
+        { referralRewardId: rewardId },
+        { customRewardId: rewardId },
+      ],
+    });
+  }
+
+  if (Array.isArray(metricWhere.AND)) {
+    and.push(...metricWhere.AND);
+  }
+
   return {
     tenantId,
     programId,
@@ -267,14 +313,15 @@ export function buildProgramEnrollmentWhereForList(
         in: partnerIds,
       },
     }),
-    status:
-      status === "approved_invited"
-        ? {
-            in: ["approved", "invited"],
-          }
-        : status,
+    status,
     ...(groupIdWhere ?? {}),
     ...(hasPartnerWhere ? { partner: partnerWhere } : {}),
-    ...metricWhere,
+    ...(referredByPartnerId && {
+      applicationEvent: {
+        referredByPartnerId,
+      },
+    }),
+    ...(discountId && { discountId }),
+    ...(and.length ? { AND: and } : {}),
   };
 }

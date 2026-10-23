@@ -4,6 +4,7 @@ import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";
@@ -39,7 +40,9 @@ import {
   nFormatter,
   timeAgo,
 } from "@dub/utils";
+import { BountySubmissionStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -51,7 +54,7 @@ import { useBountySubmissionFilters } from "./use-bounty-submission-filters";
 export function BountySubmissionsTable() {
   const { bounty, loading: isBountyLoading } = useBounty();
   const { groups } = useGroups();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const { bountyId } = useParams<{ bountyId: string }>();
   const { pagination, setPagination } = usePagination();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
@@ -217,7 +220,16 @@ export function BountySubmissionsTable() {
           return (
             <div className="flex items-center gap-2">
               <GroupColorCircle group={group} />
-              <span className="truncate text-sm font-medium">{group.name}</span>
+              <Link
+                href={`/${slug}/program/groups/${group.slug}`}
+                target="_blank"
+                onClick={(e) => e.stopPropagation()}
+                onAuxClick={(e) => e.stopPropagation()}
+                className="min-w-0 cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+                title={group.name}
+              >
+                {group.name}
+              </Link>
             </div>
           );
         },
@@ -346,9 +358,9 @@ export function BountySubmissionsTable() {
                     user={row.original.user!}
                     date={row.original.reviewedAt}
                     label={
-                      row.original.status === "approved"
-                        ? "Approved at"
-                        : "Rejected at"
+                      row.original.status === BountySubmissionStatus.rejected
+                        ? "Rejected at"
+                        : "Approved at"
                     }
                   />
                 ) : (
@@ -374,6 +386,7 @@ export function BountySubmissionsTable() {
       performanceCondition,
       bountyInfo,
       workspaceId,
+      slug,
     ],
   );
 
@@ -390,7 +403,6 @@ export function BountySubmissionsTable() {
         set: {
           submissionId: row.original.id,
         },
-        scroll: false,
       });
     },
     sortableColumns: [
@@ -407,20 +419,28 @@ export function BountySubmissionsTable() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     pagination,
     onPaginationChange: setPagination,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `submission${p ? "s" : ""}`,
-    // if status is not set, we count draft, submitted and approved submissions
+    // if status is not set, we count draft, submitted, partially approved and approved submissions
     // else, we count the submissions for the status
     rowCount: searchParams.get("status")
       ? submissionsCount?.find((s) => s.status === searchParams.get("status"))
           ?.count || 0
       : submissionsCount
-          ?.filter((s) => ["draft", "submitted", "approved"].includes(s.status))
+          ?.filter((s) =>
+            (
+              [
+                BountySubmissionStatus.draft,
+                BountySubmissionStatus.submitted,
+                BountySubmissionStatus.partiallyApproved,
+                BountySubmissionStatus.approved,
+              ] as BountySubmissionStatus[]
+            ).includes(s.status),
+          )
           .reduce((acc, curr) => acc + curr.count, 0) || 0,
     loading: isLoading || isBountyLoading,
     error: error ? "Failed to load bounty submissions" : undefined,
@@ -445,6 +465,7 @@ export function BountySubmissionsTable() {
           <BountySubmissionFilters
             bounty={bounty}
             bountyInfo={bountyInfo}
+            submissionsCount={submissionsCount}
             submissionsLength={submissions?.length ?? 0}
             isRefreshingStats={isRefreshingStats}
             refreshStats={refreshStats}
@@ -472,16 +493,26 @@ export function BountySubmissionsTable() {
 function BountySubmissionFilters({
   bounty,
   bountyInfo,
+  submissionsCount,
   submissionsLength,
   isRefreshingStats,
   refreshStats,
 }: {
   bounty: ReturnType<typeof useBounty>["bounty"];
   bountyInfo: ReturnType<typeof resolveBountyDetails>;
+  submissionsCount?: SubmissionsCountByStatus[];
   submissionsLength: number;
   isRefreshingStats: boolean;
   refreshStats: () => void;
 }) {
+  const { role } = useWorkspace();
+  const { queryParams, searchParams } = useRouterStuff();
+
+  const refreshStatsError = clientAccessCheck({
+    action: "bounties.write",
+    role,
+    customPermissionDescription: "refresh bounty stats",
+  }).error;
   const {
     filters,
     activeFilters,
@@ -492,18 +523,44 @@ function BountySubmissionFilters({
     setSelectedFilter,
   } = useBountySubmissionFilters({ bounty: bounty ?? undefined });
 
+  const submittedCount =
+    submissionsCount?.find((s) => s.status === "submitted")?.count ?? 0;
+
+  const showAwaitingReviewButton =
+    submittedCount > 0 && searchParams.get("status") !== "submitted";
+
   return (
     <>
       <div className="flex w-full items-center justify-between gap-4">
-        <Filter.Select
-          className="w-full md:w-fit"
-          filters={filters}
-          activeFilters={activeFilters}
-          onSelect={onSelect}
-          onRemove={onRemove}
-          onSearchChange={setSearch}
-          onSelectedFilterChange={setSelectedFilter}
-        />
+        <div className="flex items-center gap-2">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
+          />
+          {showAwaitingReviewButton ? (
+            <Button
+              text="Awaiting review"
+              variant="secondary"
+              className="w-fit"
+              right={
+                <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-xs font-medium text-neutral-700">
+                  {submittedCount}
+                </span>
+              }
+              onClick={() =>
+                queryParams({
+                  set: { status: "submitted" },
+                  del: "page",
+                })
+              }
+            />
+          ) : null}
+        </div>
         {bountyInfo?.hasSocialMetrics && submissionsLength > 0 && (
           <div className="flex shrink-0 items-center gap-3">
             {bounty?.socialMetricsLastSyncedAt ? (
@@ -519,6 +576,7 @@ function BountySubmissionFilters({
               text="Refresh stats"
               loading={isRefreshingStats}
               onClick={refreshStats}
+              disabledTooltip={refreshStatsError}
               className="h-8 rounded-lg px-3"
             />
           </div>

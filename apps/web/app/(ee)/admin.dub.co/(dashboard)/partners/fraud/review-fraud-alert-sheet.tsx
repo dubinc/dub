@@ -14,9 +14,10 @@ import {
 } from "@/lib/zod/schemas/programs";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { FraudAlertStatus } from "@dub/prisma/client";
+import { Markdown } from "@/ui/shared/markdown";
 import {
   Button,
+  Checkbox,
   LoadingSpinner,
   Sheet,
   StatusBadge,
@@ -24,7 +25,7 @@ import {
   Tooltip,
   useTable,
 } from "@dub/ui";
-import { BadgeCheck2Fill, Xmark } from "@dub/ui/icons";
+import { BadgeCheck2, Xmark } from "@dub/ui/icons";
 import {
   cn,
   COUNTRIES,
@@ -33,11 +34,13 @@ import {
   formatDateTimeSmart,
   OG_AVATAR_URL,
 } from "@dub/utils";
+import { FraudAlertStatus } from "@prisma/client";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import * as z from "zod/v4";
+import { FraudAlertReporter } from "./fraud-alert-reporter";
 
 type AdminFraudAlert = z.infer<typeof adminFraudAlertSchema>;
 
@@ -115,12 +118,19 @@ function SheetContent({
   onReviewed: () => Promise<void>;
 }) {
   const [reviewNote, setReviewNote] = useState(fraudAlert.reviewNote ?? "");
+  const [banFromNetwork, setBanFromNetwork] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: partner, isLoading } = useSWR<PartnerDetail>(
+  const {
+    data: partner,
+    isLoading,
+    mutate: mutatePartner,
+  } = useSWR<PartnerDetail>(
     `/api/admin/partners/${fraudAlert.partner.id}`,
     (url: string) => fetch(url).then((r) => r.json()),
   );
+
+  const isBannedFromNetwork = partner?.networkStatus === "banned";
 
   const handleReview = async (action: "confirmed" | "dismissed") => {
     if (
@@ -138,6 +148,8 @@ function SheetContent({
         body: JSON.stringify({
           status: action,
           reviewNote,
+          ...(action === "confirmed" &&
+            banFromNetwork && { banFromNetwork: true }),
         }),
       });
 
@@ -149,6 +161,39 @@ function SheetContent({
       setReviewNote("");
       setIsOpen(false);
       await onReviewed();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUnban = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to unban this partner from the Dub Partner Network? Their network profile will go back to draft.",
+      )
+    ) {
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(
+        `/api/admin/partners/${fraudAlert.partner.id}/network-ban`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text);
+      }
+
+      toast.success("Partner unbanned from the Dub Partner Network.");
+      await mutatePartner();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong",
@@ -178,22 +223,14 @@ function SheetContent({
           {/* Current alert context */}
           <div>
             <div className="flex items-center gap-3">
-              <img
-                src={
-                  fraudAlert.program.logo ||
-                  `${OG_AVATAR_URL}${fraudAlert.program.name}`
-                }
-                alt={fraudAlert.program.name}
-                className="size-5 rounded-full"
-              />
-              <span className="text-sm font-medium">
-                {fraudAlert.program.name}
-              </span>
+              <FraudAlertReporter fraudAlert={fraudAlert} />
               <span className="text-xs text-neutral-400">
                 {formatDateTime(fraudAlert.createdAt)}
               </span>
             </div>
-            <p className="mt-2 text-sm text-neutral-600">{fraudAlert.reason}</p>
+            <Markdown className="prose-headings:text-base prose-headings:font-semibold mt-2 text-sm text-neutral-600">
+              {fraudAlert.reason}
+            </Markdown>
           </div>
 
           {/* Partner info */}
@@ -255,7 +292,10 @@ function SheetContent({
                                 <Icon className="size-3 shrink-0" />
                                 <span>{value}</span>
                                 {verified && (
-                                  <BadgeCheck2Fill className="size-3 text-green-600" />
+                                  <BadgeCheck2
+                                    variant="fill"
+                                    className="size-3 text-green-600"
+                                  />
                                 )}
                               </Link>
                             }
@@ -269,7 +309,10 @@ function SheetContent({
                               <Icon className="size-3" />
                               <span className="sr-only">{label}</span>
                               {verified && (
-                                <BadgeCheck2Fill className="absolute -right-1 -top-1 size-3 text-green-600" />
+                                <BadgeCheck2
+                                  variant="fill"
+                                  className="absolute -right-1 -top-1 size-3 text-green-600"
+                                />
                               )}
                             </Link>
                           </Tooltip>
@@ -340,20 +383,49 @@ function SheetContent({
           </p>
         </div>
         {fraudAlert.status === "pending" && (
-          <div className="mt-3 flex items-center justify-end gap-2">
+          <div className="mt-3 flex items-center justify-between gap-2">
+            {partner && !isBannedFromNetwork ? (
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-700">
+                <Checkbox
+                  checked={banFromNetwork}
+                  onCheckedChange={(checked) =>
+                    setBanFromNetwork(checked === true)
+                  }
+                />
+                Also ban from Dub Partner Network
+              </label>
+            ) : (
+              <div />
+            )}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                className="h-8 w-fit px-3"
+                text="Dismiss"
+                loading={isSubmitting}
+                onClick={() => handleReview("dismissed")}
+              />
+              <Button
+                variant="danger"
+                className="h-8 w-fit px-3"
+                text="Confirm Fraud"
+                loading={isSubmitting}
+                onClick={() => handleReview("confirmed")}
+              />
+            </div>
+          </div>
+        )}
+        {isBannedFromNetwork && (
+          <div className="mt-3 flex items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2">
+            <span className="text-sm text-red-700">
+              This partner is banned from the Dub Partner Network.
+            </span>
             <Button
               variant="secondary"
               className="h-8 w-fit px-3"
-              text="Dismiss"
+              text="Unban"
               loading={isSubmitting}
-              onClick={() => handleReview("dismissed")}
-            />
-            <Button
-              variant="danger"
-              className="h-8 w-fit px-3"
-              text="Confirm Fraud"
-              loading={isSubmitting}
-              onClick={() => handleReview("confirmed")}
+              onClick={handleUnban}
             />
           </div>
         )}
@@ -425,8 +497,8 @@ function FraudAlertsTable({
     columns: [
       {
         id: "program",
-        header: "Program",
-        cell: ({ row }) => <ProgramCell program={row.original.program} />,
+        header: "Flagged by",
+        cell: ({ row }) => <FraudAlertReporter fraudAlert={row.original} />,
       },
       {
         id: "reason",

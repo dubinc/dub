@@ -1,4 +1,4 @@
-import { capitalize, currencyFormatter, DUB_WORDMARK } from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
   Column,
@@ -14,7 +14,9 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
+import { EnvironmentBanner } from "../components/environment-banner";
 import { Footer } from "../components/footer";
+import { WorkspaceEnvironment } from "../types";
 
 export default function NewSaleAlertProgramOwner({
   user = {
@@ -28,6 +30,7 @@ export default function NewSaleAlertProgramOwner({
   program = {
     name: "Acme",
     logo: DUB_WORDMARK,
+    environment: "production",
   },
   group = {
     holdingPeriodDays: 30,
@@ -36,6 +39,11 @@ export default function NewSaleAlertProgramOwner({
     id: "pn_OfewI1Faaf5pV8QH3mha8L7S",
     name: "Steven",
     email: "steven@dub.co",
+  },
+  customer = {
+    id: "cus_1234567890",
+    name: "Jane Smith",
+    email: "jane@example.com",
   },
   commission = {
     amount: 1330,
@@ -53,6 +61,7 @@ export default function NewSaleAlertProgramOwner({
   program: {
     name: string;
     logo: string | null;
+    environment?: WorkspaceEnvironment;
   };
   group: {
     holdingPeriodDays: number;
@@ -62,6 +71,11 @@ export default function NewSaleAlertProgramOwner({
     name: string | null;
     email: string | null;
   };
+  customer?: {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+  } | null;
   commission: {
     amount: number;
     earnings: number;
@@ -91,9 +105,7 @@ export default function NewSaleAlertProgramOwner({
     });
   }
 
-  const finalName = user.name
-    ? user.name.split(" ")[0]
-    : capitalize(user.email.split("@")[0]);
+  const customerLabel = customer?.name || customer?.email;
 
   return (
     <Html>
@@ -104,6 +116,7 @@ export default function NewSaleAlertProgramOwner({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <EnvironmentBanner environment={program.environment} />
             <Section className="mt-8">
               <Img
                 src={program.logo || "https://assets.dub.co/wordmark.png"}
@@ -117,14 +130,17 @@ export default function NewSaleAlertProgramOwner({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              <strong>{program.name}</strong> earned a sale from a new customer
-              referred by{" "}
-              <strong>
+              <strong className="font-medium text-black">{program.name}</strong>{" "}
+              earned a sale from a new customer referred by{" "}
+              <Link
+                href={`https://app.dub.co/${workspace.slug}/program/partners/${partner.id}`}
+                className="font-medium text-black underline"
+              >
                 {partner.name
                   ? `${partner.name} (${partner.email})`
                   : partner.email}
-              </strong>
-              .
+              </Link>
+              :
             </Text>
 
             <Section className="my-8 w-full">
@@ -132,7 +148,21 @@ export default function NewSaleAlertProgramOwner({
                 <Row>
                   <Column>
                     <Text className="m-0 text-sm leading-6 text-neutral-600">
-                      Sale amount
+                      {customerLabel ? (
+                        <>
+                          Payment from{" "}
+                          <Link
+                            href={`https://app.dub.co/${workspace.slug}/program/customers/${customer.id}`}
+                            className="font-medium text-black underline"
+                          >
+                            <strong className="font-medium text-black">
+                              {customerLabel}
+                            </strong>
+                          </Link>
+                        </>
+                      ) : (
+                        "Sale amount"
+                      )}
                     </Text>
                   </Column>
                   <Column align="right">
@@ -175,7 +205,10 @@ export default function NewSaleAlertProgramOwner({
             {formattedDueDate && (
               <Text className="text-sm leading-6 text-neutral-600">
                 Payment for this commission will be due on{" "}
-                <strong>{formattedDueDate}</strong>, as per this partner group's{" "}
+                <strong className="font-medium text-black">
+                  {formattedDueDate}
+                </strong>
+                , as per this partner group's{" "}
                 <Link
                   href="https://dub.co/help/article/partner-payouts#payout-holding-period"
                   className="font-semibold text-black underline"

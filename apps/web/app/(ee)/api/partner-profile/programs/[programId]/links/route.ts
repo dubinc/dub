@@ -3,26 +3,59 @@ import { createLink, processLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
+import { hidePartnerSaleAmount } from "@/lib/partners/hide-partner-revenue";
+import { prisma } from "@/lib/prisma";
+import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-rewards";
 import {
-  createPartnerLinkSchema,
-  INACTIVE_ENROLLMENT_STATUSES,
-} from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { getUTMParamsFromURL } from "@dub/utils";
+  createPartnerProfileLinkSchema,
+  mapPartnerLinkDetails,
+  PartnerProfileLinkSchema,
+} from "@/lib/zod/schemas/partner-profile";
+import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
 export const GET = withPartnerProfile(async ({ partner, params }) => {
-  const { links, discountCodes } = await getProgramEnrollmentOrThrow({
+  const {
+    links,
+    discountCodes,
+    clickReward,
+    leadReward,
+    saleReward,
+    customReward,
+    discount,
+    partnerGroup: group,
+  } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: params.programId,
     include: {
-      links: true,
       discountCodes: true,
+      clickReward: true,
+      leadReward: true,
+      saleReward: true,
+      customReward: true,
+      discount: true,
+      partnerGroup: {
+        select: {
+          revenueDataSharingDisabledAt: true,
+        },
+      },
+      links: {
+        include: {
+          partnerLinkDetails: true,
+          linkReward: {
+            include: {
+              clickReward: true,
+              leadReward: true,
+              saleReward: true,
+              discount: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -31,13 +64,25 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     discountCodes?.map((discountCode) => [discountCode.linkId, discountCode]),
   );
 
+  const enrollmentRewards = [clickReward, leadReward, saleReward, customReward];
+
   const result = links.map((link) => {
     const discountCode = linksByDiscountCode.get(link.id);
+    const resolvedRewards = getResolvedPartnerLinkRewards({
+      linkReward: link.linkReward,
+      enrollmentRewards,
+      enrollmentDiscount: discount,
+    });
 
-    return {
-      ...link,
-      discountCode: discountCode?.code,
-    };
+    return hidePartnerSaleAmount(
+      {
+        ...mapPartnerLinkDetails(link),
+        ...resolvedRewards,
+        discountCode: discountCode?.code,
+        discountCodeDisabledAt: discountCode?.disabledAt ?? null,
+      },
+      group,
+    );
   });
 
   return NextResponse.json(z.array(PartnerProfileLinkSchema).parse(result));
@@ -46,9 +91,8 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 // POST /api/partner-profile/[programId]/links - create a link for a partner
 export const POST = withPartnerProfile(
   async ({ partner, params, req, session }) => {
-    const { url, key, comments } = createPartnerLinkSchema
-      .pick({ url: true, key: true, comments: true })
-      .parse(await parseRequestBody(req));
+    const { url, key, partnerLinkTitle, partnerLinkComments } =
+      createPartnerProfileLinkSchema.parse(await parseRequestBody(req));
 
     const {
       program,
@@ -114,17 +158,12 @@ export const POST = withPartnerProfile(
         domain: program.domain,
         key: key || undefined,
         url: linkUrl,
-        ...(groupUtmTemplate
-          ? {
-              ...extractUtmParams(groupUtmTemplate),
-              ...getUTMParamsFromURL(linkUrl),
-            }
-          : {}),
         programId: program.id,
         tenantId,
         partnerId: partner.id,
         folderId: program.defaultFolderId,
-        comments,
+        partnerLinkTitle,
+        partnerLinkComments,
         trackConversion: true,
       },
       workspace: {
@@ -145,10 +184,28 @@ export const POST = withPartnerProfile(
       });
     }
 
-    const partnerLink = await createLink(link);
-
-    return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink), {
-      status: 201,
+    const linkWithUtm = applyGroupUtmToLink({
+      link,
+      utmTemplate: groupUtmTemplate,
+      partnerName: partner.name,
     });
+
+    const partnerLink = await createLink(linkWithUtm);
+
+    return NextResponse.json(
+      PartnerProfileLinkSchema.parse(
+        hidePartnerSaleAmount(
+          {
+            ...partnerLink,
+            partnerLinkTitle: partnerLinkTitle ?? null,
+            partnerLinkComments: partnerLinkComments ?? null,
+          },
+          group,
+        ),
+      ),
+      {
+        status: 201,
+      },
+    );
   },
 );

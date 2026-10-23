@@ -1,10 +1,11 @@
+import { testIds } from "@/lib/e2e/test-ids";
 import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { PartnerPlatformProps } from "@/lib/types";
 import { partnerPlatformSchema } from "@/lib/zod/schemas/partners";
 import { PartnerPlatformsForm } from "@/ui/partners/partner-platforms-form";
-import { prisma } from "@dub/prisma";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@prisma/client";
 import { Suspense } from "react";
 import * as z from "zod/v4";
 import { OnboardingPlatformsPageClient } from "./page-client";
@@ -12,7 +13,10 @@ import { OnboardingPlatformsPageClient } from "./page-client";
 export default function OnboardingPlatformsPage() {
   return (
     <div className="mx-auto flex w-full max-w-[430px] flex-col text-center md:mt-4">
-      <h1 className="animate-slide-up-fade text-center text-xl font-semibold [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
+      <h1
+        className="animate-slide-up-fade text-center text-xl font-semibold [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]"
+        data-testid={testIds.partnerOnboarding.platforms}
+      >
         Your social and web platforms
       </h1>
 

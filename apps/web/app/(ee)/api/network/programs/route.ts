@@ -1,10 +1,11 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   NetworkProgramSchema,
   getNetworkProgramsQuerySchema,
 } from "@/lib/zod/schemas/program-network";
-import { prisma } from "@dub/prisma";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -24,6 +25,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 
   const programs = await prisma.program.findMany({
     where: {
+      environment: WorkspaceEnvironment.production,
       // Added to marketplace
       addedToMarketplaceAt: {
         not: null,
@@ -89,6 +91,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           clickReward: true,
           leadReward: true,
           saleReward: true,
+          referralReward: true,
           discount: true,
         },
       },
@@ -97,7 +100,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     },
     orderBy:
       sortBy === "popularity"
-        ? {}
+        ? { marketplaceRanking: "asc" }
         : {
             [sortBy === "recency" ? "addedToMarketplaceAt" : sortBy]: sortOrder,
           },

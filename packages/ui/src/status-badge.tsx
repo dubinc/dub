@@ -33,6 +33,8 @@ const statusBadgeVariants = cva(
   },
 );
 
+export type StatusBadgeVariant = VariantProps<typeof statusBadgeVariants>;
+
 const defaultIcons = {
   neutral: CircleInfo,
   new: CircleHalfDottedCheck,
@@ -44,18 +46,17 @@ const defaultIcons = {
 
 interface BadgeProps
   extends React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof statusBadgeVariants> {
+    StatusBadgeVariant {
   icon?: Icon | null;
   tooltip?: string | React.ReactNode;
 }
 
-function StatusBadge({
+export function StatusBadge({
   className,
   variant,
   size,
   icon,
   tooltip,
-  onClick,
   children,
   ...props
 }: BadgeProps) {
@@ -70,11 +71,8 @@ function StatusBadge({
         className={cn(
           statusBadgeVariants({ variant, size }),
           tooltip && "cursor-help",
-          onClick &&
-            "cursor-pointer select-none transition-[filter] duration-150 hover:brightness-75 hover:saturate-[1.25]",
           className,
         )}
-        onClick={onClick}
         {...props}
       >
         {Icon && <Icon className="h-3 w-3 shrink-0" />}
@@ -83,5 +81,3 @@ function StatusBadge({
     </DynamicTooltipWrapper>
   );
 }
-
-export { StatusBadge, statusBadgeVariants };

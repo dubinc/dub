@@ -4,8 +4,10 @@ import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import { SlackSupportSettingsCard } from "@/ui/workspaces/slack-support-settings-card";
+import UpdateDefaultProduct from "@/ui/workspaces/update-default-product";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import { Form } from "@dub/ui";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -13,12 +15,16 @@ import { mutate } from "swr";
 
 export default function WorkspaceSettingsClient() {
   const router = useRouter();
-  const { id, name, slug, role } = useWorkspace();
+  const { id, name, slug, role, environment } = useWorkspace();
 
-  const permissionsError = clientAccessCheck({
+  const { error } = clientAccessCheck({
     action: "workspaces.write",
     role,
-  }).error;
+    environment,
+    restrictedEnvironments: [WorkspaceEnvironment.staging],
+    restrictedEnvironmentMessage:
+      "Workspace settings must be updated from your production workspace (changes are automatically synced to staging).",
+  });
 
   const { update } = useSession();
 
@@ -27,7 +33,7 @@ export default function WorkspaceSettingsClient() {
       <SlackSupportSettingsCard />
       <Form
         title="Workspace Name"
-        description={`This is the name of your workspace on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
+        description="This is the name of your workspace on Dub."
         inputAttrs={{
           name: "name",
           defaultValue: name,
@@ -35,7 +41,7 @@ export default function WorkspaceSettingsClient() {
           maxLength: 32,
         }}
         helpText="Max 32 characters."
-        disabledTooltip={permissionsError || undefined}
+        disabledTooltip={error || undefined}
         handleSubmit={(updateData) =>
           fetch(`/api/workspaces/${id}`, {
             method: "PATCH",
@@ -59,7 +65,7 @@ export default function WorkspaceSettingsClient() {
       />
       <Form
         title="Workspace Slug"
-        description={`This is your workspace's unique slug on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
+        description="This is your workspace's unique slug on Dub."
         inputAttrs={{
           name: "slug",
           defaultValue: slug,
@@ -68,7 +74,7 @@ export default function WorkspaceSettingsClient() {
           maxLength: 48,
         }}
         helpText="Only lowercase letters, numbers, and dashes. Max 48 characters."
-        disabledTooltip={permissionsError || undefined}
+        disabledTooltip={error || undefined}
         handleSubmit={(data) =>
           fetch(`/api/workspaces/${id}`, {
             method: "PATCH",
@@ -93,6 +99,7 @@ export default function WorkspaceSettingsClient() {
         }
       />
       <UploadLogo />
+      <UpdateDefaultProduct />
       <DeleteWorkspace />
     </div>
   );

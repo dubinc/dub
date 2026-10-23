@@ -1,5 +1,5 @@
 import { createId } from "@/lib/api/create-id";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
 // script to generate zero commissions for a program and partner

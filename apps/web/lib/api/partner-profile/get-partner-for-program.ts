@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { toCentsNumber } from "@dub/utils";
 
 export async function getPartnerForProgram({
@@ -39,6 +39,11 @@ export async function getPartnerForProgram({
           provider: true,
         },
       },
+      applicationEvent: {
+        select: {
+          referralSource: true,
+        },
+      },
     },
   });
 
@@ -46,11 +51,12 @@ export async function getPartnerForProgram({
     return null;
   }
 
-  const { partner, links, ...programEnrollment } = data;
+  const { partner, links, applicationEvent, ...programEnrollment } = data;
 
   return {
     ...partner,
     ...programEnrollment,
+    applicationEvent,
     netRevenue:
       toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -
       toCentsNumber(programEnrollment.totalCommissions ?? 0),

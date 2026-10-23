@@ -1,6 +1,8 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { emailSchema } from "@/lib/zod/schemas/auth";
+import { ApplicationAnalytics } from "@/ui/application-analytics";
 import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
 import {
   RegisterProvider,
@@ -9,8 +11,8 @@ import {
 import { SignUpForm } from "@/ui/auth/register/signup-form";
 import { VerifyEmailForm } from "@/ui/auth/register/verify-email-form";
 import { AuthLayout } from "@/ui/layout/auth-layout";
-import { Program } from "@dub/prisma/client";
 import { truncate } from "@dub/utils";
+import { Program } from "@prisma/client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -36,6 +38,7 @@ export default function RegisterPageClient({
       }
       lockEmail={searchEmailResult.success || lockEmail}
     >
+      <ApplicationAnalytics />
       <RegisterFlow program={program} />
     </RegisterProvider>
   );
@@ -84,7 +87,10 @@ function Verify() {
     <AuthLayout>
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center gap-1 text-center">
-          <h3 className="text-center text-xl font-semibold">
+          <h3
+            className="text-center text-xl font-semibold"
+            data-testid={testIds.auth.verifyEmailHeading}
+          >
             Verify your email address
           </h3>
           <p className="text-base font-medium text-neutral-500">

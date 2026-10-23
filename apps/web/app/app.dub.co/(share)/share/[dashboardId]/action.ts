@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 
 export async function verifyPassword(_prevState: any, data: FormData) {
@@ -20,7 +20,7 @@ export async function verifyPassword(_prevState: any, data: FormData) {
   }
 
   (await cookies()).set(`dub_password_${dashboardId}`, password, {
-    path: `/share/${dashboardId}`,
+    path: "/",
     httpOnly: true,
     secure: true,
   });

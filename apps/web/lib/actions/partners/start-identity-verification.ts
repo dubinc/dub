@@ -1,15 +1,15 @@
 "use server";
 
-import { shouldApplyRateLimit } from "@/lib/api/environment";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
-import { ratelimit } from "@/lib/upstash/ratelimit";
+import { prisma } from "@/lib/prisma";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { createVeriffSession } from "@/lib/veriff/create-veriff-session";
 import {
   mergeVeriffMetadata,
   parseVeriffMetadata,
 } from "@/lib/veriff/veriff-metadata";
 import { MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
 import { addDays } from "date-fns/addDays";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -59,18 +59,10 @@ export const startIdentityVerificationAction = authPartnerActionClient.action(
       };
     }
 
-    // Rate limit check
-    if (shouldApplyRateLimit) {
-      const { success } = await ratelimit(1, "1 h").limit(
-        `identityVerification:${partner.id}`,
-      );
-
-      if (!success) {
-        throw new Error(
-          "Too many verification attempts. Please try again later.",
-        );
-      }
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.identityVerificationStart,
+      identifier: partner.id,
+    });
 
     // Create a new session
     const { verification } = await createVeriffSession({

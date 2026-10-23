@@ -3,8 +3,8 @@
 import { authActionClient } from "@/lib/actions/safe-action";
 import { encrypt } from "@/lib/encryption";
 import { createWebhook } from "@/lib/webhook/create-webhook";
-import { WebhookReceiver } from "@dub/prisma/client";
 import { SEGMENT_INTEGRATION_ID } from "@dub/utils";
+import { WebhookReceiver } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
 import { installIntegration } from "../install";

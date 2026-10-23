@@ -10,7 +10,7 @@ export default function RootProviders({ children }: { children: ReactNode }) {
     <TooltipProvider>
       <PlausibleProvider enabled>
         <KeyboardShortcutProvider>
-          <Toaster className="pointer-events-auto" closeButton />
+          <Toaster className="pointer-events-auto" position="bottom-center" />
           {children}
         </KeyboardShortcutProvider>
       </PlausibleProvider>

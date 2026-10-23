@@ -1,10 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
-import { prisma } from "@dub/prisma";
-import { STRIPE_INTEGRATION_ID } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
+import { prisma } from "@/lib/prisma";
+import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
+import { capitalize, STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { StripeConnectMode } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -14,16 +14,17 @@ const CORS_HEADERS = new Headers({
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 });
 
+const updateStripeIntegrationSchema = z.object({
+  stripeAccountId: z.string().nullable(), // null on disconnect
+  stripeMode: z.enum(StripeConnectMode).optional().default("live"),
+});
+
 // PATCH /api/stripe/integration - update a workspace with a stripe connect account id
 export const PATCH = withWorkspace(
   async ({ req, workspace, token }) => {
     const body = await parseRequestBody(req);
-    const { stripeAccountId, stripeMode } = z
-      .object({
-        stripeAccountId: z.string().nullable(),
-        stripeMode: stripeIntegrationSettingsSchema.shape.stripeMode,
-      })
-      .parse(body);
+    const { stripeAccountId, stripeMode } =
+      updateStripeIntegrationSchema.parse(body);
 
     if (!token?.installationId) {
       throw new DubApiError({
@@ -32,6 +33,11 @@ export const PATCH = withWorkspace(
       });
     }
 
+    assertProductionWorkspace(workspace, {
+      when: stripeMode === "live",
+      message: `Live Stripe mode cannot be used in ${capitalize(workspace.environment)} workspaces.`,
+    });
+
     const installation = await prisma.installedIntegration.findUnique({
       where: {
         id: token.installationId,
@@ -39,7 +45,6 @@ export const PATCH = withWorkspace(
       select: {
         id: true,
         integrationId: true,
-        settings: true,
       },
     });
 
@@ -51,43 +56,32 @@ export const PATCH = withWorkspace(
     }
 
     try {
-      const response = await prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          stripeConnectId: stripeAccountId,
-        },
-        select: {
-          stripeConnectId: true,
-        },
-      });
+      const response = await prisma.$transaction(async (tx) => {
+        const project = await tx.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            stripeConnectId: stripeAccountId,
+            // stripeMode always defaults to "live", so clear it explicitly on disconnect
+            stripeConnectMode: stripeAccountId ? stripeMode : null,
+          },
+          select: {
+            stripeConnectId: true,
+          },
+        });
 
-      waitUntil(
-        (async () => {
-          // Uninstall the integration if the stripe account id is null
-          if (installation && stripeAccountId === null) {
-            await prisma.installedIntegration.delete({
-              where: {
-                id: installation.id,
-              },
-            });
-            // else, update the Stripe mode for the installation
-          } else {
-            await prisma.installedIntegration.update({
-              where: {
-                id: installation.id,
-              },
-              data: {
-                settings: {
-                  ...((installation?.settings as any) || {}),
-                  stripeMode,
-                },
-              },
-            });
-          }
-        })(),
-      );
+        // Uninstall the integration if the stripe account id is null
+        if (stripeAccountId === null) {
+          await tx.installedIntegration.delete({
+            where: {
+              id: installation.id,
+            },
+          });
+        }
+
+        return project;
+      });
 
       return NextResponse.json(response, {
         headers: CORS_HEADERS,
@@ -96,7 +90,7 @@ export const PATCH = withWorkspace(
       if (error.code === "P2002") {
         throw new DubApiError({
           code: "conflict",
-          message: `The stripe connect account "${stripeAccountId}" is already in use.`,
+          message: `The Stripe account "${stripeAccountId}" is already connected to another workspace in "${stripeMode}" mode.`,
         });
       }
 
@@ -107,14 +101,7 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );

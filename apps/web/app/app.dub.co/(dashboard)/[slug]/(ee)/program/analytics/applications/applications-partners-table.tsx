@@ -15,12 +15,14 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useMemo, useState } from "react";
 import { PartnerAnalyticsFilterCell } from "../partner-analytics-filter-cell";
 import { useApplicationsAnalytics } from "./use-applications-analytics";
+import { useApplicationsAnalyticsQuery } from "./use-applications-analytics-query";
 
 const PAGE_SIZE = 10;
 
 export function ApplicationsPartnersTable() {
   const { pagination, setPagination } = usePagination(PAGE_SIZE);
   const { queryParams, searchParams } = useRouterStuff();
+  const { stage } = useApplicationsAnalyticsQuery();
 
   const [stagedPartnerIds, setStagedPartnerIds] = useState<string[] | null>(
     null,
@@ -54,7 +56,6 @@ export function ApplicationsPartnersTable() {
     queryParams({
       set: { partnerId: stagedPartnerIds.join(",") },
       del: "page",
-      scroll: false,
     });
 
     setStagedPartnerIds(null);
@@ -64,7 +65,7 @@ export function ApplicationsPartnersTable() {
     setStagedPartnerIds(null);
 
     if (searchParams.has("partnerId")) {
-      queryParams({ del: ["partnerId", "page"], scroll: false });
+      queryParams({ del: ["partnerId", "page"] });
     }
   }, [queryParams, searchParams]);
 
@@ -75,10 +76,20 @@ export function ApplicationsPartnersTable() {
 
   const { data, error, isLoading } = useApplicationsAnalytics({
     groupBy: "partnerId",
+    event: stage,
   });
 
+  const paginatedData = useMemo(
+    () =>
+      data?.slice(
+        (pagination.pageIndex - 1) * pagination.pageSize,
+        pagination.pageIndex * pagination.pageSize,
+      ),
+    [data, pagination],
+  );
+
   const { table, ...tableProps } = useTable({
-    data: data ?? [],
+    data: paginatedData ?? [],
     columns: [
       {
         id: "partner",
@@ -103,7 +114,6 @@ export function ApplicationsPartnersTable() {
                 queryParams({
                   set: { partnerId: partner.id },
                   del: "page",
-                  scroll: false,
                 });
                 setStagedPartnerIds(null);
               }}
@@ -123,6 +133,7 @@ export function ApplicationsPartnersTable() {
     ],
     pagination,
     onPaginationChange: setPagination,
+    sortBy: stage,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     rowCount: data?.length ?? 0,

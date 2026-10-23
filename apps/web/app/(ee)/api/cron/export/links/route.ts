@@ -8,11 +8,11 @@ import { generateExportFilename } from "@/lib/api/utils/generate-export-filename
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { prisma } from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
 import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
-import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";
 import * as z from "zod/v4";
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
 
     const { folderIds } = await validateLinksQueryFilters({
       ...filters,
-      userId,
+      sessionUserId: userId,
       workspace: {
         ...workspace,
         plan: workspace.plan as PlanProps,

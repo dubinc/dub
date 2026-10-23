@@ -1,10 +1,10 @@
 import { Session, hashToken } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceWithUsers } from "@/lib/types";
 import { sendEmail } from "@dub/email";
 import WorkspaceInvite from "@dub/email/templates/workspace-invite";
-import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@dub/prisma/client";
-import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
+import { APP_DOMAIN, TWO_WEEKS_IN_SECONDS } from "@dub/utils";
+import { WorkspaceRole } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { DubApiError } from "./errors";
 
@@ -53,15 +53,15 @@ export async function inviteUser({
   });
 
   const params = new URLSearchParams({
-    callbackUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}/invite`,
+    callbackUrl: `${APP_DOMAIN}/${workspace.slug}/invite`,
     email,
     token,
   });
 
-  const url = `${process.env.NEXTAUTH_URL}/api/auth/callback/email?${params}`;
+  const url = `${APP_DOMAIN}/api/auth/callback/email?${params}`;
 
   return await sendEmail({
-    subject: `You've been invited to join a workspace on ${process.env.NEXT_PUBLIC_APP_NAME}`,
+    subject: "You've been invited to join a workspace on Dub",
     to: email,
     react: WorkspaceInvite({
       email,

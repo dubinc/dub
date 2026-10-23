@@ -1,13 +1,12 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { BANK_ACCOUNT_STATUS_DESCRIPTIONS } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalFailed from "@dub/email/templates/partner-payout-withdrawal-failed";
 import PartnerPayoutWithdrawalInitiated from "@dub/email/templates/partner-payout-withdrawal-initiated";
-import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,
@@ -15,6 +14,7 @@ import {
   log,
   prettyPrint,
 } from "@dub/utils";
+import Stripe from "stripe";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
@@ -24,11 +24,8 @@ const payloadSchema = z.object({
 });
 
 // POST /api/cron/payouts/balance-available
-export async function POST(req: Request) {
+export const POST = withCron(async ({ rawBody }) => {
   try {
-    const rawBody = await req.text();
-    await verifyQstashSignature({ req, rawBody });
-
     const { stripeAccount } = payloadSchema.parse(JSON.parse(rawBody));
 
     const partner = await prisma.partner.findUnique({
@@ -64,8 +61,14 @@ export async function POST(req: Request) {
 
     let { amount: availableBalance, currency } = balance.available[0];
 
-    // if available balance is 0, check if there's any pending balance
-    if (availableBalance === 0) {
+    if (["huf", "twd"].includes(currency)) {
+      // Stripe requires HUF/TWD payouts to be evenly divisible by 100
+      availableBalance = Math.floor(availableBalance / 100) * 100;
+    }
+
+    // Stripe requires payout amount >= 1; skip dust (e.g. HUF/TWD rounded down)
+    // and negatives (refunds/reversals). Requeue if funds are still pending.
+    if (availableBalance < 1) {
       const pendingBalance = balance.pending?.[0]?.amount ?? 0;
 
       // if there's a pending balance, schedule another check in 1 hour
@@ -87,7 +90,7 @@ export async function POST(req: Request) {
       }
 
       return logAndRespond(
-        `Partner ${partner.email} (${stripeAccount})'s available balance is 0. Skipping...`,
+        `Partner ${partner.email} (${stripeAccount}) has no payable available balance (${currencyFormatter(availableBalance, { currency })}). Skipping...`,
       );
     }
 
@@ -129,24 +132,56 @@ export async function POST(req: Request) {
       );
     }
 
-    if (["huf", "twd"].includes(currency)) {
-      // For HUF and TWD, Stripe requires payout amounts to be evenly divisible by 100
-      // We need to round down to the nearest 100 units
-      availableBalance = Math.floor(availableBalance / 100) * 100;
-    }
+    let stripePayout: Stripe.Payout;
 
-    const stripePayout = await stripe.payouts.create(
-      {
-        amount: availableBalance,
-        currency,
-        // example: "Dub Partners auto-withdrawal (Aug 1, 2025)"
-        description: `Dub Partners auto-withdrawal (${formatDate(new Date(), { month: "short" })})`,
-        method: "standard",
-      },
-      {
-        stripeAccount,
-      },
-    );
+    try {
+      stripePayout = await stripe.payouts.create(
+        {
+          amount: availableBalance,
+          currency,
+          // example: "Dub Partners auto-withdrawal (Aug 1, 2025)"
+          description: `Dub Partners auto-withdrawal (${formatDate(new Date(), { month: "short" })})`,
+          method: "standard",
+        },
+        {
+          stripeAccount,
+        },
+      );
+    } catch (error) {
+      // Stripe rejects payouts below the minimum payout amount for the currency
+      // (e.g. 12,100 AMD). Skip without a retry. The next "balance.available"
+      // event checks the balance again when more funds arrive.
+      const isBelowMinimumPayout =
+        error instanceof Stripe.errors.StripeError &&
+        (error.code === "amount_too_small" ||
+          error.message.startsWith("Amount must be no less than"));
+
+      if (isBelowMinimumPayout) {
+        return logAndRespond(
+          `Available balance ${currencyFormatter(availableBalance, { currency })} for partner ${partner.email} (${stripeAccount}) is below the Stripe minimum payout amount: ${error.message}. Skipping...`,
+          {
+            logLevel: "warn",
+          },
+        );
+      }
+
+      // Stripe restricted the connected account, so a retry fails the same way (stripe-should-retry: false).
+      // The funds stay on the account, and a later "balance.available" event runs this again.
+      const isPayoutsNotAllowed =
+        error instanceof Stripe.errors.StripeError &&
+        error.code === "payouts_not_allowed";
+
+      if (isPayoutsNotAllowed) {
+        return logAndRespond(
+          `Stripe does not allow payouts for partner ${partner.email} (${stripeAccount}), the account is restricted: ${error.message}. Skipping...`,
+          {
+            logLevel: "warn",
+          },
+        );
+      }
+
+      throw error;
+    }
 
     console.log(
       `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${stripePayout.id} (${currencyFormatter(stripePayout.amount, { currency: stripePayout.currency })})`,
@@ -222,6 +257,6 @@ export async function POST(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse(error);
+    throw error;
   }
-}
+});

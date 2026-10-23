@@ -1,18 +1,7 @@
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import { CountryFlag } from "@/ui/shared/country-flag";
-import { PlatformType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
-import {
-  FlagWavy,
-  Globe,
-  Instagram,
-  LinkedIn,
-  Megaphone,
-  ShieldCheck,
-  TikTok,
-  Twitter,
-  YouTube,
-} from "@dub/ui/icons";
+import { FlagWavy } from "@dub/ui/icons";
 import { COUNTRIES, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 
@@ -37,59 +26,6 @@ export function usePartnerNetworkFilters({
     excludeParams: ["country"],
   });
 
-  const { data: platformsCount } = useNetworkPartnersCount<
-    | {
-        platform: PlatformType;
-        _count: number;
-      }[]
-    | undefined
-  >({
-    query: {
-      status,
-      groupBy: "platform",
-    },
-    excludeParams: ["platform"],
-  });
-
-  const { data: subscribersCount } = useNetworkPartnersCount<
-    | {
-        subscribers: string;
-        _count: number;
-      }[]
-    | undefined
-  >({
-    query: {
-      status,
-      groupBy: "subscribers",
-    },
-    excludeParams: ["subscribers"],
-  });
-
-  const platformIcons: Record<PlatformType, typeof YouTube> = {
-    youtube: YouTube,
-    twitter: Twitter,
-    instagram: Instagram,
-    tiktok: TikTok,
-    linkedin: LinkedIn,
-    website: Globe,
-  };
-
-  const platformLabels: Record<PlatformType, string> = {
-    youtube: "YouTube",
-    twitter: "X/Twitter",
-    instagram: "Instagram",
-    tiktok: "TikTok",
-    linkedin: "LinkedIn",
-    website: "Website",
-  };
-
-  const subscriberLabels: Record<string, string> = {
-    "<5000": "< 5,000",
-    "5000-25000": "5,000 - 25,000",
-    "25000-100000": "25,000 - 100,000",
-    "100000+": "100,000+",
-  };
-
   const filters = useMemo(
     () => [
       {
@@ -109,45 +45,14 @@ export function usePartnerNetworkFilters({
               right: nFormatter(_count, { full: true }),
             })) ?? [],
       },
-      {
-        key: "platform",
-        icon: ShieldCheck,
-        label: "Verified social platform",
-        getOptionIcon: (value: PlatformType) => {
-          const Icon = platformIcons[value] || YouTube;
-          return <Icon className="size-4" />;
-        },
-        getOptionLabel: (value: PlatformType) => platformLabels[value] || value,
-        options:
-          platformsCount
-            ?.filter(({ platform }) => platform !== "website")
-            .map(({ platform, _count }) => ({
-              value: platform,
-              label: platformLabels[platform] || platform,
-              right: nFormatter(_count, { full: true }),
-            })) ?? [],
-      },
-      {
-        key: "subscribers",
-        icon: Megaphone,
-        label: "Verified subscriber count",
-        getOptionIcon: () => <Megaphone className="size-4" />,
-        getOptionLabel: (value: string) => subscriberLabels[value] || value,
-        options:
-          subscribersCount?.map(({ subscribers, _count }) => ({
-            value: subscribers,
-            label: subscriberLabels[subscribers] || subscribers,
-            right: nFormatter(_count, { full: true }),
-          })) ?? [],
-      },
     ],
-    [countriesCount, platformsCount, subscribersCount],
+    [countriesCount],
   );
 
   const multiFilters = useMemo(() => ({}), []) as Record<string, string[]>;
 
   const activeFilters = useMemo(() => {
-    const { country, platform, subscribers } = searchParamsObj;
+    const { country } = searchParamsObj;
 
     return [
       ...Object.entries(multiFilters)
@@ -155,8 +60,6 @@ export function usePartnerNetworkFilters({
         .filter(({ value }) => value.length > 0),
 
       ...(country ? [{ key: "country", value: country }] : []),
-      ...(platform ? [{ key: "platform", value: platform }] : []),
-      ...(subscribers ? [{ key: "subscribers", value: subscribers }] : []),
     ];
   }, [searchParamsObj, multiFilters]);
 
@@ -199,12 +102,15 @@ export function usePartnerNetworkFilters({
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["country", "starred", "platform", "subscribers"],
+        del: ["country", "starred", "platform", "sortBy"],
       }),
     [queryParams],
   );
 
-  const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
+  const isFiltered =
+    activeFilters.length > 0 ||
+    !!searchParamsObj.platform ||
+    !!searchParamsObj.search;
 
   return {
     filters,

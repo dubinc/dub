@@ -1,6 +1,6 @@
 "use client";
 
-import { useProgramMessages } from "@/lib/swr/use-program-messages";
+import { useProgramMessages } from "@/lib/messages/hooks/use-program-messages";
 import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { MessagesContext, MessagesPanel } from "@/ui/messages/messages-context";
 import { MessagesList } from "@/ui/messages/messages-list";
@@ -30,7 +30,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
 
   return (
     <MessagesContext.Provider value={{ currentPanel, setCurrentPanel }}>
-      <div className="@container/page h-[calc(100dvh-var(--page-top-margin)-var(--page-bottom-margin)-1px)] w-full overflow-hidden rounded-t-[inherit] bg-white">
+      <div className="@container/page h-[calc(100dvh-var(--page-banner-height)-var(--page-top-margin)-var(--page-bottom-margin)-1px)] w-full overflow-hidden rounded-t-[inherit] bg-white">
         <div
           className="@[800px]/page:grid-cols-[min-content_minmax(340px,1fr)] @[800px]/page:translate-x-0 grid h-full translate-x-[calc(var(--current-panel)*-100%)] grid-cols-[100%_100%]"
           style={

@@ -4,16 +4,15 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
+import { prisma } from "@/lib/prisma";
 import { banPartnerApiSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // POST /api/partners/ban – Ban a partner via API
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
-    let { partnerId, tenantId, reason } = banPartnerApiSchema.parse(
-      await parseRequestBody(req),
-    );
+    let { partnerId, tenantId, reason, flagForFraud, flagForFraudReason } =
+      banPartnerApiSchema.parse(await parseRequestBody(req));
 
     throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
@@ -47,6 +46,8 @@ export const POST = withWorkspace(
       partnerId: partnerId!, // coerce here because we're already throwing if no partnerId or tenantId
       reason,
       user: session.user,
+      flagForFraud,
+      flagForFraudReason,
     });
 
     return NextResponse.json({
@@ -54,7 +55,7 @@ export const POST = withWorkspace(
     });
   },
   {
-    requiredPlan: ["advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
+    requiredPermissions: ["partners.write"],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

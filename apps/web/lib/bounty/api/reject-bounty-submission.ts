@@ -2,13 +2,14 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { Session } from "@/lib/auth";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
+import { prisma } from "@/lib/prisma";
 import {
   BountySubmissionSchema,
   rejectBountySubmissionBodySchema,
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyRejected from "@dub/email/templates/bounty-rejected";
-import { prisma } from "@dub/prisma";
+import { BountySubmissionStatus, BountyType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
@@ -39,6 +40,7 @@ export async function rejectBountySubmission({
       bounty: {
         select: {
           name: true,
+          type: true,
         },
       },
     },
@@ -65,10 +67,14 @@ export async function rejectBountySubmission({
     });
   }
 
-  if (submission.status === "draft") {
+  if (
+    submission.status === BountySubmissionStatus.draft &&
+    submission.bounty.type !== BountyType.submission
+  ) {
     throw new DubApiError({
       code: "bad_request",
-      message: "This bounty submission is in progress and cannot be rejected.",
+      message:
+        "Performance bounty submissions can only be rejected after the partner completes the bounty.",
     });
   }
 
@@ -99,7 +105,6 @@ export async function rejectBountySubmission({
       userId: user.id,
       rejectionReason,
       rejectionNote,
-      commissionId: null,
     },
     include: {
       partner: {

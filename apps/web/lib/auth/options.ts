@@ -1,14 +1,16 @@
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
+import { welcomeUserJob } from "@/lib/jobs/handlers/welcome-user-job";
+import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendEmail } from "@dub/email";
 import LoginLink from "@dub/email/templates/login-link";
-import { prisma } from "@dub/prisma";
-import { PrismaClient } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { PrismaClient } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { User, type NextAuthOptions } from "next-auth";
 import { AdapterAccount, AdapterUser } from "next-auth/adapters";
@@ -17,11 +19,15 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import { headers } from "next/headers";
 import { createId } from "../api/create-id";
-import { isProduction, shouldApplyRateLimit } from "../api/environment";
+import { isProduction } from "../api/environment";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
-import { qstash } from "../cron";
 import { completeProgramApplications } from "../partners/complete-program-applications";
+import {
+  consumeAdminImpersonation,
+  markAdminImpersonation,
+} from "./admin-impersonation";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
@@ -65,13 +71,38 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
           session_state: account.session_state,
         },
       }),
+    // simplified version of https://github.com/nextauthjs/next-auth/blob/main/packages/adapter-prisma/src/index.ts#L80
+    useVerificationToken: async ({ identifier, token }) => {
+      try {
+        const verificationToken = await p.verificationToken.delete({
+          where: { identifier_token: { identifier, token } },
+        });
+
+        if (verificationToken.isAdminImpersonation) {
+          markAdminImpersonation(identifier);
+        }
+
+        return verificationToken;
+      } catch (error: any) {
+        if (error.code === "P2025") {
+          return null;
+        }
+
+        throw error;
+      }
+    },
   };
 };
 
 export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
-      sendVerificationRequest({ identifier, url }) {
+      async sendVerificationRequest({ identifier, url }) {
+        await assertRateLimit({
+          policy: RATELIMIT_POLICIES.loginLinkSend,
+          identifier,
+        });
+
         if (!isProduction) {
           console.log(`Login link: ${url}`);
           return;
@@ -79,7 +110,7 @@ export const authOptions: NextAuthOptions = {
 
         sendEmail({
           to: identifier,
-          subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
+          subject: "Your Dub Login Link",
           react: LoginLink({ url, email: identifier }),
         });
       },
@@ -92,6 +123,7 @@ export const authOptions: NextAuthOptions = {
     GithubProvider({
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      issuer: "https://github.com/login/oauth",
       allowDangerousEmailAccountLinking: true,
     }),
     {
@@ -101,7 +133,7 @@ export const authOptions: NextAuthOptions = {
       version: "2.0",
       checks: ["pkce", "state"],
       authorization: {
-        url: `${process.env.NEXTAUTH_URL}/api/auth/saml/authorize`,
+        url: `${APP_DOMAIN}/api/auth/saml/authorize`,
         params: {
           scope: "",
           response_type: "code",
@@ -109,10 +141,10 @@ export const authOptions: NextAuthOptions = {
         },
       },
       token: {
-        url: `${process.env.NEXTAUTH_URL}/api/auth/saml/token`,
+        url: `${APP_DOMAIN}/api/auth/saml/token`,
         params: { grant_type: "authorization_code" },
       },
-      userinfo: `${process.env.NEXTAUTH_URL}/api/auth/saml/userinfo`,
+      userinfo: `${APP_DOMAIN}/api/auth/saml/userinfo`,
       profile: async (profile) => {
         let existingUser = await prisma.user.findUnique({
           where: { email: profile.email },
@@ -172,7 +204,7 @@ export const authOptions: NextAuthOptions = {
         const { access_token } = await oauthController.token({
           code,
           grant_type: "authorization_code",
-          redirect_uri: process.env.NEXTAUTH_URL as string,
+          redirect_uri: APP_DOMAIN,
           client_id: "dummy",
           client_secret: process.env.NEXTAUTH_SECRET as string,
         });
@@ -242,15 +274,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error("no-credentials");
         }
 
-        if (shouldApplyRateLimit) {
-          const { success } = await ratelimit(5, "1 m").limit(
-            `login-attempts:${email}`,
-          );
-
-          if (!success) {
-            throw new Error("too-many-login-attempts");
-          }
-        }
+        await assertRateLimit({
+          policy: RATELIMIT_POLICIES.login,
+          identifier: email.trim().toLowerCase(),
+        });
 
         // SSO enforcement check
         const ssoEnforced = await isSamlEnforcedForEmailDomain(email);
@@ -358,9 +385,7 @@ export const authOptions: NextAuthOptions = {
         sameSite: "lax",
         path: "/",
         // When working on localhost, the cookie domain must be omitted entirely (https://stackoverflow.com/a/1188145)
-        domain: VERCEL_DEPLOYMENT
-          ? `.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
-          : undefined,
+        domain: VERCEL_DEPLOYMENT ? ".dub.co" : undefined,
         secure: VERCEL_DEPLOYMENT,
       },
     },
@@ -376,11 +401,15 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (user?.lockedAt) {
-        return false;
+        throw new Error("exceeded-login-attempts");
       }
+
+      const isAdminImpersonation =
+        account?.provider === "email" && consumeAdminImpersonation(user.email);
 
       // If the user is not using SAML, we need to check if SAML is enforced for the email domain
       if (
+        !isAdminImpersonation &&
         account?.provider !== "saml" &&
         account?.provider !== "saml-idp" &&
         account?.provider !== "credentials" // for credentials, we do the check in the CredentialsProvider
@@ -502,6 +531,24 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
+    // baseUrl is NEXTAUTH_URL when it is set (e.g. on localhost), so resolve
+    // against the request's host instead to support redirects on partners
+    redirect: async ({ url, baseUrl }) => {
+      const trustedOrigins = [baseUrl, APP_DOMAIN, PARTNERS_DOMAIN];
+      const host = (await headers()).get("host");
+      const base =
+        trustedOrigins.find((origin) => new URL(origin).host === host) ??
+        baseUrl;
+
+      let resolved: URL;
+      try {
+        resolved = new URL(url, base);
+      } catch {
+        return base;
+      }
+      const { origin, href } = resolved;
+      return trustedOrigins.includes(origin) ? href : base;
+    },
     jwt: async ({
       token,
       user,
@@ -582,11 +629,15 @@ export const authOptions: NextAuthOptions = {
             // track lead if dub_id cookie is present
             trackDubLead(user),
             // trigger welcome workflow 45 minutes after the user signed up
-            qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/welcome-user`,
-              delay: 45 * 60,
-              body: { userId: user.id },
-            }),
+            welcomeUserJob.dispatch(
+              {
+                userId: user.id,
+              },
+              {
+                delay: 45 * 60,
+                label: user.id,
+              },
+            ),
           ]),
         );
       }

@@ -5,16 +5,17 @@ import { LinkProps } from "@/lib/types";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
 import { useCompletion } from "@ai-sdk/react";
 import {
-  AnimatedSizeContainer,
   ArrowTurnRight2,
   ButtonTooltip,
   Combobox,
+  Copy,
   LinkedIn,
   LoadingCircle,
   Magic,
   PenWriting,
   Tooltip,
   Twitter,
+  useCopyToClipboard,
   useKeyboardShortcut,
 } from "@dub/ui";
 import {
@@ -90,6 +91,7 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
 
     const [lockKey, setLockKey] = useState(existingLink);
     const [generatingRandomKey, setGeneratingRandomKey] = useState(false);
+    const [, copyToClipboard] = useCopyToClipboard();
 
     const [keyError, setKeyError] = useState<string | null>(null);
     const error = keyError || errorProp;
@@ -196,6 +198,12 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
         pretty: true,
       });
     }, [key, domain]);
+    const shortLinkToCopy = useMemo(() => {
+      return linkConstructor({
+        key,
+        domain,
+      });
+    }, [key, domain]);
 
     return (
       <div>
@@ -208,17 +216,34 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
             {existingLinkProps?.disabledAt && <DisabledLinkTooltip />}
           </label>
           {lockKey ? (
-            <button
-              className="flex h-6 items-center space-x-2 text-sm text-neutral-500 transition-all duration-75 hover:text-black active:scale-95"
-              type="button"
-              onClick={() => {
-                window.confirm(
-                  "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
-                ) && setLockKey(false);
-              }}
-            >
-              <PenWriting className="size-3.5" />
-            </button>
+            <div className="flex items-center gap-1">
+              <ButtonTooltip
+                tooltipProps={{
+                  content: "Edit link",
+                }}
+                onClick={() => {
+                  window.confirm(
+                    "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
+                  ) && setLockKey(false);
+                }}
+              >
+                <span className="sr-only">Edit short link</span>
+                <PenWriting className="size-3.5" />
+              </ButtonTooltip>
+              <ButtonTooltip
+                tooltipProps={{
+                  content: "Copy link",
+                }}
+                onClick={() => {
+                  toast.promise(copyToClipboard(shortLinkToCopy), {
+                    success: "Link copied to clipboard",
+                  });
+                }}
+                disabled={!shortLinkToCopy}
+              >
+                <Copy className="size-3.5" />
+              </ButtonTooltip>
+            </div>
           ) : (
             <div className="flex items-center gap-1">
               <ButtonTooltip
@@ -385,13 +410,9 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
           />
         )}
         {!onboarding && !dotLinkClaimed && (
-          <AnimatedSizeContainer
-            height
-            transition={{ ease: "linear", duration: 0.1 }}
-            className="mt-2"
-          >
+          <div className="mt-2">
             <FreeDotLinkBanner />
-          </AnimatedSizeContainer>
+          </div>
         )}
       </div>
     );

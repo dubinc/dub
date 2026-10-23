@@ -1,52 +1,26 @@
-import * as z from "zod/v4";
 import { DubApiError } from "../api/errors";
+import { HttpClientError } from "../http/base-client";
 import { DomainStatusSchema } from "../zod/schemas/domains";
-import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
+import {
+  parseRegistrationPriceUsdCents,
+  parseRenewalPriceUsdCents,
+} from "./calculate-domain-price";
+import { dynadotClient } from "./client";
 
-const schema = z.object({
-  SearchResponse: z.object({
-    ResponseCode: z.enum(["0", "-1"]),
-    SearchResults: z.array(
-      z.object({
-        DomainName: z.string(),
-        Available: z.enum(["yes", "no"]).nullish().default("no"),
-        Price: z.string().nullish().default(null),
-        Status: z.string().nullish().default(null),
-      }),
-    ),
-  }),
-});
+const SEARCH_TIMEOUT_MS = 10_000;
+const SEARCH_ATTEMPTS = 2;
 
 export const searchDomainsAvailability = async ({
   domains,
 }: {
   domains: Record<string, string>;
 }) => {
-  const searchParams = new URLSearchParams({
+  const data = await searchWithRetry({
     ...domains,
     command: "search",
     show_price: "1",
     currency: "USD",
-    key: DYNADOT_API_KEY,
   });
-
-  const response = await fetch(
-    `${DYNADOT_BASE_URL}?${searchParams.toString()}`,
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    },
-  );
-
-  if (!response.ok) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: `Failed to search domains: ${response.statusText}`,
-    });
-  }
-
-  const data = schema.parse(await response.json());
 
   if (data.SearchResponse.ResponseCode === "-1") {
     throw new DubApiError({
@@ -56,15 +30,59 @@ export const searchDomainsAvailability = async ({
   }
 
   const result = data.SearchResponse.SearchResults.map((result) => {
-    const premium = result.Price && /is\s+a Premium Domain/.test(result.Price);
+    const available = result.Available === "yes";
+    const premium = Boolean(
+      result.Price && /is\s+a Premium Domain/.test(result.Price),
+    );
+    const registrationPriceUsdCents = parseRegistrationPriceUsdCents(
+      result.Price,
+    );
+    const renewalPriceUsdCents = parseRenewalPriceUsdCents(result.Price);
 
     return {
       domain: result.DomainName,
-      available: result.Available === "yes" && !premium,
-      price: result.Price,
+      available,
       premium,
+      prices: available
+        ? {
+            registration: premium ? registrationPriceUsdCents : 0,
+            renewal: renewalPriceUsdCents,
+          }
+        : null,
+      price: "Deprecated: Use `prices` instead.",
     };
   });
 
   return DomainStatusSchema.array().parse(result);
 };
+
+// The user waits for the search result, so retry a network error or timeout once
+// with a short timeout, then return an error message the UI can show.
+async function searchWithRetry(
+  input: Parameters<typeof dynadotClient.search>[0],
+) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await dynadotClient.search(input, {
+        timeout: SEARCH_TIMEOUT_MS,
+      });
+    } catch (error) {
+      // A null status means Dynadot sent no full response (network error or timeout, also during the body read).
+      // Request validation errors also have a null status, but the route validates the domain first.
+      const noResponse =
+        error instanceof HttpClientError && error.status === null;
+
+      if (!noResponse) {
+        throw error;
+      }
+
+      if (attempt >= SEARCH_ATTEMPTS) {
+        throw new DubApiError({
+          code: "internal_server_error",
+          message:
+            "Domain search is unavailable right now. Please try again in a few minutes.",
+        });
+      }
+    }
+  }
+}

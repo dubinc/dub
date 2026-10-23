@@ -1,3 +1,4 @@
+import { testIds } from "@/lib/e2e/test-ids";
 import { expect, test } from "@playwright/test";
 
 test.describe("Partner onboarding (unauthenticated)", () => {
@@ -14,108 +15,64 @@ test.describe("Partner onboarding", () => {
     await page.goto("/onboarding");
 
     await expect(
-      page.getByRole("heading", { name: "Create your partner profile" }),
+      page.getByTestId(testIds.partnerOnboarding.profile),
     ).toBeVisible();
     await expect(page.locator('input[name="name"]').first()).toBeVisible();
-    await expect(page.getByText("Profile image")).toBeVisible();
-    await expect(page.getByLabel("Country")).toBeVisible();
-    await expect(page.getByText("About you")).toBeVisible();
-    await expect(page.getByText("Profile Type")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
+    await expect(
+      page.getByTestId(testIds.partnerOnboarding.profileImage),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId(testIds.partnerOnboarding.aboutYou),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId(testIds.partnerOnboarding.profileType),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId(testIds.partnerOnboarding.continue),
+    ).toBeVisible();
   });
 
   test("profile submit redirects to platforms", async ({ page }) => {
     await page.goto("/onboarding");
+    await page.waitForLoadState("networkidle");
 
-    const nameInput = page.locator('input[name="name"]').first();
-    const countryField = page.getByLabel("Country");
-    const searchCountriesInput = page.getByPlaceholder("Search countries...");
-    const continueButton = page.getByRole("button", { name: "Continue" });
-    const acknowledgeButton = page.getByRole("button", {
-      name: "I acknowledge",
-    });
+    const nameInput = page.locator('input[name="name"]');
+    const continueButton = page.getByTestId(testIds.partnerOnboarding.continue);
 
     await nameInput.fill("E2E Onboarding Test");
-    await countryField.click();
-
-    if (
-      await acknowledgeButton.isVisible({ timeout: 2000 }).catch(() => false)
-    ) {
-      await acknowledgeButton.click();
-    }
-
-    await expect(searchCountriesInput).toBeVisible({
-      timeout: 5000,
-    });
-    await searchCountriesInput.fill("United States");
-    await page.getByText("United States", { exact: true }).first().click();
-
     await continueButton.click();
 
-    await page.waitForURL(/\/onboarding\/platforms/);
+    await page.waitForURL("/onboarding/platforms");
     await expect(
-      page.getByRole("heading", {
-        name: "Your social and web platforms",
-      }),
+      page.getByTestId(testIds.partnerOnboarding.platforms),
     ).toBeVisible();
   });
 
-  test("platforms step skip link goes to payouts or programs", async ({
-    page,
-  }) => {
+  test("platforms step skip link goes to payouts", async ({ page }) => {
     await page.goto("/onboarding");
+    await page.waitForLoadState("networkidle");
 
     const nameInput = page.locator('input[name="name"]').first();
-    const countryField = page.getByLabel("Country");
-    const searchCountriesInput = page.getByPlaceholder("Search countries...");
-    const continueButton = page.getByRole("button", { name: "Continue" });
-    const skipLink = page.getByRole("link", {
-      name: "I'll complete this later",
-    });
-    const acknowledgeButton = page.getByRole("button", {
-      name: "I acknowledge",
-    });
+    const continueButton = page.getByTestId(testIds.partnerOnboarding.continue);
 
     await nameInput.fill("E2E Onboarding Test");
-    await countryField.click();
-
-    if (
-      await acknowledgeButton.isVisible({ timeout: 2000 }).catch(() => false)
-    ) {
-      await acknowledgeButton.click();
-    }
-
-    await expect(searchCountriesInput).toBeVisible({
-      timeout: 5000,
-    });
-    await searchCountriesInput.fill("United States");
-    await page.getByText("United States", { exact: true }).first().click();
     await continueButton.click();
-    await page.waitForURL(/\/onboarding\/platforms/);
+    await page.waitForURL("/onboarding/platforms");
 
+    const skipLink = page.getByTestId(testIds.partnerOnboarding.skip);
+    await expect(skipLink).toBeVisible();
     await skipLink.click();
 
-    await expect(page).toHaveURL(/\/(onboarding\/payouts|programs)/);
-    if (page.url().includes("/onboarding/payouts")) {
-      await expect(
-        page.getByRole("heading", { name: "Connect payouts" }),
-      ).toBeVisible();
-    }
+    await expect(page).toHaveURL("/onboarding/payouts");
   });
 
   test("payouts step skip link goes to programs", async ({ page }) => {
     await page.goto("/onboarding/payouts");
 
-    await page.waitForURL(/\/(onboarding\/payouts|programs)/);
-
-    if (page.url().includes("/programs")) {
-      return;
-    }
-
-    const skipLink = page.getByRole("link", {
-      name: "I'll complete this later",
-    });
+    const skipLink = page.getByTestId(testIds.partnerOnboarding.skip);
+    await expect(skipLink).toBeVisible();
     await skipLink.click();
-    await expect(page).toHaveURL(/\/programs/);
+
+    await expect(page).toHaveURL("/programs");
   });
 });

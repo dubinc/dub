@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { ApiLogTB, EnrichedApiLog, WorkspaceWithUsers } from "../types";
 import {
   PUBLISHABLE_KEY_ACTOR,

@@ -225,7 +225,7 @@ function FileModalInner({
                         ? truncate(fileName, 25)
                         : isEditing
                           ? `Current: ${truncate(existingResource?.name || "", 25)} (drop to replace)`
-                          : "Any document or zip file, max size of 10MB"
+                          : "Images, documents, or zip, max size of 10MB"
                     }
                     maxFileSizeMB={10}
                   />

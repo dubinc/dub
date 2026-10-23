@@ -65,25 +65,24 @@ export default function WelcomeEmailPartner({
 
             <Text className="mb-4 text-sm leading-6 text-gray-600">
               <strong className="font-medium text-black">
-                2. Verify your identity
+                2. Apply to our partner network
               </strong>
-              : Next, you'll need to{" "}
+              : After completing your profile, you can apply to{" "}
               <Link
-                href="https://ship.dub.co/partner-profile"
+                href="https://ship.dub.co/join-network"
                 className="font-semibold text-black underline underline-offset-4"
               >
-                verify your identity
+                join our partner network
               </Link>
-              . This will build trust with programs and improve your chances of
-              being approved.
+              , which will unlock access to our program marketplace.
             </Text>
 
             <Text className="mb-4 text-sm leading-6 text-gray-600">
               <strong className="font-medium text-black">
                 3. Join a program
               </strong>
-              : Now that your profile is ready, you can start applying to
-              programs via our{" "}
+              : Once you're approved for our partner network, you can start
+              applying to programs via our{" "}
               <Link
                 href="https://ship.dub.co/marketplace"
                 className="font-semibold text-black underline underline-offset-4"

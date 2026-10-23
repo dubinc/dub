@@ -1,12 +1,15 @@
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { X } from "@/ui/shared/icons";
+import { MarkdownDescription } from "@/ui/shared/markdown-description";
 import {
   AnimatedSizeContainer,
   Button,
   Check2,
+  DynamicTooltipWrapper,
   MarkdownIcon,
   Plus,
   Popover,
+  PopoverProps,
   RichTextArea,
   RichTextProvider,
   RichTextToolbar,
@@ -41,6 +44,7 @@ export function InlineBadgePopover({
   text,
   invalid,
   showOptional,
+  align = "start",
   disabled,
   children,
   buttonClassName,
@@ -49,6 +53,7 @@ export function InlineBadgePopover({
   text: ReactNode;
   invalid?: boolean;
   showOptional?: boolean;
+  align?: PopoverProps["align"];
   disabled?: boolean;
   buttonClassName?: string;
   contentClassName?: string;
@@ -59,12 +64,14 @@ export function InlineBadgePopover({
     <Popover
       openPopover={isOpen}
       setOpenPopover={setIsOpen}
-      align="start"
+      align={align}
       content={
         <InlineBadgePopoverContext.Provider value={{ isOpen, setIsOpen }}>
-          <ScrollContainer className="max-h-[50dvh] min-h-0 w-full min-w-32 overscroll-contain p-1 text-sm sm:w-auto">
-            {children}
-          </ScrollContainer>
+          <AnimatedSizeContainer height width>
+            <ScrollContainer className="max-h-[50dvh] min-h-0 w-full min-w-32 overscroll-contain p-1 text-sm sm:w-auto">
+              {children}
+            </ScrollContainer>
+          </AnimatedSizeContainer>
         </InlineBadgePopoverContext.Provider>
       }
       onWheel={(e) => {
@@ -77,11 +84,13 @@ export function InlineBadgePopover({
         disabled={disabled}
         className={cn(
           "inline-block rounded px-1.5 text-left text-sm font-semibold transition-colors",
-          invalid
-            ? "bg-orange-50 text-orange-500 hover:bg-orange-100 data-[state=open]:bg-orange-100"
-            : showOptional
-              ? "bg-neutral-100 text-neutral-500 hover:bg-neutral-200 data-[state=open]:bg-neutral-200"
-              : "bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=open]:bg-blue-100",
+          disabled
+            ? "cursor-not-allowed bg-neutral-200 text-neutral-500 hover:bg-neutral-200 data-[state=open]:bg-neutral-200"
+            : invalid
+              ? "bg-orange-50 text-orange-500 hover:bg-orange-100 data-[state=open]:bg-orange-100"
+              : showOptional
+                ? "bg-neutral-100 text-neutral-500 hover:bg-neutral-200 data-[state=open]:bg-neutral-200"
+                : "bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=open]:bg-blue-100",
           buttonClassName,
         )}
       >
@@ -91,11 +100,15 @@ export function InlineBadgePopover({
   );
 }
 
-type MenuItem<T> = {
+export type InlineBadgePopoverMenuItem<T> = {
   icon?: ReactNode;
   text: string;
+  description?: string;
   value: T;
   onSelect?: () => void;
+  preventClose?: boolean;
+  disabled?: boolean;
+  disabledTooltip?: ReactNode;
 };
 
 export function InlineBadgePopoverMenu<T extends any>({
@@ -103,18 +116,30 @@ export function InlineBadgePopoverMenu<T extends any>({
   onSelect,
   selectedValue,
   search,
+  className,
 }: {
-  items: MenuItem<T>[];
+  items: InlineBadgePopoverMenuItem<T>[];
   onSelect?: (value: T) => void;
   selectedValue?: T | T[];
   search?: boolean;
+  className?: string;
 }) {
   const { setIsOpen, isOpen } = useContext(InlineBadgePopoverContext);
 
   const isMultiSelect = Array.isArray(selectedValue);
+  const [searchQuery, setSearchQuery] = useState("");
 
+  const commandRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
+
+  useEffect(() => {
+    if (!search) commandRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) setSearchQuery("");
+  }, [isOpen]);
 
   const sortedItems = useMemo(
     () =>
@@ -135,19 +160,34 @@ export function InlineBadgePopoverMenu<T extends any>({
     [items, isMultiSelect, selectedValue],
   );
 
-  const [displayedItems, setDisplayedItems] =
-    useState<MenuItem<T>[]>(sortedItems);
+  // Only the order is frozen while open, so item props (e.g. disabled) stay up to date
+  const [displayedOrder, setDisplayedOrder] = useState<T[]>(() =>
+    sortedItems.map(({ value }) => value),
+  );
 
-  // Update the displayed items to sorted when closed
+  const hasDescriptions = items.some((item) => item.description);
+
+  // Update the displayed order to sorted when closed
   useEffect(() => {
-    if (!isOpen) setDisplayedItems(sortedItems);
+    if (!isOpen) setDisplayedOrder(sortedItems.map(({ value }) => value));
   }, [isOpen, sortedItems]);
 
+  const displayedItems = useMemo(() => {
+    const orderIndex = new Map(displayedOrder.map((value, i) => [value, i]));
+    return sortedItems.toSorted(
+      (a, b) =>
+        (orderIndex.get(a.value) ?? displayedOrder.length) -
+        (orderIndex.get(b.value) ?? displayedOrder.length),
+    );
+  }, [sortedItems, displayedOrder]);
+
   return (
-    <Command loop className="focus:outline-none">
+    <Command ref={commandRef} loop tabIndex={-1} className="focus:outline-none">
       {search && (
         <div className="-mx-1 -mt-1 mb-1 flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
           <Command.Input
+            value={searchQuery}
+            onValueChange={setSearchQuery}
             placeholder="Search"
             className="border-0 bg-transparent py-2 pl-4 pr-2 outline-none placeholder:text-neutral-400 focus:ring-0 sm:text-sm"
           />
@@ -156,33 +196,110 @@ export function InlineBadgePopoverMenu<T extends any>({
       <AnimatedSizeContainer height>
         <div className="relative">
           <Command.List
-            className="scrollbar-hide flex max-h-64 max-w-52 flex-col gap-1 overflow-y-auto transition-all"
+            className={cn(
+              "scrollbar-hide flex max-h-64 flex-col gap-1 overflow-y-auto transition-all",
+              hasDescriptions ? "max-w-72" : "max-w-52",
+              className,
+            )}
             ref={scrollRef}
             onScroll={updateScrollProgress}
           >
+            {search && (
+              <Command.Empty className="flex flex-col items-center justify-center px-4 py-[30px] text-center text-sm font-medium text-neutral-500">
+                {searchQuery.trim() ? (
+                  <>
+                    <p className="leading-5">No results for</p>
+                    <p className="leading-5">&ldquo;{searchQuery}&rdquo;</p>
+                  </>
+                ) : (
+                  <p className="leading-5">No results</p>
+                )}
+              </Command.Empty>
+            )}
             {displayedItems.map(
-              ({ icon, text, value, onSelect: itemOnSelect }) => (
+              ({
+                icon,
+                text,
+                description,
+                value,
+                onSelect: itemOnSelect,
+                preventClose,
+                disabled,
+                disabledTooltip,
+              }) => (
                 <Command.Item
-                  key={text}
-                  value={`${text} ${value}`}
+                  key={String(value)}
+                  value={`${text} ${description ?? ""} ${value}`}
+                  disabled={disabled || !!disabledTooltip}
                   onSelect={() => {
+                    if (disabled || !!disabledTooltip) return;
                     itemOnSelect?.();
                     onSelect?.(value);
-                    !isMultiSelect && setIsOpen(false);
+                    !isMultiSelect && !preventClose && setIsOpen(false);
                   }}
-                  className="flex cursor-pointer items-center justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100"
-                >
-                  <div className="flex items-center gap-2">
-                    {icon}
-                    <span className="text-content-default pr-3 text-left text-sm font-medium">
-                      {text}
-                    </span>
-                  </div>
-                  {(Array.isArray(selectedValue)
-                    ? selectedValue.includes(value)
-                    : selectedValue === value) && (
-                    <Check2 className="text-content-emphasis size-3.5 shrink-0" />
+                  className={cn(
+                    "flex cursor-pointer justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100",
+                    description ? "items-start gap-2 py-1.5" : "items-center",
+                    (disabled || !!disabledTooltip) &&
+                      "cursor-not-allowed opacity-50 data-[selected=true]:bg-transparent",
                   )}
+                >
+                  {/* cmdk overrides onPointerMove/onClick on Command.Item.
+                      The tooltip trigger has to be an inner element, and the
+                      item itself must stay a direct child of the list — cmdk
+                      reorders matches with appendChild and crashes if the
+                      item is wrapped. */}
+                  <DynamicTooltipWrapper
+                    tooltipProps={
+                      disabledTooltip
+                        ? {
+                            content: disabledTooltip,
+                            side: "left",
+                            delayDuration: 0,
+                          }
+                        : undefined
+                    }
+                  >
+                    <div
+                      className={cn(
+                        "flex min-w-0 flex-1 justify-between",
+                        description ? "items-start gap-2" : "items-center",
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "flex min-w-0 gap-2",
+                          description ? "items-start" : "items-center",
+                        )}
+                      >
+                        {icon}
+                        {description ? (
+                          <div className="flex min-w-0 flex-col gap-0.5 pr-2">
+                            <span className="text-content-default text-left text-sm font-medium">
+                              {text}
+                            </span>
+                            <MarkdownDescription className="text-content-subtle text-left text-xs font-normal leading-snug">
+                              {description}
+                            </MarkdownDescription>
+                          </div>
+                        ) : (
+                          <span className="text-content-default pr-3 text-left text-sm font-medium">
+                            {text}
+                          </span>
+                        )}
+                      </div>
+                      {(Array.isArray(selectedValue)
+                        ? selectedValue.includes(value)
+                        : selectedValue === value) && (
+                        <Check2
+                          className={cn(
+                            "text-content-emphasis size-3.5 shrink-0",
+                            description && "mt-0.5",
+                          )}
+                        />
+                      )}
+                    </div>
+                  </DynamicTooltipWrapper>
                 </Command.Item>
               ),
             )}

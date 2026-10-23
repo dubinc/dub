@@ -1,14 +1,13 @@
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import WebhookDisabled from "@dub/email/templates/webhook-disabled";
 import WebhookFailed from "@dub/email/templates/webhook-failed";
-import { prisma } from "@dub/prisma";
-import { Webhook } from "@dub/prisma/client";
-import { webhookCache } from "./cache";
+import { Webhook } from "@prisma/client";
+import { syncWorkspaceWebhookStatus } from "./click-webhook-workspaces";
 import {
   WEBHOOK_FAILURE_DISABLE_THRESHOLD,
   WEBHOOK_FAILURE_NOTIFY_THRESHOLDS,
 } from "./constants";
-import { toggleWebhooksForWorkspace } from "./update-webhook";
 
 export const handleWebhookFailure = async (webhookId: string) => {
   const webhook = await prisma.webhook.update({
@@ -57,13 +56,8 @@ export const handleWebhookFailure = async (webhookId: string) => {
       // Notify the user
       notifyWebhookDisabled(updatedWebhook),
 
-      // Update the webhook cache
-      webhookCache.set(updatedWebhook),
-
       // Update the project webhookEnabled flag
-      toggleWebhooksForWorkspace({
-        workspaceId: webhook.projectId,
-      }),
+      syncWorkspaceWebhookStatus(webhook.projectId),
     ]);
   }
 };

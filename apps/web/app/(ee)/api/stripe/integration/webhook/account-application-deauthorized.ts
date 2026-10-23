@@ -1,57 +1,56 @@
-import { StripeMode } from "@/lib/types";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
-import type Stripe from "stripe";
+import Stripe from "stripe";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 
 // Handle event "account.application.deauthorized"
-export async function accountApplicationDeauthorized(
-  event: Stripe.AccountApplicationDeauthorizedEvent,
-  mode: StripeMode,
-) {
-  const stripeAccountId = event.account;
+export async function accountApplicationDeauthorized({
+  mode,
+  workspace,
+}: WebhookHandlerInput<Stripe.AccountApplicationDeauthorizedEvent>): Promise<WebhookHandlerResponse> {
+  const stripeAccountId = workspace.stripeConnectId!;
 
-  if (mode === "test") {
+  if (mode !== "live" && isProductionEnvironment(workspace.environment)) {
     return {
-      response: `Stripe Connect account ${stripeAccountId} deauthorized in test mode. Skipping...`,
+      response: `Stripe Connect account ${stripeAccountId} deauthorized in ${mode} mode. Skipping...`,
     };
   }
 
-  const workspace = await prisma.project.findUnique({
-    where: {
-      stripeConnectId: stripeAccountId,
-    },
-    select: {
-      id: true,
-    },
+  const disconnected = await prisma.$transaction(async (tx) => {
+    // Only disconnect if the workspace is still connected to the deauthorized account
+    const { count } = await tx.project.updateMany({
+      where: {
+        id: workspace.id,
+        stripeConnectId: stripeAccountId,
+      },
+      data: {
+        stripeConnectId: null,
+        stripeConnectMode: null,
+      },
+    });
+
+    if (count === 0) {
+      return false;
+    }
+
+    await tx.installedIntegration.deleteMany({
+      where: {
+        projectId: workspace.id,
+        integrationId: STRIPE_INTEGRATION_ID,
+      },
+    });
+
+    return true;
   });
 
-  if (!workspace) {
+  if (!disconnected) {
     return {
-      response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
+      response: `Workspace ${workspace.id} is no longer connected to Stripe Connect account ${stripeAccountId}. Skipping...`,
     };
   }
-
-  await prisma.project.update({
-    where: {
-      stripeConnectId: stripeAccountId,
-    },
-    data: {
-      stripeConnectId: null,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  await prisma.installedIntegration.deleteMany({
-    where: {
-      projectId: workspace.id,
-      integrationId: STRIPE_INTEGRATION_ID,
-    },
-  });
 
   return {
     response: `Stripe Connect account ${stripeAccountId} deauthorized for workspace ${workspace.id}`,
-    workspaceId: workspace.id,
   };
 }

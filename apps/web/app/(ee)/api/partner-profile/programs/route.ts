@@ -1,24 +1,64 @@
+import { getProgramEnrollmentInactiveDates } from "@/lib/api/partner-profile/get-program-enrollment-inactive-dates";
+import { getProgramEnrollmentsWhere } from "@/lib/api/partner-profile/get-program-enrollments-where";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { partnerProfileProgramsQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
-import { prisma } from "@dub/prisma";
-import { Reward } from "@dub/prisma/client";
+import { hidePartnerSaleAmount } from "@/lib/partners/hide-partner-revenue";
+import { prisma } from "@/lib/prisma";
+import {
+  PartnerProfileProgramEnrollmentSchema,
+  partnerProfileProgramsQuerySchema,
+} from "@/lib/zod/schemas/partner-profile";
+import { Prisma, Reward } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
+// the program columns that ProgramSchema returns. The program also has large
+// JSON columns (inviteEmailData, embedData, resources) that the response drops.
+const PROGRAM_SELECT = {
+  id: true,
+  name: true,
+  slug: true,
+  logo: true,
+  domain: true,
+  url: true,
+  description: true,
+  primaryRewardEvent: true,
+  minPayoutAmount: true,
+  addedToMarketplaceAt: true,
+  messagingEnabledAt: true,
+  partnerNetworkEnabledAt: true,
+  payoutMode: true,
+  environment: true,
+  defaultFolderId: true,
+  defaultGroupId: true,
+  supportEmail: true,
+  helpUrl: true,
+  termsUrl: true,
+  applicationRequirements: true,
+  createdAt: true,
+  updatedAt: true,
+  startedAt: true,
+  deactivatedAt: true,
+} satisfies Prisma.ProgramSelect;
+
 // GET /api/partner-profile/programs - get all program enrollments for a given partnerId
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { includeRewardsDiscounts, status } =
-    partnerProfileProgramsQuerySchema.parse(searchParams);
+  const {
+    includeRewardsDiscounts,
+    includeInactiveDates,
+    status,
+    search,
+    sortBy,
+    sortOrder,
+    page,
+    pageSize,
+  } = partnerProfileProgramsQuerySchema.parse(searchParams);
 
   const programEnrollments = await prisma.programEnrollment.findMany({
-    where: {
+    where: getProgramEnrollmentsWhere({
       partnerId: partner.id,
-      ...(status && { status }),
-      program: {
-        deactivatedAt: null,
-      },
-    },
+      status,
+      search,
+    }),
     include: {
       links: {
         take: 1,
@@ -27,12 +67,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         },
       },
       program: {
-        include: {
-          workspace: {
-            select: {
-              plan: true,
-            },
-          },
+        select: PROGRAM_SELECT,
+      },
+      partnerGroup: {
+        select: {
+          revenueDataSharingDisabledAt: true,
         },
       },
       application: {
@@ -46,27 +85,54 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         clickReward: true,
         leadReward: true,
         saleReward: true,
+        referralReward: true,
+        customReward: true,
         discount: true,
       }),
     },
     orderBy: [
+      sortBy === "name"
+        ? { program: { name: sortOrder } }
+        : { totalCommissions: sortOrder },
       {
-        totalCommissions: "desc",
+        program: {
+          marketplaceRanking: "asc",
+        },
       },
       {
-        createdAt: "asc",
+        createdAt: "desc",
+      },
+      // keeps the order stable across pages
+      {
+        id: "asc",
       },
     ],
+    ...(page && {
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+  });
+
+  const inactiveDates = await getProgramEnrollmentInactiveDates({
+    partnerId: partner.id,
+    programEnrollments,
+    includeStatusLogs: includeInactiveDates ?? false,
   });
 
   const response = programEnrollments.map((enrollment) => {
     return {
       ...enrollment,
+      links: enrollment.links.map((link) =>
+        hidePartnerSaleAmount(link, enrollment.partnerGroup),
+      ),
+      inactiveAt: inactiveDates.get(enrollment.programId) ?? null,
       rewards: includeRewardsDiscounts
         ? [
             enrollment.clickReward,
             enrollment.leadReward,
             enrollment.saleReward,
+            enrollment.referralReward,
+            enrollment.customReward,
           ].filter((r): r is Reward => r !== null)
         : [],
       application: enrollment.application
@@ -79,5 +145,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     };
   });
 
-  return NextResponse.json(z.array(ProgramEnrollmentSchema).parse(response));
+  return NextResponse.json(
+    z.array(PartnerProfileProgramEnrollmentSchema).parse(response),
+  );
 });

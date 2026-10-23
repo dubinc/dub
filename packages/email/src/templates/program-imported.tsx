@@ -26,7 +26,13 @@ export default function ProgramImported({
   importId = "1K1QFYS3W9CJTEJ325SQKWCHF",
 }: {
   email: string;
-  provider: "Rewardful" | "Tolt" | "PartnerStack" | "FirstPromoter";
+  provider:
+    | "Rewardful"
+    | "Tolt"
+    | "PartnerStack"
+    | "FirstPromoter"
+    | "Tapfiliate"
+    | "Lemon Squeezy";
   workspace: {
     slug: string;
   };

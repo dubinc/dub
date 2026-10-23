@@ -3,8 +3,11 @@ import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import {
+  ProgramApplicationStatus,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 import { assertE2EWorkspace } from "../../guard";
@@ -90,6 +93,7 @@ export const POST = withWorkspace(
           data: {
             id: applicationId,
             programId,
+            partnerId,
             groupId,
             name: partner.name,
             email: partner.email ?? `${partner.id}@e2e.dub-internal-test.com`,
@@ -123,6 +127,7 @@ export const POST = withWorkspace(
         prisma.programApplication.update({
           where: { id: enrollment.applicationId },
           data: {
+            status: ProgramApplicationStatus.pending,
             reviewedAt: null,
             rejectionReason: null,
             rejectionNote: null,
@@ -152,6 +157,7 @@ export const POST = withWorkspace(
           data: {
             id: applicationId,
             programId,
+            partnerId,
             groupId,
             name: partner.name,
             email: partner.email ?? `${partner.id}@e2e.dub-internal-test.com`,

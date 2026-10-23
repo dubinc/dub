@@ -96,6 +96,8 @@ export const SearchBox = forwardRef(
         {showClearButton && value.length > 0 && (
           <button
             onClick={() => {
+              // Or a pending keystroke lands after this and restores the term.
+              debounced.cancel();
               onChange("");
               onChangeDebounced?.("");
             }}
@@ -111,8 +113,15 @@ export const SearchBox = forwardRef(
 
 export function SearchBoxPersisted({
   urlParam = "search",
+  resetParamsOnChange = [],
+  onChange,
+  onChangeDebounced,
   ...props
-}: { urlParam?: string } & Partial<SearchBoxProps>) {
+}: {
+  urlParam?: string;
+  /** Params to clear whenever the search changes, e.g. a stale sort. */
+  resetParamsOnChange?: string[];
+} & Partial<SearchBoxProps>) {
   const { queryParams, searchParams } = useRouterStuff();
 
   const [value, setValue] = useState(searchParams.get(urlParam) ?? "");
@@ -120,11 +129,16 @@ export function SearchBoxPersisted({
 
   // Set URL param when debounced value changes
   useEffect(() => {
-    if (searchParams.get(urlParam) ?? "" !== debouncedValue)
+    // Parens matter: `!==` binds tighter than `??`, so without them this reads
+    // `get() ?? ("" !== debouncedValue)` and never skips.
+    if ((searchParams.get(urlParam) ?? "") !== debouncedValue)
       queryParams(
         debouncedValue === ""
-          ? { del: [urlParam, "page"] }
-          : { set: { [urlParam]: debouncedValue }, del: "page" },
+          ? { del: [urlParam, "page", ...resetParamsOnChange] }
+          : {
+              set: { [urlParam]: debouncedValue },
+              del: ["page", ...resetParamsOnChange],
+            },
       );
   }, [debouncedValue]);
 
@@ -132,15 +146,22 @@ export function SearchBoxPersisted({
   useEffect(() => {
     const search = searchParams.get(urlParam);
     // Only update if the value and debouncedValue are synced (the user isn't actively typing)
-    if ((search ?? "" !== value) && value === debouncedValue)
+    // Same precedence trap.
+    if ((search ?? "") !== value && value === debouncedValue)
       setValue(search ?? "");
   }, [searchParams.get(urlParam)]);
 
   return (
     <SearchBox
       value={value}
-      onChange={setValue}
-      onChangeDebounced={setDebouncedValue}
+      onChange={(value) => {
+        setValue(value);
+        onChange?.(value);
+      }}
+      onChangeDebounced={(value) => {
+        setDebouncedValue(value);
+        onChangeDebounced?.(value);
+      }}
       {...props}
     />
   );

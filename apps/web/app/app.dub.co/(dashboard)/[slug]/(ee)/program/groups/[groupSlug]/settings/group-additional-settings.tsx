@@ -1,7 +1,6 @@
 "use client";
 
 import { findGroupsWithMatchingRules } from "@/lib/api/groups/find-groups-with-matching-rules";
-import { validateGroupMoveRules } from "@/lib/api/groups/validate-group-move-rules";
 import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
@@ -9,6 +8,7 @@ import useGroup from "@/lib/swr/use-group";
 import { useGroupMoveRules } from "@/lib/swr/use-group-move-rules";
 import { GroupProps } from "@/lib/types";
 import { updateGroupSchema } from "@/lib/zod/schemas/groups";
+import { workflowConditionsSchema } from "@/lib/zod/schemas/workflows";
 import { GroupSettingsRow } from "@/ui/partners/groups/group-settings-row";
 import { Button, Checkbox, Modal, Switch } from "@dub/ui";
 import { pluralize } from "@dub/utils";
@@ -42,6 +42,10 @@ function GroupAdditionalSettingsForm({
     useState(false);
   const [showConfirmHoldingPeriodModal, setShowConfirmHoldingPeriodModal] =
     useState(false);
+  const [
+    showConfirmRevenueDataSharingModal,
+    setShowConfirmRevenueDataSharingModal,
+  ] = useState(false);
   const [selectedHoldingPeriodDays, setSelectedHoldingPeriodDays] = useState<
     number | null
   >(null);
@@ -64,13 +68,36 @@ function GroupAdditionalSettingsForm({
     }
   }, [group]);
 
+  const handleRevenueDataSharingConfirm = async ({
+    applyToAllGroups,
+  }: {
+    applyToAllGroups: boolean;
+  }) => {
+    if (!group) return;
+    const currentValue = Boolean(group.revenueDataSharingDisabledAt);
+    await updateGroup(`/api/groups/${group.id}`, {
+      method: "PATCH",
+      body: {
+        revenueDataSharingDisabled: !currentValue,
+        updateRevenueDataSharingDisabledForAllGroups: applyToAllGroups,
+      },
+      onSuccess: async () => {
+        await mutatePrefix(`/api/groups/${group.slug}`);
+        setShowConfirmRevenueDataSharingModal(false);
+        toast.success(
+          `Partners ${applyToAllGroups ? "in all groups" : "in this group"} will ${currentValue ? "now see" : "no longer see"} sale amounts`,
+        );
+      },
+    });
+  };
+
   const handleAutoApproveConfirm = async ({
     applyToAllGroups,
   }: {
     applyToAllGroups: boolean;
   }) => {
     if (!group) return;
-    const currentValue = group.autoApprovePartnersEnabledAt ? true : false;
+    const currentValue = Boolean(group.autoApprovePartnersEnabledAt);
     await updateGroup(`/api/groups/${group.id}`, {
       method: "PATCH",
       body: {
@@ -118,10 +145,13 @@ function GroupAdditionalSettingsForm({
   const onSubmit = async (data: FormData) => {
     if (!group) return;
     if (data.moveRules && data.moveRules.length > 0) {
-      try {
-        validateGroupMoveRules(data.moveRules);
-      } catch (error) {
-        toast.error(error.message);
+      const parsed = workflowConditionsSchema.safeParse(data.moveRules);
+
+      if (!parsed.success) {
+        toast.error(
+          parsed.error.issues[0]?.message ??
+            "Please complete the group move rule.",
+        );
         return;
       }
 
@@ -159,25 +189,40 @@ function GroupAdditionalSettingsForm({
   };
 
   const isLoading = loading || !group;
+  const autoApproveEnabled = Boolean(group?.autoApprovePartnersEnabledAt);
+  const revenueDataSharingDisabled = Boolean(
+    group?.revenueDataSharingDisabledAt,
+  );
 
   return (
     <>
       {group && (
         <>
-          <ConfirmAutoApproveModal
+          <ConfirmGroupSettingModal
             isOpen={showConfirmAutoApproveModal}
             setIsOpen={setShowConfirmAutoApproveModal}
             onConfirm={handleAutoApproveConfirm}
             isSubmitting={isSubmitting}
-            currentValue={group.autoApprovePartnersEnabledAt ? true : false}
+            title={`Confirm ${autoApproveEnabled ? "disable" : "enable"} auto-approve`}
+            description={`New applications will ${autoApproveEnabled ? "not" : ""} be approved automatically.`}
           />
-          <ConfirmHoldingPeriodModal
-            isOpen={showConfirmHoldingPeriodModal}
-            setIsOpen={handleHoldingPeriodCancel}
-            onConfirm={handleHoldingPeriodConfirm}
+          {selectedHoldingPeriodDays !== null && (
+            <ConfirmGroupSettingModal
+              isOpen={showConfirmHoldingPeriodModal}
+              setIsOpen={handleHoldingPeriodCancel}
+              onConfirm={handleHoldingPeriodConfirm}
+              isSubmitting={isSubmitting}
+              title="Confirm payout holding period change"
+              description={`Change holding period from ${group.holdingPeriodDays} days to ${selectedHoldingPeriodDays} days.`}
+            />
+          )}
+          <ConfirmGroupSettingModal
+            isOpen={showConfirmRevenueDataSharingModal}
+            setIsOpen={setShowConfirmRevenueDataSharingModal}
+            onConfirm={handleRevenueDataSharingConfirm}
             isSubmitting={isSubmitting}
-            currentValue={group.holdingPeriodDays}
-            newValue={selectedHoldingPeriodDays}
+            title={`Confirm ${revenueDataSharingDisabled ? "show" : "hide"} sale amounts`}
+            description={`Partners will ${revenueDataSharingDisabled ? "see" : "not see"} sale amounts.`}
           />
         </>
       )}
@@ -233,14 +278,35 @@ function GroupAdditionalSettingsForm({
                   <label>
                     <div className="flex select-none items-center gap-2">
                       <Switch
-                        checked={
-                          group!.autoApprovePartnersEnabledAt ? true : false
-                        }
+                        checked={autoApproveEnabled}
                         fn={() => setShowConfirmAutoApproveModal(true)}
                         trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
                       />
                       <span className="text-content-emphasis text-sm">
                         Enable auto-approve
+                      </span>
+                    </div>
+                  </label>
+                )}
+              </GroupSettingsRow>
+
+              <GroupSettingsRow
+                heading="Hide revenue from partners"
+                description="[Hide sale amounts](https://dub.co/help/article/partner-groups#hide-revenue-from-partners) from partners in this group, while still showing their clicks, leads, sales, and commissions."
+              >
+                {isLoading ? (
+                  <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
+                ) : (
+                  <label>
+                    <div className="flex select-none items-center gap-2">
+                      <Switch
+                        checked={revenueDataSharingDisabled}
+                        fn={() => setShowConfirmRevenueDataSharingModal(true)}
+                        disabled={isSubmitting}
+                        trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
+                      />
+                      <span className="text-content-emphasis text-sm">
+                        Hide sale amounts
                       </span>
                     </div>
                   </label>
@@ -278,18 +344,20 @@ function GroupAdditionalSettingsForm({
   );
 }
 
-function ConfirmAutoApproveModal({
+function ConfirmGroupSettingModal({
   isOpen,
   setIsOpen,
   onConfirm,
   isSubmitting,
-  currentValue,
+  title,
+  description,
 }: {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   onConfirm: ({ applyToAllGroups }: { applyToAllGroups: boolean }) => void;
   isSubmitting: boolean;
-  currentValue: boolean;
+  title: string;
+  description: string;
 }) {
   const [applyToAllGroups, setApplyToAllGroups] = useState(false);
 
@@ -303,82 +371,9 @@ function ConfirmAutoApproveModal({
     <Modal showModal={isOpen} setShowModal={setIsOpen}>
       <div className="p-5 text-left">
         <h3 className="text-content-emphasis text-base font-semibold">
-          Confirm {currentValue ? "disable" : "enable"} auto-approve
+          {title}
         </h3>
-        <p className="text-content-subtle mt-1 text-sm">
-          New applications will {currentValue ? "not" : ""} be approved
-          automatically.
-        </p>
-      </div>
-      <div className="border-border-subtle flex items-center justify-between gap-2 border-t px-5 py-4">
-        <label className="flex w-full items-center gap-2.5 text-sm font-medium leading-none">
-          <Checkbox
-            checked={applyToAllGroups}
-            className="border-border-default size-4 rounded focus:border-[var(--brand)] focus:ring-[var(--brand)] focus-visible:border-[var(--brand)] focus-visible:ring-[var(--brand)] data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
-            onCheckedChange={(checked) => setApplyToAllGroups(Boolean(checked))}
-          />
-
-          <span className="text-content-emphasis text-sm">
-            Apply to all groups
-          </span>
-        </label>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            className="h-8 w-fit px-3"
-            text="Cancel"
-            onClick={() => setIsOpen(false)}
-            disabled={isSubmitting}
-          />
-          <Button
-            variant="primary"
-            className="h-8 w-fit px-3"
-            text="Confirm"
-            loading={isSubmitting}
-            onClick={() => {
-              onConfirm({ applyToAllGroups });
-            }}
-          />
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-function ConfirmHoldingPeriodModal({
-  isOpen,
-  setIsOpen,
-  onConfirm,
-  isSubmitting,
-  currentValue,
-  newValue,
-}: {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  onConfirm: ({ applyToAllGroups }: { applyToAllGroups: boolean }) => void;
-  isSubmitting: boolean;
-  currentValue: number;
-  newValue: number | null;
-}) {
-  const [applyToAllGroups, setApplyToAllGroups] = useState(false);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setApplyToAllGroups(false);
-    }
-  }, [isOpen]);
-
-  if (newValue === null) return null;
-
-  return (
-    <Modal showModal={isOpen} setShowModal={setIsOpen}>
-      <div className="p-5 text-left">
-        <h3 className="text-content-emphasis text-base font-semibold">
-          Confirm payout holding period change
-        </h3>
-        <p className="text-content-subtle mt-1 text-sm">
-          Change holding period from {currentValue} days to {newValue} days.
-        </p>
+        <p className="text-content-subtle mt-1 text-sm">{description}</p>
       </div>
       <div className="border-border-subtle flex items-center justify-between gap-2 border-t px-5 py-4">
         <label className="flex w-full items-center gap-2.5 text-sm font-medium leading-none">

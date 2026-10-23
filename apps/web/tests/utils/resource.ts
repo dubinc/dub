@@ -39,8 +39,6 @@ export const E2E_PUBLIC_ANALYTICS_FOLDER_ID = "fold_1JP8FXWM7PECSA4SA7FMGHDWE"; 
 // Different customer external IDs for different reward conditions
 export const E2E_CUSTOMER_ID = "cm25onzuv0001s1bbxchrc0ae";
 export const E2E_CUSTOMER_EXTERNAL_ID = "cus_jTrfVKYN3Buc3F80JoqBiY0g";
-export const E2E_CUSTOMER_SALE_CONDITIONS_EXTERNAL_ID =
-  "cus_pqc8qRtofpu6ZqvutyNDGAU2";
 export const E2E_CUSTOMER_COUNTRY_CONDITIONS_EXTERNAL_ID =
   "cus_LnZbkb8boLsOn1YGLPxZGZMU";
 export const E2E_CUSTOMER_SIGNUP_DATE_CONDITIONS_EXTERNAL_ID =
@@ -148,6 +146,22 @@ export const E2E_SALE_REWARD = {
       ],
       maxDuration: null,
       amountInCents: 9000,
+    },
+    {
+      id: "939e0cbd-fe8d-4cee-8a71-f5b7a5737887",
+      type: "flat",
+      operator: "AND",
+      conditions: [
+        {
+          value: "THGTTG",
+          entity: "sale",
+          operator: "equals_to",
+          attribute: "metadata",
+          metadataField: "bookTitle",
+        },
+      ],
+      maxDuration: null,
+      amountInCents: 4200,
     },
   ],
 };

@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { prisma } from "@dub/prisma";
-import { Integration } from "@dub/prisma/client";
+import { Integration } from "@prisma/client";
 import { Suspense } from "react";
 import { EnabledIntegrations } from "./enabled-integrations";
 import {
@@ -38,6 +38,9 @@ async function IntegrationsListRSC() {
   const integrations = await prisma.integration.findMany({
     where: {
       verified: true,
+      category: {
+        not: null,
+      },
     },
     include: {
       _count: {
@@ -51,7 +54,7 @@ async function IntegrationsListRSC() {
   return (
     <>
       <SearchBoxPersisted debounceTimeoutMs={250} />
-      <EnabledIntegrations integrations={integrations} />
+      <EnabledIntegrations />
       <FeaturedIntegrations integrations={integrations} />
       <IntegrationsCards integrations={integrations} />
     </>

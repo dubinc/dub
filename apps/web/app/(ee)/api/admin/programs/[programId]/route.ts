@@ -1,7 +1,8 @@
+import { revalidateExternalMarketplacePages } from "@/lib/api/programs/revalidate-program-public-pages";
 import { withAdmin } from "@/lib/auth";
 import { MAX_PROGRAM_CATEGORIES } from "@/lib/constants/program";
-import { prisma } from "@dub/prisma";
-import { Category } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Category } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -68,6 +69,8 @@ export const PATCH = withAdmin(
       },
     });
 
+    revalidateExternalMarketplacePages();
+
     return NextResponse.json({
       ...updatedProgram,
       categories: updatedProgram.categories.map(({ category }) => category),
@@ -107,6 +110,8 @@ export const DELETE = withAdmin(
         marketplaceRanking: 2147483647,
       },
     });
+
+    revalidateExternalMarketplacePages();
 
     return NextResponse.json({ ok: true });
   },

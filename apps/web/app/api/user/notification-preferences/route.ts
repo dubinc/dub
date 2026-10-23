@@ -2,7 +2,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ratelimitOrThrow } from "@/lib/api/utils";
 import { NOTIFICATION_PREFERENCE_TYPES } from "@/lib/constants/notification-preferences";
 import { verifyUnsubscribeToken } from "@/lib/email/unsubscribe-token";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import * as z from "zod/v4";
 

@@ -1,9 +1,11 @@
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
+import { prisma } from "@/lib/prisma";
 import { stripeAppClient } from "@/lib/stripe";
 import { StripeCustomerInvoiceSchema } from "@/lib/zod/schemas/customers";
-import { prisma } from "@dub/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { Project } from "@prisma/client";
 import Stripe from "stripe";
+import { DubApiError } from "../errors";
+import { getDefaultProgramIdOrThrow } from "../programs/get-default-program-id-or-throw";
 
 type ExpandedStripeInvoice = Stripe.Invoice & {
   id: string;
@@ -20,48 +22,81 @@ type ExpandedStripeInvoice = Stripe.Invoice & {
 
 export async function getCustomerStripeInvoices({
   stripeCustomerId,
-  stripeConnectId,
-  programId,
+  workspace,
 }: {
   stripeCustomerId: string;
-  stripeConnectId: string;
-  programId: string;
+  workspace: Pick<
+    Project,
+    "id" | "stripeConnectId" | "stripeConnectMode" | "defaultProgramId"
+  >;
 }) {
-  const installedStripeIntegration =
-    await prisma.installedIntegration.findFirst({
-      where: {
-        project: {
-          stripeConnectId,
-        },
-        integrationId: STRIPE_INTEGRATION_ID,
-      },
-      select: {
-        settings: true,
-      },
+  if (!workspace.stripeConnectId) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "Your workspace isn't connected to Stripe yet. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
     });
-
-  if (!installedStripeIntegration) {
-    throw new Error("Stripe integration is not installed on your workspace.");
   }
 
-  const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-    installedStripeIntegration.settings || {},
-  );
+  const installedIntegration = await prisma.installedIntegration.findFirst({
+    where: {
+      projectId: workspace.id,
+      integrationId: STRIPE_INTEGRATION_ID,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!installedIntegration) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "The Stripe integration is not installed on your workspace. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
+    });
+  }
+
+  if (!stripeCustomerId.startsWith("cus_")) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Customer has an invalid Stripe customer ID (${stripeCustomerId}). Stripe customer IDs start with "cus_".`,
+    });
+  }
+
+  const programId = getDefaultProgramIdOrThrow(workspace);
 
   const stripe = stripeAppClient({
-    mode: stripeIntegrationSettings.stripeMode,
+    mode: workspace.stripeConnectMode,
   });
-  const { data } = await stripe.invoices.list(
-    {
-      customer: stripeCustomerId,
-      status: "paid",
-      limit: 100,
-      expand: ["data.payments.data.payment"],
-    },
-    {
-      stripeAccount: stripeConnectId,
-    },
-  );
+
+  let data: Stripe.Invoice[];
+  try {
+    const res = await stripe.invoices.list(
+      {
+        customer: stripeCustomerId,
+        status: "paid",
+        limit: 100,
+        expand: ["data.payments.data.payment"],
+      },
+      {
+        stripeAccount: workspace.stripeConnectId,
+      },
+    );
+    data = res.data;
+  } catch (error) {
+    if (
+      error instanceof Stripe.errors.StripeError &&
+      error.code === "resource_missing"
+    ) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Stripe customer "${stripeCustomerId}" was not found on the connected Stripe account. Update the customer's Stripe customer ID and try again.`,
+      });
+    }
+
+    throw error;
+  }
+
   const invoices = data.filter(
     (invoice) => invoice.id,
   ) as ExpandedStripeInvoice[];
@@ -74,7 +109,7 @@ export async function getCustomerStripeInvoices({
         customer: stripeCustomerId,
       },
       {
-        stripeAccount: stripeConnectId,
+        stripeAccount: workspace.stripeConnectId,
       },
     );
     charges = res.data;
@@ -88,7 +123,7 @@ export async function getCustomerStripeInvoices({
       invoiceId: {
         in: invoices.map((invoice) => invoice.id),
       },
-      programId: programId,
+      programId,
     },
   });
 

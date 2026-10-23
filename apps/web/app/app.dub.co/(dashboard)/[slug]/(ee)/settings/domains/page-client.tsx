@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -30,6 +31,8 @@ import {
 import { capitalize, pluralize } from "@dub/utils";
 import { ChevronDown, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { useSWRConfig } from "swr";
 
 export function CustomDomains() {
   const {
@@ -40,10 +43,12 @@ export function CustomDomains() {
     domainsLimit,
     exceededDomains,
     dotLinkClaimed,
+    environment,
   } = useWorkspace();
 
   const [openPopover, setOpenPopover] = useState(false);
   const { searchParams, queryParams } = useRouterStuff();
+  const { mutate } = useSWRConfig();
   const { allWorkspaceDomains, loading } = useDomains({
     opts: { includeLink: "true" },
   });
@@ -71,6 +76,41 @@ export function CustomDomains() {
     () => setShowRegisterDomainSuccessModal(searchParams.has("registered")),
     [searchParams],
   );
+
+  useEffect(() => {
+    if (searchParams.get("domain_connect") !== "callback") return;
+    const error = searchParams.get("error");
+    const errorDesc = searchParams.get("error_description");
+    if (error) {
+      toast.error(
+        errorDesc === "user_cancel"
+          ? "DNS setup was cancelled."
+          : "Your DNS provider returned an error. Try again or configure manually.",
+      );
+    } else {
+      toast.success("DNS changes submitted. Checking domain verification…");
+      const revalidateDomains = () => {
+        void mutate(
+          (key) =>
+            typeof key === "string" &&
+            key.includes("/api/domains/") &&
+            key.includes("/verify"),
+        );
+        void mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/domains"),
+        );
+      };
+      // Immediate check, then again after DNS has a moment to propagate to Vercel
+      revalidateDomains();
+      window.setTimeout(revalidateDomains, 4000);
+      window.setTimeout(revalidateDomains, 10000);
+    }
+    queryParams({
+      del: ["domain_connect", "error", "error_description", "state"],
+      replace: true,
+      scroll: false,
+    });
+  }, [searchParams, queryParams, mutate]);
 
   const { error: permissionsError } = clientAccessCheck({
     action: "domains.write",
@@ -127,60 +167,70 @@ export function CustomDomains() {
               }
             />
 
-            <Popover
-              content={
-                <div className="grid w-screen gap-px p-2 sm:w-fit sm:min-w-[17rem]">
-                  <Button
-                    text="Connect a domain you own"
-                    variant="outline"
-                    icon={<Globe className="h-4 w-4" />}
-                    className="h-9 justify-start px-2 text-neutral-800"
-                    onClick={() => setShowAddEditDomainModal(true)}
-                  />
-                  <Button
-                    text={
-                      <div className="flex items-center gap-3">
-                        Claim free .link domain
-                        {plan === "free" ? (
-                          <Badge
-                            variant="neutral"
-                            className="flex items-center gap-1"
-                          >
-                            <Crown className="size-3" />
-                            <span className="uppercase">Pro</span>
-                          </Badge>
-                        ) : dotLinkClaimed ? (
-                          <span className="rounded-md border border-green-200 bg-green-500/10 px-1 py-0.5 text-xs text-green-900">
-                            Claimed
-                          </span>
-                        ) : null}
-                      </div>
-                    }
-                    variant="outline"
-                    icon={<LinkBroken className="size-4" />}
-                    className="h-9 justify-start px-2 text-neutral-800 disabled:border-none disabled:bg-transparent disabled:text-neutral-500"
-                    onClick={() => setShowRegisterDomainModal(true)}
-                    disabled={dotLinkClaimed}
-                  />
-                </div>
-              }
-              align="end"
-              openPopover={openPopover}
-              setOpenPopover={setOpenPopover}
-            >
+            {isProductionEnvironment(environment) ? (
+              <Popover
+                content={
+                  <div className="grid w-screen gap-px p-2 sm:w-fit sm:min-w-[17rem]">
+                    <Button
+                      text="Connect a domain you own"
+                      variant="outline"
+                      icon={<Globe className="h-4 w-4" />}
+                      className="h-9 justify-start px-2 text-neutral-800"
+                      onClick={() => setShowAddEditDomainModal(true)}
+                    />
+                    <Button
+                      text={
+                        <div className="flex items-center gap-3">
+                          Claim free .link domain
+                          {plan === "free" ? (
+                            <Badge
+                              variant="neutral"
+                              className="flex items-center gap-1"
+                            >
+                              <Crown className="size-3" />
+                              <span className="uppercase">Pro</span>
+                            </Badge>
+                          ) : dotLinkClaimed ? (
+                            <span className="rounded-md border border-green-200 bg-green-500/10 px-1 py-0.5 text-xs text-green-900">
+                              Claimed
+                            </span>
+                          ) : null}
+                        </div>
+                      }
+                      variant="outline"
+                      icon={<LinkBroken className="size-4" />}
+                      className="h-9 justify-start px-2 text-neutral-800 disabled:border-none disabled:bg-transparent disabled:text-neutral-500"
+                      onClick={() => setShowRegisterDomainModal(true)}
+                      disabled={dotLinkClaimed}
+                    />
+                  </div>
+                }
+                align="end"
+                openPopover={openPopover}
+                setOpenPopover={setOpenPopover}
+              >
+                <Button
+                  variant="primary"
+                  className="h-9 w-fit rounded-lg"
+                  text={
+                    <div className="flex items-center gap-2">
+                      Add custom domain{" "}
+                      <ChevronDown className="size-4 transition-transform duration-75 group-data-[state=open]:rotate-180" />
+                    </div>
+                  }
+                  onClick={() => setOpenPopover(!openPopover)}
+                  disabledTooltip={disabledTooltip}
+                />
+              </Popover>
+            ) : (
               <Button
                 variant="primary"
                 className="h-9 w-fit rounded-lg"
-                text={
-                  <div className="flex items-center gap-2">
-                    Add custom domain{" "}
-                    <ChevronDown className="size-4 transition-transform duration-75 group-data-[state=open]:rotate-180" />
-                  </div>
-                }
-                onClick={() => setOpenPopover(!openPopover)}
+                text="Add custom domain"
+                onClick={() => setShowAddEditDomainModal(true)}
                 disabledTooltip={disabledTooltip}
               />
-            </Popover>
+            )}
           </div>
         </div>
 

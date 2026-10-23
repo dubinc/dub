@@ -1,12 +1,16 @@
+import { getSession } from "@/lib/auth";
 import { getProgram } from "@/lib/fetchers/get-program";
+import { prisma } from "@/lib/prisma";
+import { ProgramEnvironmentBanner } from "@/lib/sandbox/components/workspace-environment";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
 import { Logo } from "@dub/ui";
-import { BoltFill, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";
+import { Bolt, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";
 import { OG_AVATAR_URL } from "@dub/utils";
 import { Store } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
+import { getProgramApplyMetadata } from "../../get-program-apply-metadata";
 import { ApplyHeader } from "../../header";
 import { CTAButtons } from "./cta-buttons";
 import { Screenshot } from "./screenshot";
@@ -40,6 +44,15 @@ const FEATURES = [
   },
 ];
 
+export async function generateMetadata(props: {
+  params: Promise<{ programSlug: string; groupSlug?: string }>;
+}) {
+  return getProgramApplyMetadata({
+    params: props.params,
+    page: "applicationForm",
+  });
+}
+
 export default async function SuccessPage(props: {
   params: Promise<{ programSlug: string; groupSlug?: string }>;
   searchParams: Promise<{ applicationId?: string; enrollmentId?: string }>;
@@ -48,16 +61,17 @@ export default async function SuccessPage(props: {
 
   const { applicationId, enrollmentId } = searchParams;
 
-  const params = await props.params;
-
-  const { programSlug, groupSlug } = params;
+  const { programSlug, groupSlug } = await props.params;
 
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
-  const program = await getProgram({
-    slug: programSlug,
-    groupSlug: partnerGroupSlug,
-  });
+  const [program, session] = await Promise.all([
+    getProgram({
+      slug: programSlug,
+      groupSlug: partnerGroupSlug,
+    }),
+    getSession(),
+  ]);
 
   if (
     !program ||
@@ -65,8 +79,19 @@ export default async function SuccessPage(props: {
     !program.group.applicationFormData ||
     !program.group.applicationFormPublishedAt
   ) {
-    // throw 404 if it's the default group, else redirect to the default group page
+    // for the default group:
+    // - if the program is a production program featured on the marketplace (and not deactivated), redirect to the marketplace program page
+    // - otherwise, throw 404
+    // for other groups: redirect to the default group variant
     if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
+      if (
+        program &&
+        program.addedToMarketplaceAt &&
+        !program.deactivatedAt &&
+        isProductionEnvironment(program.environment)
+      ) {
+        redirect(`/marketplace/${programSlug}`);
+      }
       notFound();
     } else {
       redirect(`/${programSlug}/apply`);
@@ -78,10 +103,15 @@ export default async function SuccessPage(props: {
         where: {
           id: applicationId,
         },
+        select: {
+          partnerId: true,
+          email: true,
+        },
       })
     : null;
 
-  const hasPartnerProfile = !!enrollmentId;
+  const hasPartnerProfile = !!enrollmentId || !!application?.partnerId;
+  const isNonProduction = !isProductionEnvironment(program.environment);
 
   return (
     <div
@@ -93,7 +123,13 @@ export default async function SuccessPage(props: {
         } as CSSProperties
       }
     >
-      <ApplyHeader group={program.group} showLogin={false} showApply={false} />
+      <ProgramEnvironmentBanner environment={program.environment} />
+      <ApplyHeader
+        group={program.group}
+        showLogin={false}
+        showApply={false}
+        hasBanner={isNonProduction}
+      />
       <div className="p-6">
         <div className="grid grid-cols-1 gap-5 sm:pt-20">
           <span className="w-fit rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
@@ -142,7 +178,7 @@ export default async function SuccessPage(props: {
 
         {/* Buttons */}
         <div className="mt-12 flex flex-col gap-3">
-          <CTAButtons />
+          <CTAButtons isAuthenticated={!!session?.user} />
         </div>
 
         {/* Screenshot */}
@@ -161,7 +197,10 @@ export default async function SuccessPage(props: {
                   src={program.logo || `${OG_AVATAR_URL}${program.name}`}
                   alt={`${program.name} logo`}
                 />
-                <BoltFill className="shrink-0 text-[var(--brand)] opacity-30" />
+                <Bolt
+                  variant="fill"
+                  className="shrink-0 text-[var(--brand)] opacity-30"
+                />
                 <Logo className="size-10 shrink-0" />
               </div>
             )}

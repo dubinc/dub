@@ -54,7 +54,6 @@ function TrialLimitActivateModalInner({
             plan: plan ?? "pro",
           },
           replace: true,
-          scroll: false,
         });
         setShowModal(false);
       } else {

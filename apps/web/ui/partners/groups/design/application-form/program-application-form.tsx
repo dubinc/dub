@@ -14,11 +14,9 @@ import { Button, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Controller, FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { CountryCombobox } from "../../../country-combobox";
 import { ProgramApplicationFormField } from "./fields";
 import { FormControlRequiredBadge } from "./fields/form-control";
 import { formDataForApplicationFormData } from "./form-data-for-application-form-data";
@@ -26,7 +24,6 @@ import { formDataForApplicationFormData } from "./form-data-for-application-form
 type FormData = {
   name: string;
   email: string;
-  country: string;
   termsAgreement: boolean;
   formData: ProgramApplicationFormDataWithValues;
 };
@@ -41,7 +38,6 @@ export function ProgramApplicationForm({
   preview?: boolean;
 }) {
   const { isMobile } = useMediaQuery();
-  const router = useRouter();
   const { data: session } = useSession();
   const trackApplyStart = useTrackApplyStart({
     preview,
@@ -51,7 +47,6 @@ export function ProgramApplicationForm({
     defaultValues: {
       name: "",
       email: "",
-      country: "",
       termsAgreement: false,
       formData: formDataForApplicationFormData(
         group.applicationFormData?.fields ?? [],
@@ -60,7 +55,6 @@ export function ProgramApplicationForm({
   });
 
   const {
-    control,
     register,
     handleSubmit,
     setError,
@@ -121,7 +115,11 @@ export function ProgramApplicationForm({
           }),
         });
 
-        router.push(
+        // Use a full page load, not router.push. The action sets cookies, so
+        // Next.js still refreshes this route when onSuccess runs. A router.push
+        // started then discards that refresh, and the two navigations can
+        // cancel each other, which leaves the form stuck on submit.
+        window.location.assign(
           `/${program.slug}/${group.slug}/apply/success?${searchParams.toString()}`,
         );
       },
@@ -197,29 +195,6 @@ export function ProgramApplicationForm({
             {...register("email", {
               required: true,
             })}
-          />
-        </label>
-
-        <label className="flex flex-col">
-          <div className="flex items-center gap-1.5">
-            <span className="text-content-emphasis text-sm font-medium">
-              Country
-            </span>
-            <FormControlRequiredBadge />
-          </div>
-
-          <Controller
-            control={control}
-            name="country"
-            rules={{ required: true }}
-            render={({ field }) => (
-              <CountryCombobox
-                value={field.value || ""}
-                onChange={field.onChange}
-                error={errors.country ? true : false}
-                className="focus:border-[var(--brand)] focus:ring-[var(--brand)]"
-              />
-            )}
           />
         </label>
 

@@ -1,9 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
+import { prisma } from "@/lib/prisma";
 import { stripeAppClient } from "@/lib/stripe";
 import { StripeCustomerSchema } from "@/lib/zod/schemas/customers";
-import { prisma } from "@dub/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -30,7 +29,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         integrationId: STRIPE_INTEGRATION_ID,
       },
       select: {
-        settings: true,
+        id: true,
       },
     });
 
@@ -42,12 +41,8 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     });
   }
 
-  const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-    installedStripeIntegration.settings || {},
-  );
-
   const stripe = stripeAppClient({
-    mode: stripeIntegrationSettings.stripeMode,
+    mode: workspace.stripeConnectMode,
   });
 
   const { data } = await stripe.customers.search(

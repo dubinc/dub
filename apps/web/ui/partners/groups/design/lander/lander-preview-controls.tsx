@@ -1,6 +1,6 @@
 "use client";
 
-import { generateLanderAction } from "@/lib/actions/partners/generate-lander";
+import { generateLanderAction } from "@/lib/ai/generate-lander";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { Button, LoadingSpinner, Sparkle3 } from "@dub/ui";

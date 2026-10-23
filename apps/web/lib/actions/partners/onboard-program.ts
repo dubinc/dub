@@ -1,9 +1,9 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { prisma } from "@/lib/prisma";
 import { onboardProgramSchema } from "@/lib/zod/schemas/program-onboarding";
-import { prisma } from "@dub/prisma";
-import { Project } from "@dub/prisma/client";
+import { Project } from "@prisma/client";
 import { redirect } from "next/navigation";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -46,7 +46,7 @@ const saveOnboardingProgress = async ({
   workspace,
   data,
 }: {
-  workspace: Pick<Project, "id" | "store" | "slug">;
+  workspace: Pick<Project, "id" | "slug" | "defaultProduct" | "store">;
   data: z.infer<typeof onboardProgramSchema>;
 }) => {
   const store =
@@ -65,6 +65,9 @@ const saveOnboardingProgress = async ({
       id: workspace.id,
     },
     data: {
+      // set defaultProduct to "program" if it's not already set
+      defaultProduct:
+        workspace.defaultProduct !== "program" ? "program" : undefined,
       store: {
         ...store,
         programOnboarding: {

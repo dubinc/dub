@@ -1,13 +1,16 @@
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { prisma } from "@/lib/prisma";
 import { recordWebhookEvent } from "@/lib/tinybird/record-webhook-event";
-import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
+import {
+  EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER,
+  WEBHOOK_TRIGGERS,
+} from "@/lib/webhook/constants";
 import {
   handleWebhookFailure,
   resetWebhookFailureCount,
 } from "@/lib/webhook/failure";
 import { handleExternalPayoutEvent } from "@/lib/webhook/handle-external-payout-event";
 import { webhookCallbackSchema } from "@/lib/zod/schemas/webhooks";
-import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import * as z from "zod/v4";
 
@@ -84,8 +87,8 @@ export const POST = async (req: Request) => {
       ? [resetWebhookFailureCount(webhookId)]
       : []),
 
-    // Handle payout events
-    ...(event === "payout.confirmed"
+    // Handle external payout events
+    ...(event === EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER
       ? [
           handleExternalPayoutEvent({
             webhook,

@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { PlatformType, Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { PlatformType, Prisma } from "@prisma/client";
 
 type UpsertPartnerPlatformParams = {
   where: {

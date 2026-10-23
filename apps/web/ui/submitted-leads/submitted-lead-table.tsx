@@ -173,7 +173,6 @@ export function SubmittedLeadTable() {
     onRowClick: (row) => {
       queryParams({
         set: { leadId: row.original.id },
-        scroll: false,
       });
       setDetailsSheetState({
         leadId: row.original.id,
@@ -231,7 +230,6 @@ export function SubmittedLeadTable() {
               ? () => {
                   queryParams({
                     set: { leadId: previousLeadId },
-                    scroll: false,
                   });
                   setDetailsSheetState({
                     leadId: previousLeadId,
@@ -245,7 +243,6 @@ export function SubmittedLeadTable() {
               ? () => {
                   queryParams({
                     set: { leadId: nextLeadId },
-                    scroll: false,
                   });
                   setDetailsSheetState({
                     leadId: nextLeadId,
@@ -265,7 +262,7 @@ export function SubmittedLeadTable() {
         <AnimatedEmptyState
           title="No leads submitted"
           description="Allow partners to submit leads and track their progress through the sales process."
-          learnMoreHref="https://dub.co/help/article/partner-rewards"
+          learnMoreHref="https://dub.co/help/article/submitted-leads"
           cardContent={
             <>
               <div className="bg-bg-emphasis h-2.5 w-24 min-w-0 rounded-sm" />

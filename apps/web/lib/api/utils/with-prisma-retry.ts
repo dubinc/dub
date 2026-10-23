@@ -1,4 +1,5 @@
-import { Prisma } from "@dub/prisma/client";
+import { sleep } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 
 const DEFAULT_CONFIG = {
   maxRetries: 3,
@@ -63,7 +64,7 @@ export async function withPrismaRetry<T>(
       );
 
       // Add delay before retrying
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      await sleep(delay);
     }
   }
 

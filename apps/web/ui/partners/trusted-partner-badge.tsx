@@ -1,14 +1,31 @@
 import { Tooltip } from "@dub/ui";
+import { cn } from "@dub/utils";
 
-export function TrustedPartnerBadge() {
+const TRUSTED_BADGE_SRC = "https://assets.dub.co/icons/trusted-badge.svg";
+
+export function TrustedPartnerBadge({
+  variant = "overlay",
+  size = "small",
+}: {
+  variant?: "overlay" | "inline";
+  size?: "small" | "large";
+}) {
+  const badge = (
+    <img
+      alt="Trusted partner badge"
+      src={TRUSTED_BADGE_SRC}
+      className={cn("shrink-0", size === "small" ? "size-3.5" : "size-5")}
+    />
+  );
+
   return (
     <Tooltip
       content={
-        <div className="flex max-w-xs items-start gap-2 p-3">
+        <div className="flex max-w-xs items-start gap-1.5 p-3">
           <img
             alt="Trusted partner badge"
-            src="https://assets.dub.co/icons/trusted-badge.svg"
-            className="size-6 shrink-0"
+            src={TRUSTED_BADGE_SRC}
+            className="size-5 shrink-0"
           />
           <div className="flex flex-col gap-1">
             <span className="text-sm font-semibold text-neutral-900">
@@ -22,13 +39,13 @@ export function TrustedPartnerBadge() {
         </div>
       }
     >
-      <div className="absolute -bottom-1 -right-1 overflow-hidden transition-transform duration-100 hover:scale-[1.15]">
-        <img
-          alt="Trusted partner badge"
-          src="https://assets.dub.co/icons/trusted-badge.svg"
-          className="size-6"
-        />
-      </div>
+      {variant === "inline" ? (
+        <span className="shrink-0">{badge}</span>
+      ) : (
+        <div className="absolute -bottom-1 -right-1 overflow-hidden transition-transform duration-100 hover:scale-[1.15]">
+          {badge}
+        </div>
+      )}
     </Tooltip>
   );
 }

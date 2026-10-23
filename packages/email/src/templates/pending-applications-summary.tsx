@@ -25,18 +25,21 @@ export default function PendingApplicationsSummary({
   partners = [
     {
       id: "pn_1JPBEGP7EXF76CXT1W99VERW5",
+      applicationId: "pga_1JPBEGP7EXF76CXT1W99VERW5",
       name: "Sarah Charpentier",
       email: "sarah@floridaman.org",
       image: `${OG_AVATAR_URL}pn_1JPBEGP7EXF76CXT1W99VERW5`,
     },
     {
       id: "pn_1JPBEGP7EXF76CXT1W99VERW6",
+      applicationId: "pga_1JPBEGP7EXF76CXT1W99VERW6",
       name: "Derek Forbes",
       email: "d.forbes@gmail.com",
       image: `${OG_AVATAR_URL}pn_1JPBEGP7EXF76CXT1W99VERW6`,
     },
     {
       id: "pn_1JPBEGP7EXF76CXT1W99VERW7",
+      applicationId: "pga_1JPBEGP7EXF76CXT1W99VERW7",
       name: "Marvin Ta",
       email: "marvin@email.com",
       image: `${OG_AVATAR_URL}pn_1JPBEGP7EXF76CXT1W99VERW7`,
@@ -51,6 +54,7 @@ export default function PendingApplicationsSummary({
   };
   partners: {
     id: string;
+    applicationId: string;
     name: string | null;
     email: string | null;
     image: string | null;
@@ -96,7 +100,7 @@ export default function PendingApplicationsSummary({
               {partners.map((partner, index) => {
                 return (
                   <Section
-                    key={partner.id}
+                    key={partner.applicationId}
                     className={`rounded-lg border border-solid border-neutral-200 bg-neutral-50 p-4 ${index < partners.length - 1 ? "mb-3" : ""}`}
                   >
                     <Row>
@@ -130,7 +134,7 @@ export default function PendingApplicationsSummary({
                       </Column>
                       <Column width={90} align="right" valign="middle">
                         <Link
-                          href={`${applicationsUrl}?partnerId=${partner.id}`}
+                          href={`${applicationsUrl}?applicationId=${partner.applicationId}`}
                           className="box-border inline-block rounded-md border border-solid border-neutral-200 bg-white px-4 py-2 text-center text-sm font-medium leading-none text-black no-underline"
                           style={{ whiteSpace: "nowrap" }}
                         >

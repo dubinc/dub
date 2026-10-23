@@ -1,4 +1,4 @@
-import type { Partner } from "@dub/prisma/client";
+import type { Partner } from "@prisma/client";
 import { stripeV2Fetch } from "./stripe-v2-client";
 
 interface CreateStripeRecipientAccountParams

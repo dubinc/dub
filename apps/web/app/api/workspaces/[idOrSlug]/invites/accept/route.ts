@@ -3,8 +3,10 @@ import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan"
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { withSession } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
+import { prisma } from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // POST /api/workspaces/[idOrSlug]/invites/accept – accept a workspace invite
@@ -17,6 +19,11 @@ export const POST = withSession(async ({ session, params }) => {
       project: {
         slug,
       },
+    },
+    select: {
+      projectId: true,
+      expires: true,
+      role: true,
     },
   });
 
@@ -34,22 +41,20 @@ export const POST = withSession(async ({ session, params }) => {
     });
   }
 
-  const workspace = await prisma.$transaction(async (tx) => {
-    const existingMembership = await tx.projectUsers.findFirst({
+  const [workspaceUser, workspace] = await Promise.all([
+    prisma.projectUsers.findUnique({
       where: {
-        userId: session.user.id,
-        projectId: invite.projectId,
+        userId_projectId: {
+          userId: session.user.id,
+          projectId: invite.projectId,
+        },
       },
-    });
+      select: {
+        id: true,
+      },
+    }),
 
-    if (existingMembership) {
-      throw new DubApiError({
-        code: "conflict",
-        message: "You are already a member of this workspace.",
-      });
-    }
-
-    const workspace = await tx.project.findUniqueOrThrow({
+    prisma.project.findUniqueOrThrow({
       where: {
         id: invite.projectId,
       },
@@ -57,6 +62,7 @@ export const POST = withSession(async ({ session, params }) => {
         id: true,
         slug: true,
         plan: true,
+        planPeriod: true,
         usersLimit: true,
         _count: {
           select: {
@@ -70,24 +76,34 @@ export const POST = withSession(async ({ session, params }) => {
           },
         },
       },
+    }),
+  ]);
+
+  if (workspaceUser) {
+    throw new DubApiError({
+      code: "conflict",
+      message: "You are already a member of this workspace.",
     });
+  }
 
-    if (workspace._count.users >= workspace.usersLimit) {
-      throw new DubApiError({
-        code: "exceeded_limit",
-        message: exceededLimitError({
-          plan: workspace.plan as PlanProps,
-          limit: workspace.usersLimit,
-          type: "users",
-        }),
-      });
-    }
+  assertRoleAllowedForPlan({
+    role: invite.role,
+    plan: workspace.plan,
+  });
 
-    assertRoleAllowedForPlan({
-      role: invite.role,
-      plan: workspace.plan,
+  if (workspace._count.users >= workspace.usersLimit) {
+    throw new DubApiError({
+      code: "exceeded_limit",
+      message: exceededLimitError({
+        plan: workspace.plan as PlanProps,
+        planPeriod: workspace.planPeriod,
+        limit: workspace.usersLimit,
+        type: "users",
+      }),
     });
+  }
 
+  await prisma.$transaction(async (tx) => {
     await tx.projectUsers.create({
       data: {
         userId: session.user.id,
@@ -99,7 +115,6 @@ export const POST = withSession(async ({ session, params }) => {
       },
     });
 
-    // Delete invite inside transaction to ensure consistency
     await tx.projectInvite.delete({
       where: {
         email_projectId: {
@@ -109,7 +124,26 @@ export const POST = withSession(async ({ session, params }) => {
       },
     });
 
-    return workspace;
+    const userCount = await tx.projectUsers.count({
+      where: {
+        projectId: workspace.id,
+        user: {
+          isMachine: false,
+        },
+      },
+    });
+
+    if (userCount > workspace.usersLimit) {
+      throw new DubApiError({
+        code: "exceeded_limit",
+        message: exceededLimitError({
+          plan: workspace.plan as PlanProps,
+          planPeriod: workspace.planPeriod,
+          limit: workspace.usersLimit,
+          type: "users",
+        }),
+      });
+    }
   });
 
   // Update default workspace
@@ -128,6 +162,14 @@ export const POST = withSession(async ({ session, params }) => {
     userId: session.user.id,
     step: "completed",
   });
+
+  waitUntil(
+    syncStagingWorkspaceJob.dispatch({
+      action: "add-member",
+      workspaceId: workspace.id,
+      userId: session.user.id,
+    }),
+  );
 
   return NextResponse.json({ message: "Invite accepted." });
 });

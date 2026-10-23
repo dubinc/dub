@@ -1,6 +1,6 @@
 {
   "workspace": {
-    "id": "ws_1KETZ919F83ZJH6A80HWEHW6E",
+    "id": "clrei1gld0002vs9mzn93p8ik",
     "name": "Acme, Inc.",
     "slug": "acme",
     "logo": "https://assets.dub.co/logo.png",
@@ -15,12 +15,14 @@
     "usersLimit": 100,
     "aiLimit": 100,
     "groupsLimit": 100,
-    "defaultProgramId": "prog_1K2J9DRWPPJ2F1RX53N92TSGA",
+    "partnersLimit": 100,
+    "defaultProgramId": "prog_CYCu7IMAapjkRpTnr8F1azjN",
     "invoicePrefix": "ACME",
     "conversionEnabled": true,
     "webhookEnabled": true,
     "dotLinkClaimed": true,
-    "fastDirectDebitPayouts": true
+    "fastDirectDebitPayouts": true,
+    "publishableKey": "dub_pk_acme_local_dev_000000000000"
   },
   "users": [
     {
@@ -59,6 +61,13 @@
       "verified": true
     }
   ],
+  "emailDomains": [
+    {
+      "id": "dom_1KETZ919F83ZJH6A80EMAILDOM",
+      "slug": "getacme.link",
+      "status": "verified"
+    }
+  ],
   "folders": [
     {
       "id": "fold_1K2J9DRWPPJ2F1RX53N92TSGB",
@@ -70,6 +79,7 @@
   "rewards": [
     {
       "id": "rw_1K2J9DRWPPJ2F1RX53N92TSGD",
+      "groupId": "grp_1K2J9DRWPPJ2F1RX53N92TSGC",
       "event": "lead",
       "type": "flat",
       "amountInCents": 1000,
@@ -79,6 +89,7 @@
     },
     {
       "id": "rw_1K2J9DRWPPJ2F1RX53N92TSGE",
+      "groupId": "grp_1K2J9DRWPPJ2F1RX53N92TSGC",
       "event": "sale",
       "type": "flat",
       "amountInCents": 3000,
@@ -112,7 +123,7 @@
     }
   ],
   "program": {
-    "id": "prog_1K2J9DRWPPJ2F1RX53N92TSGA",
+    "id": "prog_CYCu7IMAapjkRpTnr8F1azjN",
     "name": "Acme",
     "slug": "acme",
     "defaultFolderId": "fold_1K2J9DRWPPJ2F1RX53N92TSGB",
@@ -215,7 +226,7 @@
       ],
       "verified": 1,
       "installUrl": "https://d.to/make",
-      "category": "Automations",
+      "category": "Automation",
       "comingSoon": 0,
       "guideUrl": null
     },
@@ -259,7 +270,7 @@
       ],
       "verified": 1,
       "installUrl": "https://d.to/zapier",
-      "category": "Automations",
+      "category": "Automation",
       "comingSoon": 0,
       "guideUrl": null
     },

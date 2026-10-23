@@ -1,13 +1,20 @@
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { withCron } from "@/lib/cron/with-cron";
+import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import { resend } from "@dub/email/resend/client";
 import EmailDomainStatusChanged from "@dub/email/templates/email-domain-status-changed";
-import { prisma } from "@dub/prisma";
-import { EmailDomain } from "@dub/prisma/client";
+import { EmailDomain, EmailDomainStatus } from "@prisma/client";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
+
+const EMAIL_DOMAIN_STATUS_SUBJECT: Partial<Record<EmailDomainStatus, string>> =
+  {
+    verified: "Your email domain has been verified",
+    failed: "Your email domain verification has failed",
+    partially_failed: "Your email domain verification has failed",
+  };
 
 // GET /api/cron/email-domains/verify
 // Runs every hour (0 * * * *)
@@ -96,11 +103,8 @@ async function verifyEmailDomain(domain: EmailDomain) {
   }
 
   const subject =
-    updatedDomain.status === "verified"
-      ? "Your email domain has been verified"
-      : updatedDomain.status === "failed"
-        ? "Your email domain verification has failed"
-        : "Your email domain status has changed";
+    EMAIL_DOMAIN_STATUS_SUBJECT[updatedDomain.status] ??
+    "Your email domain status has changed";
 
   const resendResponse = await sendBatchEmail(
     users.map((user) => ({

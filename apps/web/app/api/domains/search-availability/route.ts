@@ -1,15 +1,23 @@
+import { getDomainSearchAvailability } from "@/lib/api/domains/get-domain-search-availability";
 import { withWorkspace } from "@/lib/auth";
-import { searchDomainsAvailability } from "@/lib/dynadot/search-domains";
-import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
+
+// A registrable .link name has one label before .link. The label is at most 60 characters,
+// so the "get", "try" and "use" variants that the search also checks stay within the 63-character label limit.
+const LINK_DOMAIN_REGEX = /^[a-z0-9]([a-z0-9-]{0,58}[a-z0-9])?\.link$/i;
 
 const schema = z.object({
   domain: z
     .string()
+    .trim()
     .min(1)
     .endsWith(".link")
+    .refine((domain) => LINK_DOMAIN_REGEX.test(domain), {
+      message: "Please enter a valid domain, for example acme.link.",
+    })
     .transform((domain) => domain.toLowerCase())
     .describe("We only support .link domains for now."),
 });
@@ -19,42 +27,12 @@ export const GET = withWorkspace(
   async ({ searchParams }) => {
     const { domain } = schema.parse(searchParams);
 
-    // max 1 requests per 5s
-    const { success } = await ratelimit(1, "5 s").limit(
-      `domain-search:${domain}`,
-    );
-
-    if (!success) {
-      return new Response("Don't DDoS me pls 🥺", { status: 429 });
-    }
-
-    // check if the domain is already registered on Dub
-    const domainOnDub = await prisma.domain.findUnique({
-      where: {
-        slug: domain,
-        verified: true,
-      },
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.domainSearchAvailability,
+      identifier: domain,
     });
 
-    if (domainOnDub) {
-      return NextResponse.json([
-        {
-          domain: domainOnDub.slug,
-          available: false,
-          price: null,
-        },
-      ]);
-    }
-
-    // search for the domain on Dynadot
-    const response = await searchDomainsAvailability({
-      domains: {
-        domain0: domain,
-        domain1: `get${domain}`,
-        domain2: `try${domain}`,
-        domain3: `use${domain}`,
-      },
-    });
+    const response = await getDomainSearchAvailability(domain);
 
     return NextResponse.json(response);
   },

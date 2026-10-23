@@ -13,9 +13,9 @@ export default function DeleteAccountSection() {
         <div className="flex flex-col space-y-1 p-6">
           <h2 className="text-base font-semibold">Delete Account</h2>
           <p className="text-sm text-neutral-500">
-            Permanently delete your {process.env.NEXT_PUBLIC_APP_NAME} account,
-            all of your workspaces, links and their respective stats. This
-            action cannot be undone - please proceed with caution.
+            Permanently delete your Dub account, all of your workspaces, links
+            and their respective stats. This action cannot be undone - please
+            proceed with caution.
           </p>
         </div>
         <div className="border-b border-red-200" />

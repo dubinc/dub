@@ -3,6 +3,7 @@
 import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { getStripe } from "@/lib/stripe/client";
+import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, ButtonProps } from "@dub/ui";
 import {
@@ -12,6 +13,7 @@ import {
   isWorkspaceBillingTrialActive,
   SELF_SERVE_PAID_PLANS,
 } from "@dub/utils";
+import { useSession } from "next-auth/react";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -32,6 +34,9 @@ export function UpgradePlanButton({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
+
+  const workspace = useWorkspace();
   const {
     slug: workspaceSlug,
     plan: currentPlan,
@@ -39,7 +44,7 @@ export function UpgradePlanButton({
     stripeId,
     defaultProgramId,
     trialEndsAt,
-  } = useWorkspace();
+  } = workspace;
 
   const plausible = usePlausible();
   const product = searchParams.get("product");
@@ -54,7 +59,7 @@ export function UpgradePlanButton({
 
   const queryString = searchParams.toString();
 
-  const isCurrentPlan =
+  const isCurrentPlanAndPeriod =
     currentPlan === selectedPlan.name.toLowerCase() &&
     period === currentPlanPeriod;
 
@@ -142,7 +147,7 @@ export function UpgradePlanButton({
     useStartPaidPlanModal();
 
   const isSwitchingTrialPlan =
-    isTrialActive && !isCurrentPlan && currentPlan !== "free";
+    isTrialActive && !isCurrentPlanAndPeriod && currentPlan !== "free";
 
   const { SwitchTrialPlanModal, setShowSwitchTrialPlanModal } =
     useSwitchTrialPlanModal({
@@ -153,7 +158,7 @@ export function UpgradePlanButton({
     });
 
   const handleClick = () => {
-    if (isCurrentPlan && isTrialActive) {
+    if (isCurrentPlanAndPeriod && isTrialActive) {
       setShowStartPaidPlanModal(true);
       return;
     }
@@ -179,18 +184,16 @@ export function UpgradePlanButton({
         text={
           !currentPlan
             ? "Loading..."
-            : isCurrentPlan
+            : isCurrentPlanAndPeriod
               ? isTrialActive
                 ? "Activate plan"
                 : "Current plan"
-              : currentPlan === "free"
+              : isEligibleForTrial({ workspace, session })
                 ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
-                : isTrialActive
-                  ? `Switch trial to ${selectedPlan.name} ${capitalize(period)}`
-                  : `Switch to ${selectedPlan.name} ${capitalize(period)}`
+                : `Upgrade to ${selectedPlan.name} ${capitalize(period)}`
         }
         loading={clicked || !currentPlan}
-        disabled={!workspaceSlug || (isCurrentPlan && !isTrialActive)}
+        disabled={!workspaceSlug || (isCurrentPlanAndPeriod && !isTrialActive)}
         onClick={handleClick}
         {...rest}
       />

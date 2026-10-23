@@ -1,5 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { constructMetadata } from "@dub/utils";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -7,6 +7,7 @@ import RegisterPageClient from "./page-client";
 
 export const metadata = constructMetadata({
   fullTitle: "Create your partners.dub.co account",
+  canonicalUrl: "https://partners.dub.co/register",
 });
 
 export default async function RegisterPage(props: {

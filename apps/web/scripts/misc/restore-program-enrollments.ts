@@ -25,8 +25,9 @@ Then, replace `prisma as prismaOld` below with just `prismaOld`
 
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
-// import { prisma, prismaOld } from "@dub/prisma";
-import { prisma, prisma as prismaOld } from "@dub/prisma";
+// import { prisma, prismaOld } from "@/lib/prisma";
+import { prisma, prisma as prismaOld } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import "dotenv-flow/config";
 import { stripeAppClient } from "../../lib/stripe";
 import { recordLink } from "../../lib/tinybird";
@@ -42,7 +43,13 @@ async function main() {
     });
 
   const res = await prisma.programEnrollment.createMany({
-    data: programEnrollmentsToRestore,
+    data: programEnrollmentsToRestore.map(
+      ({ partnerPreferences, ...enrollment }) => ({
+        ...enrollment,
+        partnerPreferences:
+          partnerPreferences === null ? Prisma.DbNull : partnerPreferences,
+      }),
+    ),
   });
   console.log(`Restored ${res.count} program enrollments`);
 
@@ -64,7 +71,7 @@ async function main() {
   if (commissionsToRestore.length > 0) {
     const { count: createdCommissionsCount } =
       await prisma.commission.createMany({
-        data: commissionsToRestore,
+        data: commissionsToRestore as never,
         skipDuplicates: true,
       });
     console.log(`Restored ${createdCommissionsCount} commissions`);

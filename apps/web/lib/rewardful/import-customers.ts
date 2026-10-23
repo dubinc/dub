@@ -1,6 +1,7 @@
-import { prisma } from "@dub/prisma";
-import { Customer, Program, Project } from "@dub/prisma/client";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
+import { prisma } from "@/lib/prisma";
 import { chunk, nanoid } from "@dub/utils";
+import { Customer, Program, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
@@ -9,7 +10,7 @@ import { recordClick } from "../tinybird/record-click";
 import { recordLeadWithTimestamp } from "../tinybird/record-lead";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
-import { MAX_BATCHES, rewardfulImporter } from "./importer";
+import { REWARDFUL_REFERRALS_MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulImportPayload, RewardfulReferral } from "./types";
 
 export async function importCustomers(payload: RewardfulImportPayload) {
@@ -32,7 +33,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
   let hasMore = true;
   let processedBatches = 0;
 
-  while (hasMore && processedBatches < MAX_BATCHES) {
+  while (hasMore && processedBatches < REWARDFUL_REFERRALS_MAX_BATCHES) {
     const referrals = await rewardfulApi.listCustomers({
       page: currentPage,
     });
@@ -48,19 +49,31 @@ export async function importCustomers(payload: RewardfulImportPayload) {
       )
       .map((r) => r.stripe_customer_id!);
 
-    const externalIds = referrals.map((r) => r.customer.id);
+    // Rewardful can return a customer object with a null id.
+    const externalIds = referrals
+      .map((r) => r.customer.id)
+      .filter((id): id is string => Boolean(id));
 
-    const existingCustomers = await prisma.customer.findMany({
-      where: {
-        OR: [
-          { stripeCustomerId: { in: stripeCustomerIds } },
-          {
-            projectId: workspace.id,
-            externalId: { in: externalIds },
-          },
-        ],
-      },
-    });
+    const existingCustomers =
+      stripeCustomerIds.length === 0 && externalIds.length === 0
+        ? []
+        : await prisma.customer.findMany({
+            where: {
+              OR: [
+                ...(stripeCustomerIds.length > 0
+                  ? [{ stripeCustomerId: { in: stripeCustomerIds } }]
+                  : []),
+                ...(externalIds.length > 0
+                  ? [
+                      {
+                        projectId: workspace.id,
+                        externalId: { in: externalIds },
+                      },
+                    ]
+                  : []),
+              ],
+            },
+          });
 
     const referrralChunks = chunk(referrals, 10);
     for (const referralChunk of referrralChunks) {
@@ -138,9 +151,11 @@ async function createCustomer({
     return;
   }
 
-  const shortLinkToken = referral.link?.token || referral.coupon?.token;
+  const shortLinkKey =
+    referral.link?.token ||
+    (referral.coupon?.token ? `${referral.coupon?.token}-coupon` : undefined);
 
-  if (!shortLinkToken) {
+  if (!shortLinkKey) {
     console.error(`Short link token not found for referral ${referralId}.`);
     return;
   }
@@ -150,7 +165,7 @@ async function createCustomer({
   const link = await prisma.link.findFirst({
     where: {
       domain: program.domain!,
-      key: shortLinkToken,
+      key: shortLinkKey,
     },
   });
 
@@ -158,7 +173,7 @@ async function createCustomer({
     await logImportError({
       ...commonImportLogInputs,
       code: "LINK_NOT_FOUND",
-      message: `Link not found for referral ${referralId} (token: ${shortLinkToken}).`,
+      message: `Link not found for referral ${referralId} (token: ${shortLinkKey}).`,
     });
 
     return;
@@ -232,6 +247,7 @@ async function createCustomer({
           ? referral.customer.email
           : referral.customer.name,
       email: referral.customer.email,
+      normalizedEmail: getNormalizedEmail(referral.customer.email),
       projectId: workspace.id,
       projectConnectId: workspace.stripeConnectId,
       clickId: clickEvent.click_id,

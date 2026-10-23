@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { DubApiError } from "../errors";
 
 // Type-safe version that accepts an include object directly
@@ -18,6 +18,7 @@ export async function getProgramEnrollmentOrThrow<
     ...include,
     links: include.links
       ? {
+          ...(typeof include.links === "object" ? include.links : {}),
           orderBy: {
             createdAt: "asc",
           },

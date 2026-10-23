@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
-import { Link } from "@dub/prisma/client";
+import { Link } from "@prisma/client";
 import * as z from "zod/v4";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { transformLink } from "../api/links/utils/transform-link";
@@ -30,6 +30,7 @@ import { metadataQueryParser } from "./metadata-query-parser";
 import { EventsFilters } from "./types";
 import { formatUTCDateTimeClickhouse } from "./utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "./utils/get-start-end-dates";
+import { withTinybirdTimeout } from "./utils/with-tinybird-timeout";
 
 // Fetch data for /api/events
 export const getEvents = async (params: EventsFilters) => {
@@ -49,6 +50,8 @@ export const getEvents = async (params: EventsFilters) => {
     dataAvailableFrom,
     query,
     includeMetadata = true,
+    page,
+    limit,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -155,15 +158,15 @@ export const getEvents = async (params: EventsFilters) => {
     ...(params.root !== undefined ? { root: params.root } : {}),
     ...(params.saleType ? { saleType: params.saleType } : {}),
     order: sortOrder,
-    offset: (params.page - 1) * params.limit,
-    limit: params.limit,
+    offset: (page - 1) * limit,
+    limit,
     sortBy: params.sortBy,
     start: formatUTCDateTimeClickhouse(startDate),
     end: formatUTCDateTimeClickhouse(endDate),
     filters: allFilters.length > 0 ? JSON.stringify(allFilters) : undefined,
   };
 
-  const response = await pipe(tinybirdParams);
+  const response = await withTinybirdTimeout(pipe(tinybirdParams));
 
   const [linksMap, customersMap] = await Promise.all([
     getLinksMap(response.data.map((d) => d.link_id)),

@@ -4,8 +4,12 @@ import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
-import { ratelimit } from "@/lib/upstash";
+import {
+  MEGA_WORKSPACE_LINKS_LIMIT,
+  SORTABLE_LINKS_LIMIT,
+} from "@/lib/constants/misc";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   createLinkBodySchemaAsync,
@@ -24,13 +28,17 @@ export const GET = withWorkspace(
     const { folderIds } = await validateLinksQueryFilters({
       ...filters,
       workspace,
-      userId: session.user.id,
+      sessionUserId: session.user.id,
     });
 
     const response = await getLinksForWorkspace({
       ...filters,
       workspaceId: workspace.id,
       folderIds,
+      sortBy:
+        workspace.totalLinks > SORTABLE_LINKS_LIMIT
+          ? "createdAt"
+          : filters.sortBy,
       searchMode:
         workspace.totalLinks > MEGA_WORKSPACE_LINKS_LIMIT ? "exact" : "fuzzy",
     });
@@ -57,15 +65,10 @@ export const POST = withWorkspace(
 
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
-      const { success } = await ratelimit(10, "1 d").limit(ip);
-
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message:
-            "Rate limited – you can only create up to 10 links per day without an account.",
-        });
-      }
+      await assertRateLimit({
+        policy: RATELIMIT_POLICIES.anonymousLinkCreate,
+        identifier: ip,
+      });
     }
 
     const { link, error, code } = await processLink({

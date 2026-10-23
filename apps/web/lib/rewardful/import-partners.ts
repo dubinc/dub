@@ -1,12 +1,16 @@
-import { prisma } from "@dub/prisma";
-import { Program } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { prisma } from "@/lib/prisma";
+import { isRejected, nanoid } from "@dub/utils";
+import { Program } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
 import { bulkCreateLinks } from "../api/links";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
 import { RewardfulApi } from "./api";
-import { MAX_BATCHES, rewardfulImporter } from "./importer";
+import { REWARDFUL_MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulAffiliate, RewardfulImportPayload } from "./types";
 
 export async function importPartners(payload: RewardfulImportPayload) {
@@ -47,7 +51,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
     entity: "partner",
   } as const;
 
-  while (hasMore && processedBatches < MAX_BATCHES) {
+  while (hasMore && processedBatches < REWARDFUL_MAX_BATCHES) {
     const affiliates = await rewardfulApi.listPartners({
       page: currentPage,
     });
@@ -73,7 +77,11 @@ export async function importPartners(payload: RewardfulImportPayload) {
     }
 
     if (activeAffiliates.length > 0) {
-      const partners = await Promise.all(
+      // Filled as soon as each enrollment is saved, so a partner whose later
+      // step throws still reaches the search sync and the ban check.
+      const enrolledPartnerIds: string[] = [];
+
+      const results = await Promise.allSettled(
         activeAffiliates.map((affiliate) => {
           const groupId = campaignIdToGroupMap[affiliate.campaign.id];
           const group = program.groups.find((group) => group.id === groupId);
@@ -90,11 +98,14 @@ export async function importPartners(payload: RewardfulImportPayload) {
             program,
             affiliate,
             userId,
+            enrolledPartnerIds,
             defaultGroupAttributes: {
               groupId: group.id,
-              saleRewardId: group.saleRewardId,
-              leadRewardId: group.leadRewardId,
               clickRewardId: group.clickRewardId,
+              leadRewardId: group.leadRewardId,
+              saleRewardId: group.saleRewardId,
+              referralRewardId: group.referralRewardId,
+              customRewardId: group.customRewardId,
               discountId: group.discountId,
             },
             partnerGroupDefaultLinkId:
@@ -105,15 +116,32 @@ export async function importPartners(payload: RewardfulImportPayload) {
         }),
       );
 
-      const filteredPartners = partners.filter(
-        (p): p is NonNullable<typeof p> => p !== undefined,
+      const importedPartners = results.flatMap((result) =>
+        result.status === "fulfilled" && result.value ? [result.value] : [],
       );
 
-      if (filteredPartners.length > 0) {
+      // Coupon import reads this map to create partner links. A preserved ban
+      // must not gain those links, but still needs a search update.
+      const partnersToMap = importedPartners.filter((p) => !p.preservedBan);
+
+      // Also remove a preserved ban that an earlier, unfinished import mapped,
+      // so coupon import cannot use that stale field.
+      const bannedAffiliateIds = importedPartners
+        .filter((p) => p.preservedBan)
+        .map((p) => p.rewardfulAffiliateId);
+
+      if (bannedAffiliateIds.length > 0) {
+        await redis.hdel(
+          `rewardful:affiliates:${program.id}`,
+          ...bannedAffiliateIds,
+        );
+      }
+
+      if (partnersToMap.length > 0) {
         await redis.hset(
           `rewardful:affiliates:${program.id}`,
           Object.fromEntries(
-            filteredPartners.map((p) => [
+            partnersToMap.map((p) => [
               p.rewardfulAffiliateId,
               {
                 partnerId: p.dubPartnerId,
@@ -123,6 +151,25 @@ export async function importPartners(payload: RewardfulImportPayload) {
             ]),
           ),
         );
+      }
+
+      // Queue an index update because the imported partners were enrolled.
+      // Queued per page rather than per partner.
+      await queuePartnerSearchSync({
+        partnerIds: enrolledPartnerIds,
+        programId: program.id,
+      });
+
+      await detectAndRecordNetworkLevelBans({
+        programId: program.id,
+        partnerIds: enrolledPartnerIds,
+      });
+
+      // Fail the page so QStash retries the partners that threw
+      const rejected = results.find(isRejected);
+
+      if (rejected) {
+        throw rejected.reason;
       }
     }
 
@@ -155,17 +202,21 @@ async function createPartnerAndLinks({
   program,
   affiliate,
   userId,
+  enrolledPartnerIds,
   defaultGroupAttributes,
   partnerGroupDefaultLinkId,
 }: {
   program: Program;
   affiliate: RewardfulAffiliate;
   userId: string;
+  enrolledPartnerIds: string[];
   defaultGroupAttributes: {
     groupId: string;
     saleRewardId: string | null;
     leadRewardId: string | null;
     clickRewardId: string | null;
+    referralRewardId: string | null;
+    customRewardId: string | null;
     discountId: string | null;
   };
   partnerGroupDefaultLinkId?: string | null;
@@ -182,34 +233,37 @@ async function createPartnerAndLinks({
     update: {},
   });
 
-  const programEnrollment = await prisma.programEnrollment.upsert({
-    where: {
-      partnerId_programId: {
-        partnerId: partner.id,
-        programId: program.id,
-      },
-    },
-    create: {
-      id: createId({ prefix: "pge_" }),
-      programId: program.id,
+  const { enrollment: programEnrollment, preservedBan } =
+    await upsertImportedProgramEnrollment({
       partnerId: partner.id,
-      status: "approved",
-      ...defaultGroupAttributes,
-    },
-    update: {
-      status: "approved",
-    },
-    include: {
-      links: true,
-    },
-  });
+      programId: program.id,
+      create: {
+        id: createId({ prefix: "pge_" }),
+        programId: program.id,
+        partnerId: partner.id,
+        status: "approved",
+        ...defaultGroupAttributes,
+      },
+      include: {
+        links: true,
+      },
+    });
+
+  enrolledPartnerIds.push(partner.id);
+
+  if (!preservedBan) {
+    await approveLinkedApplication({
+      applicationId: programEnrollment.applicationId,
+      userId,
+    });
+  }
 
   if (!program.domain || !program.url) {
     console.error("Program domain or url not found", program.id);
     return;
   }
 
-  if (programEnrollment.links.length === 0) {
+  if (!preservedBan && programEnrollment.links.length === 0) {
     await bulkCreateLinks({
       links: affiliate.links.map((link, idx) => ({
         domain: program.domain!,
@@ -235,5 +289,6 @@ async function createPartnerAndLinks({
     dubPartnerId: partner.id,
     dubPartnerGroupId: programEnrollment.groupId,
     dubDiscountId: programEnrollment.discountId,
+    preservedBan,
   };
 }

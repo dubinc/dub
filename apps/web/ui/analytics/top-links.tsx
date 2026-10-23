@@ -1,4 +1,5 @@
 import { AnalyticsGroupByOptions } from "@/lib/analytics/types";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { LinkLogo, useRouterStuff } from "@dub/ui";
 import { Globe, Hyperlink } from "@dub/ui/icons";
@@ -94,11 +95,10 @@ export function TopLinks() {
       if (!filterParamKey) return;
 
       if (values.length === 0) {
-        queryParams({ del: filterParamKey, scroll: false });
+        queryParams({ del: filterParamKey });
       } else {
         queryParams({
           set: { [filterParamKey]: values.join(",") },
-          scroll: false,
         });
       }
 
@@ -134,6 +134,8 @@ export function TopLinks() {
   });
 
   const [persisted] = useWorkspacePreferences("linksDisplay");
+  const { displayProperties: partnerDisplayProperties } =
+    usePartnerLinksDisplay();
 
   const getItemTitle = useCallback(
     (d: Record<string, any>) => {
@@ -149,6 +151,16 @@ export function TopLinks() {
         return d.tag?.name || "Unknown";
       }
 
+      if (partnerPage) {
+        if (
+          partnerDisplayProperties.includes("title") &&
+          d.partnerLinkTitle
+        ) {
+          return d.partnerLinkTitle;
+        }
+        return d.shortLink || "Unknown";
+      }
+
       // For links subtab
       const displayProperties = persisted?.displayProperties;
 
@@ -158,7 +170,7 @@ export function TopLinks() {
 
       return d.shortLink || "Unknown";
     },
-    [persisted, tab, subtab],
+    [persisted, tab, subtab, partnerPage, partnerDisplayProperties],
   );
 
   const mapItem = useCallback(

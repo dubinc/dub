@@ -1,5 +1,5 @@
 import { PAID_TRAFFIC_PLATFORMS } from "@/lib/api/fraud/constants";
-import { FraudEventStatus, FraudRuleType } from "@dub/prisma/client";
+import { FraudEventStatus, FraudRuleType } from "@prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema, PartnerSchema } from "./partners";
@@ -11,6 +11,7 @@ export enum CustomerEmailMatchType {
   EXACT = "exact",
   DOMAIN_MATCH = "domainMatch",
   HISTORICAL_DOMAIN_MATCH = "historicalDomainMatch",
+  SIMILAR_EMAIL_MATCH = "similarEmailMatch",
 }
 
 export const fraudGroupSchema = z.object({
@@ -27,6 +28,7 @@ export const fraudGroupSchema = z.object({
     email: true,
     image: true,
     status: true,
+    networkStatus: true,
   }),
   user: UserSchema.nullable(),
 });
@@ -99,6 +101,7 @@ export const resolveFraudGroupSchema = z.object({
     )
     .nullable()
     .default(null),
+  disableRiskDetection: z.boolean().default(false),
 });
 
 export const bulkResolveFraudGroupsSchema = z.object({
@@ -267,7 +270,7 @@ const fraudEventCustomerSchema = z.object({
 
 export const fraudEventSchemas = {
   referralSourceBanned: baseFraudEventSchema.extend({
-    customer: fraudEventCustomerSchema,
+    customer: fraudEventCustomerSchema.nullable(),
     metadata: z
       .object({
         source: z.string(),
@@ -276,7 +279,7 @@ export const fraudEventSchemas = {
   }),
 
   paidTrafficDetected: baseFraudEventSchema.extend({
-    customer: fraudEventCustomerSchema,
+    customer: fraudEventCustomerSchema.nullable(),
     metadata: z
       .object({
         source: z.string(),
@@ -286,17 +289,18 @@ export const fraudEventSchemas = {
   }),
 
   customerEmailMatch: baseFraudEventSchema.extend({
-    customer: fraudEventCustomerSchema,
+    customer: fraudEventCustomerSchema.nullable(),
     metadata: z
       .object({
         matchType: z.enum(CustomerEmailMatchType),
+        matchedCustomerId: z.string().optional(),
       })
       .nullable()
       .optional(),
   }),
 
   customerEmailSuspiciousDomain: baseFraudEventSchema.extend({
-    customer: fraudEventCustomerSchema,
+    customer: fraudEventCustomerSchema.nullable(),
   }),
 
   partnerCrossProgramBan: baseFraudEventSchema.extend({

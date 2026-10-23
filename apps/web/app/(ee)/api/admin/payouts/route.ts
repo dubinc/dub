@@ -1,23 +1,13 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withAdmin } from "@/lib/auth";
-import { sqlGranularityMap } from "@/lib/planetscale/granularity";
+import { prisma } from "@/lib/prisma";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { prisma } from "@dub/prisma";
-import { InvoiceStatus, Prisma } from "@dub/prisma/client";
-import { ACME_PROGRAM_ID } from "@dub/utils";
-import { format } from "date-fns";
+import { getPaginationQuerySchema } from "@/lib/zod/schemas/misc";
+import { InvoiceStatus, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
-
-interface TimeseriesPoint {
-  payouts: number;
-  fees: number;
-  total: number;
-}
-
-interface FormattedTimeseriesPoint extends TimeseriesPoint {
-  date: Date;
-}
+import { getPayoutsTimeseries } from "./get-payouts-timeseries";
+import { getTopProgramsByPayouts } from "./get-top-programs-by-payouts";
 
 const adminPayoutsQuerySchema = z
   .object({
@@ -26,7 +16,8 @@ const adminPayoutsQuerySchema = z
   })
   .extend(
     analyticsQuerySchema.pick({ interval: true, start: true, end: true }).shape,
-  );
+  )
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const GET = withAdmin(async ({ searchParams }) => {
   const {
@@ -35,6 +26,8 @@ export const GET = withAdmin(async ({ searchParams }) => {
     interval = "mtd",
     start,
     end,
+    page,
+    pageSize,
   } = adminPayoutsQuerySchema.parse(searchParams);
 
   const timezone = "UTC";
@@ -43,69 +36,56 @@ export const GET = withAdmin(async ({ searchParams }) => {
     start,
     end,
     timezone,
+    dataAvailableFrom: new Date("2024-11-01"),
   });
 
-  // Fetch invoices
-  const invoices = await prisma.invoice.findMany({
-    where: {
-      ...(programId
-        ? { programId }
-        : {
-            AND: [
-              {
-                programId: {
-                  not: ACME_PROGRAM_ID,
-                },
-              },
-              {
-                program: {
-                  isNot: null,
-                },
-              },
-            ],
-          }),
-      status: status || {
-        not: "failed",
-      },
-      createdAt: {
-        gte: startDate,
-        lte: endDate,
-      },
+  const invoiceWhere: Prisma.InvoiceWhereInput = {
+    program: {
+      environment: "production",
     },
-    include: {
-      program: {
-        select: {
-          name: true,
-          logo: true,
+    ...(programId ? { programId } : {}),
+    status: status || {
+      not: "failed",
+    },
+    createdAt: {
+      gte: startDate,
+      lte: endDate,
+    },
+  };
+
+  const [invoices, totalInvoices, timeseriesData, programs] = await Promise.all(
+    [
+      prisma.invoice.findMany({
+        where: invoiceWhere,
+        include: {
+          program: {
+            select: {
+              name: true,
+              logo: true,
+            },
+          },
         },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  const { dateFormat, dateIncrement, startFunction, formatString } =
-    sqlGranularityMap[granularity];
-
-  // Calculate timeseries data for payouts and fees
-  const timeseriesData = await prisma.$queryRaw<
-    { date: Date; payouts: number; fees: number; total: number }[]
-  >`
-    SELECT 
-      DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone}), ${dateFormat}) as date,
-      SUM(amount) as payouts,
-      SUM(fee) as fees,
-      SUM(total) as total
-    FROM Invoice
-    WHERE 
-      ${programId ? Prisma.sql`programId = ${programId}` : Prisma.sql`programId != ${ACME_PROGRAM_ID}`}
-      AND ${status ? Prisma.sql`status = ${status}` : Prisma.sql`status != 'failed'`}
-      AND createdAt >= ${startDate}
-      AND createdAt <= ${endDate}
-    GROUP BY DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone}), ${dateFormat})
-    ORDER BY date ASC;
-  `;
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip: ((page ?? 1) - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.invoice.count({
+        where: invoiceWhere,
+      }),
+      getPayoutsTimeseries({
+        programId,
+        status,
+        startDate,
+        endDate,
+        granularity,
+        timezone,
+      }),
+      // not scoped to programId so the program filter always lists all top programs
+      getTopProgramsByPayouts({ status, startDate, endDate }),
+    ],
+  );
 
   const formattedInvoices = invoices.map((invoice) => ({
     date: invoice.createdAt,
@@ -119,40 +99,10 @@ export const GET = withAdmin(async ({ searchParams }) => {
     total: invoice.total,
   }));
 
-  // Create a lookup object for the timeseries data
-  const timeseriesLookup: Record<string, TimeseriesPoint> = Object.fromEntries(
-    timeseriesData.map((item) => [
-      item.date,
-      {
-        payouts: Number(item.payouts),
-        fees: Number(item.fees),
-        total: Number(item.total),
-      },
-    ]),
-  );
-
-  // Backfill missing dates with 0 values
-  let currentDate = startFunction(startDate);
-
-  const formattedTimeseriesData: FormattedTimeseriesPoint[] = [];
-
-  while (currentDate < endDate) {
-    const periodKey = format(currentDate, formatString);
-
-    formattedTimeseriesData.push({
-      date: currentDate,
-      ...(timeseriesLookup[periodKey] || {
-        payouts: 0,
-        fees: 0,
-        total: 0,
-      }),
-    });
-
-    currentDate = dateIncrement(currentDate);
-  }
-
   return NextResponse.json({
     invoices: formattedInvoices,
-    timeseriesData: formattedTimeseriesData,
+    timeseriesData,
+    totalInvoices,
+    programs,
   });
 });

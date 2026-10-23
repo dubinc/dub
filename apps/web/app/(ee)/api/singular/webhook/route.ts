@@ -7,7 +7,7 @@ import { SINGULAR_IP_RANGES } from "@/lib/integrations/singular/singular-ip-rang
 import { trackSingularLeadEvent } from "@/lib/integrations/singular/track-lead";
 import { trackSingularSaleEvent } from "@/lib/integrations/singular/track-sale";
 import { isIpInRange } from "@/lib/middleware/utils/is-ip-in-range";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

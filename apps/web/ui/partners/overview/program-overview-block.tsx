@@ -16,8 +16,8 @@ export function ProgramOverviewBlock({
   contentClassName?: string;
 }>) {
   return (
-    <ProgramOverviewCard className={cn("flex h-full flex-col py-6", className)}>
-      <div className="flex justify-between gap-3 px-6">
+    <ProgramOverviewCard className={cn("flex h-full flex-col py-5", className)}>
+      <div className="flex justify-between gap-3 px-5">
         <h2 className="text-content-emphasis text-sm font-medium">{title}</h2>
         {viewAllHref && (
           <ButtonLink
@@ -29,7 +29,7 @@ export function ProgramOverviewBlock({
           </ButtonLink>
         )}
       </div>
-      <div className={cn("mt-4 grow px-6", contentClassName)}>{children}</div>
+      <div className={cn("mt-4 grow px-5", contentClassName)}>{children}</div>
     </ProgramOverviewCard>
   );
 }

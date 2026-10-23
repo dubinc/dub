@@ -1,9 +1,16 @@
 import {
+  PARTNER_REFERRAL_FLAT_TRIGGERS,
+  PARTNER_REFERRAL_PERCENTAGE_TRIGGERS,
+} from "@/lib/partner-referrals/constants";
+import {
   createOrUpdateRewardSchema,
+  customRewardConfigSchema,
+  referralRewardConfigSchema,
   rewardConditionsArraySchema,
 } from "@/lib/zod/schemas/rewards";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
+import { isCustomRewardStartDateInPast } from "./custom-reward-utils";
 
 export function validateReward(
   reward: Partial<z.infer<typeof createOrUpdateRewardSchema>>,
@@ -28,6 +35,68 @@ export function validateReward(
       throw new DubApiError({
         code: "bad_request",
         message: "amountInPercentage is not allowed for click and lead events.",
+      });
+    }
+  }
+
+  if (reward.event === "custom") {
+    if (reward.type === "percentage") {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Percentage rewards are not allowed for custom events.",
+      });
+    }
+
+    if (reward.amountInCents == null) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "amountInCents must be provided for custom events.",
+      });
+    }
+
+    if (reward.amountInPercentage != null) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "amountInPercentage is not allowed for custom events.",
+      });
+    }
+
+    if (reward.modifiers != null) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Reward modifiers are not allowed for custom rewards.",
+      });
+    }
+
+    if (reward.spendLimitAmount != null || reward.spendLimitInterval != null) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Spend limits are not allowed for custom rewards.",
+      });
+    }
+
+    if (reward.maxDuration === 0) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "maxDuration cannot be 0 for custom rewards. Use a manual commission for one-off payments.",
+      });
+    }
+
+    const parsedConfig = customRewardConfigSchema.safeParse(reward.config);
+
+    if (!parsedConfig.success) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "config must include frequency, interval, and anchorDate for custom rewards.",
+      });
+    }
+
+    if (isCustomRewardStartDateInPast(parsedConfig.data.anchorDate)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Start date cannot be in the past.",
       });
     }
   }
@@ -61,6 +130,83 @@ export function validateReward(
         message:
           "amountInPercentage must be provided when type is 'percentage'.",
       });
+    }
+  }
+
+  if (reward.event === "referral") {
+    if (reward.modifiers != null) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Reward modifiers are not allowed for referral rewards.",
+      });
+    }
+
+    const parsedConfig = referralRewardConfigSchema.safeParse(reward.config);
+
+    if (!parsedConfig.success) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "config must be provided for referral rewards.",
+      });
+    }
+
+    if (reward.type === "percentage") {
+      if (reward.amountInPercentage == null) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "amountInPercentage must be provided when type is 'percentage'.",
+        });
+      }
+
+      if (reward.amountInCents != null) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "amountInCents is not allowed when type is 'percentage'.",
+        });
+      }
+
+      if (
+        !PARTNER_REFERRAL_PERCENTAGE_TRIGGERS.includes(
+          parsedConfig.data.trigger as any,
+        )
+      ) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `config.trigger must be one of: ${PARTNER_REFERRAL_PERCENTAGE_TRIGGERS.join(
+            ", ",
+          )} for percentage rewards.`,
+        });
+      }
+    }
+
+    if (reward.type === "flat") {
+      if (reward.amountInCents == null) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "amountInCents must be provided when type is 'flat'.",
+        });
+      }
+
+      if (reward.amountInPercentage != null) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "amountInPercentage is not allowed when type is 'flat'.",
+        });
+      }
+
+      if (
+        !PARTNER_REFERRAL_FLAT_TRIGGERS.includes(
+          parsedConfig.data.trigger as any,
+        )
+      ) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `config.trigger must be one of: ${PARTNER_REFERRAL_FLAT_TRIGGERS.join(
+            ", ",
+          )} for flat rewards.`,
+        });
+      }
     }
   }
 
@@ -117,5 +263,15 @@ export function validateReward(
         }
       });
     }
+  }
+
+  const hasSpendLimitAmount = reward.spendLimitAmount != null;
+  const hasSpendLimitInterval = reward.spendLimitInterval != null;
+
+  if (hasSpendLimitAmount !== hasSpendLimitInterval) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Both "spendLimitAmount" and "spendLimitInterval" are required together. Provide both fields or omit both.`,
+    });
   }
 }

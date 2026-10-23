@@ -5,6 +5,7 @@ import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { AnalyticsOptions } from "@/ui/analytics/analytics-options";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { DeviceSection } from "@/ui/analytics/device-section";
 import { LocationSection } from "@/ui/analytics/location-section";
@@ -63,15 +64,10 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
     } as ContextType<typeof AnalyticsContext>;
   }, [searchParamsObj]);
 
-  const queryString = editQueryString(
-    useAnalyticsQuery({
-      defaultEvent: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
-      defaultInterval: DUB_PARTNERS_ANALYTICS_INTERVAL,
-    }).queryString,
-    {
-      programId: defaultProgramId!,
-    },
-  );
+  const { queryString } = useAnalyticsQuery({
+    defaultEvent: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
+    defaultInterval: DUB_PARTNERS_ANALYTICS_INTERVAL,
+  });
 
   const { data: totalEvents } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
@@ -197,7 +193,7 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
                         ? `/${slug}/program/commissions${getQueryString({}, { include: ["interval", "start", "end", "partnerId", "groupId", "partnerTagId", "type"] })}`
                         : pageTab === "applications"
                           ? `/${slug}/program/partners/applications`
-                          : `/${slug}/events${getQueryString({ folderId: program?.defaultFolderId, event: selectedTab, interval })}`
+                          : `/${slug}/program/events${getQueryString({ event: selectedTab, interval })}`
                     }
                   >
                     <Button
@@ -213,6 +209,9 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
                       }
                     />
                   </Link>
+                  {pageTab === "performance" && (
+                    <AnalyticsOptions page="analytics" />
+                  )}
                 </div>
               </div>
             </div>

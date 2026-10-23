@@ -1,10 +1,7 @@
+import { urlPathHasRelativeSegments } from "@/lib/storage/assert-safe-storage-key";
 import { GOOGLE_FAVICON_URL, R2_URL } from "@dub/utils";
 import { fileTypeFromBuffer } from "file-type";
 import * as z from "zod/v4";
-
-/** Raster data-URL prefix for link preview images (base64ImageSchema, preprocess, metatags). */
-export const linkPreviewImageBase64PrefixRegex =
-  /^data:image\/(png|jpeg|jpg|gif|webp);base64,/i;
 
 const allowedImageTypes = [
   "image/png",
@@ -12,14 +9,27 @@ const allowedImageTypes = [
   "image/jpg",
   "image/gif",
   "image/webp",
+  "image/avif",
 ];
+
+const allowedImageFormats = allowedImageTypes
+  .map((type) => type.replace("image/", ""))
+  .join(", ");
+
+export const invalidImageFormatMessage = `Invalid image format, supports only ${allowedImageFormats}.`;
+
+/** Raster data-URL prefix for link preview images (base64ImageSchema, preprocess, metatags). */
+export const linkPreviewImageBase64PrefixRegex = new RegExp(
+  `^data:image/(${allowedImageTypes.map((type) => type.replace("image/", "")).join("|")});base64,`,
+  "i",
+);
 
 // Base64 encoded image
 export const base64ImageSchema = z
   .string()
   .trim()
   .regex(linkPreviewImageBase64PrefixRegex, {
-    message: "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
+    message: invalidImageFormatMessage,
   })
   .refine(
     async (str) => {
@@ -39,7 +49,7 @@ export const base64ImageSchema = z
       }
     },
     {
-      message: "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
+      message: invalidImageFormatMessage,
     },
   )
   .transform((v) => v || null);
@@ -49,6 +59,9 @@ export const storedR2ImageUrlSchema = z
   .trim()
   .refine((url) => url.startsWith(R2_URL), {
     message: `URL must start with ${R2_URL}`,
+  })
+  .refine((url) => !urlPathHasRelativeSegments(url), {
+    message: "Image URL must not contain relative path segments.",
   });
 
 // Google favicon URL schema - supports URLs starting with GOOGLE_FAVICON_URL
@@ -80,8 +93,14 @@ export const uploadedImageSchema = z
   .transform((v) => v || null);
 
 export const publicHostedImageSchema = z
-  .httpUrl({ error: "Image URL must start with http:// or https://" })
-  .trim();
+  .httpUrl({
+    error:
+      "Image must be a publicly accessible http:// or https:// URL (localhost and IP addresses aren't allowed).",
+  })
+  .trim()
+  .refine((url) => !urlPathHasRelativeSegments(url), {
+    message: "Image URL must not contain relative path segments.",
+  });
 
 /** Coerce unusable preview strings (e.g. data:favicons) to null before create/update link validation. */
 export function preprocessLinkPreviewImage(

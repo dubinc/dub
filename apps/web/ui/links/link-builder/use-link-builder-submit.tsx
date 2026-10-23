@@ -1,4 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Button, useCopyToClipboard } from "@dub/ui";
 import { useRouter } from "next/navigation";
@@ -6,6 +7,7 @@ import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { buildLinkBody } from "./build-link-body";
 import { LinkFormData, useLinkBuilderContext } from "./link-builder-provider";
 
 export function useLinkBuilderSubmit({
@@ -14,33 +16,17 @@ export function useLinkBuilderSubmit({
   onSuccess?: (data: LinkFormData) => void;
 } = {}) {
   const router = useRouter();
-  const { workspace, props } = useLinkBuilderContext();
+  const { props } = useLinkBuilderContext();
+  const workspace = useWorkspace();
   const { getValues, setError } = useFormContext<LinkFormData>();
   const [, copyToClipboard] = useCopyToClipboard();
 
   return useCallback(
     async (data: LinkFormData) => {
-      // @ts-ignore – exclude extra attributes from `data` object before sending to API
-      const { user, tags, tagId, folderId, partnerId, ...rest } = data;
-      const bodyData = {
-        ...rest,
-
-        // Map tags to tagIds
-        tagIds: tags.map(({ id }) => id),
-
-        // Replace "unsorted" folder ID w/ null
-        folderId: folderId === "unsorted" ? null : folderId,
-
-        // Manually reset empty strings to null
-        expiredUrl: rest.expiredUrl || null,
-        ios: rest.ios || null,
-        android: rest.android || null,
-
-        // Create partner links
-        ...(partnerId
-          ? { programId: workspace.defaultProgramId, partnerId }
-          : {}),
-      };
+      const bodyData = buildLinkBody({
+        data,
+        defaultProgramId: workspace.defaultProgramId,
+      });
 
       const endpoint = props?.id
         ? {
@@ -120,11 +106,15 @@ export function useLinkBuilderSubmit({
           const { error } = await res.json();
 
           if (error) {
-            if (error.message.includes("Upgrade to")) {
+            if (error.message.includes("Upgrade to ")) {
+              const planToUpgradeTo =
+                error.message.split("Upgrade to ")[1].split(" ")[0] ||
+                workspace?.nextPlan?.name;
               toast.custom(() => (
                 <UpgradeRequiredToast
-                  title={`You've discovered a ${workspace?.nextPlan?.name} feature!`}
+                  title={`You've discovered a ${planToUpgradeTo} feature!`}
                   message={error.message}
+                  planToUpgradeTo={planToUpgradeTo}
                 />
               ));
             } else {
@@ -132,7 +122,12 @@ export function useLinkBuilderSubmit({
             }
             const message = error.message.toLowerCase();
 
-            if (message.includes("key"))
+            // Image errors contain the word "URL" but have no field of their own,
+            // so match "image" before the "url" branch below; otherwise they'd
+            // attach to the destination URL field instead of the form root.
+            if (message.includes("image"))
+              setError("root", { message: error.message });
+            else if (message.includes("key"))
               setError("key", { message: error.message });
             else if (message.includes("url"))
               setError("url", { message: error.message });
@@ -151,6 +146,7 @@ export function useLinkBuilderSubmit({
     [
       workspace.id,
       workspace.slug,
+      workspace.defaultProgramId,
       workspace.nextPlan,
       props,
       copyToClipboard,

@@ -4,7 +4,7 @@ import { cn } from "@dub/utils";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { HelpCircle } from "lucide-react";
 import Link from "next/link";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { isValidElement, ReactNode, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Badge } from "./badge";
 import { Button, ButtonProps, buttonVariants } from "./button";
@@ -85,6 +85,7 @@ export function Tooltip({
   ...rest
 }: TooltipProps) {
   const [open, setOpen] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   return (
     <TooltipPrimitive.Root
@@ -98,7 +99,16 @@ export function Tooltip({
         onClick={() => {
           setOpen(true);
         }}
-        onBlur={() => {
+        onBlur={(e) => {
+          // Keep the tooltip open when focus moves into its content (e.g. a CTA button).
+          // preventDefault also skips Radix's own close-on-blur handler.
+          if (
+            e.relatedTarget instanceof Node &&
+            contentRef.current?.contains(e.relatedTarget)
+          ) {
+            e.preventDefault();
+            return;
+          }
           setOpen(false);
         }}
       >
@@ -106,6 +116,7 @@ export function Tooltip({
       </TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content
+          ref={contentRef}
           sideOffset={8}
           side={side}
           className="animate-slide-up-fade border-border-default bg-bg-default pointer-events-auto z-[99] items-center overflow-hidden rounded-xl border shadow-sm"
@@ -147,7 +158,7 @@ export function TooltipContent({
         (href ? (
           <Link
             href={href}
-            {...(target ? { target } : {})}
+            {...(target ? { target, rel: "noopener noreferrer" } : {})}
             className={cn(
               buttonVariants({ variant: "primary" }),
               "flex h-8 w-full items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
@@ -223,7 +234,7 @@ export function DynamicTooltipWrapper({
 }) {
   return tooltipProps ? (
     <Tooltip {...tooltipProps}>
-      <div>{children}</div>
+      {isValidElement(children) ? children : <span>{children}</span>}
     </Tooltip>
   ) : (
     children

@@ -1,54 +1,26 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
+import { currencyApiClient } from "@/lib/currencyapi/client";
 import { redis } from "@/lib/upstash";
-import { log } from "@dub/utils";
-import { NextResponse } from "next/server";
+import { logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
 
 // Cron to update the Foreign Exchange Rates in Redis
 // Runs once every day at 08:00 AM UTC (0 8 * * *)
-export async function POST(req: Request) {
-  try {
-    const rawBody = await req.text();
+// POST /api/cron/fx-rates
+export const POST = withCron(async () => {
+  const { data } = await currencyApiClient.getLatest();
 
-    await verifyQstashSignature({
-      req,
-      rawBody,
-    });
+  const transformedRates: Record<string, number> = {};
 
-    const res = await fetch("https://api.currencyapi.com/v3/latest", {
-      headers: {
-        apikey: process.env.CURRENCY_API_KEY || "",
-      },
-    });
-
-    const { data } = (await res.json()) as {
-      data: Record<string, { value: number }>;
-    };
-
-    if (!data) {
-      return NextResponse.json({
-        message: "Failed to fetch FX rates",
-      });
-    }
-
-    const transformedRates: Record<string, number> = {};
-
-    for (const [ticker, details] of Object.entries(data)) {
-      transformedRates[ticker] = details.value;
-    }
-
-    // // Store FX rates in Redis (with USD as the base currency)
-    await redis.hset("fxRates:usd", transformedRates);
-
-    return NextResponse.json(transformedRates);
-  } catch (error) {
-    await log({
-      message: `Error updating FX rates: ${error.message}`,
-      type: "cron",
-    });
-
-    return handleAndReturnErrorResponse(error);
+  for (const [ticker, details] of Object.entries(data)) {
+    transformedRates[ticker] = details.value;
   }
-}
+
+  // Store FX rates in Redis (with USD as the base currency)
+  await redis.hset("fxRates:usd", transformedRates);
+
+  return logAndRespond(
+    `Updated ${Object.keys(transformedRates).length} FX rates.`,
+  );
+});

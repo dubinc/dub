@@ -22,6 +22,18 @@ export const integrationSchema = z.object({
   installations: z.number().default(0),
 });
 
+export const installedIntegrationSchema = integrationSchema.pick({
+  id: true,
+  projectId: true,
+  name: true,
+  slug: true,
+  description: true,
+  logo: true,
+  verified: true,
+  guideUrl: true,
+  comingSoon: true,
+});
+
 export const createIntegrationSchema = z.object({
   name: z.string().min(1).max(100),
   slug: z.string().min(1).max(100),
@@ -40,13 +52,13 @@ export const createIntegrationSchema = z.object({
   description: z
     .string()
     .max(120, {
-      message: "must be less than 120 characters",
+      message: "must be 120 characters or fewer",
     })
     .nullish(),
   readme: z
     .string()
-    .max(1000, {
-      message: "must be less than 1000 characters",
+    .max(5000, {
+      message: "must be 5000 characters or fewer",
     })
     .nullish(),
   screenshots: z

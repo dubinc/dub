@@ -1,5 +1,5 @@
 import { withSession } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS } from "@dub/utils";
 import { NextResponse } from "next/server";
 

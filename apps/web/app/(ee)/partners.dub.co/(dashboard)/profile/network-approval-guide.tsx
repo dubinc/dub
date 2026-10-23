@@ -5,7 +5,6 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import {
   Button,
   CircleCheck,
-  CircleCheckFill,
   CircleDotted,
   CircleHalfDottedClock,
   CircleXmark,
@@ -35,6 +34,11 @@ const NETWORK_STATUS_BADGE_VARIANT = {
     variant: "success",
     label: "Approved",
     icon: CircleCheck,
+  },
+  banned: {
+    variant: "error",
+    label: "Banned",
+    icon: CircleXmark,
   },
 } as const;
 
@@ -96,7 +100,8 @@ export function NetworkApprovalGuide() {
                   Join the Dub Partner Network
                 </h2>
 
-                {partner.networkStatus === "draft" || !isComplete ? (
+                {partner.networkStatus !== "banned" &&
+                (partner.networkStatus === "draft" || !isComplete) ? (
                   <div className="bg-bg-default/10 flex w-fit items-center gap-1.5 rounded-md px-2 py-1">
                     <ProgressCircle
                       progress={completedCount / totalCount}
@@ -175,7 +180,10 @@ export function NetworkApprovalGuide() {
                 >
                   <div className="flex min-w-0 items-center gap-2">
                     {completed ? (
-                      <CircleCheckFill className="size-4 shrink-0 text-green-500" />
+                      <CircleCheck
+                        variant="fill"
+                        className="size-4 shrink-0 text-green-500"
+                      />
                     ) : (
                       <CircleDotted className="size-4 shrink-0 text-neutral-400" />
                     )}

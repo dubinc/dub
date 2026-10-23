@@ -5,7 +5,7 @@ import {
   postbackSchema,
   updatePostbackInputSchema,
 } from "@/lib/postback/schemas";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/postbacks/[postbackId]

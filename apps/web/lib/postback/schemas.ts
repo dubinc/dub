@@ -1,5 +1,5 @@
 import { parseUrlSchema } from "@/lib/zod/schemas/utils";
-import { PostbackReceiver } from "@dub/prisma/client";
+import { PostbackReceiver } from "@prisma/client";
 import * as z from "zod/v4";
 import { clickEventSchema } from "../zod/schemas/clicks";
 import { CommissionSchema } from "../zod/schemas/commissions";
@@ -75,7 +75,7 @@ export const saleEventPostbackSchema = z.object({
   link: postbackLinkSchema,
   customer: postbackCustomerSchema,
   sale: z.object({
-    amount: z.number(),
+    amount: z.number().nullable(),
     currency: z.string(),
   }),
 });
@@ -91,6 +91,7 @@ export const commissionEventPostbackSchema = CommissionSchema.pick({
   quantity: true,
   createdAt: true,
 }).extend({
+  amount: z.number().nullable(),
   link: postbackLinkSchema.nullable(),
   customer: postbackCustomerSchema.nullable(),
 });

@@ -1,7 +1,11 @@
-import { prisma } from "@dub/prisma";
-import { PartnerGroup, Program } from "@dub/prisma/client";
-import { COUNTRIES, COUNTRY_CODES } from "@dub/utils";
+import { prisma } from "@/lib/prisma";
+import { COUNTRIES, COUNTRY_CODES, sleep } from "@dub/utils";
+import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -56,6 +60,10 @@ export async function importPartners(payload: PartnerStackImportPayload) {
       break;
     }
 
+    // Filled as soon as each enrollment is saved, so a partner whose later step
+    // throws still reaches the search sync and the ban check.
+    const enrolledPartnerIds: string[] = [];
+
     await Promise.allSettled(
       partners.map((partner) =>
         createPartner({
@@ -63,11 +71,24 @@ export async function importPartners(payload: PartnerStackImportPayload) {
           partner,
           group: groupMap[partner.group?.slug ?? DEFAULT_PARTNER_GROUP.slug],
           importId,
+          enrolledPartnerIds,
         }),
       ),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // Queue an index update because the imported partners were enrolled. Queued
+    // per page rather than per partner.
+    await queuePartnerSearchSync({
+      partnerIds: enrolledPartnerIds,
+      programId,
+    });
+
+    await detectAndRecordNetworkLevelBans({
+      programId,
+      partnerIds: enrolledPartnerIds,
+    });
+
+    await sleep(2000);
 
     processedBatches++;
     currentStartingAfter = partners[partners.length - 1].key;
@@ -117,11 +138,13 @@ async function createPartner({
   partner,
   group,
   importId,
+  enrolledPartnerIds,
 }: {
   program: Program;
   partner: PartnerStackPartner;
   group: PartnerGroup;
   importId: string;
+  enrolledPartnerIds: string[];
 }) {
   const commonImportLogInputs = {
     workspace_id: program.workspaceId,
@@ -169,13 +192,9 @@ async function createPartner({
     },
   });
 
-  await prisma.programEnrollment.upsert({
-    where: {
-      partnerId_programId: {
-        partnerId,
-        programId: program.id,
-      },
-    },
+  const { enrollment, preservedBan } = await upsertImportedProgramEnrollment({
+    partnerId,
+    programId: program.id,
     create: {
       id: createId({ prefix: "pge_" }),
       programId: program.id,
@@ -185,17 +204,30 @@ async function createPartner({
       clickRewardId: group.clickRewardId,
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
+      referralRewardId: group.referralRewardId,
+      customRewardId: group.customRewardId,
       discountId: group.discountId,
     },
-    update: {
-      status: "approved",
-    },
   });
+
+  enrolledPartnerIds.push(partnerId);
+
+  if (!preservedBan) {
+    await approveLinkedApplication({
+      applicationId: enrollment.applicationId,
+    });
+  }
 
   // PS doesn't return the partner email address in the customers response
   // so we need to keep a map of partner_key (PS) -> partner_id (Dub)
   // and use it to identify the partner in the customers response
-  await redis.hset(`${PARTNER_IDS_KEY_PREFIX}:${program.id}`, {
-    [partner.key]: partnerId,
-  });
+  try {
+    await redis.hset(`${PARTNER_IDS_KEY_PREFIX}:${program.id}`, {
+      [partner.key]: partnerId,
+    });
+  } catch (error) {
+    console.error("Failed to map imported partner key", error, partner.key);
+  }
+
+  return partnerId;
 }

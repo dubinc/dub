@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Webhook } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Webhook } from "@prisma/client";
 import * as z from "zod/v4";
 import { DubApiError } from "../api/errors";
 import { getDefaultProgramIdOrThrow } from "../api/programs/get-default-program-id-or-throw";
@@ -7,6 +7,7 @@ import { Session } from "../auth";
 import { getFolders } from "../folder/get-folders";
 import { WorkspaceProps } from "../types";
 import { createWebhookSchema } from "../zod/schemas/webhooks";
+import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "./constants";
 
 export async function validateWebhook({
   input,
@@ -19,10 +20,13 @@ export async function validateWebhook({
   webhook?: Webhook;
   user: Session["user"];
 }) {
-  const { url, linkIds, triggers } = input;
+  const { url, linkScope, linkIds, folderIds, triggers } = input;
 
-  // payout.confirmed trigger requires external payouts enabled
-  if (triggers && triggers.includes("payout.confirmed")) {
+  // EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER requires external payouts enabled
+  if (
+    triggers &&
+    triggers.includes(EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER)
+  ) {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const program = await prisma.program.findUniqueOrThrow({
@@ -38,7 +42,7 @@ export async function validateWebhook({
     if (program.payoutMode === "internal") {
       throw new DubApiError({
         code: "bad_request",
-        message: `The 'payout.confirmed' trigger is not currently available for your workspace.`,
+        message: `The '${EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER}' trigger is not currently available for your workspace.`,
       });
     }
   }
@@ -64,7 +68,7 @@ export async function validateWebhook({
     }
   }
 
-  if (linkIds && linkIds.length > 0) {
+  if (linkScope === "links" && linkIds && linkIds.length > 0) {
     const folders = await getFolders({
       workspaceId: workspace.id,
       userId: user.id,
@@ -91,6 +95,23 @@ export async function validateWebhook({
         code: "bad_request",
         message:
           "Invalid link IDs provided. Please check the links you are adding the webhook to.",
+      });
+    }
+  }
+
+  if (linkScope === "folders" && folderIds && folderIds.length > 0) {
+    const folders = await getFolders({
+      workspaceId: workspace.id,
+      userId: user.id,
+    });
+
+    const accessibleFolderIds = new Set(folders.map((folder) => folder.id));
+
+    if (!folderIds.every((folderId) => accessibleFolderIds.has(folderId))) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "Invalid folder IDs provided. Please check the folders you are adding the webhook to.",
       });
     }
   }

@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { DubApiError } from "../errors";
 import { CustomerWithLink } from "./transform-customer";
 
@@ -30,7 +30,15 @@ export const getCustomerOrThrow = async (
     ...(includeExpandedFields
       ? {
           include: {
-            link: true,
+            link: {
+              include: {
+                linkReward: {
+                  select: {
+                    discount: true,
+                  },
+                },
+              },
+            },
             programEnrollment: {
               include: {
                 partner: true,

@@ -1,17 +1,18 @@
+import { isCI } from "@/lib/api/environment";
 import { DubApiError } from "@/lib/api/errors";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { createWorkspaceId } from "@/lib/api/workspaces/create-workspace-id";
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import {
   createWorkspaceSchema,
   WorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { FREE_WORKSPACES_LIMIT, nanoid, R2_URL } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -89,7 +90,8 @@ export const POST = withSession(async ({ req, session }) => {
           },
         });
 
-        if (freeWorkspaces >= FREE_WORKSPACES_LIMIT) {
+        // apply free workspaces limit (if not in CI)
+        if (freeWorkspaces >= FREE_WORKSPACES_LIMIT && !isCI) {
           throw new DubApiError({
             code: "exceeded_limit",
             message: `You can only create up to ${FREE_WORKSPACES_LIMIT} free workspaces. Additional workspaces require a paid plan.`,

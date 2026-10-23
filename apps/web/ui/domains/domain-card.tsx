@@ -1,15 +1,18 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
+import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useDomains from "@/lib/swr/use-domains";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   DomainProps,
   DomainVerificationStatusProps,
   LinkProps,
 } from "@/lib/types";
+import { Callout } from "@/ui/shared/callout";
 import { CheckCircleFill, Delete, Repeat, ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
-  CircleCheck,
   Copy,
   Popover,
   Refresh2,
@@ -22,6 +25,7 @@ import {
 } from "@dub/ui";
 import {
   CircleHalfDottedClock,
+  ConnectedDots4,
   CursorRays,
   Flag2,
   Gear,
@@ -44,9 +48,10 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import useSWRImmutable from "swr/immutable";
+import useSWR from "swr";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
+import { useChangeProgramDomainModal } from "../modals/change-program-domain-modal";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
 import { useDomainAutoRenewalModal } from "../modals/domain-auto-renewal-modal";
 import { useLinkBuilder } from "../modals/link-builder";
@@ -62,18 +67,24 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   const isDubProvisioned = !!registeredDomain;
 
   const { id: workspaceId, slug } = useWorkspace();
+  const { program } = useProgram();
 
   const domainRef = useRef<HTMLDivElement>(null);
   const isVisible = useInViewport(domainRef, { defaultValue: true });
 
-  const { data, isValidating, mutate } = useSWRImmutable<{
+  const { data, isValidating, mutate } = useSWR<{
     status: DomainVerificationStatusProps;
     response: any;
+    domainConnect?: DomainConnectDiscovery | null;
   }>(
     workspaceId &&
       isVisible &&
       `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+    },
   );
 
   const verificationData = useMemo(() => {
@@ -81,9 +92,11 @@ export default function DomainCard({ props }: { props: DomainProps }) {
       return {
         status: "Valid Configuration",
         response: null,
+        domainConnect: null,
       } as {
         status: DomainVerificationStatusProps;
         response: any;
+        domainConnect?: DomainConnectDiscovery | null;
       };
     }
     return data;
@@ -127,9 +140,9 @@ export default function DomainCard({ props }: { props: DomainProps }) {
         onPointerLeave={() => setGroupHover(false)}
       >
         {isDubProvisioned && (
-          <div className="flex items-center justify-between gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-5 py-2 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-4 py-2 text-xs sm:px-5">
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+              <div className="flex shrink-0 items-center gap-1.5">
                 <Wordmark className="h-4" />
                 <span className="font-medium text-neutral-900">
                   Provisioned by Dub
@@ -138,8 +151,9 @@ export default function DomainCard({ props }: { props: DomainProps }) {
 
               {expiresAt && (
                 <button
+                  type="button"
                   className={cn(
-                    "flex items-center gap-1 decoration-dotted underline-offset-2 hover:underline",
+                    "flex items-center gap-1 whitespace-nowrap decoration-dotted underline-offset-2 hover:underline",
                     isExpired
                       ? "text-red-600"
                       : autoRenew
@@ -151,9 +165,9 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                   }}
                 >
                   {autoRenew ? (
-                    <Repeat className="size-3.5" />
+                    <Repeat className="size-3.5 shrink-0" />
                   ) : (
-                    <CircleHalfDottedClock className="size-3.5" />
+                    <CircleHalfDottedClock className="size-3.5 shrink-0" />
                   )}
                   <span className="text-xs font-medium">
                     {autoRenew
@@ -167,7 +181,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
             <a
               href="https://dub.co/help/article/free-dot-link-domain"
               target="_blank"
-              className="text-neutral-500 underline transition-colors hover:text-neutral-800"
+              className="ml-auto shrink-0 text-neutral-500 underline transition-colors hover:text-neutral-800"
             >
               Learn more
             </a>
@@ -180,6 +194,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               icon={tab === "active" ? Globe : Archive}
               url={props.link?.url}
               primary={primary}
+              program={program?.domain === domain}
             />
 
             {/* Clicks */}
@@ -201,7 +216,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                 }
               >
                 <Link
-                  href={`/${slug}/analytics?linkId=${props.link?.id}`}
+                  href={`/${slug}/links/analytics?linkId=${props.link?.id}`}
                   className="flex items-center space-x-1 whitespace-nowrap rounded-md border border-neutral-200 bg-neutral-50 px-3 py-1 transition-colors hover:bg-neutral-100"
                 >
                   <CursorRays className="h-4 w-4 text-neutral-700" />
@@ -301,22 +316,25 @@ export default function DomainCard({ props }: { props: DomainProps }) {
           >
             {verificationData ? (
               verificationData.status === "Valid Configuration" ? (
-                <div className="mt-6 flex items-center gap-2 text-pretty rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
-                  <CircleCheck className="h-5 w-5 shrink-0" />
-                  <div>
-                    Good news! Your DNS records are set up correctly, but it can
-                    take some time for them to propagate globally.{" "}
-                    <Link
-                      href="https://dub.co/help/article/how-to-add-custom-domain#how-long-do-i-have-to-wait-for-my-domain-to-work"
-                      target="_blank"
-                      className="underline transition-colors hover:text-green-800"
-                    >
-                      Learn more.
-                    </Link>
-                  </div>
-                </div>
+                <Callout variant="success" size={2} className="mt-6">
+                  Good news! Your DNS records are set up correctly, but it can
+                  take some time for them to propagate globally.{" "}
+                  <Link
+                    href="https://dub.co/help/article/how-to-add-custom-domain#how-long-do-i-have-to-wait-for-my-domain-to-work"
+                    target="_blank"
+                    className="underline transition-colors hover:text-green-800"
+                  >
+                    Learn more.
+                  </Link>
+                </Callout>
               ) : (
-                <DomainConfiguration data={verificationData} />
+                <DomainConfiguration
+                  data={verificationData}
+                  domainConnect={verificationData.domainConnect}
+                  domain={domain}
+                  workspaceId={workspaceId ?? undefined}
+                  workspaceSlug={slug ?? undefined}
+                />
               )
             ) : (
               <div className="mt-6 h-6 w-32 animate-pulse rounded-md bg-neutral-200" />
@@ -346,7 +364,8 @@ function DomainCardMenu({
   autoRenew: boolean;
   openDomainRenewalModal: (enable: boolean) => void;
 }) {
-  const { role } = useWorkspace();
+  const { id: workspaceId, role, defaultProgramId } = useWorkspace();
+  const { program } = useProgram();
   const { isMobile } = useMediaQuery();
   const { activeWorkspaceDomains } = useDomains();
   const [openPopover, setOpenPopover] = useState(false);
@@ -354,6 +373,12 @@ function DomainCardMenu({
 
   const { primary, archived, slug: domain, registeredDomain } = props;
   const isDubProvisioned = !!registeredDomain;
+  const canSetAsProgramDomain = Boolean(
+    defaultProgramId &&
+      program?.domain &&
+      program.domain !== domain &&
+      !archived,
+  );
 
   const permissionsError = clientAccessCheck({
     action: "domains.write",
@@ -373,6 +398,27 @@ function DomainCardMenu({
   const { setShowPrimaryDomainModal, PrimaryDomainModal } =
     usePrimaryDomainModal({
       props,
+    });
+
+  const { setShowChangeDomainModal, ChangeDomainModal } =
+    useChangeProgramDomainModal({
+      newDomain: domain,
+      onConfirm: async () => {
+        const response = await fetch(
+          `/api/domains/${domain}/program?workspaceId=${workspaceId}`,
+          {
+            method: "POST",
+          },
+        );
+
+        if (!response.ok) {
+          const { error } = await response.json();
+          throw new Error(error.message);
+        }
+
+        await mutatePrefix(["/api/domains", "/api/programs", "/api/groups"]);
+        toast.success(`Successfully set ${domain} as the program domain.`);
+      },
     });
 
   const { setShowArchiveDomainModal, ArchiveDomainModal } =
@@ -410,6 +456,7 @@ function DomainCardMenu({
       <LinkQRModal />
       <AddEditDomainModal />
       <PrimaryDomainModal />
+      <ChangeDomainModal />
       <ArchiveDomainModal />
       <DeleteDomainModal />
       <TransferDomainModal />
@@ -538,6 +585,18 @@ function DomainCardMenu({
                       setShowPrimaryDomainModal(true);
                     }}
                     icon={<Flag2 className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                )}
+                {canSetAsProgramDomain && (
+                  <Button
+                    text="Set Program Domain"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowChangeDomainModal(true);
+                    }}
+                    icon={<ConnectedDots4 className="h-4 w-4" />}
                     className="h-9 justify-start px-2 font-medium"
                   />
                 )}

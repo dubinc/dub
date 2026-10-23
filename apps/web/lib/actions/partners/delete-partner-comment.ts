@@ -1,7 +1,7 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { deletePartnerCommentSchema } from "../../zod/schemas/programs";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";

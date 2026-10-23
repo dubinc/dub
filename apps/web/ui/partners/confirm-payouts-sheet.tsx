@@ -1,11 +1,13 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import {
+  CARD_PAYOUT_HARD_COST_RATE,
   CUTOFF_PERIOD_MAX_PAYOUTS,
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE,
   FAST_ACH_FEE_CENTS,
   INVOICE_MIN_PAYOUT_AMOUNT_CENTS,
+  STRIPE_PAYMENT_METHOD_NORMALIZATION,
 } from "@/lib/constants/payouts";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
@@ -17,10 +19,13 @@ import {
   calculatePayoutFeeForMethod,
   STRIPE_PAYMENT_METHODS,
 } from "@/lib/stripe/payment-methods";
+import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutResponse, PlanProps } from "@/lib/types";
+import { PayoutResponse } from "@/lib/types";
+import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
+import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -36,6 +41,7 @@ import {
   ShimmerDots,
   Table,
   TooltipContent,
+  useIsTouchDevice,
   useRouterStuff,
   useTable,
   useTablePagination,
@@ -46,10 +52,12 @@ import {
   currencyFormatter,
   fetcher,
   formatDate,
+  isWorkspaceBillingTrialActive,
   nFormatter,
   pluralize,
   truncate,
 } from "@dub/utils";
+import { CommissionStatus } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import {
@@ -80,10 +88,12 @@ function ConfirmPayoutsSheetContent() {
     id: workspaceId,
     slug,
     plan,
+    planPeriod,
     role,
     defaultProgramId,
     payoutsUsage,
     payoutsLimit,
+    trialEndsAt,
     payoutFee,
     payoutFeeWaiverLimit,
     payoutFeeWaiverUsage,
@@ -188,38 +198,6 @@ function ConfirmPayoutsSheetContent() {
     ? eligiblePayoutsSummaryCount?.count ?? 0
     : eligiblePayoutsTableTotalCount?.count ?? 0;
 
-  const { data: payoutsCount } = useSWR<
-    {
-      status: string;
-      count: number;
-      amount: number | null;
-    }[]
-  >(
-    workspaceId
-      ? `/api/payouts/count?${new URLSearchParams({
-          workspaceId,
-          groupBy: "status",
-          status: "hold",
-        }).toString()}`
-      : null,
-    fetcher,
-  );
-
-  const { holdPayoutsCount, holdPayoutsAmount } = useMemo(() => {
-    if (!payoutsCount || payoutsCount.length === 0) {
-      return { holdPayoutsCount: 0, holdPayoutsAmount: 0 };
-    }
-
-    const pendingPayoutsCount = payoutsCount.find(
-      (p) => p.status === "pending",
-    );
-
-    return {
-      holdPayoutsCount: pendingPayoutsCount?.count ?? 0,
-      holdPayoutsAmount: pendingPayoutsCount?.amount ?? 0,
-    };
-  }, [payoutsCount]);
-
   const [page, setPage] = useState(1);
   const { pagination, setPagination } = useTablePagination({
     pageSize: ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE,
@@ -269,6 +247,16 @@ function ConfirmPayoutsSheetContent() {
     () => !isExplicitSelectionMode || resolvedSelectedPayoutIds.length > 1,
     [isExplicitSelectionMode, resolvedSelectedPayoutIds.length],
   );
+
+  const { commissionsCount } = useCommissionsCount({
+    include: [],
+    status: CommissionStatus.hold,
+    // for explicitly selected payouts, filter by the payouts for those partners
+    ...(isExplicitSelectionMode &&
+      payoutsIncludedInInvoice && {
+        partnerId: payoutsIncludedInInvoice.map((p) => p.partner.id).join(","),
+      }),
+  });
 
   const { executeAsync: confirmPayouts } = useAction(confirmPayoutsAction, {
     onError: ({ error }) => {
@@ -416,58 +404,71 @@ function ConfirmPayoutsSheetContent() {
         return false;
       case "external":
         return true;
+      // in hybrid mode, payouts are only processed externally if:
+      // - the partner has not connected a payout method on Dub
+      // - the partner has a valid tenant ID
       case "hybrid":
-        return payout.partner.payoutsEnabledAt === null;
+        return (
+          payout.partner.payoutsEnabledAt === null &&
+          payout.partner.tenantId !== null
+        );
       default:
         return false;
     }
   };
 
-  const { amount, fee, total, fastAchFee, externalAmount } = useMemo(() => {
-    const amount = eligiblePayoutsSummaryCount?.amount;
+  const { amount, fee, total, chargeableTotal, fastAchFee, externalAmount } =
+    useMemo(() => {
+      const amount = eligiblePayoutsSummaryCount?.amount;
 
-    if (
-      amount === undefined ||
-      selectedPaymentMethod === null ||
-      program?.payoutMode === undefined
-    ) {
+      if (
+        amount === undefined ||
+        selectedPaymentMethod === null ||
+        program?.payoutMode === undefined
+      ) {
+        return {
+          amount: undefined,
+          externalAmount: undefined,
+          fee: undefined,
+          total: undefined,
+          chargeableTotal: undefined,
+          fastAchFee: undefined,
+        };
+      }
+
+      const externalAmount = payoutsIncludedInInvoice.reduce(
+        (acc, payout) =>
+          isExternalPayout(payout) ? acc + payout.amount : acc + 0,
+        0,
+      );
+
+      const invoicePaymentMethod = selectedPaymentMethod.fastSettlement
+        ? "ach_fast"
+        : STRIPE_PAYMENT_METHOD_NORMALIZATION[selectedPaymentMethod.type];
+
+      const fastAchFee =
+        invoicePaymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
+
+      const { fee } = calculatePayoutFeeWithWaiver({
+        payoutAmount: amount,
+        payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
+        payoutFeeWaiverUsage: payoutFeeWaiverUsage ?? 0,
+        payoutFee: selectedPaymentMethod.fee,
+        paymentMethod: invoicePaymentMethod,
+      });
+
+      const total = amount + fee;
+      const chargeableTotal = amount - externalAmount + fee;
+
       return {
-        amount: undefined,
-        externalAmount: undefined,
-        fee: undefined,
-        total: undefined,
-        fastAchFee: undefined,
+        amount,
+        externalAmount,
+        fee,
+        total,
+        chargeableTotal,
+        fastAchFee,
       };
-    }
-
-    const externalAmount = payoutsIncludedInInvoice.reduce(
-      (acc, payout) =>
-        isExternalPayout(payout) ? acc + payout.amount : acc + 0,
-      0,
-    );
-
-    const fastAchFee = selectedPaymentMethod.fastSettlement
-      ? FAST_ACH_FEE_CENTS
-      : 0;
-
-    const { fee } = calculatePayoutFeeWithWaiver({
-      payoutAmount: amount,
-      payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
-      payoutFeeWaiverUsage: payoutFeeWaiverUsage ?? 0,
-      payoutFee: selectedPaymentMethod.fee,
-      fastAchFee,
-    });
-
-    const total = amount + fee;
-
-    return {
-      amount,
-      externalAmount,
-      fee,
-      total,
-      fastAchFee,
-    };
-  }, [
+    }, [
     eligiblePayoutsSummaryCount,
     payoutsIncludedInInvoice,
     selectedPaymentMethod,
@@ -531,7 +532,7 @@ function ConfirmPayoutsSheetContent() {
             )}
 
             <a
-              href={`/${slug}/settings/billing`}
+              href={`/${slug}/settings/billing#payment-methods`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex items-center rounded-md border border-neutral-200 p-1.5 text-sm",
@@ -609,7 +610,7 @@ function ConfirmPayoutsSheetContent() {
                     <CircleArrowRight className="size-3.5 text-neutral-500" />
                   </div>
                 ),
-              tooltipContent: `Payouts that are processed externally via the \`payout.confirmed\` [webhook event](${`/${slug}/settings/webhooks`}). [Learn more about external payouts](http://dub.co/docs/partners/external-payouts).`,
+              tooltipContent: `Payouts that are processed externally via the \`${EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER}\` [webhook event](${`/${slug}/settings/webhooks`}). [Learn more about external payouts](http://dub.co/docs/partners/external-payouts).`,
             },
           ]
         : []),
@@ -641,15 +642,16 @@ function ConfirmPayoutsSheetContent() {
       {
         key: "Total",
         value:
-          total === undefined ? (
+          chargeableTotal === undefined ? (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
-            currencyFormatter(total)
+            currencyFormatter(chargeableTotal)
           ),
       },
     ];
   }, [
     amount,
+    chargeableTotal,
     externalAmount,
     eligiblePayoutsSummaryCount,
     payoutsIncludedInInvoice,
@@ -822,162 +824,172 @@ function ConfirmPayoutsSheetContent() {
     action: "payouts.write",
     customPermissionDescription: "confirm payouts",
   });
+  const { openTrialLimitModal, TrialLimitActivateModal } =
+    useTrialLimitActivateModal();
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
-
-  useEffect(() => {
-    setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
-  }, []);
+  const isTouchDevice = useIsTouchDevice();
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
-        <Sheet.Title className="text-lg font-semibold">
-          Confirm payouts
-        </Sheet.Title>
-        <Sheet.Close asChild>
-          <Button
-            variant="outline"
-            icon={<X className="size-5" />}
-            className="h-auto w-fit p-1"
-          />
-        </Sheet.Close>
-      </div>
+    <>
+      <TrialLimitActivateModal />
+      <div className="flex h-full flex-col">
+        <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
+          <Sheet.Title className="text-lg font-semibold">
+            Confirm payouts
+          </Sheet.Title>
+          <Sheet.Close asChild>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+            />
+          </Sheet.Close>
+        </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="flex flex-col gap-4 p-6">
-          <div className="text-base font-medium text-neutral-900">
-            Invoice details
-          </div>
-          <div className="grid grid-cols-3 gap-2 text-sm">
-            {invoiceData.map(({ key, value, tooltipContent }) => (
-              <Fragment key={key}>
-                <div
-                  className={cn(
-                    "flex items-center py-0.5 font-medium text-neutral-500",
-                    tooltipContent &&
-                      "cursor-help underline decoration-dotted underline-offset-2",
-                  )}
-                >
-                  <DynamicTooltipWrapper
-                    tooltipProps={
-                      tooltipContent
-                        ? {
-                            content: tooltipContent,
-                          }
-                        : undefined
-                    }
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex flex-col gap-4 p-6">
+            <div className="text-base font-medium text-neutral-900">
+              Invoice details
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              {invoiceData.map(({ key, value, tooltipContent }) => (
+                <Fragment key={key}>
+                  <div
+                    className={cn(
+                      "flex items-center py-0.5 font-medium text-neutral-500",
+                      tooltipContent &&
+                        "cursor-help underline decoration-dotted underline-offset-2",
+                    )}
                   >
-                    {key}
-                  </DynamicTooltipWrapper>
-                </div>
-                <div className="col-span-2 flex items-center text-neutral-800">
-                  {value}
-                </div>
-              </Fragment>
-            ))}
+                    <DynamicTooltipWrapper
+                      tooltipProps={
+                        tooltipContent
+                          ? {
+                              content: tooltipContent,
+                            }
+                          : undefined
+                      }
+                    >
+                      {key}
+                    </DynamicTooltipWrapper>
+                  </div>
+                  <div className="col-span-2 flex items-center text-neutral-800">
+                    {value}
+                  </div>
+                </Fragment>
+              ))}
+            </div>
+          </div>
+
+          <div className="px-6 py-3">
+            <Table {...table} />
           </div>
         </div>
 
-        <div className="px-6 py-3">
-          <Table {...table} />
-        </div>
-      </div>
+        <div className="flex flex-col gap-3 border-t border-neutral-200 px-5 py-4">
+          <ConfirmPayoutsButton
+            onClick={async () => {
+              if (!workspaceId || !selectedPaymentMethod) {
+                return false;
+              }
 
-      <div className="flex flex-col gap-3 border-t border-neutral-200 px-5 py-4">
-        <ConfirmPayoutsButton
-          onClick={async () => {
-            if (!workspaceId || !selectedPaymentMethod) {
-              return false;
+              const result = await confirmPayouts({
+                workspaceId,
+                paymentMethodId: selectedPaymentMethod.id.replace("-fast", ""),
+                fastSettlement: selectedPaymentMethod.fastSettlement,
+                cutoffPeriod,
+                ...(isExplicitSelectionMode
+                  ? { selectedPayoutIds: resolvedSelectedPayoutIds }
+                  : excludedPayoutIds.length > 0
+                    ? { excludedPayoutIds }
+                    : {}),
+                amount: amount ?? 0,
+                fee: fee ?? 0,
+                total: total ?? 0,
+              });
+
+              if (!result?.data?.invoiceId) return false;
+
+              setTimeout(
+                () =>
+                  result?.data?.invoiceId &&
+                  router.push(
+                    `/${slug}/program/payouts/success?invoiceId=${result.data.invoiceId}`,
+                  ),
+                1000,
+              );
+
+              return true;
+            }}
+            text={
+              amount && amount > 0
+                ? `${isTouchDevice ? "Press" : "Click"} and hold to confirm ${currencyFormatter(amount)} payout`
+                : `${isTouchDevice ? "Press" : "Click"} and hold to confirm payout`
             }
-
-            const result = await confirmPayouts({
-              workspaceId,
-              paymentMethodId: selectedPaymentMethod.id.replace("-fast", ""),
-              fastSettlement: selectedPaymentMethod.fastSettlement,
-              cutoffPeriod,
-              ...(isExplicitSelectionMode
-                ? { selectedPayoutIds: resolvedSelectedPayoutIds }
-                : excludedPayoutIds.length > 0
-                  ? { excludedPayoutIds }
-                  : {}),
-              amount: amount ?? 0,
-              fee: fee ?? 0,
-              total: total ?? 0,
-            });
-
-            if (!result?.data?.invoiceId) return false;
-
-            setTimeout(
-              () =>
-                result?.data?.invoiceId &&
-                router.push(
-                  `/${slug}/program/payouts/success?invoiceId=${result.data.invoiceId}`,
-                ),
-              1000,
-            );
-
-            return true;
-          }}
-          text={
-            amount && amount > 0
-              ? `${isTouchDevice ? "Press" : "Click"} and hold to confirm ${currencyFormatter(amount)} payout`
-              : `${isTouchDevice ? "Press" : "Click"} and hold to confirm payout`
-          }
-          disabled={
-            eligiblePayoutsLoading ||
-            eligiblePayoutsSummaryLoading ||
-            !selectedPaymentMethod ||
-            amount === 0
-          }
-          disabledTooltip={
-            payoutsUsage &&
-            payoutsLimit &&
-            amount &&
-            payoutsUsage + amount > payoutsLimit ? (
-              <TooltipContent
-                title={exceededLimitError({
-                  plan: plan as PlanProps,
-                  limit: payoutsLimit,
-                  type: "payouts",
-                })}
-                cta="Upgrade"
-                href={`/${slug}/settings/billing/upgrade`}
-              />
-            ) : amount && amount < INVOICE_MIN_PAYOUT_AMOUNT_CENTS ? (
-              "Your payout total is less than the minimum invoice amount of $10."
-            ) : (
-              permissionsError || undefined
-            )
-          }
-        />
-        {!isExplicitSelectionMode && holdPayoutsCount > 0 && (
-          <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
-            <span>
-              Excluding{" "}
-              <span className="font-medium text-neutral-800">
-                {nFormatter(holdPayoutsCount, { full: true })}
+            disabled={
+              eligiblePayoutsLoading ||
+              eligiblePayoutsSummaryLoading ||
+              !selectedPaymentMethod ||
+              amount === 0
+            }
+            disabledTooltip={
+              plan &&
+              typeof payoutsUsage === "number" &&
+              typeof payoutsLimit === "number" &&
+              typeof amount === "number" &&
+              payoutsUsage + amount > payoutsLimit ? (
+                <TooltipContent
+                  title={exceededLimitError({
+                    plan,
+                    planPeriod,
+                    limit: payoutsLimit,
+                    type: "payouts",
+                  })}
+                  cta={trialActive ? "Start paid plan" : "Upgrade plan"}
+                  {...(trialActive
+                    ? { onClick: () => openTrialLimitModal("payouts") }
+                    : { href: `/${slug}/upgrade` })}
+                />
+              ) : typeof chargeableTotal === "number" &&
+                chargeableTotal < INVOICE_MIN_PAYOUT_AMOUNT_CENTS ? (
+                `Your payout total is less than the minimum invoice amount of ${currencyFormatter(INVOICE_MIN_PAYOUT_AMOUNT_CENTS, { trailingZeroDisplay: "stripIfInteger" })}.`
+              ) : (
+                permissionsError || undefined
+              )
+            }
+          />
+          {commissionsCount && commissionsCount.hold.count > 0 && (
+            <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
+              <span>
+                Excluding{" "}
+                <span className="font-medium text-neutral-800">
+                  {nFormatter(commissionsCount.hold.count, { full: true })}
+                </span>
+                {` on hold ${pluralize("commission", commissionsCount.hold.count)} `}
+                <span className="font-medium text-neutral-800">
+                  (
+                  {currencyFormatter(commissionsCount.hold.earnings, {
+                    trailingZeroDisplay: "stripIfInteger",
+                  })}
+                  )
+                </span>
               </span>
-              {` on hold ${pluralize("payout", holdPayoutsCount)} `}
-              <span className="font-medium text-neutral-800">
-                (
-                {currencyFormatter(holdPayoutsAmount, {
-                  trailingZeroDisplay: "stripIfInteger",
-                })}
-                )
-              </span>
-            </span>
-            <a href={`/${slug}/program/payouts?status=hold`} target="_blank">
-              <Button
-                variant="secondary"
-                text="Review"
-                className="h-7 w-fit cursor-alias rounded-md border border-neutral-200 px-2 text-sm"
-              />
-            </a>
-          </div>
-        )}
+              <a
+                href={`/${slug}/program/commissions?status=hold`}
+                target="_blank"
+              >
+                <Button
+                  variant="secondary"
+                  text="Review"
+                  className="h-7 w-fit cursor-alias rounded-md border border-neutral-200 px-2 text-sm"
+                />
+              </a>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -1221,13 +1233,11 @@ function buildPayoutFeeTooltip({
     payoutFeeWaiverLimit > 0 && payoutFeeWaiverUsage < payoutFeeWaiverLimit;
 
   const fastAchFeeText =
-    fastAchFee > 0 ? ` + ${currencyFormatter(fastAchFee)} Fast ACH fee` : "";
-
-  if (isWithinWaiver) {
-    const waiverLimitFormatted = nFormatter(payoutFeeWaiverLimit / 100);
-
-    return `0% processing fee for the first $${waiverLimitFormatted} payouts, then ${feePercentage}%${fastAchFeeText}. [Learn more](https://d.to/payouts)`;
-  }
+    fastAchFee > 0
+      ? isWithinWaiver
+        ? ` A ${currencyFormatter(fastAchFee)} Fast ACH fee still applies.`
+        : ` + ${currencyFormatter(fastAchFee)} Fast ACH fee`
+      : "";
 
   const isDirectDebit = DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(
     selectedPaymentMethod.type as any,
@@ -1235,7 +1245,16 @@ function buildPayoutFeeTooltip({
 
   const directDebitSuggestion = isDirectDebit
     ? ""
-    : " Switch to Direct Debit for a reduced fee.";
+    : ` [Switch to Direct Debit](https://dub.co/help/article/how-to-set-up-bank-account) for ${isWithinWaiver ? "0% fees" : "a reduced fee"}.`;
 
-  return `${feePercentage}% processing fee${fastAchFeeText}. ${directDebitSuggestion} [Learn more](https://d.to/payouts)`;
+  if (isWithinWaiver) {
+    const effectiveFeePercentage = isDirectDebit
+      ? 0
+      : CARD_PAYOUT_HARD_COST_RATE * 100;
+    const waiverLimitFormatted = nFormatter(payoutFeeWaiverLimit / 100);
+
+    return `${effectiveFeePercentage}% processing fee for the first $${waiverLimitFormatted} payouts, then ${feePercentage}%${fastAchFeeText}.${directDebitSuggestion} [Learn more](https://d.to/payouts)`;
+  }
+
+  return `${feePercentage}% processing fee${fastAchFeeText}.${directDebitSuggestion} [Learn more](https://d.to/payouts)`;
 }

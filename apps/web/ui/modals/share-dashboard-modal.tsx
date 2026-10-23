@@ -500,7 +500,7 @@ export function useShareDashboardModal(props: ShareDashboardModalInnerProps) {
         {...props}
       />
     );
-  }, [showShareDashboardModal, setShowShareDashboardModal, props]);
+  }, [showShareDashboardModal, setShowShareDashboardModal]);
 
   return useMemo(
     () => ({

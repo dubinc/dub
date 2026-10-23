@@ -1,7 +1,8 @@
 import { getApexDomain } from "@dub/utils";
-import { isProxiedDomain } from "./utils";
+import { assertValidDomainFormat, isProxiedDomain } from "./utils";
 
 export const getVercelDomainResponse = async (domain: string) => {
+  assertValidDomainFormat(domain);
   return await fetch(
     `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains/${domain.toLowerCase()}?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
@@ -22,6 +23,7 @@ export const getDomainResponse = async (domain: string) => {
       verified: true,
     };
   }
+  assertValidDomainFormat(domain);
   const apexDomain = getApexDomain(`https://${domain}`);
   if (apexDomain !== domain) {
     const wildcardDomain = `*.${apexDomain}`;

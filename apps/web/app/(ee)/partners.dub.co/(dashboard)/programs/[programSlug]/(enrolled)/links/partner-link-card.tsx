@@ -1,10 +1,14 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
+import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import { PartnerLinksDisplayContext } from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { CommentsBadge } from "@/ui/links/comments-badge";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
+import { DiscountCodeTooltip } from "@/ui/partners/discounts/discount-code-tooltip";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import {
   ArrowTurnRight2,
@@ -22,12 +26,14 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
+import { ArrowRight } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
   getApexDomain,
   getPrettyUrl,
   nFormatter,
+  PARTNERS_DOMAIN,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
@@ -41,8 +47,14 @@ import {
 } from "react";
 import { usePartnerLinksContext } from "./page-client";
 import { PartnerLinkControls } from "./partner-link-controls";
+import {
+  PartnerLinkRewardsPanel,
+  PartnerLinkRewardsSummary,
+  usePartnerLinkRewards,
+  usePartnerLinkRewardsState,
+} from "./partner-link-rewards";
 
-const CHARTS = [
+const getCharts = (hidePartnerRevenue: boolean) => [
   {
     key: "clicks",
     icon: CursorRays,
@@ -56,17 +68,28 @@ const CHARTS = [
     colorClassName: "text-purple-500",
   },
   {
-    key: "saleAmount",
+    key: hidePartnerRevenue ? "sales" : "saleAmount",
     icon: InvoiceDollar,
     label: "Sales",
     colorClassName: "text-teal-500",
-    currency: true,
+    currency: !hidePartnerRevenue,
   },
 ];
 
 export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const { programEnrollment } = useProgramEnrollment();
-  const { displayOption } = usePartnerLinksContext();
+  const { displayOption, displayProperties } = useContext(
+    PartnerLinksDisplayContext,
+  );
+  const { showRewards, toggleRewards } = usePartnerLinkRewardsState();
+  const {
+    rewards,
+    discount,
+    primaryReward,
+    primaryText,
+    additionalCount,
+    hasIncentives,
+  } = usePartnerLinkRewards(link);
 
   const partnerLink = constructPartnerLink({
     group: programEnrollment?.group,
@@ -74,12 +97,78 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   });
 
   const isDeactivated = programEnrollment?.status === "deactivated";
+  const isQueryLinkStructure =
+    programEnrollment?.group?.linkStructure === "query";
+  const descriptionEnabled = displayProperties.includes("description");
+  const hasDescription = Boolean(link.partnerLinkComments?.trim());
+  const showTitle =
+    displayProperties.includes("title") && Boolean(link.partnerLinkTitle);
+  const showInlineShortLink = showTitle && displayProperties.includes("link");
+  const showDescription = descriptionEnabled && hasDescription;
+  // Description only replaces rewards on links that actually have one.
+  const rewardsEnabled =
+    (displayProperties.includes("rewards") || descriptionEnabled) &&
+    !showDescription;
+  const showRewardDetails =
+    rewardsEnabled && hasIncentives && Boolean(primaryText);
+
+  const shortLink = (
+    <Tooltip
+      content={
+        <QueryLinkStructureHelpText
+          link={link}
+          className="px-3 py-2 first-letter:uppercase"
+        />
+      }
+      disabled={!isQueryLinkStructure || isDeactivated}
+    >
+      <a
+        href={isDeactivated ? undefined : partnerLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={
+          isQueryLinkStructure && !isDeactivated
+            ? undefined
+            : getPrettyUrl(partnerLink)
+        }
+        className={cn(
+          "min-w-0 truncate text-sm transition-colors",
+          showTitle
+            ? "text-neutral-500 hover:text-neutral-700 hover:underline hover:underline-offset-2"
+            : "font-semibold leading-6",
+          isDeactivated
+            ? "cursor-default text-neutral-400"
+            : !showTitle && "text-neutral-900 hover:text-black",
+          isQueryLinkStructure &&
+            !isDeactivated &&
+            "cursor-copy underline decoration-dotted underline-offset-2",
+        )}
+        onClick={isDeactivated ? (e) => e.preventDefault() : undefined}
+      >
+        {getPrettyUrl(partnerLink)}
+      </a>
+    </Tooltip>
+  );
+
+  const discountCodeSection = link.discountCode ? (
+    <div className="hidden h-8 items-center gap-1.5 rounded-lg border border-neutral-200 pl-2 pr-1.5 sm:flex">
+      <span className="text-xs font-medium leading-none tracking-tight text-neutral-500">
+        Discount code
+      </span>
+      <DiscountCodeBadge
+        code={link.discountCode}
+        disabledAt={link.discountCodeDisabledAt}
+        disabledTooltip={`This discount code was disabled by the program. [Contact the program owner](${PARTNERS_DOMAIN}/messages/${programEnrollment?.program.slug}) if you need a new code.`}
+      />
+    </div>
+  ) : null;
 
   return (
     <CardList.Card
+      outerClassName="overflow-hidden"
       innerClassName={cn("px-0 py-0 group/card", isDeactivated && "opacity-80")}
     >
-      <div className="p-4">
+      <div className="p-4 sm:px-[18px] sm:pr-5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative hidden shrink-0 items-center justify-center sm:flex">
@@ -95,47 +184,78 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
             </div>
 
             <div className="flex min-w-0 flex-col">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1">
-                  <a
-                    href={isDeactivated ? undefined : partnerLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(
-                      "truncate text-sm font-semibold leading-6 transition-colors",
-                      isDeactivated
-                        ? "cursor-default text-neutral-400"
-                        : "text-neutral-700 hover:text-black",
-                    )}
-                    onClick={
-                      isDeactivated ? (e) => e.preventDefault() : undefined
-                    }
-                  >
-                    {getPrettyUrl(partnerLink)}
-                  </a>
-                  {!isDeactivated && (
-                    <CopyButton value={partnerLink} variant="neutral" />
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <div className="flex min-w-0 items-center gap-1">
+                  {showTitle ? (
+                    <span
+                      className={cn(
+                        "min-w-0 truncate text-sm font-semibold leading-6",
+                        showInlineShortLink && "max-w-[45%] shrink-0",
+                        isDeactivated ? "text-neutral-400" : "text-neutral-900",
+                      )}
+                      title={link.partnerLinkTitle ?? undefined}
+                    >
+                      {link.partnerLinkTitle}
+                    </span>
+                  ) : (
+                    <div className="flex min-w-0 items-center">{shortLink}</div>
                   )}
-
-                  {link.comments && <CommentsBadge comments={link.comments} />}
+                  {!isDeactivated && (
+                    <CopyButton
+                      value={partnerLink}
+                      variant="neutral"
+                      className="shrink-0"
+                    />
+                  )}
+                  {link.partnerLinkComments && !showDescription && (
+                    <div className="hidden shrink-0 sm:block">
+                      <CommentsBadge comments={link.partnerLinkComments} />
+                    </div>
+                  )}
+                  {showInlineShortLink && (
+                    <div className="flex min-w-0 items-center gap-1">
+                      <ArrowRight className="size-3 shrink-0 text-neutral-400" />
+                      {shortLink}
+                    </div>
+                  )}
                 </div>
 
-                {/* The max width implementation here is a bit hacky, we should improve in the future */}
-                <div className="flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 sm:w-fit sm:max-w-[400px]">
-                  <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
-                  <a
-                    href={isDeactivated ? undefined : link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="cursor-alias truncate text-sm text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
-                    title={getPrettyUrl(link.url)}
-                    onClick={
-                      isDeactivated ? (e) => e.preventDefault() : undefined
-                    }
+                {showDescription ? (
+                  <p
+                    className="min-w-0 truncate pl-0.5 text-sm text-neutral-500"
+                    title={link.partnerLinkComments ?? undefined}
                   >
-                    {getPrettyUrl(link.url)}
-                  </a>
-                </div>
+                    {link.partnerLinkComments}
+                  </p>
+                ) : showRewardDetails && primaryText ? (
+                  <PartnerLinkRewardsSummary
+                    primaryText={primaryText}
+                    primaryReward={primaryReward}
+                    additionalCount={additionalCount}
+                    showRewards={showRewards}
+                    onToggleRewards={toggleRewards}
+                  />
+                ) : (
+                  !showTitle &&
+                  !showDescription && (
+                    /* The max width implementation here is a bit hacky, we should improve in the future */
+                    <div className="flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 sm:w-fit sm:max-w-[400px]">
+                      <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
+                      <a
+                        href={isDeactivated ? undefined : link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="cursor-alias truncate text-sm text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
+                        title={getPrettyUrl(link.url)}
+                        onClick={
+                          isDeactivated ? (e) => e.preventDefault() : undefined
+                        }
+                      >
+                        {getPrettyUrl(link.url)}
+                      </a>
+                    </div>
+                  )
+                )}
               </div>
             </div>
           </div>
@@ -153,37 +273,41 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                   </StatusBadge>
                 );
               })()}
-            {link.discountCode && (
-              <Tooltip
-                content={
-                  "This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc. [Learn more](https://dub.co/help/article/dual-sided-incentives)"
-                }
-              >
-                <div className="hidden items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1 sm:flex">
-                  <span className="text-sm leading-none text-neutral-500">
-                    Discount code
-                  </span>
-                  <DiscountCodeBadge code={link.discountCode} />
-                </div>
-              </Tooltip>
-            )}
+            {discountCodeSection &&
+              (link.discountCodeDisabledAt ? (
+                discountCodeSection
+              ) : (
+                <DiscountCodeTooltip discount={link.discount}>
+                  {discountCodeSection}
+                </DiscountCodeTooltip>
+              ))}
             {displayOption === "cards" && <StatsBadge link={link} />}
             <Controls link={link} />
           </div>
         </div>
       </div>
       {displayOption === "full" && <StatsCharts link={link} />}
+      {rewardsEnabled && (
+        <PartnerLinkRewardsPanel
+          rewards={rewards}
+          discount={discount}
+          showRewards={showRewards}
+          additionalCount={additionalCount}
+        />
+      )}
     </CardList.Card>
   );
 }
 
 const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
+  const hidePartnerRevenue =
+    !programEnrollment || isPartnerRevenueHidden(programEnrollment.group);
   const As = showDetailedAnalytics ? Link : "div";
   return (
     <As
       href={`/programs/${programEnrollment?.program.slug}/analytics?linkId=${link.id}`}
-      className="flex items-center gap-0.5 rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600"
+      className="flex h-[30px] items-center gap-[3px] rounded-md border border-neutral-200 bg-white px-1 text-xs font-medium text-neutral-900"
     >
       {[
         {
@@ -202,31 +326,45 @@ const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
         {
           id: "sales",
           icon: InvoiceDollar,
-          value: link.saleAmount,
+          value: hidePartnerRevenue ? link.sales : link.saleAmount,
           className: "hidden sm:flex",
           iconClassName: "data-[active=true]:text-teal-500",
+          currency: !hidePartnerRevenue,
         },
-      ].map(({ id: tab, icon: Icon, value, className, iconClassName }) => (
-        <div
-          key={tab}
-          className={cn(
-            "flex items-center gap-1 whitespace-nowrap rounded-md px-1 py-px transition-colors",
-            className,
-          )}
-        >
-          <Icon
-            data-active={value > 0}
-            className={cn("h-4 w-4 shrink-0", iconClassName)}
-          />
-          <span>
-            {tab === "sales"
-              ? currencyFormatter(value, {
-                  trailingZeroDisplay: "stripIfInteger",
-                })
-              : nFormatter(value)}
-          </span>
-        </div>
-      ))}
+      ].map(
+        ({
+          id: tab,
+          icon: Icon,
+          value,
+          className,
+          iconClassName,
+          currency,
+        }) => {
+          const displayValue = value ?? 0;
+
+          return (
+            <div
+              key={tab}
+              className={cn(
+                "flex items-center gap-1.5 whitespace-nowrap rounded px-[5px] py-[3px] transition-colors",
+                className,
+              )}
+            >
+              <Icon
+                data-active={displayValue > 0}
+                className={cn("h-4 w-4 shrink-0", iconClassName)}
+              />
+              <span>
+                {currency
+                  ? currencyFormatter(displayValue, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })
+                  : nFormatter(displayValue)}
+              </span>
+            </div>
+          );
+        },
+      )}
     </As>
   );
 });
@@ -235,12 +373,16 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
   const { getQueryString } = useRouterStuff();
   const { start, end, interval } = usePartnerLinksContext();
   const { programEnrollment } = useProgramEnrollment();
+  const hidePartnerRevenue =
+    !programEnrollment || isPartnerRevenueHidden(programEnrollment.group);
+  const charts = getCharts(hidePartnerRevenue);
 
   const ref = useRef<HTMLDivElement>(null);
   const isVisible = useInViewport(ref);
   const lastValidTotals = useRef<{
     clicks: number;
     leads: number;
+    sales: number;
     saleAmount: number;
   } | null>(null);
 
@@ -261,12 +403,13 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
 
   const totals = useMemo(() => {
     const newTotals = timeseries?.reduce(
-      (acc, { clicks, leads, saleAmount }) => ({
+      (acc, { clicks, leads, sales, saleAmount }) => ({
         clicks: acc.clicks + clicks,
         leads: acc.leads + leads,
+        sales: acc.sales + (sales ?? 0),
         saleAmount: acc.saleAmount + saleAmount,
       }),
-      { clicks: 0, leads: 0, saleAmount: 0 },
+      { clicks: 0, leads: 0, sales: 0, saleAmount: 0 },
     );
 
     if (newTotals) {
@@ -274,19 +417,34 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
       return newTotals;
     }
 
-    return lastValidTotals.current ?? { clicks: 0, leads: 0, saleAmount: 0 };
+    return (
+      lastValidTotals.current ?? {
+        clicks: 0,
+        leads: 0,
+        sales: 0,
+        saleAmount: 0,
+      }
+    );
   }, [timeseries]);
 
   const chartData = useMemo(() => {
-    return timeseries?.map(({ start, clicks, leads, saleAmount }) => ({
+    return timeseries?.map(({ start, clicks, leads, sales, saleAmount }) => ({
       date: new Date(start),
-      values: { clicks, leads, saleAmount: saleAmount },
+      values: {
+        clicks,
+        leads,
+        sales: sales ?? 0,
+        saleAmount,
+      },
     }));
   }, [timeseries]);
 
   return (
-    <div ref={ref} className="grid grid-cols-1 gap-4 p-4 pt-0 sm:grid-cols-3">
-      {CHARTS.map((chart) => (
+    <div
+      ref={ref}
+      className="grid grid-cols-1 gap-4 p-4 pt-0 sm:grid-cols-3 sm:gap-5 sm:px-[18px] sm:pb-5"
+    >
+      {charts.map((chart) => (
         <Link
           key={chart.key}
           href={`/programs/${programEnrollment?.program.slug}/analytics${getQueryString(
@@ -295,7 +453,7 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
               event: chart.key === "saleAmount" ? "sales" : chart.key,
             },
           )}`}
-          className="group/chart relative isolate rounded-lg border border-neutral-200 px-2 py-1.5 lg:px-3"
+          className="group/chart relative isolate flex flex-col gap-4 rounded-lg border border-neutral-200 p-4 lg:p-5"
         >
           <div className="absolute right-2 top-2 overflow-hidden">
             <div className="translate-x-full transition-transform duration-200 group-hover/chart:translate-x-0">
@@ -306,7 +464,7 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
               />
             </div>
           </div>
-          <div className="flex flex-col gap-1 pl-2 pt-3 lg:pl-1.5">
+          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1.5">
               <chart.icon
                 className={cn("h-4 w-4 shrink-0", chart.colorClassName)}

@@ -6,6 +6,10 @@ export const isRejected = <T>(
   p: PromiseSettledResult<T>,
 ): p is PromiseRejectedResult => p.status === "rejected";
 
+export function serializeError(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export function logPromiseResults<T>(
   results: PromiseSettledResult<T>[],
   options?: {
@@ -26,11 +30,7 @@ export function logPromiseResults<T>(
       console.log(`${label}${id} succeeded.`);
     } else {
       failureCount++;
-      const reason =
-        result.reason instanceof Error
-          ? result.reason.message
-          : String(result.reason);
-      console.error(`${label}${id} failed: ${reason}`);
+      console.error(`${label}${id} failed: ${serializeError(result.reason)}`);
     }
   }
 

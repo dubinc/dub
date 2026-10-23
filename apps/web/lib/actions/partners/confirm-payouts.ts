@@ -15,12 +15,20 @@ import {
 } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { createTremendousCampaignJob } from "@/lib/jobs/handlers/create-tremendous-campaign-job";
+import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
+import { prisma } from "@/lib/prisma";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
+import { mockPaymentProvider } from "@/lib/sandbox/mock-payment-provider";
 import { stripe } from "@/lib/stripe";
 import { checkPaymentMethodMandate } from "@/lib/stripe/check-payment-method-mandate";
+import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
+import { EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
-import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, currencyFormatter } from "@dub/utils";
+import { PayoutMode, ProgramPayoutMode } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -62,6 +70,10 @@ export const confirmPayoutsAction = authActionClient
       total,
     } = parsedInput;
 
+    const isProductionWorkspace = isProductionEnvironment(
+      workspace.environment,
+    );
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const program = await getProgramOrThrow({
@@ -74,7 +86,7 @@ export const confirmPayoutsAction = authActionClient
       requiredPermissions: ["payouts.write"],
     });
 
-    if (!workspace.stripeId) {
+    if (isProductionWorkspace && !workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");
     }
 
@@ -84,30 +96,12 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
-    // if workspace's payouts usage + the current invoice amount
-    // is greater than the workspace's payouts limit, throw an error
-    if (workspace.payoutsUsage + amount > workspace.payoutsLimit) {
-      throw new Error(
-        exceededLimitError({
-          plan: workspace.plan,
-          limit: workspace.payoutsLimit,
-          type: "payouts",
-        }),
-      );
-    }
-
-    if (amount < INVOICE_MIN_PAYOUT_AMOUNT_CENTS) {
-      throw new Error(
-        "Your payout total is less than the minimum invoice amount of $10.",
-      );
-    }
-
     // TODO: Remove this once we can support cutoff periods for invoices with > 1,000 payouts
     if (cutoffPeriod) {
       const totalEligiblePayouts = await prisma.payout.aggregate({
         where: {
           ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
-          ...getPayoutEligibilityFilter({ program, workspace }),
+          ...getPayoutEligibilityFilter({ program }),
         },
         _count: true,
       });
@@ -119,41 +113,69 @@ export const confirmPayoutsAction = authActionClient
       }
     }
 
-    if (program.payoutMode !== "internal") {
-      const [eligiblePayouts, payoutWebhooks] = await Promise.all([
-        getEligiblePayouts({
-          program,
-          workspace,
-          cutoffPeriod,
-          selectedPayoutIds,
-          excludedPayoutIds,
-          page: 1,
-          pageSize: Infinity,
-        }),
+    const [eligiblePayouts, payoutWebhooks] = await Promise.all([
+      getEligiblePayouts({
+        program,
+        cutoffPeriod,
+        selectedPayoutIds,
+        excludedPayoutIds,
+        page: 1,
+        pageSize: Infinity,
+      }),
 
-        getWebhooks({
-          workspaceId: workspace.id,
-          triggers: ["payout.confirmed"],
-          disabled: false,
-          installationId: null,
-        }),
-      ]);
+      program.payoutMode === ProgramPayoutMode.internal
+        ? Promise.resolve([])
+        : getWebhooks({
+            workspaceId: workspace.id,
+            triggers: [EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER],
+            disabled: false,
+            installationId: null,
+          }),
+    ]);
 
+    const payoutAmount = eligiblePayouts.reduce(
+      (sum, payout) => sum + payout.amount,
+      0,
+    );
+
+    if (eligiblePayouts.length === 0 || payoutAmount <= 0) {
+      throw new Error("There are no eligible payouts to confirm.");
+    }
+
+    // if workspace's payouts usage + the current invoice amount
+    // is greater than the workspace's payouts limit, throw an error
+    if (workspace.payoutsUsage + payoutAmount > workspace.payoutsLimit) {
+      throw new Error(
+        exceededLimitError({
+          plan: workspace.plan,
+          planPeriod: workspace.planPeriod,
+          limit: workspace.payoutsLimit,
+          type: "payouts",
+        }),
+      );
+    }
+
+    if (program.payoutMode !== ProgramPayoutMode.internal) {
       // Check if the invoice includes any external payouts
       const hasExternalPayouts = eligiblePayouts.find(
-        (payout) => payout.mode === "external",
+        (payout) => payout.mode === PayoutMode.external,
       );
 
       if (hasExternalPayouts && payoutWebhooks.length === 0) {
         throw new Error(
-          `EXTERNAL_WEBHOOK_REQUIRED: This invoice includes at least one external payout, which requires an active webhook subscribed to the "payout.confirmed" event. Please set one up before proceeding.`,
+          `EXTERNAL_WEBHOOK_REQUIRED: This invoice includes at least one external payout, which requires an active webhook subscribed to the "${EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER}" event. Please set one up before proceeding.`,
         );
       }
     }
 
-    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+    const paymentMethod = isProductionWorkspace
+      ? await stripe.paymentMethods.retrieve(paymentMethodId)
+      : await mockPaymentProvider.retrievePaymentMethod(paymentMethodId);
 
-    if (paymentMethod.customer !== workspace.stripeId) {
+    if (
+      isProductionWorkspace &&
+      paymentMethod.customer !== workspace.stripeId
+    ) {
       throw new Error("Invalid payout method.");
     }
 
@@ -169,8 +191,45 @@ export const confirmPayoutsAction = authActionClient
       throw new Error("Fast settlement is only supported for ACH payment.");
     }
 
+    const externalPayoutAmount = eligiblePayouts.reduce(
+      (sum, payout) =>
+        payout.mode === PayoutMode.external ? sum + payout.amount : sum,
+      0,
+    );
+
+    const payoutFee = calculatePayoutFeeForMethod({
+      paymentMethod: paymentMethod.type,
+      payoutFee: workspace.payoutFee,
+    });
+
+    if (payoutFee == null) {
+      throw new Error("Failed to calculate payout fee.");
+    }
+
+    const { fee: chargeFee } = calculatePayoutFeeWithWaiver({
+      payoutAmount,
+      payoutFee,
+      payoutFeeWaiverLimit: workspace.payoutFeeWaiverLimit,
+      payoutFeeWaiverUsage: workspace.payoutFeeWaiverUsage,
+      paymentMethod: fastSettlement
+        ? "ach_fast"
+        : STRIPE_PAYMENT_METHOD_NORMALIZATION[paymentMethod.type],
+    });
+
+    // External payouts are paid outside Dub, so Stripe is only charged the internal amount plus the fee.
+    const chargeableTotal = payoutAmount - externalPayoutAmount + chargeFee;
+
+    if (chargeableTotal < INVOICE_MIN_PAYOUT_AMOUNT_CENTS) {
+      throw new Error(
+        `Your payout total is less than the minimum invoice amount of ${currencyFormatter(INVOICE_MIN_PAYOUT_AMOUNT_CENTS, { trailingZeroDisplay: "stripIfInteger" })}.`,
+      );
+    }
+
     // if it's a direct debit payment method, we need to check to make sure mandate is valid
-    if (DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)) {
+    if (
+      isProductionWorkspace &&
+      DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
+    ) {
       const mandate = await checkPaymentMethodMandate({
         paymentMethodId,
       });
@@ -214,6 +273,20 @@ export const confirmPayoutsAction = authActionClient
         },
       });
     });
+
+    if (isProductionWorkspace && !program.tremendousCampaignId) {
+      waitUntil(
+        createTremendousCampaignJob.dispatch(
+          {
+            programId: program.id,
+          },
+          {
+            deduplicationId: program.id,
+            label: program.id,
+          },
+        ),
+      );
+    }
 
     // Send the message to Qstash to process the payouts
     const qstashResponse = await qstash.publishJSON({

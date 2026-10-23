@@ -1,13 +1,19 @@
-import { cn } from "@dub/utils";
+import { cn, isSafeLinkHref } from "@dub/utils";
 import { useEditorState } from "@tiptap/react";
 import { ReactNode, forwardRef, useRef } from "react";
+import { toast } from "sonner";
 import {
   AtSign,
+  BulletList,
+  Code,
   Heading1,
   Heading2,
   Hyperlink,
   Icon,
   ImageIcon,
+  NumberedList,
+  Quote,
+  TableIcon,
   TextBold,
   TextItalic,
   TextStrike,
@@ -23,7 +29,7 @@ export function RichTextToolbar({
   toolsEnd?: ReactNode;
   className?: string;
 }) {
-  const { editor, features, handleImageUpload, isUploading } =
+  const { editor, features, handleImageUpload, isUploading, imageAccept } =
     useRichTextContext();
 
   const editorState = useEditorState({
@@ -34,6 +40,10 @@ export function RichTextToolbar({
       isStrike: Boolean(editor?.isActive("strike")),
       isHeading1: Boolean(editor?.isActive("heading", { level: 1 })),
       isHeading2: Boolean(editor?.isActive("heading", { level: 2 })),
+      isBulletList: Boolean(editor?.isActive("bulletList")),
+      isOrderedList: Boolean(editor?.isActive("orderedList")),
+      isBlockquote: Boolean(editor?.isActive("blockquote")),
+      isCode: Boolean(editor?.isActive("code")),
       isSelection: editor?.state.selection.from !== editor?.state.selection.to,
     }),
   });
@@ -94,6 +104,52 @@ export function RichTextToolbar({
           />
         </>
       )}
+      {features?.includes("lists") && (
+        <>
+          <RichTextToolbarButton
+            icon={BulletList}
+            label="Bullet list"
+            isActive={editorState?.isBulletList}
+            onClick={() => editor?.chain().focus().toggleBulletList().run()}
+          />
+          <RichTextToolbarButton
+            icon={NumberedList}
+            label="Numbered list"
+            isActive={editorState?.isOrderedList}
+            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+          />
+        </>
+      )}
+      {features?.includes("tables") && (
+        <RichTextToolbarButton
+          icon={TableIcon}
+          label="Table"
+          isActive={false}
+          onClick={() =>
+            editor
+              ?.chain()
+              .focus()
+              .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+              .run()
+          }
+        />
+      )}
+      {features?.includes("quote") && (
+        <RichTextToolbarButton
+          icon={Quote}
+          label="Quote"
+          isActive={editorState?.isBlockquote}
+          onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+        />
+      )}
+      {features?.includes("code") && (
+        <RichTextToolbarButton
+          icon={Code}
+          label="Inline code"
+          isActive={editorState?.isCode}
+          onClick={() => editor?.chain().focus().toggleCode().run()}
+        />
+      )}
       {features?.includes("links") && <LinkButton />}
       {features?.includes("variables") && (
         <RichTextToolbarButton
@@ -115,6 +171,7 @@ export function RichTextToolbar({
           <input
             ref={inputImageRef}
             type="file"
+            accept={imageAccept}
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
@@ -139,38 +196,75 @@ export function RichTextToolbar({
 }
 
 function LinkButton() {
-  const { editor } = useRichTextContext();
+  const { editor, features, openLinkModal } = useRichTextContext();
+  const imageControlsEnabled = features?.includes("imageControls");
 
   const editorState = useEditorState({
     editor,
     selector: ({ editor }) => ({
-      isSelection: editor?.state.selection.from !== editor?.state.selection.to,
+      isImageSelected: Boolean(editor?.isActive("image")),
+      isLinkActive: Boolean(
+        editor?.isActive("link") ||
+          (imageControlsEnabled &&
+            editor?.isActive("image") &&
+            editor.getAttributes("image").href),
+      ),
     }),
   });
+
+  const canLink = Boolean(
+    editor &&
+      (!editorState?.isImageSelected ||
+        (imageControlsEnabled && editorState?.isImageSelected)),
+  );
 
   return (
     <RichTextToolbarButton
       icon={Hyperlink}
       label="Link"
+      isActive={editorState?.isLinkActive}
       onClick={() => {
         if (!editor) return;
-        const previousUrl = editor.getAttributes("link").href;
 
-        const url = window.prompt("Link URL", previousUrl);
+        const isImageSelected = editor.isActive("image");
 
-        if (!url?.trim()) {
-          editor.chain().focus().extendMarkRange("link").unsetLink().run();
+        if (isImageSelected && imageControlsEnabled) {
+          const previousUrl = editor.getAttributes("image").href ?? "";
+          const url = window.prompt("Link URL", previousUrl);
+          const nodePos = editor.state.selection.from;
+
+          if (url === null) return;
+
+          if (!url.trim()) {
+            editor
+              .chain()
+              .focus()
+              .updateAttributes("image", { href: null })
+              .setNodeSelection(nodePos)
+              .run();
+            return;
+          }
+
+          if (!isSafeLinkHref(url.trim())) {
+            toast.error(
+              "Enter a full URL starting with http://, https://, or mailto: (e.g. https://dub.co).",
+            );
+            editor.chain().focus().setNodeSelection(nodePos).run();
+            return;
+          }
+
+          editor
+            .chain()
+            .focus()
+            .updateAttributes("image", { href: url.trim() })
+            .setNodeSelection(nodePos)
+            .run();
           return;
         }
 
-        editor
-          .chain()
-          .focus()
-          .extendMarkRange("link")
-          .setLink({ href: url })
-          .run();
+        openLinkModal();
       }}
-      disabled={!editorState?.isSelection}
+      disabled={!canLink}
     />
   );
 }

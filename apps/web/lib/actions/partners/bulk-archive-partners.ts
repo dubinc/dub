@@ -1,12 +1,13 @@
 "use server";
 
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prisma } from "@/lib/prisma";
 import {
   ACTIVE_ENROLLMENT_STATUSES,
   bulkArchivePartnersSchema,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -65,21 +66,28 @@ export const bulkArchivePartnersAction = authActionClient
     });
 
     waitUntil(
-      trackActivityLog(
-        programEnrollments.map(({ partnerId, status }) => ({
-          workspaceId: workspace.id,
-          programId,
-          resourceType: "partner",
-          resourceId: partnerId,
-          userId: user.id,
-          action: "partner.archived",
-          changeSet: {
-            status: {
-              old: status,
-              new: "archived",
+      Promise.allSettled([
+        trackActivityLog(
+          programEnrollments.map(({ partnerId, status }) => ({
+            workspaceId: workspace.id,
+            programId,
+            resourceType: "partner",
+            resourceId: partnerId,
+            userId: user.id,
+            action: "partner.archived",
+            changeSet: {
+              status: {
+                old: status,
+                new: "archived",
+              },
             },
-          },
-        })),
-      ),
+          })),
+        ),
+
+        // Queue an index update because the enrollment statuses moved to
+        // archived. Scoped to the updateMany above, not the findMany, which is
+        // narrowed to ACTIVE_ENROLLMENT_STATUSES.
+        queuePartnerSearchSync({ partnerIds, programId }),
+      ]),
     );
   });

@@ -5,14 +5,17 @@ import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-cust
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
+  CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS,
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
+import { nullifyPartnerEventRevenue } from "@/lib/partners/hide-partner-revenue";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
+import { prisma } from "@/lib/prisma";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
-import { CommissionType } from "@dub/prisma/client";
 import { toCentsNumber } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -20,15 +23,37 @@ import * as z from "zod/v4";
 export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { customerId, programId } = params;
 
-  const { program, links, totalCommissions, customerDataSharingEnabledAt } =
-    await getProgramEnrollmentOrThrow({
-      partnerId: partner.id,
-      programId: programId,
-      include: {
-        program: true,
-        links: true,
+  const {
+    program,
+    links,
+    totalCommissions,
+    customerDataSharingEnabledAt,
+    partnerGroup,
+  } = await getProgramEnrollmentOrThrow({
+    partnerId: partner.id,
+    programId: programId,
+    include: {
+      program: {
+        select: {
+          id: true,
+          workspaceId: true,
+        },
       },
-    });
+      links: {
+        select: {
+          id: true,
+          domain: true,
+          key: true,
+          shortLink: true,
+        },
+      },
+      partnerGroup: {
+        select: {
+          revenueDataSharingDisabledAt: true,
+        },
+      },
+    },
+  });
 
   if (
     LARGE_PROGRAM_IDS.includes(program.id) &&
@@ -66,41 +91,60 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
+  const partnerLinkIds = links.map((link) => link.id);
+
   const events = await getCustomerEvents({
     customerId: customer.id,
-    linkIds: links.map((link) => link.id),
+    linkIds: partnerLinkIds,
     includeMetadata: false,
   });
 
-  if (events.length === 0) {
+  // if there are events between the partner-customer, use the last event's link id
+  // else, check if the customer.linkId actually belongs to the partner
+  // if it does, use it, otherwise, throw an error
+  const attributedPartnerLinkId =
+    events.length > 0
+      ? events[events.length - 1].link_id
+      : customer.linkId && partnerLinkIds.includes(customer.linkId)
+        ? customer.linkId
+        : null;
+
+  if (!attributedPartnerLinkId) {
     throw new DubApiError({
       code: "not_found",
       message: "Customer is not attributed to any links by this partner.",
     });
   }
 
-  // get the first partner link that this customer interacted with
-  const firstLinkId = events[events.length - 1].link_id;
-  const link = links.find((link) => link.id === firstLinkId);
-  const firstSaleAt =
-    customer.commissions[0]?.createdAt ?? customer.firstSaleAt;
+  // get the partner link that this customer interacted with
+  const link = links.find((link) => link.id === attributedPartnerLinkId);
+
+  const hidePartnerRevenue = isPartnerRevenueHidden(partnerGroup);
+  const ltvExcluded =
+    CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id) ||
+    hidePartnerRevenue;
+
+  const transformed = transformCustomer({
+    ...customer,
+    firstSaleAt: customer.commissions[0]?.createdAt ?? null,
+    email: customer.email
+      ? customerDataSharingEnabledAt
+        ? customer.email
+        : obfuscateCustomerEmail(customer.email)
+      : customer.name || generateRandomName(),
+  });
 
   return NextResponse.json(
     PartnerProfileCustomerSchema.extend({
       ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
     }).parse({
-      ...transformCustomer({
-        ...customer,
-        firstSaleAt,
-        email: customer.email
-          ? customerDataSharingEnabledAt
-            ? customer.email
-            : obfuscateCustomerEmail(customer.email)
-          : customer.name || generateRandomName(),
-      }),
+      ...transformed,
+      ...(ltvExcluded && { saleAmount: null }),
       activity: {
         ...customer,
-        events,
+        events: hidePartnerRevenue
+          ? events.map(nullifyPartnerEventRevenue)
+          : events,
         link,
       },
     }),

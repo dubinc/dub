@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import IntegrationInstalled from "@dub/email/templates/integration-installed";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 
 interface InstallIntegration {
@@ -17,6 +17,7 @@ export const installIntegration = async ({
   workspaceId,
   integrationId,
   credentials,
+  settings,
 }: InstallIntegration) => {
   const installation = await prisma.installedIntegration.upsert({
     create: {
@@ -24,9 +25,11 @@ export const installIntegration = async ({
       projectId: workspaceId,
       integrationId,
       credentials,
+      settings,
     },
     update: {
       credentials,
+      ...(settings ? { settings } : {}),
     },
     where: {
       userId_integrationId_projectId: {

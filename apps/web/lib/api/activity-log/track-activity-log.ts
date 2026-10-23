@@ -1,12 +1,12 @@
 import { logger } from "@/lib/axiom/server";
+import { prisma } from "@/lib/prisma";
 import {
   ActivityLogAction,
   ActivityLogResourceType,
   ChangeSet,
 } from "@/lib/types";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 
 const ACTIONS_WITHOUT_CHANGE_SET: ActivityLogAction[] = [
   "submittedLead.created",
@@ -62,4 +62,32 @@ export const trackActivityLog = async (
     logger.error("[trackActivityLog] Failed to create activity log", error);
     await logger.flush();
   }
+};
+
+// Same as trackActivityLog, but writes within the caller's Prisma transaction.
+export const trackActivityLogsTx = async ({
+  tx,
+  logs,
+}: {
+  tx: Prisma.TransactionClient;
+  logs: TrackActivityLogInput | TrackActivityLogInput[];
+}) => {
+  let inputs = Array.isArray(logs) ? logs : [logs];
+
+  inputs = inputs.filter(
+    (i) =>
+      ACTIONS_WITHOUT_CHANGE_SET.includes(i.action) ||
+      (i.changeSet && Object.keys(i.changeSet).length > 0),
+  );
+
+  if (inputs.length === 0) {
+    return;
+  }
+
+  await tx.activityLog.createMany({
+    data: inputs.map((input) => ({
+      ...input,
+      changeSet: input.changeSet as Prisma.InputJsonValue,
+    })),
+  });
 };

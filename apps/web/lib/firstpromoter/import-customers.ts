@@ -1,6 +1,7 @@
-import { prisma } from "@dub/prisma";
-import { Customer, Link, Project } from "@dub/prisma/client";
-import { chunk, nanoid } from "@dub/utils";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
+import { prisma } from "@/lib/prisma";
+import { chunk, nanoid, sleep } from "@dub/utils";
+import { Customer, Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
@@ -160,7 +161,7 @@ export async function importCustomers(payload: FirstPromoterImportPayload) {
       }
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await sleep(2000);
 
     currentPage++;
     processedBatches++;
@@ -273,6 +274,7 @@ async function createCustomer({
         id: customerId,
         name: customerName,
         email: customer.email,
+        normalizedEmail: getNormalizedEmail(customer.email),
         projectId: workspace.id,
         projectConnectId: workspace.stripeConnectId,
         clickId: clickEvent.click_id,

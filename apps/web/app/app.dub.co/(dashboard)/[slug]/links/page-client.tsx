@@ -1,5 +1,6 @@
 "use client";
 
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import {
   useCheckFolderPermission,
@@ -66,7 +67,7 @@ export default function WorkspaceLinksClient() {
       }
     >
       <LinksDisplayProvider>
-        <WorkspaceLinks />
+        <WorkspaceLinksList />
       </LinksDisplayProvider>
     </PageContentWithSidePanel>
   );
@@ -85,7 +86,7 @@ export function WorkspaceLinksPageControls() {
   );
 }
 
-function WorkspaceLinks() {
+export function WorkspaceLinksList() {
   const router = useRouter();
   const { isValidating } = useLinks();
   const searchParams = useSearchParams();
@@ -122,6 +123,7 @@ function WorkspaceLinks() {
     if (showedDotLinkModal) return;
 
     // We show the .link offer modal if:
+    // - The workspace is production
     // - The upgraded modal is not open
     // - The user has a paid plan (and valid stripe ID)
     // - The user is not in a billing trial (.link cannot be claimed until trial ends)
@@ -129,6 +131,7 @@ function WorkspaceLinks() {
     // - The user has not claimed their .link domain
     // - The user has not dismissed the .link offer modal
     if (
+      isProductionEnvironment(workspace.environment) &&
       !searchParams.has("upgraded") &&
       workspace.stripeId &&
       workspace.plan &&
@@ -159,65 +162,61 @@ function WorkspaceLinks() {
         <PageWidthWrapper className="flex flex-col">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex w-full grow gap-2 md:w-auto">
-              {!workspace.isMegaWorkspace && (
-                <div className="grow basis-0 md:grow-0">
-                  <Filter.Select
-                    filters={filters}
-                    activeFilters={activeFilters}
-                    onSelect={onSelect}
-                    onRemove={onRemove}
-                    onSearchChange={setSearch}
-                    onSelectedFilterChange={setSelectedFilter}
-                    className="w-full"
-                    emptyState={{
-                      tagIds: (
-                        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-                          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-                            <Tag className="size-6 text-neutral-700" />
-                          </div>
-                          <p className="mt-2 font-medium text-neutral-950">
-                            No tags found
-                          </p>
-                          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
-                            Add tags to organize your links
-                          </p>
-                          <div>
-                            <Button
-                              className="mt-1 h-8"
-                              onClick={() => setShowAddEditTagModal(true)}
-                              text="Add tag"
-                            />
-                          </div>
+              <div className="grow basis-0 md:grow-0">
+                <Filter.Select
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onSelect={onSelect}
+                  onRemove={onRemove}
+                  onSearchChange={setSearch}
+                  onSelectedFilterChange={setSelectedFilter}
+                  className="w-full"
+                  emptyState={{
+                    tagIds: (
+                      <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
+                        <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+                          <Tag className="size-6 text-neutral-700" />
                         </div>
-                      ),
-                      domain: (
-                        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-                          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-                            <Globe className="size-6 text-neutral-700" />
-                          </div>
-                          <p className="mt-2 font-medium text-neutral-950">
-                            No domains found
-                          </p>
-                          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
-                            Add a custom domain to match your brand
-                          </p>
-                          <div>
-                            <Button
-                              className="mt-1 h-8"
-                              onClick={() =>
-                                router.push(
-                                  `/${workspace.slug}/settings/domains`,
-                                )
-                              }
-                              text="Add domain"
-                            />
-                          </div>
+                        <p className="mt-2 font-medium text-neutral-950">
+                          No tags found
+                        </p>
+                        <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
+                          Add tags to organize your links
+                        </p>
+                        <div>
+                          <Button
+                            className="mt-1 h-8"
+                            onClick={() => setShowAddEditTagModal(true)}
+                            text="Add tag"
+                          />
                         </div>
-                      ),
-                    }}
-                  />
-                </div>
-              )}
+                      </div>
+                    ),
+                    domain: (
+                      <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
+                        <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+                          <Globe className="size-6 text-neutral-700" />
+                        </div>
+                        <p className="mt-2 font-medium text-neutral-950">
+                          No domains found
+                        </p>
+                        <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
+                          Add a custom domain to match your brand
+                        </p>
+                        <div>
+                          <Button
+                            className="mt-1 h-8"
+                            onClick={() =>
+                              router.push(`/${workspace.slug}/settings/domains`)
+                            }
+                            text="Add domain"
+                          />
+                        </div>
+                      </div>
+                    ),
+                  }}
+                />
+              </div>
               <div className="grow basis-0 md:grow-0">
                 <LinkDisplay />
               </div>
@@ -432,13 +431,13 @@ function ImportOption({
       content={
         trialActive ? (
           <TooltipContent
-            title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
+            title="Your workspace have exceeded your monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
             cta="Start paid plan"
             onClick={() => openTrialLimitModal("links")}
           />
         ) : (
           <TooltipContent
-            title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
+            title="Your workspace have exceeded your monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
             cta={nextPlan ? `Upgrade to ${nextPlan.name}` : "Contact support"}
             href={`/${slug}/upgrade`}
           />

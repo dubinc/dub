@@ -5,16 +5,17 @@ import {
   transformLink,
   updateLink,
 } from "@/lib/api/links";
+import { partnerRemovalOverrides } from "@/lib/api/links/partner-removal";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   createLinkBodySchemaAsync,
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
-import { prisma } from "@dub/prisma";
 import { deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -75,6 +76,7 @@ export const PUT = withWorkspace(
             ? link.testStartedAt.toISOString()
             : link.testStartedAt,
         ...body,
+        ...partnerRemovalOverrides(body),
       };
 
       // if link and updatedLink are identical, return the link
@@ -149,6 +151,8 @@ export const PUT = withWorkspace(
             domain: link.domain,
             key: link.key,
             image: link.image,
+            programId: link.programId,
+            partnerId: link.partnerId,
           },
           updatedLink: processedLink,
         });

@@ -12,6 +12,17 @@ import {
 import { capitalize } from "@dub/utils";
 import { Stripe } from "stripe";
 
+const formatBankAccountDescription = ({
+  bankName,
+  last4,
+}: {
+  bankName?: string | null;
+  last4?: string | null;
+}) => {
+  const masked = `••••${last4 ?? ""}`;
+  return bankName ? `${bankName} ${masked}` : masked;
+};
+
 export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
   [
     {
@@ -35,7 +46,10 @@ export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
       title: "ACH",
       icon: GreekTemple,
       description: paymentMethod?.us_bank_account
-        ? `Account ending in ****${paymentMethod.us_bank_account.last4}`
+        ? formatBankAccountDescription({
+            bankName: paymentMethod.us_bank_account.bank_name,
+            last4: paymentMethod.us_bank_account.last4,
+          })
         : "Not connected",
     },
     {
@@ -43,7 +57,10 @@ export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
       title: "ACSS Debit",
       icon: GreekTemple,
       description: paymentMethod?.acss_debit
-        ? `Account ending in ****${paymentMethod.acss_debit.last4}`
+        ? formatBankAccountDescription({
+            bankName: paymentMethod.acss_debit.bank_name,
+            last4: paymentMethod.acss_debit.last4,
+          })
         : "Not connected",
     },
     {
@@ -51,7 +68,9 @@ export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
       title: "SEPA Debit",
       icon: GreekTemple,
       description: paymentMethod?.sepa_debit
-        ? `Account ending in ****${paymentMethod.sepa_debit.last4}`
+        ? formatBankAccountDescription({
+            last4: paymentMethod.sepa_debit.last4,
+          })
         : "Not connected",
     },
     {

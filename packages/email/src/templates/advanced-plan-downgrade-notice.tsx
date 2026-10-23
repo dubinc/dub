@@ -32,7 +32,7 @@ export default function AdvancedPlanDowngradeNotice({
       <Head />
       <Preview>
         Removed features: Email campaigns, messaging center, advanced reward
-        conditions, fraud detection, embedded referral dashboard
+        conditions, risk monitoring, embedded referral dashboard
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -81,10 +81,10 @@ export default function AdvancedPlanDowngradeNotice({
             <Text className="text-sm leading-6 text-black">
               •{" "}
               <Link
-                href="https://dub.co/help/article/fraud-detection"
+                href="https://dub.co/help/article/risk-monitoring"
                 className="font-medium text-black underline underline-offset-2"
               >
-                Fraud events
+                Risk events
               </Link>{" "}
               are still being tracked, but you need to upgrade to view them.
             </Text>

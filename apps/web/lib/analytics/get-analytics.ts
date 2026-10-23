@@ -1,7 +1,7 @@
 import { FOLDER_WORKSPACE_ACCESS } from "@/lib/folder/constants";
+import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird";
 import { FolderAccessLevel } from "@/lib/types";
-import { prisma } from "@dub/prisma";
 import { linkConstructor, punyEncode } from "@dub/utils";
 import * as z from "zod/v4";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
@@ -22,6 +22,7 @@ import { metadataQueryParser } from "./metadata-query-parser";
 import { AnalyticsFilters } from "./types";
 import { formatUTCDateTimeClickhouse } from "./utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "./utils/get-start-end-dates";
+import { withTinybirdTimeout } from "./utils/with-tinybird-timeout";
 
 // Fetch data for /api/analytics
 export const getAnalytics = async (params: AnalyticsFilters) => {
@@ -41,6 +42,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     isDeprecatedClicksEndpoint = false,
     dataAvailableFrom,
     query,
+    includePartnerLinkTitle = false,
   } = params;
 
   const normalizedLinkId = ensureParsedFilter(linkId);
@@ -193,7 +195,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     filters: allFilters.length > 0 ? JSON.stringify(allFilters) : undefined,
   };
 
-  const response = await pipe(tinybirdParams);
+  const response = await withTinybirdTimeout(pipe(tinybirdParams));
 
   if (groupBy === "count") {
     const { groupByField, ...rest } = response.data[0];
@@ -217,6 +219,9 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         key: true,
         url: true,
         title: true,
+        ...(includePartnerLinkTitle
+          ? { partnerLinkDetails: { select: { title: true } } }
+          : {}),
         comments: true,
         folderId: true,
         partnerId: true,
@@ -236,7 +241,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
           key: link.key,
         });
 
-        return analyticsResponse[groupBy].parse({
+        const parsed = analyticsResponse[groupBy].parse({
           ...link,
           link: link.id,
           key: punyEncode(link.key),
@@ -247,6 +252,15 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
           createdAt: link.createdAt.toISOString(),
           ...item,
         });
+
+        if (includePartnerLinkTitle) {
+          return {
+            ...parsed,
+            partnerLinkTitle: link.partnerLinkDetails?.title ?? null,
+          };
+        }
+
+        return parsed;
       })
       .filter((d) => d !== null);
   } else if (groupBy === "top_partners") {
@@ -259,6 +273,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       select: {
         id: true,
         name: true,
+        email: true,
         image: true,
         country: true,
         payoutsEnabledAt: true,

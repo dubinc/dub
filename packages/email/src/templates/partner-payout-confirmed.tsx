@@ -12,14 +12,15 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { addBusinessDays } from "date-fns";
+import { EnvironmentBanner } from "../components/environment-banner";
 import { Footer } from "../components/footer";
-import { PartnerPayoutMethod } from "../types";
+import { PartnerPayoutMethod, WorkspaceEnvironment } from "../types";
 
 const PAYOUT_METHOD_LABELS: Record<PartnerPayoutMethod, string> = {
   connect: "Stripe Express",
   stablecoin: "USDC wallet",
   paypal: "PayPal",
+  tremendous: "Gift card",
 } as const;
 
 // Send this email when the payout is confirmed when payment is send using ACH
@@ -29,6 +30,7 @@ export default function PartnerPayoutConfirmed({
     id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
     logo: DUB_WORDMARK,
+    environment: "production",
   },
   payout = {
     id: "po_8VuCr2i7WnG65d4TNgZO19fT",
@@ -46,6 +48,7 @@ export default function PartnerPayoutConfirmed({
     id: string;
     name: string;
     logo: string | null;
+    environment?: WorkspaceEnvironment;
   };
   payout: {
     id: string;
@@ -98,6 +101,7 @@ export default function PartnerPayoutConfirmed({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <EnvironmentBanner environment={program.environment} />
             <Section className="mt-8">
               <Img
                 src={program.logo || "https://assets.dub.co/wordmark.png"}
@@ -136,15 +140,10 @@ export default function PartnerPayoutConfirmed({
               (excluding weekends and public holidays).
             </Text>
 
-            {payout.initiatedAt && (
+            {payout.payoutMethod === "connect" && (
               <Text className="text-sm leading-6 text-neutral-600">
-                <span className="text-sm text-neutral-500">
-                  Estimated arrival date:{" "}
-                  <strong className="text-black">
-                    {formatDate(addBusinessDays(payout.initiatedAt, etaDays))}
-                  </strong>
-                  .
-                </span>
+                After it has been processed, it will be sent to your bank
+                account.
               </Text>
             )}
 

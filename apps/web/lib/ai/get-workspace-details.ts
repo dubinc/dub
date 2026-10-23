@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { tool } from "ai";
 import { z } from "zod";
 import { getSession } from "../auth/utils";

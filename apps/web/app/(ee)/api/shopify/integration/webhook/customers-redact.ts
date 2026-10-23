@@ -1,6 +1,6 @@
 import { generateRandomName } from "@/lib/names";
 import { createPlainThread } from "@/lib/plain/create-plain-thread";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
@@ -39,6 +39,7 @@ export async function customersRedact({
       data: {
         name: generateRandomName(),
         email: null,
+        normalizedEmail: null,
       },
     });
   } catch (error) {

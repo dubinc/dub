@@ -1,6 +1,12 @@
-import { prisma } from "@dub/prisma";
-import { Partner, Program } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { sleep } from "@dub/utils";
+import { Partner, Program } from "@prisma/client";
+
 import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { ToltApi } from "./api";
@@ -61,6 +67,10 @@ export async function importPartners(payload: ToltImportPayload) {
     }
 
     if (activeAffiliates.length > 0) {
+      // Filled as soon as each enrollment is saved, so a partner whose later
+      // step throws still reaches the search sync and the ban check.
+      const enrolledPartnerIds: string[] = [];
+
       const partnersPromise = await Promise.allSettled(
         activeAffiliates.map((affiliate) =>
           createPartner({
@@ -71,8 +81,11 @@ export async function importPartners(payload: ToltImportPayload) {
               saleRewardId: defaultGroup.saleRewardId,
               leadRewardId: defaultGroup.leadRewardId,
               clickRewardId: defaultGroup.clickRewardId,
+              customRewardId: defaultGroup.customRewardId,
+              referralRewardId: defaultGroup.referralRewardId,
               discountId: defaultGroup.discountId,
             },
+            enrolledPartnerIds,
           }),
         ),
       );
@@ -82,6 +95,18 @@ export async function importPartners(payload: ToltImportPayload) {
           (p): p is PromiseFulfilledResult<Partner> => p.status === "fulfilled",
         )
         .map((p) => p.value);
+
+      // Queue an index update because the imported partners were enrolled.
+      // Queued per page rather than per partner.
+      await queuePartnerSearchSync({
+        partnerIds: enrolledPartnerIds,
+        programId,
+      });
+
+      await detectAndRecordNetworkLevelBans({
+        programId,
+        partnerIds: enrolledPartnerIds,
+      });
 
       if (partners.length > 0) {
         await toltImporter.addPartners({
@@ -103,7 +128,7 @@ export async function importPartners(payload: ToltImportPayload) {
       );
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await sleep(2000);
 
     processedBatches++;
     startingAfter = affiliates[affiliates.length - 1].id;
@@ -121,6 +146,7 @@ async function createPartner({
   program,
   affiliate,
   defaultGroupAttributes,
+  enrolledPartnerIds,
 }: {
   program: Program;
   affiliate: ToltAffiliate;
@@ -129,8 +155,11 @@ async function createPartner({
     saleRewardId: string | null;
     leadRewardId: string | null;
     clickRewardId: string | null;
+    customRewardId: string | null;
+    referralRewardId: string | null;
     discountId: string | null;
   };
+  enrolledPartnerIds: string[];
 }) {
   const partner = await prisma.partner.upsert({
     where: {
@@ -148,13 +177,9 @@ async function createPartner({
     },
   });
 
-  await prisma.programEnrollment.upsert({
-    where: {
-      partnerId_programId: {
-        partnerId: partner.id,
-        programId: program.id,
-      },
-    },
+  const { enrollment, preservedBan } = await upsertImportedProgramEnrollment({
+    partnerId: partner.id,
+    programId: program.id,
     create: {
       id: createId({ prefix: "pge_" }),
       programId: program.id,
@@ -162,10 +187,15 @@ async function createPartner({
       status: "approved",
       ...defaultGroupAttributes,
     },
-    update: {
-      status: "approved",
-    },
   });
+
+  enrolledPartnerIds.push(partner.id);
+
+  if (!preservedBan) {
+    await approveLinkedApplication({
+      applicationId: enrollment.applicationId,
+    });
+  }
 
   return partner;
 }

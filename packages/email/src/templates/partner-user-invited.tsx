@@ -16,7 +16,7 @@ import { Footer } from "../components/footer";
 
 export default function PartnerUserInvited({
   email = "panic@thedis.co",
-  url = "http://localhost:8888/api/auth/callback/email?callbackUrl=http%3A%2F%2Fapp.localhost%3A3000%2Flogin&token=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&email=youremail@gmail.com",
+  url = "http://partners.localhost:8888/api/auth/callback/email?callbackUrl=http%3A%2F%2Fpartners.localhost%3A3000%2Flogin&token=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&email=youremail@gmail.com",
   partnerName = "Acme",
   partnerUser = "Brendon Urie",
   partnerUserEmail = "panic@thedis.co",

@@ -13,6 +13,16 @@ import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redire
 import { parse } from "./utils/parse";
 import { WorkspacesMiddleware } from "./workspaces";
 
+const isPublicPath = (path: string) =>
+  ["/marketplace"].some((p) => path === p) ||
+  [
+    "/marketplace/",
+    "/share/",
+    "/deeplink/",
+    "/unsubscribe/",
+    "/auth/reset-password/",
+  ].some((p) => path.startsWith(p));
+
 export async function AppMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsString } = parse(req);
 
@@ -22,16 +32,14 @@ export async function AppMiddleware(req: NextRequest) {
 
   const user = await getUserViaToken(req);
 
-  // if there's no user and the path isn't /login or /register, redirect to /login
+  // if there's no user and the path is not a public page, redirect to /login
   if (
     !user &&
     path !== "/login" &&
     path !== "/forgot-password" &&
     path !== "/register" &&
     path !== "/auth/saml" &&
-    !path.startsWith("/auth/reset-password/") &&
-    !path.startsWith("/share/") &&
-    !path.startsWith("/deeplink/")
+    !isPublicPath(path)
   ) {
     return NextResponse.redirect(
       new URL(
@@ -41,7 +49,7 @@ export async function AppMiddleware(req: NextRequest) {
     );
 
     // if there's a user
-  } else if (user) {
+  } else if (user && !isPublicPath(path)) {
     // /new is a special path that creates a new link (or workspace if the user doesn't have one yet)
     if (path === "/new") {
       return NewLinkMiddleware(req, user);
@@ -58,6 +66,7 @@ export async function AppMiddleware(req: NextRequest) {
       new Date(user.createdAt).getTime() >
         Date.now() - ONBOARDING_WINDOW_SECONDS * 1000 &&
       !["/onboarding", "/account"].some((p) => path.startsWith(p)) &&
+      path !== "/workspaces" &&
       !(await getDefaultWorkspace(user)) &&
       !(await hasPendingInvites({ req, user })) &&
       (await onboardingStepCache.get({ userId: user.id })) !== "completed"
@@ -87,7 +96,6 @@ export async function AppMiddleware(req: NextRequest) {
         "/",
         "/login",
         "/register",
-        "/workspaces",
         "/links",
         "/analytics",
         "/events",

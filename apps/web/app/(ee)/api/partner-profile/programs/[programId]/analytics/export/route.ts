@@ -1,7 +1,12 @@
-import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
-import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
-import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { convertToCSV } from "@/lib/analytics/utils";
+import {
+  exportAnalyticsToZip,
+  PARTNER_PROFILE_SKIP_ENDPOINTS,
+} from "@/lib/analytics/export-analytics-to-zip";
+import {
+  getFirstFilterValue,
+  hasExactlyOneLinkIdFilter,
+} from "@/lib/analytics/filter-helpers";
+import { formatPartnerAnalyticsForExport } from "@/lib/analytics/utils/format-analytics-export";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
@@ -10,20 +15,48 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
+import { nullifyAnalyticsSaleAmounts } from "@/lib/partners/hide-partner-revenue";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { parseFilterValue, toCentsNumber } from "@dub/utils";
-import JSZip from "jszip";
+
+export const maxDuration = 300;
 
 // GET /api/partner-profile/programs/[programId]/analytics/export – get export data for partner profile analytics
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { program, links, totalCommissions } =
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.partnerAnalyticsExport,
+      identifier: [partner.id, params.programId],
+    });
+
+    const { program, links, totalCommissions, partnerGroup } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId: params.programId,
         include: {
-          program: true,
-          links: true,
+          program: {
+            select: {
+              id: true,
+              workspaceId: true,
+              startedAt: true,
+              createdAt: true,
+            },
+          },
+          links: {
+            select: {
+              id: true,
+              domain: true,
+              key: true,
+            },
+          },
+          partnerGroup: {
+            select: {
+              revenueDataSharingDisabledAt: true,
+            },
+          },
         },
       });
 
@@ -38,7 +71,6 @@ export const GET = withPartnerProfile(
       });
     }
 
-    // Early return if partner has no links
     if (links.length === 0) {
       throw new DubApiError({
         code: "not_found",
@@ -51,7 +83,6 @@ export const GET = withPartnerProfile(
     const { linkId, domain, key } = parsedParams;
 
     if (linkId) {
-      // check to make sure all of the linkId.values are in the links
       if (
         !linkId.values.every((value) => links.some((link) => link.id === value))
       ) {
@@ -62,12 +93,10 @@ export const GET = withPartnerProfile(
       }
 
       if (linkId.sqlOperator === "NOT IN") {
-        // if using NOT IN operator, we need to include all links except the ones in the linkId.values
         const finalIncludedLinkIds = links
           .filter((link) => !linkId.values.includes(link.id))
           .map((link) => link.id);
 
-        // early return if no links are left
         if (finalIncludedLinkIds.length === 0) {
           throw new DubApiError({
             code: "not_found",
@@ -100,36 +129,31 @@ export const GET = withPartnerProfile(
       };
     }
 
-    const zip = new JSZip();
+    const dataAvailableFrom = program.startedAt ?? program.createdAt;
 
-    await Promise.all(
-      VALID_ANALYTICS_ENDPOINTS.map(async (endpoint) => {
-        // no need to fetch top links data if there's a link specified
-        // since this is just a single link
-        if (endpoint === "top_links" && linkId) return;
-        // skip clicks count
-        if (endpoint === "count") return;
+    const zipData = await exportAnalyticsToZip({
+      params: parsedParams,
+      workspaceId: program.workspaceId,
+      useComposite: true,
+      skipEndpoints: PARTNER_PROFILE_SKIP_ENDPOINTS,
+      skipTopLinksForSingleLink: hasExactlyOneLinkIdFilter(parsedParams.linkId),
+      formatRows: (rows) => {
+        const formatted = formatPartnerAnalyticsForExport(rows);
 
-        const response = await getAnalytics({
-          ...parsedParams,
-          workspaceId: program.workspaceId,
-          ...(parsedParams.linkId
-            ? { linkId: parsedParams.linkId }
-            : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
-              ? { partnerId: partner.id }
-              : { linkId: parseFilterValue(links.map((link) => link.id)) }),
-          dataAvailableFrom: program.startedAt ?? program.createdAt,
-          groupBy: endpoint,
-        });
-
-        if (!response || response.length === 0) return;
-
-        const csvData = convertToCSV(response);
-        zip.file(`${endpoint}.csv`, csvData);
+        return isPartnerRevenueHidden(partnerGroup)
+          ? nullifyAnalyticsSaleAmounts(formatted)
+          : formatted;
+      },
+      getAnalyticsParams: () => ({
+        includePartnerLinkTitle: true,
+        ...(parsedParams.linkId
+          ? { linkId: parsedParams.linkId }
+          : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
+            ? { partnerId: partner.id }
+            : { linkId: parseFilterValue(links.map((link) => link.id)) }),
       }),
-    );
-
-    const zipData = await zip.generateAsync({ type: "nodebuffer" });
+      getDataAvailableFrom: () => dataAvailableFrom,
+    });
 
     return new Response(zipData as unknown as BodyInit, {
       headers: {

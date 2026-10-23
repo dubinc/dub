@@ -1,9 +1,8 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalFailed from "@dub/email/templates/partner-payout-withdrawal-failed";
-import { prisma } from "@dub/prisma";
 import { log, pluralize, prettyPrint } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -19,11 +18,8 @@ const payloadSchema = z.object({
 });
 
 // POST /api/cron/payouts/payout-failed
-export async function POST(req: Request) {
+export const POST = withCron(async ({ rawBody }) => {
   try {
-    const rawBody = await req.text();
-    await verifyQstashSignature({ req, rawBody });
-
     const { stripeAccount, stripePayout } = payloadSchema.parse(
       JSON.parse(rawBody),
     );
@@ -86,6 +82,6 @@ export async function POST(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse(error);
+    throw error;
   }
-}
+});

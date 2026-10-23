@@ -1,13 +1,11 @@
 "use client";
 
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import useGroups from "@/lib/swr/use-groups";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CommissionResponse, FraudGroupCountByPartner } from "@/lib/types";
-import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
+import { CommissionResponse } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { useBulkEditCommissionsModal } from "@/ui/partners/bulk-edit-commissions-modal";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
@@ -21,9 +19,9 @@ import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
   Button,
-  ChartLine,
   EditColumnsButton,
   Filter,
+  LinesY,
   StatusBadge,
   Table,
   TimestampTooltip,
@@ -34,13 +32,12 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { MoneyBill2, Pen2 } from "@dub/ui/icons";
+import { MoneyBill2, Pen2, Trophy } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
   fetcher,
   formatDateTimeSmart,
-  nFormatter,
 } from "@dub/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -128,16 +125,6 @@ export function CommissionsTable() {
     },
   );
 
-  const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
-    query: {
-      groupBy: "partnerId",
-      status: "pending",
-    },
-    ignoreParams: true,
-  });
-
-  const { canManageFraudEvents } = getPlanCapabilities(workspace?.plan ?? "");
-
   const { openBulkEditCommissionsModal, BulkEditCommissionsModal } =
     useBulkEditCommissionsModal();
 
@@ -195,7 +182,7 @@ export function CommissionsTable() {
         },
         {
           id: "group",
-          header: "Group",
+          header: "Partner Group",
           cell: ({ row }) => {
             if (!groups) return "-";
 
@@ -208,9 +195,16 @@ export function CommissionsTable() {
             return (
               <div className="flex items-center gap-2">
                 <GroupColorCircle group={group} />
-                <span className="truncate text-sm font-medium">
+                <Link
+                  href={`/${slug}/program/groups/${group.slug}`}
+                  target="_blank"
+                  onClick={(e) => e.stopPropagation()}
+                  onAuxClick={(e) => e.stopPropagation()}
+                  className="min-w-0 cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+                  title={group.name}
+                >
                   {group.name}
-                </span>
+                </Link>
               </div>
             );
           },
@@ -230,11 +224,9 @@ export function CommissionsTable() {
         },
         {
           id: "amount",
-          header: "Amount",
+          header: "Sale Amount",
           accessorFn: (d) =>
-            d.type === "sale"
-              ? currencyFormatter(d.amount)
-              : nFormatter(d.quantity),
+            d.type === "sale" ? currencyFormatter(d.amount) : "-",
         },
         {
           id: "commission",
@@ -245,12 +237,13 @@ export function CommissionsTable() {
             const earnings = currencyFormatter(commission.earnings);
 
             if (commission.description) {
-              const reason =
-                CLAWBACK_REASONS_MAP[commission.description]?.description ??
-                commission.description;
-
               return (
-                <Tooltip content={reason}>
+                <Tooltip
+                  content={formatCommissionDescriptionTooltip(
+                    commission.description,
+                    { variant: "program", workspaceSlug: slug! },
+                  )}
+                >
                   <span
                     className={cn(
                       "cursor-help truncate underline decoration-dotted underline-offset-2",
@@ -279,18 +272,7 @@ export function CommissionsTable() {
           id: "status",
           header: "Status",
           cell: ({ row }) => {
-            const partnerHasPendingFraud = fraudGroupCount?.find(
-              ({ partnerId }) => partnerId === row.original.partner.id,
-            );
-
-            const status =
-              canManageFraudEvents &&
-              partnerHasPendingFraud &&
-              ["pending", "processed"].includes(row.original.status)
-                ? "hold"
-                : row.original.status;
-
-            const badge = CommissionStatusBadges[status];
+            const badge = CommissionStatusBadges[row.original.status];
 
             return (
               <StatusBadge
@@ -320,7 +302,7 @@ export function CommissionsTable() {
           cell: ({ row }) => <CommissionRowMenu row={row} />,
         },
       ].filter((c) => c.id === "menu" || commissionsColumns.all.includes(c.id)),
-    [slug, groups, program, workspace, fraudGroupCount],
+    [slug, groups, program, workspace],
   );
 
   const { table, ...tableProps } = useTable<CommissionResponse>({
@@ -341,7 +323,6 @@ export function CommissionsTable() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     onRowClick: (row, e) => {
       const url = `/${slug}/program/commissions/${row.original.id}`;
@@ -491,7 +472,7 @@ function CommissionsFilters() {
               <Button
                 variant="secondary"
                 className="w-fit"
-                icon={<ChartLine className="h-4 w-4 text-neutral-600" />}
+                icon={<LinesY className="h-4 w-4 text-neutral-600" />}
                 text={isMobile ? undefined : "View Analytics"}
               />
             </Link>
@@ -509,6 +490,12 @@ function CommissionsFilters() {
                     key: "payoutId",
                     icon: MoneyBill2,
                     label: "Payout",
+                    options: [],
+                  },
+                  {
+                    key: "bountySubmissionId",
+                    icon: Trophy,
+                    label: "Bounty submission",
                     options: [],
                   },
                 ]}

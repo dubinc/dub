@@ -3,8 +3,8 @@ import { validateScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { prisma } from "@/lib/prisma";
 import { tokenSchema, updateTokenSchema } from "@/lib/zod/schemas/token";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -21,17 +21,11 @@ export const GET = withWorkspace(
         name: true,
         partialKey: true,
         scopes: true,
+        expires: true,
         lastUsed: true,
         createdAt: true,
         updatedAt: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            isMachine: true,
-          },
-        },
+        user: true,
       },
     });
 

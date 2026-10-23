@@ -5,8 +5,8 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { CUTOFF_PERIOD } from "@/lib/partners/cutoff-period";
+import { prisma } from "@/lib/prisma";
 import { eligiblePayoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 /*
@@ -31,7 +31,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   if (cutoffPeriodValue) {
     const eligiblePayouts = await getEligiblePayouts({
       program,
-      workspace,
       cutoffPeriod,
       selectedPayoutIds,
       excludedPayoutIds,
@@ -48,7 +47,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const data = await prisma.payout.aggregate({
     where: {
       ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
-      ...getPayoutEligibilityFilter({ program, workspace }),
+      ...getPayoutEligibilityFilter({ program }),
     },
     _count: true,
     _sum: {

@@ -38,6 +38,7 @@ const prefixes = [
   "bnty_sub_", // bounty submission
   "wf_", // workflow
   "msg_", // message
+  "msa_", // message attachment
   "em_", // notification email,
   "cmp_", // campaign
   "fr_", // fraud rule
@@ -46,6 +47,7 @@ const prefixes = [
   "sbl_", // submitted lead
   "pb_", // partner postback
   "req_", // api request log
+  "job_", // background job
 ] as const;
 
 // ULID uses base32 encoding

@@ -1,8 +1,8 @@
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
-import { PartnerLinkStructure } from "@dub/prisma/client";
 import { LinkLogo } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
-import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
+import { cn, getApexDomain, getPrettyUrl, safeDecodeURIComponent } from "@dub/utils";
+import { PartnerLinkStructure } from "@prisma/client";
 import { useMemo } from "react";
 
 export function PartnerLinkPreview({
@@ -64,7 +64,9 @@ export function PartnerLinkPreview({
           {url ? (
             <>
               <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
-              <span className="truncate">{getPrettyUrl(url)}</span>
+              <span className="truncate">
+                {getPrettyUrl(safeDecodeURIComponent(url))}
+              </span>
             </>
           ) : (
             <div className="h-3 w-1/2 rounded-md bg-neutral-200" />

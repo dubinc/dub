@@ -9,14 +9,17 @@ import { PropsWithChildren } from "react";
 export type WebhookEventListProps = PropsWithChildren<{
   events: WebhookEventProps[];
   onEventClick: (event: WebhookEventProps) => void;
+  selectedEventId?: string | null;
 }>;
 
 const WebhookEventRow = ({
   event,
   onClick,
+  isSelected,
 }: {
   event: WebhookEventProps;
   onClick: () => void;
+  isSelected?: boolean;
 }) => {
   const isSuccess = event.http_status >= 200 && event.http_status < 300;
 
@@ -24,7 +27,9 @@ const WebhookEventRow = ({
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center justify-between gap-5 px-3.5 py-3 hover:bg-neutral-50 focus:outline-none"
+      className={`flex items-center justify-between gap-5 px-3.5 py-3 focus:outline-none ${
+        isSelected ? "bg-neutral-50" : "hover:bg-neutral-50"
+      }`}
     >
       <div className="flex items-center gap-5">
         <div className="flex items-center gap-2.5">
@@ -64,6 +69,7 @@ const WebhookEventRow = ({
 export const WebhookEventList = ({
   events,
   onEventClick,
+  selectedEventId,
 }: WebhookEventListProps) => {
   return (
     <div className="overflow-hidden rounded-md border border-neutral-200">
@@ -73,6 +79,7 @@ export const WebhookEventList = ({
             key={event.event_id}
             event={event}
             onClick={() => onEventClick(event)}
+            isSelected={selectedEventId === event.event_id}
           />
         ))}
       </div>

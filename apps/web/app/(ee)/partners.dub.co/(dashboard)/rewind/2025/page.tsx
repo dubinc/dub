@@ -1,11 +1,11 @@
 import { getPartnerRewind } from "@/lib/api/partners/get-partner-rewind";
 import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { PageContent } from "@/ui/layout/page-content";
 import {
   REWIND_ASSETS_PATH,
   REWIND_STEPS,
 } from "@/ui/partners/rewind/constants";
-import { prisma } from "@dub/prisma";
 import { Grid } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { redirect } from "next/navigation";

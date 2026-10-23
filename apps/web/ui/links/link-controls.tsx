@@ -20,7 +20,7 @@ import {
   QRCode,
   Trash,
 } from "@dub/ui/icons";
-import { cn, isDubDomain, nanoid } from "@dub/utils";
+import { cn, isDubDomain } from "@dub/utils";
 import { CopyPlus, FolderInput } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback } from "react";
@@ -119,7 +119,7 @@ export function LinkControls({
     // @ts-expect-error
     duplicateProps: {
       ...propsToDuplicate,
-      key: nanoid(7),
+      key: propsToDuplicate.key + "-copy",
       clicks: 0,
     },
   });
@@ -150,9 +150,9 @@ export function LinkControls({
 
   useKeyboardShortcut(
     options.map((o) => OPTIONS[o]),
-    (e) => {
+    (_, key) => {
       setOpenPopover(false);
-      switch (e.key) {
+      switch (key) {
         case "e":
           canManageLink && openLinkBuilder();
           break;

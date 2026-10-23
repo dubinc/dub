@@ -2,6 +2,7 @@ import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { ResourceCard } from "@/ui/partners/resources/resource-card";
 import { ResourceSection } from "@/ui/partners/resources/resource-section";
 import { FileContent, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/ui";
+import { Envelope } from "@dub/ui/icons";
 import {
   formatFileSize,
   getApexDomain,
@@ -52,11 +53,15 @@ export function ReferralsEmbedResources({
               resourceType="link"
               icon={
                 <div className="bg-bg-subtle flex size-full items-center justify-center">
-                  <img
-                    src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
-                    alt={link.name}
-                    className="size-6 rounded-full object-contain"
-                  />
+                  {link.url.startsWith("mailto:") ? (
+                    <Envelope className="text-content-emphasis size-4" />
+                  ) : (
+                    <img
+                      src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
+                      alt={link.name}
+                      className="size-6 rounded-full object-contain"
+                    />
+                  )}
                 </div>
               }
               title={link.name}

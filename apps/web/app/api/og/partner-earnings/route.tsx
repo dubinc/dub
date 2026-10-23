@@ -1,6 +1,4 @@
-import { getPartnerEarningsTimeseries } from "@/lib/api/partner-profile/get-partner-earnings-timeseries";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
 import { currencyFormatter, formatDate } from "@dub/utils";
 import { ImageResponse } from "next/og";
 import * as z from "zod/v4";
@@ -14,40 +12,36 @@ const BACKGROUND_IMAGES = {
   dark: "https://assets.dub.co/misc/partner-earnings-share-dark.jpg",
 };
 
-export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { programId, background, ...filters } =
-    getPartnerEarningsTimeseriesSchema
-      .extend({
-        programId: z.string(),
-        background: z.enum(["light", "dark"]).optional().default("light"),
-      })
-      .parse(searchParams);
+// the chart has at most about 120 points, so this limit only stops abuse
+const MAX_POINTS = 1000;
 
-  const [interSemibold, timeseries] = await Promise.all([
-    loadGoogleFont("Inter:wght@600"),
-    getPartnerEarningsTimeseries({
-      partnerId: partner.id,
-      programId,
-      filters,
-    }),
-  ]);
+// the share modal sends the chart values that it already shows, so the image needs no database query.
+// A partner can fake these values, which is fine for a share image.
+const querySchema = z.object({
+  background: z.enum(["light", "dark"]).optional().default("light"),
+  // the earnings of each period in cents, comma separated
+  earnings: z
+    .string()
+    // whole numbers only, so an empty value (e.g. "0,") does not become 0
+    .regex(/^(-?\d+(,-?\d+)*)?$/, "Earnings must be comma-separated integers.")
+    .optional()
+    .default("")
+    .transform((value) => (value ? value.split(",").map(Number) : []))
+    .pipe(z.array(z.number().int()).max(MAX_POINTS)),
+  // the start of the first and the last period
+  start: z.iso.datetime({ offset: true }).optional(),
+  end: z.iso.datetime({ offset: true }).optional(),
+});
 
-  const total = timeseries.reduce((acc, { earnings }) => acc + earnings, 0);
+export const GET = withPartnerProfile(async ({ searchParams }) => {
+  const { background, earnings, start, end } = querySchema.parse(searchParams);
 
-  const startLabel =
-    timeseries.length > 0
-      ? formatDate(new Date(timeseries[0].start), {
-          month: "short",
-          year: "numeric",
-        })
-      : "";
-  const endLabel =
-    timeseries.length > 0
-      ? formatDate(new Date(timeseries[timeseries.length - 1].start), {
-          month: "short",
-          year: "numeric",
-        })
-      : "";
+  const interSemibold = await loadGoogleFont("Inter:wght@600");
+
+  const total = earnings.reduce((acc, value) => acc + value, 0);
+
+  const startLabel = formatPeriodLabel(start);
+  const endLabel = formatPeriodLabel(end);
 
   const logoColor = background === "dark" ? "#ffffff" : "#000000";
 
@@ -96,7 +90,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
             </div>
 
             <div tw="flex mt-6" style={{ width: 1130, height: 430 }}>
-              <Chart data={timeseries} background={background} />
+              <Chart data={earnings} background={background} />
             </div>
 
             <div tw="flex justify-between mt-4">
@@ -157,11 +151,23 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   );
 });
 
+// the period start has the partner's offset (e.g. 2026-09-01T00:00:00.000+02:00), so format
+// its local date in UTC. Formatting the full time in UTC shows the day before for UTC+ offsets.
+function formatPeriodLabel(periodStart?: string) {
+  if (!periodStart) return "";
+
+  return formatDate(new Date(periodStart.slice(0, 10)), {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 function Chart({
   data,
   background,
 }: {
-  data: { start: string; earnings: number }[];
+  data: number[];
   background: "light" | "dark";
 }) {
   if (!data || data.length === 0) {
@@ -185,7 +191,7 @@ function Chart({
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
 
-  const maxEarnings = Math.max(...data.map((d) => d.earnings), 1);
+  const maxEarnings = Math.max(...data, 1);
 
   const scaleX = (index: number) =>
     padding.left + (chartWidth / (data.length - 1)) * index;
@@ -204,7 +210,7 @@ function Chart({
 
   if (data.length === 1) {
     const singleX = padding.left + chartWidth / 2;
-    const singleY = scaleY(data[0].earnings);
+    const singleY = scaleY(data[0]);
     return (
       <svg
         viewBox={`0 0 ${width} ${height}`}
@@ -216,9 +222,9 @@ function Chart({
   }
 
   const linePath = data
-    .map((d, index) => {
+    .map((value, index) => {
       const x = scaleX(index);
-      const y = scaleY(d.earnings);
+      const y = scaleY(value);
       return `${index === 0 ? "M" : "L"} ${x} ${y}`;
     })
     .join(" ");
@@ -226,7 +232,7 @@ function Chart({
   const areaPath = `${linePath} L ${scaleX(data.length - 1)} ${padding.top + chartHeight} L ${padding.left} ${padding.top + chartHeight} Z`;
 
   const lastX = scaleX(data.length - 1);
-  const lastY = scaleY(data[data.length - 1].earnings);
+  const lastY = scaleY(data[data.length - 1]);
 
   return (
     <svg

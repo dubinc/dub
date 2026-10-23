@@ -16,7 +16,7 @@ import {
 import { fetcher, nFormatter } from "@dub/utils";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -27,6 +27,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
+import { useImportModalParam } from "./use-import-modal-param";
 
 function ImportRebrandlyModal({
   showImportRebrandlyModal,
@@ -37,7 +38,6 @@ function ImportRebrandlyModal({
 }) {
   const router = useRouter();
   const { id: workspaceId, slug } = useWorkspace();
-  const searchParams = useSearchParams();
 
   const { folderId } = useCurrentFolderId();
 
@@ -77,13 +77,10 @@ function ImportRebrandlyModal({
   const [importing, setImporting] = useState(false);
 
   useEffect(() => {
-    if (searchParams?.get("import") === "rebrandly") {
+    if (showImportRebrandlyModal && domains !== null) {
       mutate();
-      setShowImportRebrandlyModal(true);
-    } else {
-      setShowImportRebrandlyModal(false);
     }
-  }, [searchParams]);
+  }, [showImportRebrandlyModal]);
 
   const isSelected = (domain: string) => {
     return selectedDomains.find((d) => d.domain === domain) ? true : false;
@@ -115,8 +112,8 @@ function ImportRebrandlyModal({
         </div>
         <h3 className="text-lg font-medium">Import Your Rebrandly Links</h3>
         <p className="text-center text-sm text-neutral-500">
-          Easily import all your existing Rebrandly links into{" "}
-          {process.env.NEXT_PUBLIC_APP_NAME} with just a few clicks.
+          Easily import all your existing Rebrandly links into Dub with just a
+          few clicks.
         </p>
       </div>
 
@@ -307,7 +304,7 @@ function ImportRebrandlyModal({
 
 export function useImportRebrandlyModal() {
   const [showImportRebrandlyModal, setShowImportRebrandlyModal] =
-    useState(false);
+    useImportModalParam("rebrandly");
 
   const ImportRebrandlyModalCallback = useCallback(() => {
     return (

@@ -5,7 +5,9 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getCustomers } from "@/lib/customers/api/get-customers";
+import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { generateRandomName } from "@/lib/names";
+import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import {
   createCustomerBodySchema,
@@ -14,7 +16,6 @@ import {
   getCustomersQuerySchemaExtended,
 } from "@/lib/zod/schemas/customers";
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
-import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -49,14 +50,8 @@ export const GET = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPermissions: ["customers.read"],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -79,6 +74,7 @@ export const POST = withWorkspace(
           id: customerId,
           name: finalCustomerName,
           email,
+          normalizedEmail: getNormalizedEmail(email),
           avatar: finalCustomerAvatar,
           externalId,
           stripeCustomerId,
@@ -135,14 +131,7 @@ export const POST = withWorkspace(
     }
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
-    requiredRoles: ["owner", "member"],
+    requiredPermissions: ["customers.write"],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

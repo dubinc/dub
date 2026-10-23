@@ -1,4 +1,3 @@
-const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
 const { withPlausibleProxy } = require("next-plausible");
 
 // Suppress specific external package warnings
@@ -28,7 +27,6 @@ module.exports = withPlausibleProxy({
   transpilePackages: [
     "prettier",
     "shiki",
-    "@dub/prisma",
     "@dub/email",
     "@boxyhq/saml-jackson",
   ],
@@ -59,8 +57,6 @@ module.exports = withPlausibleProxy({
             /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^aws-crt|^aws4$|^pg-native$|^mongodb-client-encryption$|^@sap\/hana-client$|^@sap\/hana-client\/extension\/Stream$|^snappy$|^react-native-sqlite-storage$|^bson-ext$|^cardinal$|^kerberos$|^hdb-pool$|^sql.js$|^sqlite3$|^better-sqlite3$|^ioredis$|^typeorm-aurora-data-api-driver$|^pg-query-stream$|^oracledb$|^mysql$|^snappy\/package\.json$|^cloudflare:sockets$)/,
         }),
       );
-
-      config.plugins = [...config.plugins, new PrismaPlugin()];
     }
 
     config.module = {
@@ -140,6 +136,17 @@ module.exports = withPlausibleProxy({
   async redirects() {
     return [
       {
+        source: "/api/:path*",
+        missing: [
+          {
+            type: "host",
+            value: ".*(\\.dub\\.co|localhost)",
+          },
+        ],
+        destination: "/",
+        permanent: false,
+      },
+      {
         source: "/",
         has: [
           {
@@ -160,42 +167,6 @@ module.exports = withPlausibleProxy({
           },
         ],
         destination: "https://app.dub.co/:path*",
-        permanent: true,
-        statusCode: 301,
-      },
-      {
-        source: "/",
-        has: [
-          {
-            type: "host",
-            value: "staging.dub.sh",
-          },
-        ],
-        destination: "https://dub.co",
-        permanent: true,
-        statusCode: 301,
-      },
-      {
-        source: "/",
-        has: [
-          {
-            type: "host",
-            value: "preview.dub.sh",
-          },
-        ],
-        destination: "https://preview.dub.co",
-        permanent: true,
-        statusCode: 301,
-      },
-      {
-        source: "/",
-        has: [
-          {
-            type: "host",
-            value: "admin.dub.sh",
-          },
-        ],
-        destination: "https://admin.dub.co",
         permanent: true,
         statusCode: 301,
       },

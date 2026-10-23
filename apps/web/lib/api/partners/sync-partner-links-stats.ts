@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { publishPartnerActivityEvent } from "@/lib/upstash/redis-streams/partner-activity";
-import { prisma } from "@dub/prisma";
 
 // syncs the total links stats for a partner in a program
 export const syncPartnerLinksStats = async ({
@@ -9,7 +9,7 @@ export const syncPartnerLinksStats = async ({
 }: {
   partnerId: string;
   programId: string;
-  eventType: "click" | "lead" | "sale";
+  eventType: "lead" | "sale";
 }) => {
   try {
     return await publishPartnerActivityEvent({

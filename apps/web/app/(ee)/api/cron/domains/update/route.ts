@@ -7,10 +7,10 @@ import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
-import { Link } from "@dub/prisma/client";
 import { linkConstructorSimple } from "@dub/utils";
+import { Link } from "@prisma/client";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
@@ -43,7 +43,12 @@ export async function POST(req: Request) {
     const linksToUpdate = await prisma.link.findMany({
       where: {
         domain: oldDomain,
-        ...(programId && { programId }),
+        ...(programId && {
+          programId,
+          key: {
+            not: "_root", // edge case, but don't update the root link (since there's already a link for it)
+          },
+        }),
       },
       take: LINK_BATCH_SIZE,
       ...(startingAfter && {
@@ -65,20 +70,18 @@ export async function POST(req: Request) {
 
     const linkIdsToUpdate = linksToUpdate.map((link) => link.id);
 
-    try {
-      await prisma.link.updateMany({
-        where: {
-          id: {
-            in: linkIdsToUpdate,
-          },
+    const { count } = await prisma.link.updateMany({
+      where: {
+        id: {
+          in: linkIdsToUpdate,
         },
-        data: {
-          domain: newDomain,
-        },
-      });
-    } catch (error) {
-      console.error(error);
-    }
+      },
+      data: {
+        domain: newDomain,
+      },
+    });
+
+    console.log(`Updated ${count} links for domain ${oldDomain}`);
 
     const updatedLinks = await prisma.link.findMany({
       where: {

@@ -1,7 +1,8 @@
+import { testIds } from "@/lib/e2e/test-ids";
 import { getSession } from "@/lib/auth";
 import { getPartnerPayoutMethods } from "@/lib/payouts/get-partner-payout-methods";
+import { prisma } from "@/lib/prisma";
 import { PayoutMethodSelector } from "@/ui/partners/payouts/payout-method-cards";
-import { prisma } from "@dub/prisma";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -65,6 +66,7 @@ async function PayoutRSC() {
       stripeRecipientId: true,
       paypalEmail: true,
       defaultPayoutMethod: true,
+      tremendousEmail: true,
     },
   });
 
@@ -80,9 +82,12 @@ async function PayoutRSC() {
 
   return (
     <>
-      <PayoutMethodSelector payoutMethods={payoutMethods} />
+      <PayoutMethodSelector
+        payoutMethods={payoutMethods.filter((m) => m.type !== "tremendous")} // hide gift card payouts in onboarding flow (even if connected)
+      />
       <Link
         href="/programs"
+        data-testid={testIds.partnerOnboarding.skip}
         className="mt-6 block text-center text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-800"
       >
         I'll complete this later

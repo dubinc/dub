@@ -1,17 +1,19 @@
+import { prisma } from "@/lib/prisma";
 import {
   campaignEventSchema,
   getCampaignsEventsQuerySchema,
 } from "@/lib/zod/schemas/campaigns";
-import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 
 interface GetCampaignEventsParams
   extends z.infer<typeof getCampaignsEventsQuerySchema> {
   campaignId: string;
+  programId: string;
 }
 
 export const getCampaignEvents = async ({
   campaignId,
+  programId,
   status,
   page = 1,
   pageSize,
@@ -37,6 +39,7 @@ export const getCampaignEvents = async ({
           name: true,
           image: true,
           programs: {
+            where: { programId },
             select: {
               partnerGroup: {
                 select: {
@@ -46,6 +49,7 @@ export const getCampaignEvents = async ({
                 },
               },
             },
+            take: 1,
           },
         },
       },

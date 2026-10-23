@@ -1,5 +1,5 @@
 import { createPlainThread } from "@/lib/plain/create-plain-thread";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { currencyFormatter } from "@dub/utils";
 import { ComponentDividerSpacingSize } from "@team-plain/typescript-sdk";
 import { tool } from "ai";
@@ -36,7 +36,13 @@ export function createSupportTicketTool(options: CreateSupportTicketOptions) {
             .filter((p) => p.type === "text")
             .map((p) => (p as { type: "text"; text: string }).text)
             .join("");
-          return `${msg.role === "user" ? "User" : "Dub Support"}: ${text}`;
+          const imageCount = msg.parts.filter((p) => p.type === "file").length;
+          const imageNote =
+            imageCount > 0
+              ? `(${imageCount} image${imageCount === 1 ? "" : "s"} attached)`
+              : "";
+          const body = [text, imageNote].filter(Boolean).join(" ");
+          return `${msg.role === "user" ? "User" : "Dub Support"}: ${body}`;
         })
         .join("\n\n");
 
@@ -218,7 +224,10 @@ async function getPriorityAndMetadata(
             ? { "Program Support Email": program.supportEmail }
             : {}),
           "Program Holding Period Days": holdingPeriodDays.toString(),
-          "Program Min Payout Amount": program.minPayoutAmount.toString(),
+          "Program Min Payout Amount": currencyFormatter(
+            program.minPayoutAmount,
+            { trailingZeroDisplay: "stripIfInteger" },
+          ),
           "Partner Lifetime Payouts": currencyFormatter(partnerLifetimePayouts),
         });
       }

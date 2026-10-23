@@ -1,10 +1,10 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import {
   fraudGroupQuerySchema,
   fraudGroupSchema,
 } from "@/lib/zod/schemas/fraud";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -39,6 +39,7 @@ export const GET = withWorkspace(
             name: true,
             email: true,
             image: true,
+            networkStatus: true,
           },
         },
         programEnrollment: {

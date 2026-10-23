@@ -1,16 +1,17 @@
+import { getOwnedLinkImageKey } from "@/lib/api/links/get-owned-link-image-key";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
+import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
-import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { deleteDiscountCodes } from "../../discounts/delete-discount-code";
 import { linkCache } from "./cache";
 import { includeProgramEnrollment } from "./include-program-enrollment";
 import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
 
 export async function deleteLink(linkId: string) {
-  const link = await prisma.link.delete({
+  const link = await prisma.link.findUniqueOrThrow({
     where: {
       id: linkId,
     },
@@ -19,22 +20,28 @@ export async function deleteLink(linkId: string) {
       ...includeProgramEnrollment,
       discountCode: {
         include: {
-          discount: {
-            select: {
-              provider: true,
-            },
-          },
+          discount: true,
         },
       },
     },
   });
 
+  if (link.discountCode) {
+    await deleteDiscountCodes([link.discountCode]);
+  }
+
+  await prisma.link.delete({
+    where: {
+      id: linkId,
+    },
+  });
+
+  const imageKey = getOwnedLinkImageKey(link.image, link.id);
+
   waitUntil(
     Promise.allSettled([
-      // if there's a valid image and it has the same link ID, delete it
-      link.image &&
-        link.image.startsWith(`${R2_URL}/images/${link.id}`) &&
-        storage.delete({ key: link.image.replace(`${R2_URL}/`, "") }),
+      // Delete the preview image only when it is this link's own object.
+      imageKey && storage.delete({ key: imageKey }),
 
       // Remove the link from Redis
       linkCache.delete(link),
@@ -54,7 +61,14 @@ export async function deleteLink(linkId: string) {
           },
         }),
 
-      link.discountCode && deleteDiscountCodes([link.discountCode]),
+      // Queue an index update because the link was deleted. The enrollment
+      // outlives it, so the document is re-serialized without it.
+      link.programId &&
+        link.partnerId &&
+        queuePartnerSearchSync({
+          partnerIds: [link.partnerId],
+          programId: link.programId,
+        }),
     ]),
   );
 

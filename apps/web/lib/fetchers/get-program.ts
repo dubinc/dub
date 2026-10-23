@@ -1,6 +1,6 @@
 import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
-import { prisma } from "@dub/prisma";
-import { Program, Reward } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Program, Reward } from "@prisma/client";
 import { cache } from "react";
 import { serializeReward } from "../api/partners/serialize-reward";
 import { DiscountProps, GroupWithFormDataProps, RewardProps } from "../types";
@@ -9,14 +9,29 @@ type Result = Program & {
   groups: GroupWithFormDataProps[];
 };
 
+// Partner pages serialize this loader to the client. Screening config stays on
+// the workspace program API.
+export function omitInternalProgramFields<
+  T extends {
+    applicationScreeningCriteria?: string | null;
+  },
+>(program: T) {
+  const {
+    applicationScreeningCriteria: _applicationScreeningCriteria,
+    ...publicProgram
+  } = program;
+
+  return publicProgram;
+}
+
 export const getProgram = cache(
   async ({ slug, groupSlug }: { slug: string; groupSlug?: string }) => {
     const programData = await prisma.program.findUnique({
       where: {
         slug,
       },
-      ...(groupSlug && {
-        include: {
+      include: {
+        ...(groupSlug && {
           groups: {
             where: {
               slug: groupSlug,
@@ -25,11 +40,12 @@ export const getProgram = cache(
               clickReward: true,
               leadReward: true,
               saleReward: true,
+              referralReward: true,
               discount: true,
             },
           },
-        },
-      }),
+        }),
+      },
     });
 
     if (!programData) {
@@ -39,7 +55,7 @@ export const getProgram = cache(
     // If no group slug is provided, return the program data with no rewards or discount
     if (!groupSlug) {
       return {
-        ...programData,
+        ...omitInternalProgramFields(programData),
         group: null,
         rewards: [],
         discount: null,
@@ -61,14 +77,19 @@ export const getProgram = cache(
       groupId: group.id,
     });
 
-    const rewards = [group.clickReward, group.leadReward, group.saleReward]
+    const rewards = [
+      group.clickReward,
+      group.leadReward,
+      group.saleReward,
+      group.referralReward,
+    ]
       .filter((r) => r !== null)
       .map((r) => serializeReward(r as Reward));
 
     const discount = group.discount;
 
     return {
-      ...program,
+      ...omitInternalProgramFields(program),
       group: {
         ...group,
         bounties,

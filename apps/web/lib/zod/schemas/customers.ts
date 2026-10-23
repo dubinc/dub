@@ -7,7 +7,7 @@ import {
   getPaginationQuerySchema,
 } from "./misc";
 import { PartnerSchema } from "./partners";
-import { centsSchema } from "./utils";
+import { centsSchema, parseDateSchema } from "./utils";
 
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;
 
@@ -29,7 +29,7 @@ export const getCustomersQuerySchema = z
       .string()
       .optional()
       .describe(
-        "A search query to filter customers by email, externalId, or name. If `email` or `externalId` is provided, this will be ignored.",
+        "A search query to filter customers by email, name, or customer ID (`cus_...`). If `email` or `externalId` is provided, this will be ignored.",
       ),
     country: z
       .string()
@@ -130,7 +130,45 @@ export const createCustomerBodySchema = z.object({
     ),
 });
 
-export const updateCustomerBodySchema = createCustomerBodySchema.partial();
+export const updateCustomerBodySchema = createCustomerBodySchema
+  .partial()
+  .extend({
+    subscriptionCanceledAt: parseDateSchema
+      .nullish()
+      .describe(
+        "The date the customer canceled their subscription. Set to a timestamp to mark the subscription as canceled, or `null` to clear it (e.g. if they resubscribe).",
+      ),
+  });
+
+export const reattributeCustomerBodySchema = z.object({
+  partnerId: z.string().describe("The partner to attribute this customer to."),
+  linkId: z
+    .string()
+    .describe("The partner referral link to attribute this customer to."),
+  createClawback: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "If the previous partner was already paid, create a clawback for those earnings and recreate commissions for the new partner.",
+    ),
+});
+
+export const reattributeCustomerWorkflowSchema = z.object({
+  workspaceId: z.string(),
+  programId: z.string(),
+  oldCustomerId: z.string(),
+  newCustomerId: z.string(),
+  oldLinkId: z.string().nullable(),
+  newLinkId: z.string(),
+  oldPartnerId: z.string().nullable(),
+  newPartnerId: z.string(),
+  oldClickId: z.string().nullable(),
+  newClickId: z.string(),
+  createClawback: z.boolean(),
+  incrementConversions: z.boolean(),
+  decrementConversions: z.boolean(),
+});
 
 // used in webhook responses + regular /customers endpoints (without expanded fields)
 export const CustomerSchema = z.object({
@@ -139,7 +177,7 @@ export const CustomerSchema = z.object({
     .describe(
       "The unique ID of the customer. You may use either the customer's `id` on Dub (obtained via `/customers` endpoint) or their `externalId` (unique ID within your system, prefixed with `ext_`, e.g. `ext_123`).",
     ),
-  name: z.string().describe("Name of the customer."),
+  name: z.string().nullish().describe("Name of the customer."),
   email: z.string().nullish().describe("Email of the customer."),
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
   externalId: z
@@ -375,7 +413,12 @@ export const customersExportQuerySchema = getCustomersQuerySchema
       .string()
       .optional()
       .default(CUSTOMER_EXPORT_DEFAULT_COLUMNS.join(","))
-      .transform((v) => v.split(","))
+      .transform((v) =>
+        v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      )
       .refine(
         (columns) => {
           const validColumnIds = CUSTOMER_EXPORT_COLUMNS.map((col) => col.id);

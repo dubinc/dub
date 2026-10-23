@@ -1,5 +1,5 @@
 import { removeDomainFromVercel } from "@/lib/api/domains/remove-domain-vercel";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   DeleteWorkspacePayload,
   enqueueNextWorkspaceDeleteStep,

@@ -2,13 +2,13 @@
 
 import { AdminNetworkPartner } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { PartnerAbout } from "@/ui/partners/partner-about";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PartnerInfoCards } from "@/ui/partners/partner-info-cards";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { X } from "@/ui/shared/icons";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import {
   Button,
   ChevronLeft,
@@ -23,9 +23,12 @@ import {
   Users,
 } from "@dub/ui";
 import { cn, COUNTRIES, currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
+import { NetworkIdentityVerification } from "./identity-verification";
+import { NetworkBan } from "./network-ban";
 import { NetworkPartnerChangeHistory } from "./network-partner-change-history";
 
 type NetworkPartnerSheetTabId = "about" | "programs" | "duplicates";
@@ -55,6 +58,8 @@ export function NetworkPartnerApplicationSheet({
   onPrevious,
   onNext,
   onReview,
+  onUpdateCountry,
+  onNetworkBanChange,
 }: {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
@@ -65,13 +70,39 @@ export function NetworkPartnerApplicationSheet({
     partner: AdminNetworkPartner,
     status: "approved" | "rejected" | "draft",
   ) => Promise<void>;
+  onUpdateCountry: (
+    partner: AdminNetworkPartner,
+    country: string,
+  ) => Promise<void>;
+  onNetworkBanChange: () => Promise<void>;
 }) {
   const [currentTabId, setCurrentTabId] =
     useState<NetworkPartnerSheetTabId>("about");
+  const [selectedCountry, setSelectedCountry] = useState(partner.country ?? "");
+  const [isUpdatingCountry, setIsUpdatingCountry] = useState(false);
   const { queryParams } = useRouterStuff();
 
   const showRevertToDraftInsteadOfReject =
     isDirectDraftToApprovedNetworkApproval(partner);
+  const isCountryChanged =
+    selectedCountry.length > 0 && selectedCountry !== partner.country;
+
+  useEffect(() => {
+    setSelectedCountry(partner.country ?? "");
+  }, [partner.country, partner.id]);
+
+  const handleUpdateCountry = async () => {
+    if (!isCountryChanged || isUpdatingCountry) {
+      return;
+    }
+
+    setIsUpdatingCountry(true);
+    try {
+      await onUpdateCountry(partner, selectedCountry);
+    } finally {
+      setIsUpdatingCountry(false);
+    }
+  };
 
   const PartnerDetails = (
     <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
@@ -131,6 +162,35 @@ export function NetworkPartnerApplicationSheet({
     confirmShortcutOptions: { sheet: true, modal: true },
   });
 
+  const {
+    setShowConfirmModal: setShowUpdateCountryConfirm,
+    confirmModal: updateCountryModal,
+  } = useConfirmModal({
+    title: "Update partner country",
+    description: (
+      <div className="space-y-2">
+        <p className="text-sm text-neutral-600">
+          Change country from{" "}
+          <span className="font-medium text-neutral-900">
+            {partner.country ? COUNTRIES[partner.country] : "Unknown"}
+          </span>{" "}
+          to{" "}
+          <span className="font-medium text-neutral-900">
+            {selectedCountry ? COUNTRIES[selectedCountry] : "Unknown"}
+          </span>
+          ?
+        </p>
+        <p className="text-xs text-neutral-500">
+          This will reset the connected Stripe account and payout settings.
+        </p>
+      </div>
+    ),
+    confirmText: "Update country",
+    onConfirm: async () => {
+      await handleUpdateCountry();
+    },
+  });
+
   useKeyboardShortcut(
     "ArrowRight",
     () => {
@@ -153,14 +213,14 @@ export function NetworkPartnerApplicationSheet({
 
   useKeyboardShortcut("a", () => setShowApproveConfirm(true), {
     sheet: true,
-    enabled: !["approved", "trusted"].includes(partner.networkStatus),
+    enabled: !["approved", "trusted", "banned"].includes(partner.networkStatus),
   });
 
   useKeyboardShortcut("r", () => setShowRejectConfirm(true), {
     sheet: true,
     enabled:
       !showRevertToDraftInsteadOfReject &&
-      !["rejected", "trusted"].includes(partner.networkStatus),
+      !["rejected", "trusted", "banned"].includes(partner.networkStatus),
   });
 
   useKeyboardShortcut("r", () => setShowRevertToDraftConfirm(true), {
@@ -172,7 +232,7 @@ export function NetworkPartnerApplicationSheet({
     <Sheet
       open={isOpen}
       onOpenChange={setIsOpen}
-      onClose={() => queryParams({ del: "partnerId", scroll: false })}
+      onClose={() => queryParams({ del: "partnerId" })}
       contentProps={{
         className: "md:w-[max(min(calc(100vw-334px),1170px),540px)]",
       }}
@@ -180,6 +240,7 @@ export function NetworkPartnerApplicationSheet({
       {approveModal}
       {rejectModal}
       {revertToDraftModal}
+      {updateCountryModal}
 
       <div className="flex size-full flex-col">
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
@@ -215,20 +276,49 @@ export function NetworkPartnerApplicationSheet({
           </div>
         </div>
 
-        <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-4 sm:p-6">
-          <div className="@3xl/sheet:order-2 @3xl/sheet:sticky @3xl/sheet:top-0 @3xl/sheet:self-start space-y-4">
+        <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] @3xl/sheet:grid-rows-[minmax(0,1fr)] @3xl/sheet:overflow-hidden scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-4 sm:p-6">
+          <div className="@3xl/sheet:order-2 @3xl/sheet:min-h-0 @3xl/sheet:overflow-y-auto scrollbar-hide space-y-4">
             <PartnerInfoCards
               type="admin"
               partner={partner}
               showApplicationRiskAnalysis
             />
-            <ScrollContainer className="@3xl/sheet:max-h-[50dvh] @3xl/sheet:pr-1">
+            <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+              <h3 className="text-sm font-medium text-neutral-900">Country</h3>
+              <p className="mt-1 text-xs text-neutral-500">
+                Updating country clears connected Stripe account and may trigger
+                reverification.
+              </p>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-start">
+                <div className="min-w-0 grow">
+                  <CountryCombobox
+                    value={selectedCountry}
+                    onChange={setSelectedCountry}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  text="Update"
+                  className="w-full shrink-0 sm:mt-1.5 sm:w-fit"
+                  loading={isUpdatingCountry}
+                  onClick={() => setShowUpdateCountryConfirm(true)}
+                  disabled={!isCountryChanged || isUpdatingCountry}
+                />
+              </div>
+            </div>
+            <div className="overflow-x-hidden">
+              <NetworkIdentityVerification partner={partner} />
+            </div>
+            <div className="overflow-x-hidden">
+              <NetworkBan partner={partner} onChange={onNetworkBanChange} />
+            </div>
+            <div className="overflow-x-hidden">
               <NetworkPartnerChangeHistory
                 changeHistoryLog={partner.changeHistoryLog}
               />
-            </ScrollContainer>
+            </div>
           </div>
-          <div className="@3xl/sheet:order-1">
+          <div className="@3xl/sheet:order-1 @3xl/sheet:min-h-0 @3xl/sheet:overflow-y-auto scrollbar-hide">
             <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
               <NetworkPartnerSheetTabs
                 currentTabId={currentTabId}
@@ -243,13 +333,13 @@ export function NetworkPartnerApplicationSheet({
                   </div>
                 )}
                 {currentTabId === "programs" && (
-                  <ScrollContainer className="@3xl/sheet:max-h-[72dvh]">
+                  <ScrollContainer>
                     <NetworkPartnerProgramPerformance partner={partner} />
                   </ScrollContainer>
                 )}
                 {currentTabId === "duplicates" &&
                   partner.duplicatePartnerAccounts.length > 0 && (
-                    <ScrollContainer className="@3xl/sheet:max-h-[72dvh]">
+                    <ScrollContainer>
                       <NetworkPartnerDuplicateAccounts
                         duplicatePartnerAccounts={
                           partner.duplicatePartnerAccounts
@@ -282,7 +372,9 @@ export function NetworkPartnerApplicationSheet({
                 shortcut="R"
                 onClick={() => setShowRejectConfirm(true)}
                 disabledTooltip={
-                  ["rejected", "trusted"].includes(partner.networkStatus)
+                  ["rejected", "trusted", "banned"].includes(
+                    partner.networkStatus,
+                  )
                     ? `Cannot reject a ${partner.networkStatus} partner.`
                     : undefined
                 }
@@ -296,7 +388,9 @@ export function NetworkPartnerApplicationSheet({
               shortcut="A"
               onClick={() => setShowApproveConfirm(true)}
               disabledTooltip={
-                ["approved", "trusted"].includes(partner.networkStatus)
+                ["approved", "trusted", "banned"].includes(
+                  partner.networkStatus,
+                )
                   ? `Cannot approve a ${partner.networkStatus} partner.`
                   : undefined
               }

@@ -2,7 +2,7 @@ import {
   workflowActionSchema,
   workflowConditionSchema,
 } from "@/lib/zod/schemas/workflows";
-import { Workflow } from "@dub/prisma/client";
+import { Workflow } from "@prisma/client";
 import * as z from "zod/v4";
 
 export function parseWorkflowConfig(
@@ -15,16 +15,17 @@ export function parseWorkflowConfig(
   const actions = z.array(workflowActionSchema).parse(workflow.actions);
 
   if (conditions.length === 0) {
-    throw new Error("No conditions found in workflow.");
+    throw new Error(
+      `[Workflows] No conditions found in workflow ${workflow.id}.`,
+    );
   }
 
   if (actions.length === 0) {
-    throw new Error("No actions found in workflow.");
+    throw new Error(`[Workflows] No actions found in workflow ${workflow.id}.`);
   }
 
   return {
     conditions,
-    condition: conditions[0],
     action: actions[0],
   };
 }

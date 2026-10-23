@@ -2,12 +2,12 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
+import { prisma } from "@/lib/prisma";
 import {
   getPartnerUsersQuerySchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
-import { PartnerRole } from "@dub/prisma/client";
+import { PartnerRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -40,6 +40,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     },
     include: {
       user: true,
+    },
+    orderBy: {
+      createdAt: "asc",
     },
   });
 
@@ -151,6 +154,13 @@ export const DELETE = withPartnerProfile(
               partnerId: partner.id,
             },
           },
+          include: {
+            user: {
+              select: {
+                defaultPartnerId: true,
+              },
+            },
+          },
         }),
 
         tx.partnerUser.count({
@@ -186,11 +196,24 @@ export const DELETE = withPartnerProfile(
         });
       }
 
-      return tx.partnerUser.delete({
+      const deletedPartnerUser = await tx.partnerUser.delete({
         where: {
           id: userToRemove.id,
         },
       });
+
+      if (userToRemove.user.defaultPartnerId === partner.id) {
+        await tx.user.update({
+          where: {
+            id: userId,
+          },
+          data: {
+            defaultPartnerId: null,
+          },
+        });
+      }
+
+      return deletedPartnerUser;
     });
 
     return NextResponse.json(response);
