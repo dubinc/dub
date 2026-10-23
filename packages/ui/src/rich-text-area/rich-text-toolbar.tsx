@@ -1,6 +1,12 @@
 import { cn, isSafeLinkHref } from "@dub/utils";
 import { useEditorState } from "@tiptap/react";
-import { ReactNode, forwardRef, useRef } from "react";
+import {
+  ButtonHTMLAttributes,
+  MouseEventHandler,
+  ReactNode,
+  forwardRef,
+  useRef,
+} from "react";
 import { toast } from "sonner";
 import {
   AtSign,
@@ -18,6 +24,7 @@ import {
   TextItalic,
   TextStrike,
 } from "../icons";
+import { IconTooltip, IconTooltipProvider } from "./icon-tooltip";
 import { useRichTextContext } from "./rich-text-provider";
 
 export function RichTextToolbar({
@@ -51,147 +58,151 @@ export function RichTextToolbar({
   const inputImageRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div
-      className={cn(
-        "flex gap-1",
-        isUploading && "pointer-events-none opacity-50",
-        className,
-      )}
-    >
-      {toolsStart}
+    <IconTooltipProvider>
+      <div
+        className={cn(
+          "flex gap-1",
+          isUploading && "pointer-events-none opacity-50",
+          className,
+        )}
+      >
+        {toolsStart}
 
-      {features?.includes("bold") && (
-        <RichTextToolbarButton
-          icon={TextBold}
-          label="Bold"
-          isActive={editorState?.isBold}
-          onClick={() => editor?.chain().focus().toggleBold().run()}
-        />
-      )}
-      {features?.includes("italic") && (
-        <RichTextToolbarButton
-          icon={TextItalic}
-          label="Italic"
-          isActive={editorState?.isItalic}
-          onClick={() => editor?.chain().focus().toggleItalic().run()}
-        />
-      )}
-      {features?.includes("strike") && (
-        <RichTextToolbarButton
-          icon={TextStrike}
-          label="Strikethrough"
-          isActive={editorState?.isStrike}
-          onClick={() => editor?.chain().focus().toggleStrike().run()}
-        />
-      )}
-      {features?.includes("headings") && (
-        <>
+        {features?.includes("bold") && (
           <RichTextToolbarButton
-            icon={Heading1}
-            label="Heading 1"
-            isActive={editorState?.isHeading1}
+            icon={TextBold}
+            label="Bold"
+            isActive={editorState?.isBold}
+            onClick={() => editor?.chain().focus().toggleBold().run()}
+          />
+        )}
+        {features?.includes("italic") && (
+          <RichTextToolbarButton
+            icon={TextItalic}
+            label="Italic"
+            isActive={editorState?.isItalic}
+            onClick={() => editor?.chain().focus().toggleItalic().run()}
+          />
+        )}
+        {features?.includes("strike") && (
+          <RichTextToolbarButton
+            icon={TextStrike}
+            label="Strikethrough"
+            isActive={editorState?.isStrike}
+            onClick={() => editor?.chain().focus().toggleStrike().run()}
+          />
+        )}
+        {features?.includes("headings") && (
+          <>
+            <RichTextToolbarButton
+              icon={Heading1}
+              label="Heading 1"
+              isActive={editorState?.isHeading1}
+              onClick={() =>
+                editor?.chain().focus().toggleHeading({ level: 1 }).run()
+              }
+            />
+            <RichTextToolbarButton
+              icon={Heading2}
+              label="Heading 2"
+              isActive={editorState?.isHeading2}
+              onClick={() =>
+                editor?.chain().focus().toggleHeading({ level: 2 }).run()
+              }
+            />
+          </>
+        )}
+        {features?.includes("lists") && (
+          <>
+            <RichTextToolbarButton
+              icon={BulletList}
+              label="Bullet list"
+              isActive={editorState?.isBulletList}
+              onClick={() => editor?.chain().focus().toggleBulletList().run()}
+            />
+            <RichTextToolbarButton
+              icon={NumberedList}
+              label="Numbered list"
+              isActive={editorState?.isOrderedList}
+              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+            />
+          </>
+        )}
+        {features?.includes("tables") && (
+          <RichTextToolbarButton
+            icon={TableIcon}
+            label="Table"
+            isActive={false}
             onClick={() =>
-              editor?.chain().focus().toggleHeading({ level: 1 }).run()
+              editor
+                ?.chain()
+                .focus()
+                .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                .run()
             }
           />
+        )}
+        {features?.includes("quote") && (
           <RichTextToolbarButton
-            icon={Heading2}
-            label="Heading 2"
-            isActive={editorState?.isHeading2}
-            onClick={() =>
-              editor?.chain().focus().toggleHeading({ level: 2 }).run()
-            }
+            icon={Quote}
+            label="Quote"
+            isActive={editorState?.isBlockquote}
+            onClick={() => editor?.chain().focus().toggleBlockquote().run()}
           />
-        </>
-      )}
-      {features?.includes("lists") && (
-        <>
+        )}
+        {features?.includes("code") && (
           <RichTextToolbarButton
-            icon={BulletList}
-            label="Bullet list"
-            isActive={editorState?.isBulletList}
-            onClick={() => editor?.chain().focus().toggleBulletList().run()}
+            icon={Code}
+            label="Inline code"
+            isActive={editorState?.isCode}
+            onClick={() => editor?.chain().focus().toggleCode().run()}
           />
+        )}
+        {features?.includes("links") && <LinkButton />}
+        {features?.includes("variables") && (
           <RichTextToolbarButton
-            icon={NumberedList}
-            label="Numbered list"
-            isActive={editorState?.isOrderedList}
-            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-          />
-        </>
-      )}
-      {features?.includes("tables") && (
-        <RichTextToolbarButton
-          icon={TableIcon}
-          label="Table"
-          isActive={false}
-          onClick={() =>
-            editor
-              ?.chain()
-              .focus()
-              .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-              .run()
-          }
-        />
-      )}
-      {features?.includes("quote") && (
-        <RichTextToolbarButton
-          icon={Quote}
-          label="Quote"
-          isActive={editorState?.isBlockquote}
-          onClick={() => editor?.chain().focus().toggleBlockquote().run()}
-        />
-      )}
-      {features?.includes("code") && (
-        <RichTextToolbarButton
-          icon={Code}
-          label="Inline code"
-          isActive={editorState?.isCode}
-          onClick={() => editor?.chain().focus().toggleCode().run()}
-        />
-      )}
-      {features?.includes("links") && <LinkButton />}
-      {features?.includes("variables") && (
-        <RichTextToolbarButton
-          icon={AtSign}
-          label="Variable"
-          isActive={false}
-          onClick={() => {
-            if (editor?.state.selection.$from.nodeBefore?.text?.endsWith("@")) {
-              editor?.commands.focus();
-              return;
-            }
-            editor?.chain().focus().insertContent("@").run();
-          }}
-        />
-      )}
-
-      {features?.includes("images") && handleImageUpload && editor && (
-        <>
-          <input
-            ref={inputImageRef}
-            type="file"
-            accept={imageAccept}
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-
-              handleImageUpload(file, editor, editor.state.selection.anchor);
-              e.target.value = "";
+            icon={AtSign}
+            label="Variable"
+            isActive={false}
+            onClick={() => {
+              if (
+                editor?.state.selection.$from.nodeBefore?.text?.endsWith("@")
+              ) {
+                editor?.commands.focus();
+                return;
+              }
+              editor?.chain().focus().insertContent("@").run();
             }}
           />
-          <RichTextToolbarButton
-            icon={ImageIcon}
-            label="Image"
-            isActive={false}
-            onClick={() => inputImageRef.current?.click()}
-          />
-        </>
-      )}
+        )}
 
-      {toolsEnd}
-    </div>
+        {features?.includes("images") && handleImageUpload && editor && (
+          <>
+            <input
+              ref={inputImageRef}
+              type="file"
+              accept={imageAccept}
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+
+                handleImageUpload(file, editor, editor.state.selection.anchor);
+                e.target.value = "";
+              }}
+            />
+            <RichTextToolbarButton
+              icon={ImageIcon}
+              label="Image"
+              isActive={false}
+              onClick={() => inputImageRef.current?.click()}
+            />
+          </>
+        )}
+
+        {toolsEnd}
+      </div>
+    </IconTooltipProvider>
   );
 }
 
@@ -273,9 +284,9 @@ type RichTextToolbarButtonProps = {
   icon: Icon;
   label?: string;
   isActive?: boolean;
-  onClick?: () => void;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
   disabled?: boolean;
-};
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onClick" | "disabled">;
 
 export const RichTextToolbarButton = forwardRef<
   HTMLButtonElement,
@@ -288,26 +299,34 @@ export const RichTextToolbarButton = forwardRef<
       isActive,
       onClick,
       disabled,
+      className,
+      ...rest
     }: RichTextToolbarButtonProps,
     ref,
   ) => {
-    return (
+    const button = (
       <button
+        {...rest}
         ref={ref}
         type="button"
         onClick={onClick}
         disabled={disabled}
+        aria-label={label}
         className={cn(
           "flex size-8 items-center justify-center rounded-md transition-colors duration-150 disabled:opacity-50",
           isActive
             ? "bg-neutral-200"
             : "hover:bg-neutral-50 active:bg-neutral-100",
+          className,
         )}
-        title={label}
       >
         <Icon className="size-4 shrink-0 text-neutral-700" />
         {label && <span className="sr-only">{label}</span>}
       </button>
     );
+
+    if (!label) return button;
+
+    return <IconTooltip label={label}>{button}</IconTooltip>;
   },
 );

@@ -24,6 +24,7 @@ import { configureCampaignEditorImage } from "./campaign-editor-image";
 import { RichTextLinkHoverTooltip } from "./link-hover-tooltip";
 import { RichTextLinkModal } from "./link-modal";
 import { TableHoverControls } from "./table-hover-controls";
+import { deleteTableStructureOnKey } from "./table-keyboard";
 import { RichTextVariableInfo, suggestions } from "./variables";
 
 export const PROSE_STYLES = {
@@ -415,6 +416,20 @@ export const RichTextProvider = forwardRef<
             ),
           );
           return true;
+        },
+        handleKeyDown: (view, event) => {
+          if (editorProps?.handleKeyDown?.(view, event)) return true;
+
+          const currentEditor = editorRef.current;
+          if (
+            currentEditor &&
+            features.includes("tables") &&
+            deleteTableStructureOnKey(currentEditor, event)
+          ) {
+            return true;
+          }
+
+          return false;
         },
         handleClick: (view, pos, event) => {
           if (editorProps?.handleClick?.(view, pos, event)) return true;
