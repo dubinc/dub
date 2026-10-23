@@ -10,6 +10,7 @@ import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
 import { getOwnedLinkImageKey } from "@/lib/api/links/get-owned-link-image-key";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { partnerRemovalOverrides } from "@/lib/api/links/partner-removal";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { checkIfLinksHaveFolders } from "@/lib/api/links/utils/check-if-links-have-folders";
 import { checkIfLinksHaveProgramPartners } from "@/lib/api/links/utils/check-if-links-have-program-partners";
@@ -507,6 +508,8 @@ export const PATCH = withWorkspace(
       }
     }
 
+    const removal = partnerRemovalOverrides(data);
+
     const processedLinks = await Promise.all(
       links.map(async (link) =>
         processLink({
@@ -527,6 +530,7 @@ export const PATCH = withWorkspace(
                 ? link.testStartedAt.toISOString()
                 : link.testStartedAt,
             ...data,
+            ...removal,
           },
           workspace,
           userId: link.userId ?? undefined,
@@ -557,6 +561,7 @@ export const PATCH = withWorkspace(
             linkIds: validLinkIds,
             data: {
               ...data,
+              ...removal,
               tagIds,
               expiresAt,
             },

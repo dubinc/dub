@@ -7,6 +7,10 @@ import {
   formatDate,
   formatDateTimeSmart,
 } from "@dub/utils";
+import {
+  PartnerNetworkStatus,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { uiComponent } from "@team-plain/typescript-sdk";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -17,6 +21,32 @@ import {
   plainSpacer,
   plainUsageSection,
 } from "../utils";
+
+const NETWORK_STATUS_BADGE: Record<
+  PartnerNetworkStatus,
+  { label: string; color: "GREY" | "GREEN" | "YELLOW" | "RED" | "BLUE" }
+> = {
+  draft: { label: "Draft", color: "GREY" },
+  submitted: { label: "Submitted", color: "YELLOW" },
+  approved: { label: "Approved", color: "GREEN" },
+  rejected: { label: "Rejected", color: "RED" },
+  trusted: { label: "Trusted", color: "BLUE" },
+  banned: { label: "Banned", color: "RED" },
+};
+
+const ENROLLMENT_STATUS_BADGE: Record<
+  ProgramEnrollmentStatus,
+  { label: string; color: "GREY" | "GREEN" | "YELLOW" | "RED" | "BLUE" }
+> = {
+  pending: { label: "Pending", color: "YELLOW" },
+  approved: { label: "Approved", color: "GREEN" },
+  rejected: { label: "Rejected", color: "RED" },
+  invited: { label: "Invited", color: "BLUE" },
+  declined: { label: "Declined", color: "GREY" },
+  deactivated: { label: "Deactivated", color: "GREY" },
+  banned: { label: "Banned", color: "RED" },
+  archived: { label: "Archived", color: "GREY" },
+};
 
 export async function POST(req: NextRequest) {
   // authenticate webhook X-Plain-Webhook-Secret
@@ -71,6 +101,7 @@ export async function POST(req: NextRequest) {
             },
           },
           createdAt: true,
+          status: true,
           totalCommissions: true,
         },
         where: {
@@ -107,6 +138,7 @@ export async function POST(req: NextRequest) {
     stripeConnectId,
     paypalEmail,
     payoutsEnabledAt,
+    networkStatus,
   } = partnerProfile;
 
   await plain.addCustomerToCustomerGroups({
@@ -152,6 +184,20 @@ export async function POST(req: NextRequest) {
               uiComponent.badge({
                 label: country ? COUNTRIES[country] : "Unknown",
                 color: "GREY",
+              }),
+            ],
+          }),
+          plainSpacer,
+          uiComponent.row({
+            mainContent: [
+              uiComponent.text({
+                text: "Network Status",
+              }),
+            ],
+            asideContent: [
+              uiComponent.badge({
+                label: NETWORK_STATUS_BADGE[networkStatus].label,
+                color: NETWORK_STATUS_BADGE[networkStatus].color,
               }),
             ],
           }),
@@ -261,12 +307,12 @@ export async function POST(req: NextRequest) {
             ? [
                 plainDivider,
                 ...partnerProfile.programs.flatMap(
-                  ({ program, createdAt, totalCommissions }) => [
+                  ({ program, createdAt, status, totalCommissions }) => [
                     plainUsageSection({
                       usage: currencyFormatter(totalCommissions),
                       label: program.name,
-                      sublabel: `Partner since ${formatDate(createdAt)}`,
-                      color: "GREEN",
+                      sublabel: `${ENROLLMENT_STATUS_BADGE[status].label} · Partner since ${formatDate(createdAt)}`,
+                      color: ENROLLMENT_STATUS_BADGE[status].color,
                     }),
                     uiComponent.spacer({
                       size: "M",

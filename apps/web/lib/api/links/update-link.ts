@@ -192,6 +192,11 @@ export async function updateLink({
           }
         : {}),
 
+      // A link with no partner is no longer a partner-group default link.
+      ...(partnerId === null && {
+        partnerGroupDefaultLinkId: null,
+      }),
+
       // Shared dashboard
       ...(publicStats && {
         dashboard: {

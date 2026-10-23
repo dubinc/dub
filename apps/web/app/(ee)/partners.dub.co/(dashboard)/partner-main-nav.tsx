@@ -5,7 +5,7 @@ import { MainNav } from "@/ui/layout/main-nav";
 import { HelpButton } from "@/ui/layout/sidebar/help-button";
 import { PartnersSidebarNav } from "@/ui/layout/sidebar/partners-sidebar-nav";
 import { ReactNode } from "react";
-import { NetworkBanBanner } from "./network-ban-banner";
+// import { NetworkBanBanner } from "./network-ban-banner";
 
 export function PartnerMainNav({ children }: { children: ReactNode }) {
   const { partner } = usePartnerProfile();
@@ -13,11 +13,11 @@ export function PartnerMainNav({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {isBannedFromNetwork && <NetworkBanBanner />}
+      {/* {isBannedFromNetwork && <NetworkBanBanner />} */}
       <MainNav
         toolContent={<HelpButton />}
         sidebar={PartnersSidebarNav}
-        hasBanner={isBannedFromNetwork}
+        // hasBanner={isBannedFromNetwork}
       >
         {children}
       </MainNav>

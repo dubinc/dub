@@ -437,6 +437,9 @@ export async function processLink<T extends Record<string, any>>({
     }
 
     // only perform program validity checks if not bulk creation (we do that check separately in the route itself)
+    // A stored programId resolves the partner from partnerId or tenantId.
+    // Removing a partner has to clear programId first (see partnerRemovalOverrides),
+    // otherwise the stored tenantId puts that partner back.
     if (programId && !skipProgramChecks) {
       if (!partnerId && !tenantId) {
         return {

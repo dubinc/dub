@@ -112,6 +112,11 @@ export async function bulkUpdateLinks(
             },
           }),
 
+          // Removing the partner also detaches the group default-link template.
+          ...(rest.partnerId === null && {
+            partnerGroupDefaultLinkId: null,
+          }),
+
           // Associate webhooks
           ...(webhookIds && {
             webhooks: {

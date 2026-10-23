@@ -5,6 +5,7 @@ import {
   transformLink,
   updateLink,
 } from "@/lib/api/links";
+import { partnerRemovalOverrides } from "@/lib/api/links/partner-removal";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
@@ -75,6 +76,7 @@ export const PUT = withWorkspace(
             ? link.testStartedAt.toISOString()
             : link.testStartedAt,
         ...body,
+        ...partnerRemovalOverrides(body),
       };
 
       // if link and updatedLink are identical, return the link

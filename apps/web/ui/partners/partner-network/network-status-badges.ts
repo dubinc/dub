@@ -44,7 +44,7 @@ export const NetworkStatusBadges = {
   banned: {
     partnerTooltip: {
       content:
-        "Your account is banned from the Dub Partner Network. You are not eligible to apply to this program.",
+        "Your partner account is banned. You are not eligible to apply to this program.",
       cta: "Banned",
     },
     label: "Banned",

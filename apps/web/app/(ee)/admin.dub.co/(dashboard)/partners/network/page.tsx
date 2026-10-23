@@ -50,7 +50,11 @@ function getDateColumnForNetworkStatus(networkStatus?: string) {
     };
   }
 
-  if (networkStatus === "approved" || networkStatus === "rejected") {
+  if (
+    networkStatus === "approved" ||
+    networkStatus === "rejected" ||
+    networkStatus === "banned"
+  ) {
     return {
       id: "reviewedAt" as const,
       header: capitalize(networkStatus) as string,

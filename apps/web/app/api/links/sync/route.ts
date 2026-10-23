@@ -5,16 +5,22 @@ import { prisma } from "@/lib/prisma";
 import { SimpleLinkProps } from "@/lib/types";
 import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+const syncLinksSchema = z.array(
+  z.object({
+    domain: z.string().min(1),
+    key: z.string().min(1),
+  }),
+);
 
 // POST /api/links/sync – sync user's publicly created links to their accounts
 export const POST = withWorkspace(
   async ({ req, session, workspace }) => {
-    let links: SimpleLinkProps[] = [];
+    // The body comes from the hashes__dub cookie, so its shape is not guaranteed
+    let links: Pick<SimpleLinkProps, "domain" | "key">[] = [];
     try {
-      links = await req.json();
-      if (!Array.isArray(links)) {
-        throw new Error("Invalid request body.");
-      }
+      links = syncLinksSchema.parse(await req.json());
     } catch (e) {
       return new Response("Invalid request body.", { status: 400 });
     }

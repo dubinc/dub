@@ -7,6 +7,7 @@ import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { buildLinkBody } from "./build-link-body";
 import { LinkFormData, useLinkBuilderContext } from "./link-builder-provider";
 
 export function useLinkBuilderSubmit({
@@ -22,29 +23,10 @@ export function useLinkBuilderSubmit({
 
   return useCallback(
     async (data: LinkFormData) => {
-      // @ts-ignore – exclude extra attributes from `data` object before sending to API
-      const { user, tags, tagId, folderId, partnerId, ...rest } = data;
-      const bodyData = {
-        ...rest,
-
-        // Map tags to tagIds
-        tagIds: tags.map(({ id }) => id),
-
-        // Replace "unsorted" folder ID w/ null
-        folderId: folderId === "unsorted" ? null : folderId,
-
-        // Manually reset empty strings to null
-        expiredUrl: rest.expiredUrl || null,
-        ios: rest.ios || null,
-        android: rest.android || null,
-        externalId: rest.externalId || null,
-        tenantId: rest.tenantId || null,
-
-        // Create partner links
-        ...(partnerId
-          ? { programId: workspace.defaultProgramId, partnerId }
-          : {}),
-      };
+      const bodyData = buildLinkBody({
+        data,
+        defaultProgramId: workspace.defaultProgramId,
+      });
 
       const endpoint = props?.id
         ? {
@@ -164,6 +146,7 @@ export function useLinkBuilderSubmit({
     [
       workspace.id,
       workspace.slug,
+      workspace.defaultProgramId,
       workspace.nextPlan,
       props,
       copyToClipboard,

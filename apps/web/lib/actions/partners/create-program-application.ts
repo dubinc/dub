@@ -54,7 +54,7 @@ import { actionClient } from "../safe-action";
 export type PartnerData = { name: string; country?: string };
 
 const NETWORK_BAN_ERROR =
-  "Your account is banned from the Dub Partner Network, so you can't apply to programs. Please contact support@dub.co if you think this is a mistake.";
+  "Your partner account is banned, so you can't apply to programs.";
 
 interface Response {
   programApplicationId: string;
