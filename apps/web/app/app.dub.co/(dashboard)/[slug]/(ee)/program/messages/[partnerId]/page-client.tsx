@@ -11,10 +11,12 @@ import usePartner from "@/lib/swr/use-partner";
 import useProgram from "@/lib/swr/use-program";
 import useUser from "@/lib/swr/use-user";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { messageSidePanelClassName } from "@/ui/messages/message-side-panel";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { appendPersistedMessage } from "@/ui/messages/optimistic-message";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
+import { useMessageSidePanel } from "@/ui/messages/use-message-side-panel";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
@@ -27,7 +29,7 @@ import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { redirect, useParams, useSearchParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
@@ -59,7 +61,11 @@ export function ProgramMessagesPartnerPageClient() {
   } = usePartnerMessages({
     query: { partnerId, sortOrder: "asc" },
     swrOpts: {
+      // Don't keep the previous partner's thread visible while the next one loads.
+      keepPreviousData: false,
       onSuccess: async (data) => {
+        if (data?.[0]?.partner.id !== partnerId) return;
+
         // Mark unread messages from the partner as read
         if (
           !isMarkingPartnerMessagesRead &&
@@ -77,8 +83,18 @@ export function ProgramMessagesPartnerPageClient() {
     },
   });
 
-  const partner = partnerMessages?.[0]?.partner;
-  const messages = partnerMessages?.[0]?.messages;
+  const { partnerMessages: inbox } = usePartnerMessages({
+    query: { messagesLimit: 1 },
+  });
+
+  const thread =
+    partnerMessages?.[0]?.partner.id === partnerId
+      ? partnerMessages[0]
+      : undefined;
+  const partner =
+    thread?.partner ??
+    inbox?.find((group) => group.partner.id === partnerId)?.partner;
+  const messages = thread?.messages;
 
   const { executeAsync: sendMessage } = useAction(messagePartnerAction, {
     onError({ error }) {
@@ -98,6 +114,12 @@ export function ProgramMessagesPartnerPageClient() {
   const [pendingAttachments, setPendingAttachments] = useState<
     PendingAttachment[]
   >([]);
+  const [draftPartnerId, setDraftPartnerId] = useState(partnerId);
+
+  if (draftPartnerId !== partnerId) {
+    setDraftPartnerId(partnerId);
+    setPendingAttachments([]);
+  }
 
   const handleAddFiles = useCallback(
     async (files: File[]) => {
@@ -163,8 +185,15 @@ export function ProgramMessagesPartnerPageClient() {
     setPendingAttachments((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
-  const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const { setCurrentPanel, openingThreadId, setLoadedThreadId } =
+    useMessagesContext();
+  const { isRightPanelOpen, setIsRightPanelOpen, toggleRightPanel } =
+    useMessageSidePanel();
+  const showingOpenedThread = !openingThreadId || openingThreadId === partnerId;
+
+  useEffect(() => {
+    if (showingOpenedThread && messages) setLoadedThreadId(partnerId);
+  }, [showingOpenedThread, messages, partnerId, setLoadedThreadId]);
 
   if (errorMessages) redirect(`/${workspaceSlug}/program/messages`);
 
@@ -189,7 +218,7 @@ export function ProgramMessagesPartnerPageClient() {
             </button>
             <button
               type="button"
-              onClick={() => setIsRightPanelOpen((o) => !o)}
+              onClick={toggleRightPanel}
               disabled={!enrolledPartner}
               className="-mx-2 -my-1 flex items-center gap-2 rounded-lg px-2 py-1 transition-colors duration-100 enabled:hover:bg-black/5 enabled:active:bg-black/10"
             >
@@ -211,7 +240,7 @@ export function ProgramMessagesPartnerPageClient() {
           {enrolledPartner ? (
             <ToggleSidePanelButton
               isOpen={isRightPanelOpen}
-              onClick={() => setIsRightPanelOpen((o) => !o)}
+              onClick={toggleRightPanel}
             />
           ) : enrolledPartnerError ? (
             <ViewPartnerButton partnerId={partnerId} isEnrolled={false} />
@@ -219,7 +248,10 @@ export function ProgramMessagesPartnerPageClient() {
         </div>
         <div className="min-h-0 grow">
           <MessagesPanel
-            messages={messages && user ? messages : undefined}
+            key={partnerId}
+            messages={
+              showingOpenedThread && messages && user ? messages : undefined
+            }
             error={errorMessages}
             currentUserType="user"
             currentUserId={user?.id || ""}
@@ -318,13 +350,7 @@ export function ProgramMessagesPartnerPageClient() {
       </div>
 
       {/* Right panel - Profile */}
-      <div
-        className={cn(
-          "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-          "@[960px]/page:shadow-none @[960px]/page:relative",
-          isRightPanelOpen && "w-full sm:w-[340px]",
-        )}
-      >
+      <div className={messageSidePanelClassName(isRightPanelOpen, "program")}>
         <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[340px]">
           <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
             <h2 className="text-content-emphasis text-lg font-semibold leading-7">

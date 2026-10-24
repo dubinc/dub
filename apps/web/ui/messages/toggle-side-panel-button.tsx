@@ -7,7 +7,8 @@ export function ToggleSidePanelButton({
   onClick,
 }: {
   side?: "left" | "right";
-  isOpen: boolean;
+  // `null` follows the responsive default: closed below `sm`, open from `sm` up.
+  isOpen: boolean | null;
   onClick: () => void;
 }) {
   return (
@@ -42,7 +43,8 @@ export function ToggleSidePanelButton({
               strokeWidth="1.5"
               className={cn(
                 "transition-transform [transform-box:fill-box] [transform-origin:center] [vector-effect:non-scaling-stroke]",
-                !isOpen && "-scale-x-100",
+                isOpen === false && "-scale-x-100",
+                isOpen === null && "max-sm:-scale-x-100",
               )}
             />
             <rect

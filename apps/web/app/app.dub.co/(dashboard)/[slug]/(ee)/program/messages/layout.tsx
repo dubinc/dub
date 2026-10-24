@@ -10,10 +10,10 @@ import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { MessagesContext, MessagesPanel } from "@/ui/messages/messages-context";
 import { MessagesList } from "@/ui/messages/messages-list";
 import { PartnerSelector } from "@/ui/partners/partner-selector";
-import { Button, InfoTooltip } from "@dub/ui";
+import { Button, InfoTooltip, LoadingSpinner } from "@dub/ui";
 import { Msgs, Pen2 } from "@dub/ui/icons";
 import { useParams, useRouter } from "next/navigation";
-import { CSSProperties, ReactNode, useState } from "react";
+import { CSSProperties, ReactNode, useEffect, useState } from "react";
 import { MessagesUpsell } from "./messages-upsell";
 
 export default function MessagesLayout({ children }: { children: ReactNode }) {
@@ -48,9 +48,30 @@ function CapableLayout({ children }: { children: ReactNode }) {
   const [currentPanel, setCurrentPanel] = useState<MessagesPanel>(
     partnerId ? "main" : "index",
   );
+  const [openingThreadId, setOpeningThreadId] = useState<string | null>(null);
+  const [loadedThreadId, setLoadedThreadId] = useState<string | null>(null);
+  const showThreadSpinner = Boolean(
+    openingThreadId && openingThreadId !== loadedThreadId,
+  );
+
+  useEffect(() => {
+    if (!partnerId) {
+      setOpeningThreadId(null);
+      setLoadedThreadId(null);
+    }
+  }, [partnerId]);
 
   return (
-    <MessagesContext.Provider value={{ currentPanel, setCurrentPanel }}>
+    <MessagesContext.Provider
+      value={{
+        currentPanel,
+        setCurrentPanel,
+        openingThreadId,
+        setOpeningThreadId,
+        loadedThreadId,
+        setLoadedThreadId,
+      }}
+    >
       <div className="@container/page h-[calc(100dvh-var(--page-banner-height)-var(--page-top-margin)-var(--page-bottom-margin)-1px)] w-full overflow-hidden rounded-t-[inherit] bg-white">
         <div
           className="@[800px]/page:grid-cols-[min-content_minmax(340px,1fr)] @[800px]/page:translate-x-0 grid h-full translate-x-[calc(var(--current-panel)*-100%)] grid-cols-[100%_100%]"
@@ -87,9 +108,13 @@ function CapableLayout({ children }: { children: ReactNode }) {
               ) : (
                 <PartnerSelector
                   selectedPartnerId={partnerId ?? null}
-                  setSelectedPartnerId={(id) =>
-                    router.push(`/${workspaceSlug}/program/messages/${id}`)
-                  }
+                  setSelectedPartnerId={(id) => {
+                    if (id !== partnerId) {
+                      setCurrentPanel("main");
+                      setOpeningThreadId(id);
+                    }
+                    router.push(`/${workspaceSlug}/program/messages/${id}`);
+                  }}
                   trigger={
                     <Button
                       type="button"
@@ -140,8 +165,13 @@ function CapableLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <div className="border-border-subtle @[800px]/page:border-l size-full min-h-0">
+          <div className="border-border-subtle @[800px]/page:border-l relative size-full min-h-0">
             {children}
+            {showThreadSpinner && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-white">
+                <LoadingSpinner />
+              </div>
+            )}
           </div>
         </div>
       </div>

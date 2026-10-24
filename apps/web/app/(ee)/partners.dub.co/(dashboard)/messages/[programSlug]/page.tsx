@@ -18,10 +18,12 @@ import {
   COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
+import { messageSidePanelClassName } from "@/ui/messages/message-side-panel";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { appendPersistedMessage } from "@/ui/messages/optimistic-message";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
+import { useMessageSidePanel } from "@/ui/messages/use-message-side-panel";
 import { ProgramHelpLinks } from "@/ui/partners/program-help-links";
 import { ProgramRewardsPanel } from "@/ui/partners/program-rewards-panel";
 import { X } from "@/ui/shared/icons";
@@ -47,7 +49,7 @@ import {
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
@@ -79,7 +81,11 @@ export default function PartnerMessagesProgramPage() {
   } = useProgramMessages({
     query: { programSlug, sortOrder: "asc" },
     swrOpts: {
+      // Don't keep the previous program's thread visible while the next one loads.
+      keepPreviousData: false,
       onSuccess: async (data) => {
+        if (data?.[0]?.program.slug !== programSlug) return;
+
         // Mark unread messages from the program as read
         if (
           !isMarkingProgramMessagesRead &&
@@ -96,8 +102,18 @@ export default function PartnerMessagesProgramPage() {
     },
   });
 
-  const program = programMessages?.[0]?.program;
-  const messages = programMessages?.[0]?.messages;
+  const { programMessages: inbox } = useProgramMessages({
+    query: { messagesLimit: 1 },
+  });
+
+  const thread =
+    programMessages?.[0]?.program.slug === programSlug
+      ? programMessages[0]
+      : undefined;
+  const program =
+    thread?.program ??
+    inbox?.find((group) => group.program.slug === programSlug)?.program;
+  const messages = thread?.messages;
 
   const isInactiveEnrollment =
     programEnrollment?.status &&
@@ -159,6 +175,12 @@ export default function PartnerMessagesProgramPage() {
   const [pendingAttachments, setPendingAttachments] = useState<
     PendingAttachment[]
   >([]);
+  const [draftProgramSlug, setDraftProgramSlug] = useState(programSlug);
+
+  if (draftProgramSlug !== programSlug) {
+    setDraftProgramSlug(programSlug);
+    setPendingAttachments([]);
+  }
 
   const handleAddFiles = useCallback(
     async (files: File[]) => {
@@ -224,8 +246,16 @@ export default function PartnerMessagesProgramPage() {
     setPendingAttachments((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
-  const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const { setCurrentPanel, openingThreadId, setLoadedThreadId } =
+    useMessagesContext();
+  const { isRightPanelOpen, setIsRightPanelOpen, toggleRightPanel } =
+    useMessageSidePanel();
+  const showingOpenedThread =
+    !openingThreadId || openingThreadId === programSlug;
+
+  useEffect(() => {
+    if (showingOpenedThread && messages) setLoadedThreadId(programSlug);
+  }, [showingOpenedThread, messages, programSlug, setLoadedThreadId]);
 
   // Redirect if no messages and not enrolled, or messages error
   if (
@@ -255,7 +285,7 @@ export default function PartnerMessagesProgramPage() {
             <div className="min-w-0">
               <button
                 type="button"
-                onClick={() => setIsRightPanelOpen((o) => !o)}
+                onClick={toggleRightPanel}
                 disabled={!programEnrollment}
                 className="-mx-2 -my-1 flex items-center gap-2 rounded-lg px-2.5 py-1.5 transition-colors duration-100 enabled:hover:bg-black/5 enabled:active:bg-black/10"
               >
@@ -282,7 +312,7 @@ export default function PartnerMessagesProgramPage() {
           {programEnrollment ? (
             <ToggleSidePanelButton
               isOpen={isRightPanelOpen}
-              onClick={() => setIsRightPanelOpen((o) => !o)}
+              onClick={toggleRightPanel}
             />
           ) : programEnrollmentError ? (
             <ViewProgramButton programSlug={programSlug} />
@@ -297,7 +327,12 @@ export default function PartnerMessagesProgramPage() {
         ) : (
           <div className="min-h-0 grow">
             <MessagesPanel
-              messages={messages && partner && user ? messages : undefined}
+              key={programSlug}
+              messages={
+                showingOpenedThread && messages && partner && user
+                  ? messages
+                  : undefined
+              }
               error={errorMessages}
               currentUserType="partner"
               currentUserId={partner?.id || ""}
@@ -407,13 +442,7 @@ export default function PartnerMessagesProgramPage() {
       </div>
 
       {/* Right panel - Profile */}
-      <div
-        className={cn(
-          "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-          "@[1082px]/page:shadow-none @[1082px]/page:relative",
-          isRightPanelOpen && "w-full sm:w-[400px]",
-        )}
-      >
+      <div className={messageSidePanelClassName(isRightPanelOpen, "partner")}>
         <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[400px]">
           <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
             <h2 className="text-content-emphasis text-lg font-semibold leading-7">

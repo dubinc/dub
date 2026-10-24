@@ -31,7 +31,7 @@ export function MessagesList({
     | undefined;
   activeId?: string;
 }) {
-  const { setCurrentPanel } = useMessagesContext();
+  const { setCurrentPanel, setOpeningThreadId } = useMessagesContext();
 
   return (
     <div className="flex w-full flex-col">
@@ -43,7 +43,10 @@ export function MessagesList({
               <Link
                 key={group.id}
                 href={group.href}
-                onClick={() => setCurrentPanel("main")}
+                onClick={() => {
+                  setCurrentPanel("main");
+                  if (group.id !== activeId) setOpeningThreadId(group.id);
+                }}
                 className={cn(
                   "border-border-subtle flex w-full items-center gap-2.5 border-b bg-white px-6 py-4",
                   group.id === activeId ? "bg-bg-subtle" : "hover:bg-bg-muted",
