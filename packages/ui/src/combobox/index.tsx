@@ -18,6 +18,7 @@ import { Check2, CheckboxIcon, Icon, LoadingSpinner, Plus } from "../icons";
 import { Popover, PopoverProps } from "../popover";
 import { ScrollContainer } from "../scroll-container";
 import { Tooltip } from "../tooltip";
+import { orderComboboxOptions } from "./order-options";
 
 export type ComboboxOption<TMeta = any> = {
   label: string | ReactNode;
@@ -70,6 +71,11 @@ export type ComboboxProps<
   matchTriggerWidth?: boolean;
   hideSearch?: boolean;
   forceDropdown?: boolean;
+  /**
+   * Keep `options` in the order they were passed.
+   * By default, selected options move to the top when the menu closes.
+   */
+  preserveOrder?: boolean;
 }>;
 
 function isMultipleSelection(
@@ -113,6 +119,7 @@ export function Combobox({
   matchTriggerWidth,
   hideSearch = false,
   forceDropdown = false,
+  preserveOrder = false,
   children,
 }: ComboboxProps<boolean | undefined, any>) {
   const isMultiple = isMultipleSelection(multiple, setSelected);
@@ -164,20 +171,9 @@ export function Combobox({
   };
 
   const sortOptions = useCallback(
-    (options: ComboboxOption[], search: string) => {
-      return search === ""
-        ? [
-            ...options.filter(
-              (o) => o.first && !selected.some((s) => s.value === o.value),
-            ),
-            ...selected,
-            ...options.filter(
-              (o) => !o.first && !selected.some((s) => s.value === o.value),
-            ),
-          ]
-        : options;
-    },
-    [selected],
+    (options: ComboboxOption[], search: string) =>
+      orderComboboxOptions(options, selected, search, preserveOrder),
+    [preserveOrder, selected],
   );
 
   // Actually sort the options when needed
