@@ -11,10 +11,12 @@ import usePartner from "@/lib/swr/use-partner";
 import useProgram from "@/lib/swr/use-program";
 import useUser from "@/lib/swr/use-user";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { messageSidePanelClassName } from "@/ui/messages/message-side-panel";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { appendPersistedMessage } from "@/ui/messages/optimistic-message";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
+import { useMessageSidePanel } from "@/ui/messages/use-message-side-panel";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
@@ -164,7 +166,8 @@ export function ProgramMessagesPartnerPageClient() {
   }, []);
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const { isRightPanelOpen, setIsRightPanelOpen, toggleRightPanel } =
+    useMessageSidePanel();
 
   if (errorMessages) redirect(`/${workspaceSlug}/program/messages`);
 
@@ -189,7 +192,7 @@ export function ProgramMessagesPartnerPageClient() {
             </button>
             <button
               type="button"
-              onClick={() => setIsRightPanelOpen((o) => !o)}
+              onClick={toggleRightPanel}
               disabled={!enrolledPartner}
               className="-mx-2 -my-1 flex items-center gap-2 rounded-lg px-2 py-1 transition-colors duration-100 enabled:hover:bg-black/5 enabled:active:bg-black/10"
             >
@@ -211,7 +214,7 @@ export function ProgramMessagesPartnerPageClient() {
           {enrolledPartner ? (
             <ToggleSidePanelButton
               isOpen={isRightPanelOpen}
-              onClick={() => setIsRightPanelOpen((o) => !o)}
+              onClick={toggleRightPanel}
             />
           ) : enrolledPartnerError ? (
             <ViewPartnerButton partnerId={partnerId} isEnrolled={false} />
@@ -318,13 +321,7 @@ export function ProgramMessagesPartnerPageClient() {
       </div>
 
       {/* Right panel - Profile */}
-      <div
-        className={cn(
-          "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-          "@[960px]/page:shadow-none @[960px]/page:relative",
-          isRightPanelOpen && "w-full sm:w-[340px]",
-        )}
-      >
+      <div className={messageSidePanelClassName(isRightPanelOpen, "program")}>
         <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[340px]">
           <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
             <h2 className="text-content-emphasis text-lg font-semibold leading-7">

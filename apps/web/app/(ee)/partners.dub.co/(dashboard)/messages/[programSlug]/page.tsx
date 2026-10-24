@@ -18,10 +18,12 @@ import {
   COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
+import { messageSidePanelClassName } from "@/ui/messages/message-side-panel";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { appendPersistedMessage } from "@/ui/messages/optimistic-message";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
+import { useMessageSidePanel } from "@/ui/messages/use-message-side-panel";
 import { ProgramHelpLinks } from "@/ui/partners/program-help-links";
 import { ProgramRewardsPanel } from "@/ui/partners/program-rewards-panel";
 import { X } from "@/ui/shared/icons";
@@ -225,7 +227,8 @@ export default function PartnerMessagesProgramPage() {
   }, []);
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const { isRightPanelOpen, setIsRightPanelOpen, toggleRightPanel } =
+    useMessageSidePanel();
 
   // Redirect if no messages and not enrolled, or messages error
   if (
@@ -255,7 +258,7 @@ export default function PartnerMessagesProgramPage() {
             <div className="min-w-0">
               <button
                 type="button"
-                onClick={() => setIsRightPanelOpen((o) => !o)}
+                onClick={toggleRightPanel}
                 disabled={!programEnrollment}
                 className="-mx-2 -my-1 flex items-center gap-2 rounded-lg px-2.5 py-1.5 transition-colors duration-100 enabled:hover:bg-black/5 enabled:active:bg-black/10"
               >
@@ -282,7 +285,7 @@ export default function PartnerMessagesProgramPage() {
           {programEnrollment ? (
             <ToggleSidePanelButton
               isOpen={isRightPanelOpen}
-              onClick={() => setIsRightPanelOpen((o) => !o)}
+              onClick={toggleRightPanel}
             />
           ) : programEnrollmentError ? (
             <ViewProgramButton programSlug={programSlug} />
@@ -407,13 +410,7 @@ export default function PartnerMessagesProgramPage() {
       </div>
 
       {/* Right panel - Profile */}
-      <div
-        className={cn(
-          "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-          "@[1082px]/page:shadow-none @[1082px]/page:relative",
-          isRightPanelOpen && "w-full sm:w-[400px]",
-        )}
-      >
+      <div className={messageSidePanelClassName(isRightPanelOpen, "partner")}>
         <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[400px]">
           <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
             <h2 className="text-content-emphasis text-lg font-semibold leading-7">
