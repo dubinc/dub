@@ -80,7 +80,6 @@ export async function invoicePaymentFailed(
             workspace={workspace}
           />
         ),
-        variant: "notifications",
       }),
     ),
   ]);
