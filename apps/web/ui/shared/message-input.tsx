@@ -185,7 +185,7 @@ export function MessageInput({
   return (
     <div
       className={cn(
-        "border-border-subtle relative overflow-hidden rounded-xl border focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+        "border-border-subtle relative min-w-0 overflow-hidden rounded-xl border focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
         className,
       )}
       onDragOver={(e) => {
@@ -277,79 +277,82 @@ export function MessageInput({
           </div>
         )}
 
-        <div
-          className={cn(
-            "flex items-center justify-between gap-4 p-3",
-            toolbarClassName,
-          )}
-        >
-          <MessageInputToolbar
-            disabled={Boolean(permissionsError)}
-            emojiPickerOpen={emojiPickerOpen}
-            setEmojiPickerOpen={setEmojiPickerOpen}
-            onAttachClick={
-              canAddFiles ? () => fileInputRef.current?.click() : undefined
-            }
-          />
-          <div className="flex items-center justify-between gap-2">
-            {actions}
-            {onCancel && (
-              <Button
-                variant="secondary"
-                text="Cancel"
-                onClick={onCancel}
-                className="h-8 w-fit rounded-lg px-4"
-              />
+        {/* Scroll sideways on narrow screens so Post stays reachable. */}
+        <div className="scrollbar-hide w-full min-w-0 overflow-y-hidden overflow-x-auto overscroll-x-contain">
+          <div
+            className={cn(
+              "flex w-max min-w-full items-center justify-between gap-4 p-3",
+              toolbarClassName,
             )}
-            <Button
-              variant="primary"
-              text={
-                <span className="flex items-center gap-2">
-                  {sendButtonText}
-                  <span className="hidden items-center gap-1 sm:flex">
-                    <span
-                      className={cn(
-                        "flex size-4 items-center justify-center rounded border text-[0.625rem]",
-                        isSendDisabled
-                          ? "border-neutral-300 text-neutral-400"
-                          : "border-neutral-700 group-disabled:border-neutral-300 group-disabled:text-neutral-400",
-                      )}
-                    >
-                      {navigator.platform.startsWith("Mac") ? "⌘" : "^"}
-                    </span>
-                    <span
-                      className={cn(
-                        "flex size-4 items-center justify-center rounded border",
-                        isSendDisabled
-                          ? "border-neutral-300"
-                          : "border-neutral-700 group-disabled:border-neutral-300",
-                      )}
-                    >
-                      <ArrowTurnLeft
+          >
+            <MessageInputToolbar
+              disabled={Boolean(permissionsError)}
+              emojiPickerOpen={emojiPickerOpen}
+              setEmojiPickerOpen={setEmojiPickerOpen}
+              onAttachClick={
+                canAddFiles ? () => fileInputRef.current?.click() : undefined
+              }
+            />
+            <div className="flex shrink-0 items-center justify-between gap-2">
+              {actions}
+              {onCancel && (
+                <Button
+                  variant="secondary"
+                  text="Cancel"
+                  onClick={onCancel}
+                  className="h-8 w-fit shrink-0 rounded-lg px-4"
+                />
+              )}
+              <Button
+                variant="primary"
+                text={
+                  <span className="flex items-center gap-2">
+                    {sendButtonText}
+                    <span className="hidden items-center gap-1 sm:flex">
+                      <span
                         className={cn(
-                          "size-2.5",
+                          "flex size-4 items-center justify-center rounded border text-[0.625rem]",
                           isSendDisabled
-                            ? "text-neutral-400"
-                            : "text-content-inverted group-disabled:text-neutral-400",
+                            ? "border-neutral-300 text-neutral-400"
+                            : "border-neutral-700 group-disabled:border-neutral-300 group-disabled:text-neutral-400",
                         )}
-                      />
+                      >
+                        {navigator.platform.startsWith("Mac") ? "⌘" : "^"}
+                      </span>
+                      <span
+                        className={cn(
+                          "flex size-4 items-center justify-center rounded border",
+                          isSendDisabled
+                            ? "border-neutral-300"
+                            : "border-neutral-700 group-disabled:border-neutral-300",
+                        )}
+                      >
+                        <ArrowTurnLeft
+                          className={cn(
+                            "size-2.5",
+                            isSendDisabled
+                              ? "text-neutral-400"
+                              : "text-content-inverted group-disabled:text-neutral-400",
+                          )}
+                        />
+                      </span>
                     </span>
                   </span>
-                </span>
-              }
-              disabled={isSendDisabled}
-              disabledTooltip={
-                permissionsError
-                  ? permissionsError
-                  : isTooLong
-                    ? `Message must be less than ${nFormatter(MAX_MESSAGE_LENGTH)} characters`
-                    : hasUploading
-                      ? "Please wait for uploads to complete"
-                      : undefined
-              }
-              onClick={sendMessage}
-              className="h-8 w-fit rounded-lg px-4"
-            />
+                }
+                disabled={isSendDisabled}
+                disabledTooltip={
+                  permissionsError
+                    ? permissionsError
+                    : isTooLong
+                      ? `Message must be less than ${nFormatter(MAX_MESSAGE_LENGTH)} characters`
+                      : hasUploading
+                        ? "Please wait for uploads to complete"
+                        : undefined
+                }
+                onClick={sendMessage}
+                className="h-8 w-fit shrink-0 rounded-lg px-4"
+              />
+            </div>
           </div>
         </div>
       </RichTextProvider>
@@ -602,7 +605,10 @@ function MessageInputToolbar({
 
   return (
     <RichTextToolbar
-      className={disabled ? "pointer-events-none opacity-50" : undefined}
+      className={cn(
+        "shrink-0",
+        disabled && "pointer-events-none opacity-50",
+      )}
       toolsStart={
         <EmojiPicker
           openPopover={emojiPickerOpen}
