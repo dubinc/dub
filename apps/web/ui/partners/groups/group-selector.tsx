@@ -119,6 +119,7 @@ export function GroupSelector({
             },
           })}
       {...rest}
+      preserveOrder
     >
       {variant === "header" && !selectedOption?.label ? (
         <div className="h-6 w-[120px] animate-pulse rounded bg-neutral-100" />
