@@ -129,6 +129,7 @@ test.describe("GET /partner-profile/earnings", () => {
         projectId: programB.workspaceId,
         programId: programB.id,
         partnerId: partner.id,
+        utm_source: "pw-newsletter",
       },
     });
     await prisma.customer.create({
@@ -137,6 +138,7 @@ test.describe("GET /partner-profile/earnings", () => {
         name: "Earnings B Customer",
         email: programB.customerEmail,
         projectId: programB.workspaceId,
+        country: "DE",
       },
     });
     await prisma.commission.create({
@@ -529,6 +531,41 @@ test.describe("GET /partner-profile/earnings", () => {
 
       expect(status).toEqual(200);
       expect(data).toEqual([{ type: "custom", earnings: 7500 }]);
+    });
+  });
+
+  test("sums earnings by link domain, UTM value, country and continent", async ({
+    playwright,
+  }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      const getAnalytics = async (query: string) => {
+        const { status, data } = await partnerApi.get<
+          Record<string, string | number>[]
+        >(`/api/partner-profile/earnings/analytics?${query}`);
+        expect(status).toEqual(200);
+        return data;
+      };
+
+      // only the program B commission has a link and a customer
+      expect(await getAnalytics("groupBy=domain")).toEqual([
+        { domain: TEST_WORKSPACE.program.domain, earnings: 4000 },
+      ]);
+      expect(await getAnalytics("groupBy=utm_source")).toEqual([
+        { utm_source: "pw-newsletter", earnings: 4000 },
+      ]);
+      // links without the UTM value are left out
+      expect(await getAnalytics("groupBy=utm_medium")).toEqual([]);
+      expect(await getAnalytics("groupBy=country")).toEqual([
+        { country: "DE", earnings: 4000 },
+      ]);
+      expect(await getAnalytics("groupBy=continent")).toEqual([
+        { continent: "EU", earnings: 4000 },
+      ]);
+
+      // the link filter applies to the program groups too
+      expect(
+        await getAnalytics(`groupBy=programId&linkId=${programB.linkId}`),
+      ).toEqual([expect.objectContaining({ id: programB.id, earnings: 4000 })]);
     });
   });
 

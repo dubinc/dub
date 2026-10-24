@@ -31,6 +31,7 @@ export function AnalyticsCard<T extends string>({
   dataLength,
   isFilterActive,
   onClearFilter,
+  metric,
   children,
   className,
 }: {
@@ -46,6 +47,8 @@ export function AnalyticsCard<T extends string>({
   dataLength?: number;
   isFilterActive?: boolean;
   onClearFilter?: () => void;
+  // replaces the event of the analytics page in the card header (for example earnings)
+  metric?: { label: string; icon: React.ElementType };
   children: (props: {
     limit?: number;
     event?: EventType;
@@ -67,6 +70,15 @@ export function AnalyticsCard<T extends string>({
     : expandLimit;
   const showViewAll = (dataLength ?? 0) > effectiveExpandLimit;
 
+  const MetricIcon =
+    metric?.icon ??
+    (event === "sales"
+      ? InvoiceDollar
+      : event === "leads"
+        ? UserCheck
+        : CursorRays);
+  const metricLabel = metric?.label ?? event;
+
   return (
     <>
       <Modal
@@ -77,14 +89,8 @@ export function AnalyticsCard<T extends string>({
         <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
           <h1 className="text-lg font-semibold">{selectedTab?.label}</h1>
           <div className="flex items-center gap-1 text-neutral-500">
-            {event === "sales" ? (
-              <InvoiceDollar className="h-4 w-4" />
-            ) : event === "leads" ? (
-              <UserCheck className="h-4 w-4" />
-            ) : (
-              <CursorRays className="h-4 w-4" />
-            )}
-            <p className="text-xs uppercase">{event}</p>
+            <MetricIcon className="h-4 w-4" />
+            <p className="text-xs uppercase">{metricLabel}</p>
           </div>
         </div>
         {subTabs && selectedSubTabId && onSelectSubTab && (
@@ -153,14 +159,8 @@ export function AnalyticsCard<T extends string>({
           )}
 
           <div className="flex items-center gap-1 pr-2 text-neutral-500">
-            {event === "sales" ? (
-              <InvoiceDollar className="hidden h-4 w-4 sm:block" />
-            ) : event === "leads" ? (
-              <UserCheck className="hidden h-4 w-4 sm:block" />
-            ) : (
-              <CursorRays className="hidden h-4 w-4 sm:block" />
-            )}
-            <p className="text-xs uppercase">{event}</p>
+            <MetricIcon className="hidden h-4 w-4 sm:block" />
+            <p className="text-xs uppercase">{metricLabel}</p>
           </div>
         </div>
         <AnimatedSizeContainer

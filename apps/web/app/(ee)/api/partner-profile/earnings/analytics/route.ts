@@ -4,7 +4,7 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import { partnerProfileEarningsAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
 
-// GET /api/partner-profile/earnings/analytics - highest-earning programs, links, or commission types for a partner
+// GET /api/partner-profile/earnings/analytics - highest-earning programs, links, commission types, link domains or UTM values, or customer countries or continents for a partner
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const { groupBy, programIdOrSlug, ...filters } =
     partnerProfileEarningsAnalyticsQuerySchema.parse(searchParams);

@@ -2,10 +2,9 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
 import { partnerProfileEarningsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
-import { getEarningsProgramFilter } from "./get-earnings-program-id";
 import { programSelect } from "./get-partner-earnings-by-group";
+import { getPartnerEarningsWhere } from "./get-partner-earnings-where";
 import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
 
 export async function getPartnerEarningsCount({
@@ -40,49 +39,35 @@ export async function getPartnerEarningsCount({
     timezone,
   });
 
-  const where: Prisma.CommissionWhereInput = {
-    earnings: {
-      not: 0,
-    },
-    programId: getEarningsProgramFilter(programId),
+  // a grouped count leaves out the filter of its own group, so the filter menu lists every option
+  const where = getPartnerEarningsWhere({
     partnerId,
-    ...(payoutId && { payoutId }),
-    createdAt: {
-      gte: startDate,
-      lte: endDate,
-    },
-  };
+    programId,
+    startDate,
+    endDate,
+    type: groupBy === "type" ? undefined : type,
+    status: groupBy === "status" ? undefined : status,
+    linkId: groupBy === "linkId" ? undefined : linkId,
+    customerId: groupBy === "customerId" ? undefined : customerId,
+    payoutId,
+  });
 
   if (!groupBy) {
     const count = await prisma.commission.count({
-      where: {
-        ...where,
-        ...(type && { type }),
-        ...(status && { status }),
-        ...(linkId && { linkId }),
-        ...(customerId && { customerId }),
-      },
+      where,
     });
 
     return { count };
   }
 
   // each group has its count and its total earnings, highest earnings first
-  const groupedWhere: Prisma.CommissionWhereInput = {
-    ...where,
-    ...(type && groupBy !== "type" && { type }),
-    ...(status && groupBy !== "status" && { status }),
-    ...(linkId && groupBy !== "linkId" && { linkId }),
-    ...(customerId && groupBy !== "customerId" && { customerId }),
-  };
-
   if (groupBy === "customerId") {
     // grouped by program too, since customer data sharing is set per program enrollment
     // exclude null customerId so the Customer filter has no empty option
     const counts = await prisma.commission.groupBy({
       by: ["customerId", "programId"],
       where: {
-        ...groupedWhere,
+        ...where,
         customerId: { not: null },
       },
       _count: true,
@@ -154,7 +139,7 @@ export async function getPartnerEarningsCount({
   const counts = await prisma.commission.groupBy({
     by: [groupBy],
     where: {
-      ...groupedWhere,
+      ...where,
       // exclude null linkId so the Link filter has no empty option
       ...(groupBy === "linkId" && { linkId: { not: null } }),
     },
