@@ -6,7 +6,6 @@ import { capitalize } from "@dub/utils";
 import { LaterButton } from "../../later-button";
 import { useOnboardingProduct } from "../../use-onboarding-product";
 import { StepPage } from "../step-page";
-import { EnterpriseLink } from "./enterprise-link";
 import { FreePlanButton } from "./free-plan-button";
 import { PlanSelector } from "./plan-selector";
 
@@ -50,11 +49,11 @@ export default function Plan() {
           </>
         )
       }
-      className="max-w-screen-lg"
+      // Matches the marketing pricing page width
+      className="max-w-[1080px]"
     >
       <PlanSelector key={product} product={product} />
       <div className="mx-auto mt-8 flex w-fit flex-col items-center justify-center gap-6 text-sm md:flex-row">
-        <EnterpriseLink />
         {product === "links" && (
           <LaterButton
             next="success"

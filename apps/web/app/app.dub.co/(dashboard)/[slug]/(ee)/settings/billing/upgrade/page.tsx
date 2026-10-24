@@ -85,9 +85,9 @@ export default function WorkspaceBillingUpgradePage() {
     planPeriodParam,
   )
     ? (planPeriodParam as "monthly" | "yearly")
-    : currentPlanPeriod === "yearly"
-      ? "yearly"
-      : "monthly";
+    : currentPlanPeriod === "monthly"
+      ? "monthly"
+      : "yearly";
 
   const { advancedUpsellModal, setShowAdvancedUpsellModal } =
     useAdvancedUpsellModal();
@@ -191,7 +191,6 @@ export default function WorkspaceBillingUpgradePage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <ToggleGroup
             options={[
-              { label: "Monthly", value: "monthly" },
               {
                 label: "Yearly",
                 badge: (
@@ -201,6 +200,7 @@ export default function WorkspaceBillingUpgradePage() {
                 ),
                 value: "yearly",
               },
+              { label: "Monthly", value: "monthly" },
             ]}
             selected={period}
             selectAction={(option) => {
@@ -209,9 +209,9 @@ export default function WorkspaceBillingUpgradePage() {
                 replace: true,
               });
             }}
-            className="rounded-lg border-neutral-300 bg-neutral-100 p-0.5"
-            optionClassName="text-xs normal-case text-neutral-800 data-[selected=true]:text-neutral-800 px-3 h-8 leading-none"
-            indicatorClassName="bg-white border-neutral-200 rounded-md"
+            className="rounded-lg border-neutral-200 bg-neutral-100 p-0"
+            optionClassName="rounded-lg px-4 h-9 normal-case text-xs leading-none text-neutral-800 data-[selected=false]:hover:bg-neutral-200/30 data-[selected=true]:text-neutral-800 sm:px-3"
+            indicatorClassName="rounded-lg border-none bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_3px_0_rgba(0,0,0,0.08)]"
           />
         </div>
       }

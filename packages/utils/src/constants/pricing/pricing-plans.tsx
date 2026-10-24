@@ -525,6 +525,148 @@ export const SELF_SERVE_PAID_PLANS = PLANS.filter((p) =>
   ["Pro", "Business", "Advanced"].includes(p.name),
 );
 
+// Dub Partners plans – shown on partners pricing only. Kept out of PLANS so
+// billing, plan ordering and feature gating are unaffected until they're live.
+// TODO: replace placeholder price IDs and mirrored prices/limits with real values
+const STARTER_TIER_PRICE_IDS = {
+  2: [
+    "price_starter_t2_monthly_placeholder",
+    "price_starter_t2_yearly_placeholder",
+  ],
+  3: [
+    "price_starter_t3_monthly_placeholder",
+    "price_starter_t3_yearly_placeholder",
+  ],
+  4: [
+    "price_starter_t4_monthly_placeholder",
+    "price_starter_t4_yearly_placeholder",
+  ],
+};
+
+const GROWTH_TIER_PRICE_IDS = {
+  2: [
+    "price_growth_t2_monthly_placeholder",
+    "price_growth_t2_yearly_placeholder",
+  ],
+  3: [
+    "price_growth_t3_monthly_placeholder",
+    "price_growth_t3_yearly_placeholder",
+  ],
+  4: [
+    "price_growth_t4_monthly_placeholder",
+    "price_growth_t4_yearly_placeholder",
+  ],
+};
+
+const SCALE_TIER_PRICE_IDS = {
+  2: [
+    "price_scale_t2_monthly_placeholder",
+    "price_scale_t2_yearly_placeholder",
+  ],
+  3: [
+    "price_scale_t3_monthly_placeholder",
+    "price_scale_t3_yearly_placeholder",
+  ],
+  4: [
+    "price_scale_t4_monthly_placeholder",
+    "price_scale_t4_yearly_placeholder",
+  ],
+};
+
+export const STARTER_PLAN: PlanDetails = {
+  name: "Starter",
+  price: {
+    monthly: BUSINESS_PLAN.price.monthly,
+    yearly: BUSINESS_PLAN.price.yearly,
+    ids: [
+      "price_starter_monthly_placeholder",
+      "price_starter_yearly_placeholder",
+      ...Object.values(STARTER_TIER_PRICE_IDS).flat(),
+    ],
+  },
+  limits: BUSINESS_PLAN.limits,
+  // Tier 1 is the base price/limits above
+  tiers: {
+    2: {
+      price: { monthly: 180, yearly: 162, ids: STARTER_TIER_PRICE_IDS[2] },
+      limits: { links: 25_000, clicks: 600_000 },
+    },
+    3: {
+      price: { monthly: 270, yearly: 243, ids: STARTER_TIER_PRICE_IDS[3] },
+      limits: { links: 50_000, clicks: 1_000_000 },
+    },
+    4: {
+      price: { monthly: 360, yearly: 324, ids: STARTER_TIER_PRICE_IDS[4] },
+      limits: { links: 100_000, clicks: 1_500_000 },
+    },
+  },
+};
+
+export const GROWTH_PLAN: PlanDetails = {
+  name: "Growth",
+  price: {
+    monthly: BUSINESS_PLAN.price.monthly,
+    yearly: BUSINESS_PLAN.price.yearly,
+    ids: [
+      "price_growth_monthly_placeholder",
+      "price_growth_yearly_placeholder",
+      ...Object.values(GROWTH_TIER_PRICE_IDS).flat(),
+    ],
+  },
+  limits: BUSINESS_PLAN.limits,
+  // Tier 1 is the base price/limits above
+  tiers: {
+    2: {
+      price: { monthly: 180, yearly: 162, ids: GROWTH_TIER_PRICE_IDS[2] },
+      limits: { links: 25_000, clicks: 600_000 },
+    },
+    3: {
+      price: { monthly: 270, yearly: 243, ids: GROWTH_TIER_PRICE_IDS[3] },
+      limits: { links: 50_000, clicks: 1_000_000 },
+    },
+    4: {
+      price: { monthly: 360, yearly: 324, ids: GROWTH_TIER_PRICE_IDS[4] },
+      limits: { links: 100_000, clicks: 1_500_000 },
+    },
+  },
+};
+
+export const SCALE_PLAN: PlanDetails = {
+  name: "Scale",
+  price: {
+    monthly: ADVANCED_PLAN.price.monthly,
+    yearly: ADVANCED_PLAN.price.yearly,
+    ids: [
+      "price_scale_monthly_placeholder",
+      "price_scale_yearly_placeholder",
+      ...Object.values(SCALE_TIER_PRICE_IDS).flat(),
+    ],
+  },
+  limits: ADVANCED_PLAN.limits,
+  // Tier 1 is the base price/limits above
+  tiers: {
+    2: {
+      price: { monthly: 600, yearly: 540, ids: SCALE_TIER_PRICE_IDS[2] },
+      limits: { links: 150_000, clicks: 2_000_000 },
+    },
+    3: {
+      price: { monthly: 900, yearly: 810, ids: SCALE_TIER_PRICE_IDS[3] },
+      limits: { links: 300_000, clicks: 3_500_000 },
+    },
+    4: {
+      price: { monthly: 1_200, yearly: 1_080, ids: SCALE_TIER_PRICE_IDS[4] },
+      limits: { links: 500_000, clicks: 5_000_000 },
+    },
+  },
+};
+
+export const PARTNERS_PLANS = [
+  STARTER_PLAN,
+  GROWTH_PLAN,
+  SCALE_PLAN,
+  ENTERPRISE_PLAN,
+];
+
 export const FREE_WORKSPACES_LIMIT = 2;
 
 const enrichPlanWithTierData = (
