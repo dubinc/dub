@@ -156,6 +156,9 @@ export const PATCH = withWorkspace(
           code: "conflict",
           message: `The slug "${slug}" is already in use.`,
         });
+      } else if (error instanceof DubApiError) {
+        // For example, a logo URL that storage.upload could not fetch (400)
+        throw error;
       } else {
         throw new DubApiError({
           code: "internal_server_error",
