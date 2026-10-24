@@ -13,15 +13,13 @@ export const GET = withSession(async ({ session }) => {
     where: {
       id: session.user.id,
     },
-    include: {
+    select: {
+      createdAt: true,
       partners: {
-        include: {
-          partner: {
-            include: {
-              programs: true,
-            },
-          },
+        select: {
+          partnerId: true,
         },
+        take: 1,
       },
       projects: {
         where: {
@@ -31,23 +29,37 @@ export const GET = withSession(async ({ session }) => {
             },
           },
         },
+        select: {
+          projectId: true,
+        },
+        take: 1,
       },
     },
   });
-  const paidWorkspaces = user.projects.map((project) => project);
 
   // for free users, need to do some extra checks
-  if (paidWorkspaces.length === 0) {
+  if (user.projects.length === 0) {
     // for partners with free workspaces, they are only eligible if they have a good reputation
-    const programEnrollments = user.partners[0]
-      ? user.partners[0].partner.programs
+    // Read the enrollments by partnerId, not through the partner relation, so a partner user whose partner was deleted does not throw.
+    const partnerId = user.partners[0]?.partnerId;
+    const programEnrollments: ProgramEnrollmentsForDiscoverability = partnerId
+      ? await prisma.programEnrollment.findMany({
+          where: {
+            partnerId,
+          },
+          select: {
+            programId: true,
+            status: true,
+            totalCommissions: true,
+          },
+        })
       : [];
+
     if (
       programEnrollments.length > 0 &&
       !(
-        partnerHasEarnedCommissions(
-          programEnrollments as ProgramEnrollmentsForDiscoverability,
-        ) && partnerIsNotBanned(programEnrollments)
+        partnerHasEarnedCommissions(programEnrollments) &&
+        partnerIsNotBanned(programEnrollments)
       )
     ) {
       return NextResponse.json({ publicToken: null });
