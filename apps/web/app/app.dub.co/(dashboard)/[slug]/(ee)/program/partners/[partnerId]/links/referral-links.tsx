@@ -42,7 +42,7 @@ import {
 } from "@dub/utils";
 import { Command } from "cmdk";
 import Link from "next/link";
-import { type ReactNode, useState } from "react";
+import { type ComponentType, type ReactNode, useState } from "react";
 
 type PartnerLink = ProgramPartnerLinkExtended;
 type PartnerForOverrides = Pick<
@@ -158,11 +158,61 @@ function OverrideIndicatorGroup({
   );
 }
 
-const formatStatCount = ({ count, unit }: { count: number; unit: string }) => ({
+export const formatStatCount = ({
+  count,
+  unit,
+}: {
+  count: number;
+  unit: string;
+}) => ({
   count,
   formatted: nFormatter(count),
   tooltip: `${nFormatter(count, { full: true })} ${pluralize(unit, count)}`,
 });
+
+export const formatStatRevenue = (saleAmount: number) => ({
+  count: saleAmount,
+  formatted: `$${nFormatter(saleAmount / 100)}`,
+  tooltip: `${currencyFormatter(saleAmount, { trailingZeroDisplay: "stripIfInteger" })} revenue`,
+});
+
+export function PartnerLinkStat({
+  icon: Icon,
+  iconClassName,
+  count,
+  formatted,
+  tooltip,
+  href,
+  target,
+}: {
+  icon: ComponentType<{ className?: string; "data-active"?: boolean }>;
+  iconClassName: string;
+  count: number;
+  formatted: string;
+  tooltip: string;
+  href: string;
+  target?: string;
+}) {
+  return (
+    <Tooltip
+      content={
+        <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
+          {tooltip}
+        </div>
+      }
+    >
+      <Link href={href} target={target} className="flex items-center gap-1.5">
+        <Icon
+          data-active={count > 0}
+          className={cn("size-4 shrink-0 text-neutral-400", iconClassName)}
+        />
+        <span className="text-xs font-medium text-neutral-700">
+          {formatted}
+        </span>
+      </Link>
+    </Tooltip>
+  );
+}
 
 const PARTNER_LINK_STATS = [
   {
@@ -203,15 +253,7 @@ const PARTNER_LINK_STATS = [
     icon: InvoiceDollar,
     event: "sales",
     iconClassName: "data-[active=true]:text-teal-500",
-    getValue: (link: PartnerLink) => {
-      const saleAmount = link.saleAmount ?? 0;
-
-      return {
-        count: saleAmount,
-        formatted: `$${nFormatter(saleAmount / 100)}`,
-        tooltip: `${currencyFormatter(saleAmount, { trailingZeroDisplay: "stripIfInteger" })} revenue`,
-      };
-    },
+    getValue: (link: PartnerLink) => formatStatRevenue(link.saleAmount ?? 0),
   },
 ] as const;
 
@@ -389,34 +431,15 @@ function PartnerLinkCard({
         <div className="flex shrink-0 items-center gap-3">
           {PARTNER_LINK_STATS.map(
             ({ id, icon: Icon, event, getValue, iconClassName }) => {
-              const { count, formatted, tooltip } = getValue(link);
-
               return (
-                <Tooltip
+                <PartnerLinkStat
                   key={id}
-                  content={
-                    <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
-                      {tooltip}
-                    </div>
-                  }
-                >
-                  <Link
-                    href={`/${slug}/events?event=${event}&interval=all&domain=${link.domain}&key=${link.key}`}
-                    target="_blank"
-                    className="flex items-center gap-1.5"
-                  >
-                    <Icon
-                      data-active={count > 0}
-                      className={cn(
-                        "size-4 shrink-0 text-neutral-400",
-                        iconClassName,
-                      )}
-                    />
-                    <span className="text-xs font-medium text-neutral-700">
-                      {formatted}
-                    </span>
-                  </Link>
-                </Tooltip>
+                  icon={Icon}
+                  iconClassName={iconClassName}
+                  href={`/${slug}/events?event=${event}&interval=all&domain=${link.domain}&key=${link.key}`}
+                  target="_blank"
+                  {...getValue(link)}
+                />
               );
             },
           )}
