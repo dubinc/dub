@@ -29,7 +29,7 @@ import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { redirect, useParams, useSearchParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
@@ -185,9 +185,15 @@ export function ProgramMessagesPartnerPageClient() {
     setPendingAttachments((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
-  const { setCurrentPanel } = useMessagesContext();
+  const { setCurrentPanel, openingThreadId, setLoadedThreadId } =
+    useMessagesContext();
   const { isRightPanelOpen, setIsRightPanelOpen, toggleRightPanel } =
     useMessageSidePanel();
+  const showingOpenedThread = !openingThreadId || openingThreadId === partnerId;
+
+  useEffect(() => {
+    if (showingOpenedThread && messages) setLoadedThreadId(partnerId);
+  }, [showingOpenedThread, messages, partnerId, setLoadedThreadId]);
 
   if (errorMessages) redirect(`/${workspaceSlug}/program/messages`);
 
@@ -243,7 +249,9 @@ export function ProgramMessagesPartnerPageClient() {
         <div className="min-h-0 grow">
           <MessagesPanel
             key={partnerId}
-            messages={messages && user ? messages : undefined}
+            messages={
+              showingOpenedThread && messages && user ? messages : undefined
+            }
             error={errorMessages}
             currentUserType="user"
             currentUserId={user?.id || ""}

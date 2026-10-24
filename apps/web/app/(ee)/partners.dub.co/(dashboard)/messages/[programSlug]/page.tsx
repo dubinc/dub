@@ -49,7 +49,7 @@ import {
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
@@ -246,9 +246,16 @@ export default function PartnerMessagesProgramPage() {
     setPendingAttachments((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
-  const { setCurrentPanel } = useMessagesContext();
+  const { setCurrentPanel, openingThreadId, setLoadedThreadId } =
+    useMessagesContext();
   const { isRightPanelOpen, setIsRightPanelOpen, toggleRightPanel } =
     useMessageSidePanel();
+  const showingOpenedThread =
+    !openingThreadId || openingThreadId === programSlug;
+
+  useEffect(() => {
+    if (showingOpenedThread && messages) setLoadedThreadId(programSlug);
+  }, [showingOpenedThread, messages, programSlug, setLoadedThreadId]);
 
   // Redirect if no messages and not enrolled, or messages error
   if (
@@ -321,7 +328,11 @@ export default function PartnerMessagesProgramPage() {
           <div className="min-h-0 grow">
             <MessagesPanel
               key={programSlug}
-              messages={messages && partner && user ? messages : undefined}
+              messages={
+                showingOpenedThread && messages && partner && user
+                  ? messages
+                  : undefined
+              }
               error={errorMessages}
               currentUserType="partner"
               currentUserId={partner?.id || ""}
