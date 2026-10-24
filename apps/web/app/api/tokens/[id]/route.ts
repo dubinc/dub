@@ -1,20 +1,24 @@
 import { DubApiError } from "@/lib/api/errors";
+import { activeRestrictedTokenWhere } from "@/lib/api/tokens/active-restricted-token";
 import { validateScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { prisma } from "@/lib/prisma";
 import { tokenSchema, updateTokenSchema } from "@/lib/zod/schemas/token";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/tokens/:id - get info about a specific token
 export const GET = withWorkspace(
   async ({ workspace, params }) => {
-    const token = await prisma.restrictedToken.findUnique({
+    const token = await prisma.restrictedToken.findFirst({
       where: {
         id: params.id,
         projectId: workspace.id,
+        installationId: null,
+        ...activeRestrictedTokenWhere(),
       },
       select: {
         id: true,
@@ -69,29 +73,45 @@ export const PATCH = withWorkspace(
       });
     }
 
-    const token = await prisma.restrictedToken.update({
-      where: {
-        id: params.id,
-        projectId: workspace.id,
-      },
-      data: {
-        ...(name && { name }),
-        ...(scopes && { scopes: [...new Set(scopes)].join(" ") }),
-      },
-      include: {
-        user: true,
-      },
-    });
+    try {
+      const token = await prisma.restrictedToken.update({
+        where: {
+          id: params.id,
+          projectId: workspace.id,
+          installationId: null,
+          ...activeRestrictedTokenWhere(),
+        },
+        data: {
+          ...(name && { name }),
+          ...(scopes && { scopes: [...new Set(scopes)].join(" ") }),
+        },
+        include: {
+          user: true,
+        },
+      });
 
-    // update tokens cache
-    waitUntil(
-      tokenCache.set({
-        hashedKey: token.hashedKey,
-        token,
-      }),
-    );
+      // update tokens cache
+      waitUntil(
+        tokenCache.set({
+          hashedKey: token.hashedKey,
+          token,
+        }),
+      );
 
-    return NextResponse.json(tokenSchema.parse(token));
+      return NextResponse.json(tokenSchema.parse(token));
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
+        throw new DubApiError({
+          code: "not_found",
+          message: `Token with id ${params.id} not found.`,
+        });
+      }
+
+      throw error;
+    }
   },
   {
     requiredPermissions: ["tokens.write"],
@@ -101,10 +121,12 @@ export const PATCH = withWorkspace(
 // DELETE /api/tokens/:id - delete a specific token
 export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
-    const token = await prisma.restrictedToken.delete({
+    const token = await prisma.restrictedToken.findFirst({
       where: {
         id: params.id,
         projectId: workspace.id,
+        installationId: null,
+        ...activeRestrictedTokenWhere(),
       },
       select: {
         id: true,
@@ -118,10 +140,42 @@ export const DELETE = withWorkspace(
       },
     });
 
+    if (!token) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Token with id ${params.id} not found.`,
+      });
+    }
+
+    const now = new Date();
+
     if (token.user.isMachine) {
-      await prisma.user.delete({
+      await prisma.$transaction([
+        prisma.restrictedToken.update({
+          where: {
+            id: token.id,
+          },
+          data: {
+            expires: now,
+          },
+        }),
+
+        prisma.projectUsers.delete({
+          where: {
+            userId_projectId: {
+              userId: token.user.id,
+              projectId: workspace.id,
+            },
+          },
+        }),
+      ]);
+    } else {
+      await prisma.restrictedToken.update({
         where: {
-          id: token.user.id,
+          id: token.id,
+        },
+        data: {
+          expires: now,
         },
       });
     }

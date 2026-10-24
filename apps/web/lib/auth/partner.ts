@@ -136,7 +136,9 @@ export const withPartnerProfile = (
             });
           }
 
-          if (token.expires && token.expires < new Date()) {
+          const expiresAt = token.expires ? new Date(token.expires) : null;
+
+          if (expiresAt && expiresAt < new Date()) {
             throw new DubApiError({
               code: "unauthorized",
               message: "Unauthorized: Access token expired.",
