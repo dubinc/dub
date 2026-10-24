@@ -1,7 +1,12 @@
+import { attributeReferringPartner } from "@/lib/api/partners/attribute-referring-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { partnerReferralSchema } from "@/lib/partner-referrals/schemas";
+import {
+  attributeReferringPartnerBodySchema,
+  partnerReferralSchema,
+} from "@/lib/partner-referrals/schemas";
 import { prisma } from "@/lib/prisma";
 import { toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -83,5 +88,30 @@ export const GET = withWorkspace(
   },
   {
     requiredPlan: ["business", "advanced", "enterprise"],
+  },
+);
+
+// POST /api/partners/:partnerId/referral – attribute a referring partner
+export const POST = withWorkspace(
+  async ({ workspace, params, req }) => {
+    const { partnerId } = params;
+    const { referredByPartnerId, createCommissionsForPastEvents } =
+      attributeReferringPartnerBodySchema.parse(await parseRequestBody(req));
+
+    await attributeReferringPartner({
+      workspace,
+      partnerId,
+      referredByPartnerId,
+      createCommissionsForPastEvents,
+    });
+
+    return NextResponse.json({
+      partnerId,
+      referredByPartnerId,
+    });
+  },
+  {
+    requiredPlan: ["advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
   },
 );

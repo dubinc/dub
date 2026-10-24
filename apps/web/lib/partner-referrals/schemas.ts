@@ -74,9 +74,22 @@ export const networkReferralsTimeseriesSchema = z.object({
   earnings: z.number().int(),
 });
 
-export const attributeReferringPartnerSchema = z.object({
-  workspaceId: z.string(),
-  partnerId: z.string(),
-  referredByPartnerId: z.string(),
-  createCommissionsForPastEvents: z.boolean().default(false),
+export const attributeReferringPartnerBodySchema = z.object({
+  referredByPartnerId: z
+    .string()
+    .describe(
+      "The ID of the partner who referred this partner. The referring partner must be approved in your program.",
+    ),
+  createCommissionsForPastEvents: z
+    .boolean()
+    .default(false)
+    .describe(
+      "When true, enqueue referral commissions for this partner's past eligible events. Commissions are created asynchronously, and only when the referring partner has a referral reward.",
+    ),
 });
+
+export const attributeReferringPartnerSchema =
+  attributeReferringPartnerBodySchema.extend({
+    workspaceId: z.string(),
+    partnerId: z.string(),
+  });
