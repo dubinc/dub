@@ -1,4 +1,4 @@
-import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
+import { getPartnerPlatformOAuthProvider } from "@/lib/api/partner-profile/partner-platforms-providers";
 import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
 import { getSession } from "@/lib/auth/utils";
 import { prisma } from "@/lib/prisma";
@@ -42,6 +42,20 @@ export async function GET(req: Request) {
   const session = await getSession();
 
   if (!session?.user?.id) {
+    // LinkedIn (and other providers) must redirect to the ngrok HTTPS origin.
+    // The session cookie lives on partners.localhost, so bounce there in dev.
+    if (process.env.NODE_ENV === "development") {
+      const host = req.headers.get("host") ?? "";
+      const isLocalPartnersHost =
+        host === "partners.localhost:8888" || host === "partners.localhost";
+
+      if (!isLocalPartnersHost) {
+        return NextResponse.redirect(
+          `http://partners.localhost:8888/api/partners/platforms/callback?${searchParams.toString()}`,
+        );
+      }
+    }
+
     console.warn("Unauthorized: Login required.");
     return NextResponse.redirect(PARTNERS_DOMAIN);
   }
@@ -64,20 +78,38 @@ export async function GET(req: Request) {
   }
 
   // Validate platform exists in providers
-  const provider = PARTNER_PLATFORMS_PROVIDERS[platform];
+  const provider = getPartnerPlatformOAuthProvider(platform);
   if (!provider) {
     console.error(`Invalid platform: ${platform}`);
     return NextResponse.redirect(PARTNERS_DOMAIN);
   }
 
   // Redirect user based on source
-  const redirectUrl =
-    source === "onboarding"
-      ? `${PARTNERS_DOMAIN}/onboarding/platforms`
-      : `${PARTNERS_DOMAIN}/profile`;
+  const redirectUrl = (
+    status: "success" | "failed",
+    reason?: "private" | "mismatch" | "oauth",
+  ) => {
+    const url = new URL(
+      source === "onboarding"
+        ? `${PARTNERS_DOMAIN}/onboarding/platforms`
+        : `${PARTNERS_DOMAIN}/profile`,
+    );
+    url.searchParams.set("social_verification", status);
+    if (reason) {
+      url.searchParams.set("reason", reason);
+    }
+    return NextResponse.redirect(url);
+  };
 
-  const { tokenUrl, clientId, clientSecret, verify, pkce, clientIdParam } =
-    provider;
+  const {
+    tokenUrl,
+    clientId,
+    clientSecret,
+    verify,
+    pkce,
+    clientIdParam,
+    basicAuth = true,
+  } = provider;
 
   const cookieStore = await cookies();
   const codeVerifier = pkce
@@ -107,7 +139,9 @@ export async function GET(req: Request) {
   const response = await fetch(tokenUrl, {
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+      ...(basicAuth && {
+        Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+      }),
     },
     method: "POST",
     body: urlParams.toString(),
@@ -117,12 +151,12 @@ export async function GET(req: Request) {
 
   if (!response.ok) {
     console.warn("Failed to get access token in OAuth callback", tokenResponse);
-    return NextResponse.redirect(redirectUrl);
+    return redirectUrl("failed");
   }
 
   if (!tokenResponse.access_token) {
     console.warn("No access token found in OAuth callback");
-    return NextResponse.redirect(redirectUrl);
+    return redirectUrl("failed");
   }
 
   const partnerPlatform = await prisma.partnerPlatform.findUnique({
@@ -136,17 +170,25 @@ export async function GET(req: Request) {
 
   if (!partnerPlatform || !partnerPlatform.identifier) {
     console.error("No partner platform found in OAuth callback");
-    return NextResponse.redirect(redirectUrl);
+    return redirectUrl("failed");
   }
 
-  const { verified, metadata } = await verify({
+  const {
+    verified,
+    metadata,
+    platformId,
+    avatarUrl,
+    subscribers,
+    failureReason,
+  } = await verify({
     handle: partnerPlatform.identifier,
     accessToken: tokenResponse.access_token,
+    idToken: tokenResponse.id_token,
   });
 
   if (!verified) {
     console.warn("Failed to verify social account in OAuth callback");
-    return NextResponse.redirect(redirectUrl);
+    return redirectUrl("failed", failureReason);
   }
 
   let socialStats = {};
@@ -181,6 +223,9 @@ export async function GET(req: Request) {
     },
     data: {
       ...socialStats,
+      ...(platformId && { platformId }),
+      ...(avatarUrl && { avatarUrl }),
+      ...(subscribers !== undefined && { subscribers }),
       ...(metadata && { metadata }),
       verifiedAt: new Date(),
     },
@@ -191,5 +236,5 @@ export async function GET(req: Request) {
     cookieStore.delete("online_presence_code_verifier");
   }
 
-  return NextResponse.redirect(redirectUrl);
+  return redirectUrl("success");
 }

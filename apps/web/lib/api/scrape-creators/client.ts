@@ -1,7 +1,11 @@
 import { createFetch, createSchema } from "@better-fetch/fetch";
 import { PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
-import { socialContentSchema, socialProfileSchema } from "./schema";
+import {
+  linkedInProfileSchema,
+  socialContentSchema,
+  socialProfileSchema,
+} from "./schema";
 
 export const scrapeCreatorsFetch = createFetch({
   baseURL: "https://api.scrapecreators.com",
@@ -15,6 +19,15 @@ export const scrapeCreatorsFetch = createFetch({
   },
   schema: createSchema(
     {
+      // Fetch LinkedIn public profile by URL
+      "/v1/linkedin/profile": {
+        method: "get",
+        query: z.object({
+          url: z.string(),
+        }),
+        output: linkedInProfileSchema,
+      },
+
       // Fetch social profile
       "/v1/:platform/:handleType": {
         method: "get",

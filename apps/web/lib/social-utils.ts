@@ -33,7 +33,7 @@ export const SOCIAL_PLATFORM_CONFIGS: Record<
   linkedin: {
     patterns: [/^(?:.*\.)?linkedin\.com\/(?:in\/)?([^\/\?]+)/i],
     allowedChars: /[^\w-]/g,
-    maxLength: 30,
+    maxLength: 100,
     name: "LinkedIn",
   },
   instagram: {
