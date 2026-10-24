@@ -94,6 +94,7 @@ export const createUserAccountAction = actionClient
           email,
           passwordHash: await hashPassword(password),
           emailVerified: new Date(),
+          emailVerifiedBa: true,
           notificationPreferences: {
             create: {},
           },

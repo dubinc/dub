@@ -34,6 +34,7 @@ async function main() {
       email,
       name,
       emailVerified: new Date(),
+      emailVerifiedBa: true,
       defaultPartnerId: partnerId,
     },
   });
