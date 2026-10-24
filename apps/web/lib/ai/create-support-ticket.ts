@@ -190,6 +190,9 @@ async function getPriorityAndMetadata(
         }),
         prisma.payout.aggregate({
           where: {
+            program: {
+              environment: "production",
+            },
             partner: {
               users: { some: { userId } },
             },

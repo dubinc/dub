@@ -14,6 +14,9 @@ export const GET = withCron(async () => {
     stripe.balance.retrieve(),
     prisma.payout.aggregate({
       where: {
+        program: {
+          environment: "production",
+        },
         status: {
           in: ["processing", "processed"],
         },

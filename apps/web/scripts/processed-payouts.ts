@@ -1,4 +1,3 @@
-import { MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS } from "@/lib/constants/payouts";
 import { prisma } from "@/lib/prisma";
 import { currencyFormatter } from "@dub/utils";
 import { Prisma } from "@prisma/client";
@@ -6,14 +5,11 @@ import "dotenv-flow/config";
 
 async function main() {
   const where: Prisma.PayoutWhereInput = {
-    status: "processed",
-    amount: {
-      gte: MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
+    program: {
+      environment: "production",
     },
-    partner: {
-      payoutsEnabledAt: {
-        not: null,
-      },
+    status: {
+      in: ["processed", "processing"],
     },
   };
 
