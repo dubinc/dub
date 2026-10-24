@@ -281,7 +281,6 @@ export const updateUsage = async () => {
               ", ",
             )}`,
             type: "cron",
-            mention: plan !== "free",
           }),
         );
       }),
