@@ -81,7 +81,11 @@ export default function PartnerMessagesProgramPage() {
   } = useProgramMessages({
     query: { programSlug, sortOrder: "asc" },
     swrOpts: {
+      // Don't keep the previous program's thread visible while the next one loads.
+      keepPreviousData: false,
       onSuccess: async (data) => {
+        if (data?.[0]?.program.slug !== programSlug) return;
+
         // Mark unread messages from the program as read
         if (
           !isMarkingProgramMessagesRead &&
@@ -98,8 +102,18 @@ export default function PartnerMessagesProgramPage() {
     },
   });
 
-  const program = programMessages?.[0]?.program;
-  const messages = programMessages?.[0]?.messages;
+  const { programMessages: inbox } = useProgramMessages({
+    query: { messagesLimit: 1 },
+  });
+
+  const thread =
+    programMessages?.[0]?.program.slug === programSlug
+      ? programMessages[0]
+      : undefined;
+  const program =
+    thread?.program ??
+    inbox?.find((group) => group.program.slug === programSlug)?.program;
+  const messages = thread?.messages;
 
   const isInactiveEnrollment =
     programEnrollment?.status &&
@@ -161,6 +175,12 @@ export default function PartnerMessagesProgramPage() {
   const [pendingAttachments, setPendingAttachments] = useState<
     PendingAttachment[]
   >([]);
+  const [draftProgramSlug, setDraftProgramSlug] = useState(programSlug);
+
+  if (draftProgramSlug !== programSlug) {
+    setDraftProgramSlug(programSlug);
+    setPendingAttachments([]);
+  }
 
   const handleAddFiles = useCallback(
     async (files: File[]) => {
@@ -300,6 +320,7 @@ export default function PartnerMessagesProgramPage() {
         ) : (
           <div className="min-h-0 grow">
             <MessagesPanel
+              key={programSlug}
               messages={messages && partner && user ? messages : undefined}
               error={errorMessages}
               currentUserType="partner"

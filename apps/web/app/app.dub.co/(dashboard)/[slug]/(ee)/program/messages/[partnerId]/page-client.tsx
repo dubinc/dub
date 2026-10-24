@@ -61,7 +61,11 @@ export function ProgramMessagesPartnerPageClient() {
   } = usePartnerMessages({
     query: { partnerId, sortOrder: "asc" },
     swrOpts: {
+      // Don't keep the previous partner's thread visible while the next one loads.
+      keepPreviousData: false,
       onSuccess: async (data) => {
+        if (data?.[0]?.partner.id !== partnerId) return;
+
         // Mark unread messages from the partner as read
         if (
           !isMarkingPartnerMessagesRead &&
@@ -79,8 +83,18 @@ export function ProgramMessagesPartnerPageClient() {
     },
   });
 
-  const partner = partnerMessages?.[0]?.partner;
-  const messages = partnerMessages?.[0]?.messages;
+  const { partnerMessages: inbox } = usePartnerMessages({
+    query: { messagesLimit: 1 },
+  });
+
+  const thread =
+    partnerMessages?.[0]?.partner.id === partnerId
+      ? partnerMessages[0]
+      : undefined;
+  const partner =
+    thread?.partner ??
+    inbox?.find((group) => group.partner.id === partnerId)?.partner;
+  const messages = thread?.messages;
 
   const { executeAsync: sendMessage } = useAction(messagePartnerAction, {
     onError({ error }) {
@@ -100,6 +114,12 @@ export function ProgramMessagesPartnerPageClient() {
   const [pendingAttachments, setPendingAttachments] = useState<
     PendingAttachment[]
   >([]);
+  const [draftPartnerId, setDraftPartnerId] = useState(partnerId);
+
+  if (draftPartnerId !== partnerId) {
+    setDraftPartnerId(partnerId);
+    setPendingAttachments([]);
+  }
 
   const handleAddFiles = useCallback(
     async (files: File[]) => {
@@ -222,6 +242,7 @@ export function ProgramMessagesPartnerPageClient() {
         </div>
         <div className="min-h-0 grow">
           <MessagesPanel
+            key={partnerId}
             messages={messages && user ? messages : undefined}
             error={errorMessages}
             currentUserType="user"
