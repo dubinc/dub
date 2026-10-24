@@ -31,7 +31,9 @@ export interface UserInfoProps {
     slug: string;
     plan: string;
     planPeriod: string | null;
+    stripeId: string | null;
     trialEndsAt: string | Date | null;
+    disabledAt: string | Date | null;
     events: number;
     links: number;
     statsInterval: "30d" | "all";
@@ -196,6 +198,11 @@ function WorkspaceCard({
               Trial ends {formatDate(workspace.trialEndsAt, { month: "short" })}
             </Badge>
           )}
+          {workspace.disabledAt && (
+            <Badge variant="red">
+              Disabled {formatDate(workspace.disabledAt, { month: "short" })}
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -213,6 +220,15 @@ function WorkspaceCard({
       </div>
 
       <MetaRow label="ID" value={workspace.id} copyValue={workspace.id} mono />
+      {workspace.stripeId && (
+        <MetaRow
+          label="Stripe ID"
+          value={workspace.stripeId}
+          copyValue={workspace.stripeId}
+          href={`https://dashboard.stripe.com/customers/${workspace.stripeId}`}
+          mono
+        />
+      )}
 
       {workspace.program && (
         <div className="space-y-0.5 border-t border-neutral-100 bg-neutral-50/80 py-1">
