@@ -14,13 +14,15 @@ export default function useGroups<T extends GroupProps>({
   query?: z.infer<typeof partialQuerySchema>;
   enabled?: boolean;
 } = {}) {
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId, partnersUsage } = useWorkspace();
 
   const { data, isLoading, error } = useSWR<T[]>(
     enabled && workspaceId && defaultProgramId
       ? `/api/groups?${new URLSearchParams({
           workspaceId,
           sortBy: "totalSaleAmount",
+          includeExpandedFields:
+            partnersUsage && partnersUsage <= 100000 ? "true" : "false",
           ...(query as Record<string, string>),
         }).toString()}`
       : null,

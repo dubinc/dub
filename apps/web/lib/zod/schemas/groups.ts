@@ -186,8 +186,10 @@ export const getGroupsQuerySchema = z
         "totalSaleAmount",
         "totalConversions",
         "totalCommissions",
-        // "netRevenue", // TODO: add back when we can sort by this again
+        "netRevenue",
       ])
+      // TODO: right now this only works if includeExpandedFields is true, else it sorts by group name by default
+      // we should make sort work without includeExpandedFields
       .default("totalSaleAmount"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     includeExpandedFields: booleanQuerySchema.optional(),

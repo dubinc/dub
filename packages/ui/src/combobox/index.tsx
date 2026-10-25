@@ -70,6 +70,7 @@ export type ComboboxProps<
   matchTriggerWidth?: boolean;
   hideSearch?: boolean;
   forceDropdown?: boolean;
+  preserveOrder?: boolean;
 }>;
 
 function isMultipleSelection(
@@ -113,6 +114,7 @@ export function Combobox({
   matchTriggerWidth,
   hideSearch = false,
   forceDropdown = false,
+  preserveOrder = false,
   children,
 }: ComboboxProps<boolean | undefined, any>) {
   const isMultiple = isMultipleSelection(multiple, setSelected);
@@ -165,7 +167,7 @@ export function Combobox({
 
   const sortOptions = useCallback(
     (options: ComboboxOption[], search: string) => {
-      return search === ""
+      return search === "" && !preserveOrder
         ? [
             ...options.filter(
               (o) => o.first && !selected.some((s) => s.value === o.value),

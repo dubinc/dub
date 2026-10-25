@@ -32,7 +32,7 @@ export function GroupSelector({
     query: useAsync ? { search: debouncedSearch } : undefined,
   });
 
-  const { groups: selectedGroups, loading: selectedGroupsLoading } = useGroups({
+  const { groups: selectedGroups } = useGroups({
     query: selectedGroupId ? { groupIds: [selectedGroupId] } : undefined,
   });
 
@@ -81,7 +81,7 @@ export function GroupSelector({
           selectedOption?.icon
         )
       }
-      caret={true}
+      caret
       placeholder={
         <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
       }
@@ -91,6 +91,7 @@ export function GroupSelector({
       matchTriggerWidth
       open={openPopover}
       onOpenChange={setOpenPopover}
+      preserveOrder={variant === "header"}
       {...(variant === "header"
         ? {
             popoverProps: {

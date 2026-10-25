@@ -231,7 +231,7 @@ export function GroupsTable() {
       "totalConversions",
       "totalSaleAmount",
       "totalCommissions",
-      // "netRevenue", // TODO: add back when we can sort by this again
+      "netRevenue",
     ],
     sortBy,
     sortOrder,

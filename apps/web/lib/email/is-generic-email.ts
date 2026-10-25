@@ -78,6 +78,7 @@ const GENERIC_EMAIL_DOMAINS = [
   "okyre.com",
   "pinmx.net",
   "pingmx.net",
+  "telus.net",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [
