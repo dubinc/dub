@@ -51,6 +51,7 @@ export const GET = withWorkspace(
     const formattedCommissions = formatCommissionsForExport(
       commissions,
       columns,
+      filters.timezone,
     );
 
     return new Response(convertToCSV(formattedCommissions), {

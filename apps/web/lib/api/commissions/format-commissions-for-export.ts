@@ -1,5 +1,8 @@
+import { sanitizeTimezone } from "@/lib/analytics/utils/sanitize-timezone";
 import { formatMoneyCentsForExport } from "@/lib/api/utils/format-money-cents-for-export";
 import { COMMISSION_EXPORT_COLUMNS } from "@/lib/zod/schemas/commissions";
+import { tz } from "@date-fns/tz";
+import { format } from "date-fns";
 import * as z from "zod/v4";
 import { getCommissions } from "./get-commissions";
 
@@ -29,10 +32,6 @@ const COLUMN_TYPE_SCHEMAS = {
     .nullable()
     .default("")
     .transform((value) => value || ""),
-  date: z
-    .date()
-    .nullable()
-    .transform((date) => (date ? date.toISOString() : "")),
   string: z
     .string()
     .nullable()
@@ -40,10 +39,24 @@ const COLUMN_TYPE_SCHEMAS = {
     .transform((value) => value || ""),
 };
 
+// Wall-clock time in the export timezone. toISOString() is UTC, so a commission
+// at 2026-10-08 06:59 in Asia/Shanghai was exported as 2026-10-07 22:59:59.
+function exportDateSchema(timezone?: string) {
+  const zone = tz(sanitizeTimezone(timezone));
+
+  return z
+    .date()
+    .nullable()
+    .transform((date) =>
+      date ? format(date, "yyyy-MM-dd HH:mm:ss", { in: zone }) : "",
+    );
+}
+
 // Formats commissions for CSV export with proper column ordering and type coercion
 export function formatCommissionsForExport(
   commissions: Awaited<ReturnType<typeof getCommissions>>,
   columns: string[],
+  timezone?: string,
 ): Record<string, any>[] {
   const sortedColumns = [...columns].sort(
     (a, b) =>
@@ -93,7 +106,11 @@ export function formatCommissionsForExport(
     }
 
     columnSchemas[column] =
-      COLUMN_TYPE_SCHEMAS[columnInfo.type as keyof typeof COLUMN_TYPE_SCHEMAS];
+      columnInfo.type === "date"
+        ? exportDateSchema(timezone)
+        : COLUMN_TYPE_SCHEMAS[
+            columnInfo.type as keyof typeof COLUMN_TYPE_SCHEMAS
+          ];
   }
 
   return z.array(z.object(columnSchemas)).parse(formattedCommissions);
