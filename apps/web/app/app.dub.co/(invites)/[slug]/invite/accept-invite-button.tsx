@@ -28,7 +28,7 @@ export function AcceptInviteButton() {
         return;
       }
 
-      await mutatePrefix(["/api/workspaces", "/api/programs"]);
+      await mutatePrefix("/api/workspaces");
       router.replace(`/${slug}`);
       toast.success("You now are a part of this workspace!");
     } catch (e) {

@@ -1,20 +1,11 @@
-import { createId } from "@/lib/api/create-id";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
-import { createStagingProgram } from "@/lib/sandbox/create-staging-program";
-import { createStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
 import {
   Domain,
-  EmailDomain,
   Folder,
   Integration,
-  Partner,
-  PartnerGroup,
-  PartnerGroupDefaultLink,
   Prisma,
-  Program,
   Project,
-  Reward,
   User,
   WorkspaceRole,
 } from "@prisma/client";
@@ -33,104 +24,32 @@ type Workspace = Pick<
   | "billingCycleStart"
   | "usageLimit"
   | "linksLimit"
-  | "payoutsLimit"
   | "domainsLimit"
   | "tagsLimit"
   | "foldersLimit"
   | "usersLimit"
   | "aiLimit"
-  | "groupsLimit"
-  | "partnersLimit"
-  | "defaultProgramId"
   | "invoicePrefix"
   | "conversionEnabled"
   | "webhookEnabled"
   | "dotLinkClaimed"
-  | "fastDirectDebitPayouts"
   | "publishableKey"
 >;
 
 type DomainSeed = Pick<Domain, "id" | "slug" | "verified">;
 
-type EmailDomainSeed = Pick<EmailDomain, "id" | "slug" | "status">;
-
 type FolderSeed = Pick<Folder, "id" | "name" | "description" | "accessLevel">;
-
-type RewardSeed = Pick<
-  Reward,
-  | "id"
-  | "programId"
-  | "groupId"
-  | "event"
-  | "type"
-  | "amountInCents"
-  | "amountInPercentage"
-  | "maxDuration"
-  | "description"
-  | "tooltipDescription"
->;
-
-type GroupSeed = Pick<
-  PartnerGroup,
-  | "id"
-  | "name"
-  | "slug"
-  | "color"
-  | "leadRewardId"
-  | "saleRewardId"
-  | "additionalLinks"
-> & {
-  defaultLinks: Pick<PartnerGroupDefaultLink, "url">[];
-};
-
-type ProgramSeed = Omit<
-  Pick<
-    Program,
-    | "id"
-    | "name"
-    | "slug"
-    | "logo"
-    | "defaultFolderId"
-    | "defaultGroupId"
-    | "domain"
-    | "url"
-    | "termsUrl"
-    | "helpUrl"
-    | "supportEmail"
-    | "messagingEnabledAt"
-    | "partnerNetworkEnabledAt"
-  >,
-  "messagingEnabledAt" | "partnerNetworkEnabledAt"
-> & {
-  messagingEnabledAt: string;
-  partnerNetworkEnabledAt: string;
-};
 
 interface WorkspaceUser extends Pick<User, "id" | "name" | "email"> {
   emailVerified: string;
   role: WorkspaceRole;
 }
 
-type PartnerSeed = Pick<
-  Partner,
-  "id" | "name" | "email" | "description" | "country"
-> & {
-  createdAt: string;
-  user: Pick<User, "id" | "name" | "email"> & {
-    emailVerified: string;
-  };
-};
-
 type SeedData = {
   workspace: Workspace;
   users: WorkspaceUser[];
   domains: DomainSeed[];
-  emailDomains: EmailDomainSeed[];
   folders: FolderSeed[];
-  rewards: RewardSeed[];
-  groups: GroupSeed[];
-  program: ProgramSeed;
-  partners: PartnerSeed[];
   integrations: Omit<
     Integration,
     "id" | "projectId" | "userId" | "createdAt" | "updatedAt"
@@ -233,33 +152,6 @@ const createDomains = async (data: SeedData) => {
   console.log(`Created ${count} domains`);
 };
 
-// Create email domains
-const createEmailDomains = async (data: SeedData) => {
-  const { emailDomains, workspace, program } = data;
-
-  if (!emailDomains || emailDomains.length === 0) {
-    console.log("No email domains to insert");
-    return;
-  }
-
-  if (!program) {
-    console.log("Program is required to create email domains");
-    return;
-  }
-
-  const { count } = await prisma.emailDomain.createMany({
-    data: emailDomains.map((emailDomain) => ({
-      id: emailDomain.id,
-      slug: emailDomain.slug,
-      status: emailDomain.status,
-      workspaceId: workspace.id,
-      programId: program.id,
-    })),
-  });
-
-  console.log(`Created ${count} email domains`);
-};
-
 // Create folders
 const createFolders = async (data: SeedData) => {
   const { folders, workspace } = data;
@@ -280,228 +172,6 @@ const createFolders = async (data: SeedData) => {
   });
 
   console.log(`Created ${count} folders`);
-};
-
-// Create rewards
-const createRewards = async (data: SeedData) => {
-  const { rewards, program } = data;
-
-  if (!rewards || rewards.length === 0) {
-    console.log("No rewards to insert");
-    return;
-  }
-
-  if (!program) {
-    console.log("Program is required to create rewards");
-    return;
-  }
-
-  const { count } = await prisma.reward.createMany({
-    data: rewards.map((reward) => ({
-      id: reward.id,
-      programId: program.id,
-      groupId: reward.groupId ?? null,
-      event: reward.event,
-      type: reward.type,
-      amountInCents: reward.amountInCents,
-      amountInPercentage: reward.amountInPercentage
-        ? new Prisma.Decimal(reward.amountInPercentage)
-        : null,
-      maxDuration: reward.maxDuration,
-      description: reward.description,
-      tooltipDescription: reward.tooltipDescription,
-    })),
-  });
-
-  console.log(`Created ${count} rewards`);
-};
-
-// Create groups
-const createGroups = async (data: SeedData) => {
-  const { groups, program } = data;
-
-  if (!groups || groups.length === 0) {
-    console.log("No groups to insert");
-    return;
-  }
-
-  if (!program) {
-    console.log("Program is required to create groups");
-    return;
-  }
-
-  const { count } = await prisma.partnerGroup.createMany({
-    data: groups.map((group) => ({
-      id: group.id,
-      programId: program.id,
-      name: group.name,
-      slug: group.slug,
-      color: group.color ?? null,
-      leadRewardId: group.leadRewardId ?? null,
-      saleRewardId: group.saleRewardId ?? null,
-      additionalLinks: group.additionalLinks as Prisma.JsonArray,
-    })),
-  });
-
-  console.log(`Created ${count} groups`);
-
-  const defaultLinks = groups.flatMap((group) =>
-    group.defaultLinks.map((link) => ({
-      groupId: group.id,
-      url: link.url,
-    })),
-  );
-
-  const { count: defaultLinksCount } =
-    await prisma.partnerGroupDefaultLink.createMany({
-      data: defaultLinks.map((link) => ({
-        id: createId({ prefix: "pgdl_" }),
-        programId: program.id,
-        domain: program.domain!,
-        groupId: link.groupId,
-        url: link.url,
-      })),
-    });
-
-  console.log(`Created ${defaultLinksCount} default links`);
-};
-
-// Create program
-const createProgram = async (data: SeedData) => {
-  const { program, workspace } = data;
-
-  if (!program) {
-    console.log("No program to insert");
-    return;
-  }
-
-  const { id } = await prisma.program.create({
-    data: {
-      id: program.id,
-      workspaceId: workspace.id,
-      name: program.name,
-      slug: program.slug,
-      logo: program.logo,
-      defaultFolderId: program.defaultFolderId,
-      defaultGroupId: program.defaultGroupId,
-      domain: program.domain,
-      url: program.url,
-      termsUrl: program.termsUrl,
-      helpUrl: program.helpUrl,
-      supportEmail: program.supportEmail,
-      messagingEnabledAt: new Date(),
-      partnerNetworkEnabledAt: new Date(),
-      addedToMarketplaceAt: new Date(),
-      featuredOnMarketplaceAt: new Date(),
-    },
-  });
-
-  console.log(`Created program ${id}`);
-};
-
-// Create partners
-const createPartners = async (data: SeedData) => {
-  const { partners, program } = data;
-
-  if (!partners || partners.length === 0) {
-    console.log("No partners to insert");
-    return;
-  }
-
-  if (!program) {
-    console.log("Program is required to create partners.");
-    return;
-  }
-
-  const passwordHash = await hashPassword("password");
-
-  // Create users for partners
-  await prisma.user.createMany({
-    data: partners.map((partner) => ({
-      id: partner.user.id,
-      name: partner.user.name,
-      email: partner.user.email,
-      emailVerified: new Date(partner.user.emailVerified),
-      passwordHash,
-      defaultPartnerId: partner.id,
-    })),
-  });
-
-  // Create partners
-  const { count: partnerCount } = await prisma.partner.createMany({
-    data: partners.map((partner) => ({
-      id: partner.id,
-      name: partner.name,
-      email: partner.email,
-      description: partner.description,
-      country: partner.country,
-      createdAt: new Date(partner.createdAt),
-    })),
-  });
-
-  // Create partner users
-  await prisma.partnerUser.createMany({
-    data: partners.map((partner) => ({
-      userId: partner.user.id,
-      partnerId: partner.id,
-      role: "owner",
-      createdAt: new Date(partner.createdAt),
-    })),
-  });
-
-  // Query PartnerUsers to get the actual IDs (since createMany doesn't return them)
-  const partnerUsers = await prisma.partnerUser.findMany({
-    where: {
-      partnerId: { in: partners.map((p) => p.id) },
-      userId: { in: partners.map((p) => p.user.id) },
-    },
-  });
-
-  const { count: notificationPreferencesCount } =
-    await prisma.partnerNotificationPreferences.createMany({
-      data: partnerUsers.map((partnerUser) => ({
-        partnerUserId: partnerUser.id,
-      })),
-    });
-
-  console.log(`Created ${partnerCount} partners`);
-  console.log(
-    `Created ${notificationPreferencesCount} partner notification preferences`,
-  );
-
-  const applications = partners.map((partner) => ({
-    id: createId({ prefix: "pga_" }),
-    programId: program.id,
-    partnerId: partner.id,
-    groupId: program.defaultGroupId,
-    name: partner.name,
-    email: partner.email ?? `${partner.id}@dub-internal-test.com`,
-    country: partner.country,
-    formData: { fields: [] },
-    status: "pending" as const,
-    createdAt: new Date(partner.createdAt),
-  }));
-
-  const { count: applicationCount } =
-    await prisma.programApplication.createMany({
-      data: applications,
-    });
-
-  console.log(`Created ${applicationCount} program applications`);
-
-  // Create program enrollments
-  const { count: enrollmentCount } = await prisma.programEnrollment.createMany({
-    data: partners.map((partner, index) => ({
-      id: createId({ prefix: "pge_" }),
-      partnerId: partner.id,
-      programId: program.id,
-      groupId: program.defaultGroupId,
-      applicationId: applications[index].id,
-      status: "pending" as const,
-    })),
-  });
-
-  console.log(`Created ${enrollmentCount} program enrollments`);
 };
 
 // Create integrations
@@ -532,13 +202,6 @@ const createIntegrations = async (data: SeedData) => {
 const truncate = async () => {
   console.log("Truncating database...\n");
 
-  // First, nullify the defaultProgramId references to break the relation
-  await prisma.project.updateMany({
-    data: {
-      defaultProgramId: null,
-    },
-  });
-
   const tables = [
     "Job",
     "jackson_index",
@@ -562,64 +225,18 @@ const truncate = async () => {
     "NotificationPreference",
     "UserNotificationPreferences",
     "Integration",
-    "LinkReward",
-    "SubmittedLead",
-    "Commission",
-    "PartnerComment",
-    "Payout",
     "Invoice",
     "Customer",
-    "Reward",
-    "DiscountCode",
-    "Discount",
     "FolderAccessRequest",
-    "EmailDomain",
-    "MessageAttachment",
-    "NotificationEmail",
-    "Message",
-    "PartnerGroupDefaultLink",
     "FolderUser",
     "Folder",
     "Link",
-    "Workflow",
-    "BountyPartnerTag",
-    "BountyGroup",
-    "BountySubmission",
-    "Bounty",
-    "CampaignPartnerTag",
-    "CampaignGroup",
-    "Campaign",
-    "FraudAlert",
-    "FraudEvent",
-    "FraudEventGroup",
-    "FraudRule",
-    "ActivityLog",
-    "ProgramPartnerTag",
-    "ProgramApplicationEvent",
-    "ProgramApplication",
-    "ProgramEnrollment",
-    "PartnerGroup",
-    "PartnerNotificationPreferences",
-    "PartnerUser",
-    "Postback",
-    "PartnerIndustryInterest",
-    "PartnerPreferredEarningStructure",
-    "PartnerSalesChannel",
-    "PartnerPlatform",
-    "PartnerRewind",
-    "Partner",
-    "PartnerInvite",
     "Domain",
     "Account",
     "Session",
     "Dashboard",
     "ProjectUsers",
     "User",
-    "PartnerTag",
-    "ProgramCategory",
-    "ProgramSimilarity",
-    "DiscoveredPartner",
-    "Program",
     "RegisteredDomain",
     "DefaultDomains",
     "ProjectInvite",
@@ -676,14 +293,6 @@ async function main() {
   await createUsers(data);
   await createDomains(data);
   await createFolders(data);
-  await createProgram(data);
-  await createStagingWorkspace(data.workspace.id);
-  await createEmailDomains(data);
-  await createRewards(data);
-  await createGroups(data);
-  await createStagingProgram(data.workspace.id);
-  console.log("Created staging workspace and program");
-  await createPartners(data);
   await createIntegrations(data);
 }
 

@@ -1,4 +1,3 @@
-import { prisma } from "@/lib/prisma";
 import { getWorkspaceUsage } from "@/lib/tinybird/get-workspace-usage";
 import { getBillingStartDate } from "@dub/utils";
 import { Project } from "@prisma/client";
@@ -11,7 +10,7 @@ export async function recomputeWorkspaceUsage(
   const billingStart = getBillingStartDate(workspace.billingCycleStart);
   const billingEnd = new Date();
 
-  const [clicksData, linksData, payoutsUsage] = await Promise.all([
+  const [clicksData, linksData] = await Promise.all([
     getWorkspaceUsage({
       workspaceId: workspace.id,
       resource: "events",
@@ -25,26 +24,10 @@ export async function recomputeWorkspaceUsage(
       start: billingStart,
       end: billingEnd,
     }),
-
-    prisma.invoice.aggregate({
-      where: {
-        workspaceId: workspace.id,
-        type: "partnerPayout",
-        status: "completed",
-        paidAt: {
-          gte: billingStart,
-          lte: billingEnd,
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    }),
   ]);
 
   return {
     usage: sum(clicksData.map((d) => d.value)),
     linksUsage: sum(linksData.map((d) => d.value)),
-    payoutsUsage: payoutsUsage._sum.amount ?? 0,
   };
 }

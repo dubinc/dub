@@ -11,7 +11,7 @@ export const createPaymentIntent = async ({
 }: {
   stripeId: string;
   amount: number;
-  invoiceId?: string; // used for transfer_group (only for partner payouts)
+  invoiceId?: string; // used for transfer_group
   description: string;
   statementDescriptor: string;
   idempotencyKey?: string;

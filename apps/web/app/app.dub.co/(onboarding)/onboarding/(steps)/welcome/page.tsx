@@ -1,6 +1,6 @@
 import { testIds } from "@/lib/e2e/test-ids";
+import { NextButton } from "../../next-button";
 import { StepPage } from "../step-page";
-import { AccountTypeSelector } from "./account-type-selector";
 import TrackSignup from "./track-signup";
 
 export default function Welcome() {
@@ -10,10 +10,15 @@ export default function Welcome() {
       <StepPage
         headingTestId={testIds.onboarding.stepWelcome}
         title="Welcome to Dub"
-        description="Tell us what brings you here, and we’ll help you get started."
-        className="max-w-[640px]"
+        description="Create short links, track clicks and conversions, and grow your business with Dub."
+        className="max-w-sm"
       >
-        <AccountTypeSelector />
+        <NextButton
+          step="workspace"
+          text="Get started"
+          className="h-9 rounded-lg"
+          data-testid={testIds.onboarding.getStarted}
+        />
       </StepPage>
     </>
   );

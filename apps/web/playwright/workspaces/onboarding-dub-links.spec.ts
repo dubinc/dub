@@ -5,18 +5,14 @@ import { expect, test } from "@playwright/test";
 /** Client navigations can finish before a sequential waitForURL runs; pair clicks with URL assertions. */
 const STEP_NAV_TIMEOUT = 60_000;
 
-test("complete workspace onboarding with Dub Links product", async ({
-  page,
-}) => {
+test("complete workspace onboarding", async ({ page }) => {
   test.setTimeout(120_000);
 
   const workspaceName = `Test WS ${nanoid(6)}`;
 
   // Welcome page
   await page.goto("/onboarding");
-  await expect(
-    page.getByTestId(testIds.onboarding.stepWelcome),
-  ).toBeVisible();
+  await expect(page.getByTestId(testIds.onboarding.stepWelcome)).toBeVisible();
   await Promise.all([
     expect(page).toHaveURL(/\/onboarding\/workspace/, {
       timeout: STEP_NAV_TIMEOUT,
@@ -25,9 +21,9 @@ test("complete workspace onboarding with Dub Links product", async ({
   ]);
 
   // Workspace creation step
-  await expect(
-    page.getByTestId(testIds.onboarding.stepWorkspace),
-  ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
+  await expect(page.getByTestId(testIds.onboarding.stepWorkspace)).toBeVisible({
+    timeout: STEP_NAV_TIMEOUT,
+  });
 
   // Fill workspace name (slug auto-generates)
   await page.getByTestId(testIds.onboarding.workspaceName).fill(workspaceName);
@@ -38,21 +34,11 @@ test("complete workspace onboarding with Dub Links product", async ({
     .inputValue();
   expect(slug).toBeTruthy();
 
-  const productsHeading = page.getByTestId(testIds.onboarding.stepProducts);
-
-  await Promise.all([
-    expect(page).toHaveURL(/\/onboarding\/products/, {
-      timeout: STEP_NAV_TIMEOUT,
-    }),
-    page.getByTestId(testIds.onboarding.createWorkspace).click(),
-  ]);
-  await expect(productsHeading).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
-
   await Promise.all([
     expect(page).toHaveURL(/\/onboarding\/domain/, {
       timeout: STEP_NAV_TIMEOUT,
     }),
-    page.getByTestId(testIds.onboarding.productCta("links")).click(),
+    page.getByTestId(testIds.onboarding.createWorkspace).click(),
   ]);
 
   // Domain step — skip it
@@ -82,9 +68,9 @@ test("complete workspace onboarding with Dub Links product", async ({
   await expect(
     page.getByTestId(testIds.onboarding.workspaceCreated),
   ).toContainText(workspaceName, { timeout: STEP_NAV_TIMEOUT });
-  await expect(
-    page.getByTestId(testIds.onboarding.completeSetup),
-  ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
+  await expect(page.getByTestId(testIds.onboarding.completeSetup)).toBeVisible({
+    timeout: STEP_NAV_TIMEOUT,
+  });
 
   // Go to dashboard
   const dashboardCta = page.getByTestId(testIds.onboarding.goToDashboard);

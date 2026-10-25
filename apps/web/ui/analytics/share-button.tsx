@@ -10,14 +10,12 @@ import { AnalyticsContext } from "./analytics-provider";
 
 export function ShareButton() {
   const searchParams = useSearchParams();
-  const { domain, key, folderId, partnerPage } = useContext(AnalyticsContext);
+  const { domain, key, folderId } = useContext(AnalyticsContext);
 
   const canUpdateFolder = useCheckFolderPermission(
     folderId ?? null,
     "folders.write",
   );
-
-  if (partnerPage) return null;
 
   const linkId = searchParams.get("linkId");
 

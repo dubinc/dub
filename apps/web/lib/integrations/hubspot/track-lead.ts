@@ -1,7 +1,6 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { prisma } from "@/lib/prisma";
 import { TrackLeadResponse, WorkspaceProps } from "@/lib/types";
-import { CommissionSource } from "@prisma/client";
 import * as z from "zod/v4";
 import { HubSpotAuthToken, HubSpotContact } from "../types";
 import { HubSpotApi } from "./api";
@@ -56,8 +55,6 @@ export const trackHubSpotLeadEvent = async ({
       customerName,
       mode: "deferred",
       workspace,
-      source: "hubspot",
-      commissionSource: CommissionSource.hubspot,
     });
 
     if (trackLeadResult) {
@@ -158,8 +155,6 @@ export const trackHubSpotLeadEvent = async ({
       customerEmail: properties.email,
       mode: "async",
       workspace,
-      source: "hubspot",
-      commissionSource: CommissionSource.hubspot,
     });
 
     if (trackLeadResult) {
@@ -232,8 +227,6 @@ const trackFinalLead = async ({
     customerEmail: contactInfo.properties.email,
     mode: "async",
     workspace,
-    source: "hubspot",
-    commissionSource: CommissionSource.hubspot,
   });
 
   if (trackLeadResult) {
@@ -247,7 +240,7 @@ const trackFinalLead = async ({
   return `Lead tracked for deal ${dealId}.`;
 };
 
-// Update the HubSpot contact with `dub_link` and `dub_partner_email`
+// Update the HubSpot contact with `dub_link`
 export const updateHubSpotContact = async ({
   hubSpotApi,
   contact,
@@ -257,29 +250,14 @@ export const updateHubSpotContact = async ({
   contact: HubSpotContact;
   trackLeadResult: TrackLeadResponse;
 }) => {
-  if (contact.properties.dub_link && contact.properties.dub_partner_email) {
+  if (contact.properties.dub_link) {
     console.log(
-      `[HubSpot] Contact ${contact.id} already has dub_link and dub_partner_email. Skipping update.`,
+      `[HubSpot] Contact ${contact.id} already has dub_link. Skipping update.`,
     );
     return;
   }
 
   const properties: Record<string, string> = {};
-
-  if (trackLeadResult.link?.partnerId) {
-    const partner = await prisma.partner.findUniqueOrThrow({
-      where: {
-        id: trackLeadResult.link.partnerId,
-      },
-      select: {
-        email: true,
-      },
-    });
-
-    if (partner.email) {
-      properties["dub_partner_email"] = partner.email;
-    }
-  }
 
   if (trackLeadResult.link?.shortLink) {
     properties["dub_link"] = trackLeadResult.link.shortLink;

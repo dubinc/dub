@@ -9,16 +9,7 @@ const STARTER_QUESTIONS: Record<SupportChatContext, string[]> = {
     "How do I set up conversion tracking?",
     "How does attribution work?",
     "How do I use the Dub API?",
-    "How do I set up a partner program?",
     "How do I update my billing information?",
-  ],
-  partners: [
-    "How do I set up my bank account for payouts?",
-    "Which countries support payouts?",
-    "How is my commission calculated?",
-    "When will I receive my payout?",
-    "How do I track my referral clicks?",
-    "How do I update my partner profile?",
   ],
 };
 

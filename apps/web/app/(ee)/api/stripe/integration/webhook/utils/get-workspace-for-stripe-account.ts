@@ -16,9 +16,7 @@ export async function getWorkspaceForStripeAccount({
       id: true,
       stripeConnectId: true,
       stripeConnectMode: true,
-      defaultProgramId: true,
       webhookEnabled: true,
-      environment: true,
     },
   });
 

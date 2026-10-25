@@ -1,4 +1,4 @@
-import { currencyFormatter, DUB_WORDMARK, PLANS } from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
   Container,
@@ -24,16 +24,12 @@ export default function FailedPayment({
     name: "Dub",
     slug: "dub",
     plan: "business",
-    defaultProgramId: null,
   },
   amountDue = 2400,
   attemptCount = 2,
 }: {
   user: { name?: string | null; email: string };
-  workspace: Pick<
-    WorkspaceProps,
-    "name" | "slug" | "plan" | "defaultProgramId"
-  >;
+  workspace: Pick<WorkspaceProps, "name" | "slug" | "plan">;
   amountDue: number;
   attemptCount: number;
 }) {
@@ -46,15 +42,6 @@ export default function FailedPayment({
           ? "3rd notice: "
           : "Final notice: "
   }Your payment for Dub failed`;
-
-  // Check if plan has partner access (Business, Advanced, Enterprise have payouts > 0)
-  const planHasPartnerAccess = workspace.plan
-    ? (PLANS.find((p) => p.name.toLowerCase() === workspace.plan?.toLowerCase())
-        ?.limits.payouts ?? 0) > 0
-    : false;
-
-  const showPartnerWarning =
-    planHasPartnerAccess && !!workspace.defaultProgramId;
 
   return (
     <Html>
@@ -82,13 +69,6 @@ export default function FailedPayment({
               for your Dub workspace{" "}
               <code className="text-purple-600">{workspace.name}</code>.
             </Text>
-            {showPartnerWarning && (
-              <Text className="text-sm leading-6 text-black">
-                Your workspace also has an active partner program. If payment is
-                not resolved, your plan will be canceled and your partner
-                program will be deactivated.
-              </Text>
-            )}
             <Text className="text-sm leading-6 text-black">
               Please{" "}
               <Link

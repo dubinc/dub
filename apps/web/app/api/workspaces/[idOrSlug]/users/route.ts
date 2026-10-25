@@ -2,10 +2,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { throwIfNoAccess } from "@/lib/api/tokens/throw-if-no-access";
 import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan";
 import { withWorkspace } from "@/lib/auth";
-import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
-import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
@@ -66,8 +64,6 @@ const updateRoleSchema = z.object({
 // PATCH /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    assertNotStagingWorkspace(workspace);
-
     const { userId, role } = updateRoleSchema.parse(await req.json());
 
     assertRoleAllowedForPlan({
@@ -88,12 +84,6 @@ export const PATCH = withWorkspace(
       data: {
         role,
       },
-    });
-
-    await syncStagingWorkspaceJob.dispatch({
-      action: "update-member-role",
-      workspaceId: workspace.id,
-      userId: workspaceUser.userId,
     });
 
     return NextResponse.json(workspaceUser);
@@ -154,10 +144,6 @@ export const DELETE = withWorkspace(
         message: "User not found.",
       });
     }
-
-    assertNotStagingWorkspace(workspace, {
-      when: !projectUser.user.isMachine,
-    });
 
     // If there is only one owner and the user is an owner and the user is trying to remove themselves
     if (
@@ -220,14 +206,6 @@ export const DELETE = withWorkspace(
           },
         }),
     ]);
-
-    if (!projectUser.user.isMachine) {
-      await syncStagingWorkspaceJob.dispatch({
-        action: "remove-member",
-        workspaceId: workspace.id,
-        userId,
-      });
-    }
 
     // delete the user if it's a machine user
     if (projectUser.user.isMachine) {

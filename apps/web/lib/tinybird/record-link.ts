@@ -17,19 +17,6 @@ export const dubLinksMetadataSchema = z.object({
     .string()
     .nullable()
     .transform((v) => (v ? v : "")),
-  program_id: z
-    .string()
-    .nullable()
-    .transform((v) => (v ? v : "")),
-  partner_id: z
-    .string()
-    .nullish()
-    .transform((v) => (v ? v : "")),
-  partner_group_id: z
-    .string()
-    .nullish()
-    .transform((v) => (v ? v : "")),
-  partner_tag_ids: z.array(z.string()).default([]),
   workspace_id: z
     .string()
     .nullish()
@@ -63,13 +50,6 @@ const transformLinkTB = (link: ExpandedLink) => {
     tag_ids: link.tags?.map(({ tag }) => tag.id) ?? [],
     folder_id: link.folderId ?? "",
     tenant_id: link.tenantId ?? "",
-    program_id: link.programId ?? "",
-    partner_id: link.partnerId ?? "",
-    partner_group_id: link.programEnrollment?.groupId ?? "",
-    partner_tag_ids:
-      link.programEnrollment?.programPartnerTags?.map(
-        ({ partnerTagId }) => partnerTagId,
-      ) ?? [],
     workspace_id: link.projectId,
     created_at: link.createdAt,
   };

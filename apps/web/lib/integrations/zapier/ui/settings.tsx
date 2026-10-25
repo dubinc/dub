@@ -18,10 +18,6 @@ export const ZapierSettings = (props: InstalledIntegrationInfoProps) => {
             "link.clicked",
             "lead.created",
             "sale.created",
-            "partner.application_submitted",
-            "program_application.created",
-            "partner.enrolled",
-            "partner.merged",
           ]}
         />
       )}

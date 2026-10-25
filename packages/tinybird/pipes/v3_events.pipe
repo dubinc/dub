@@ -21,9 +21,6 @@ WHERE
         )
     }}
     AND deleted == 0
-    {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
-    {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
-    {% if defined(groupId) %} AND partner_group_id = {{ groupId }} {% end %}
     {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
     {% if defined(folderIds) %} AND folder_id IN {{ Array(folderIds, 'String') }}
     {% elif defined(folderId) %} AND folder_id = {{ folderId }}
@@ -63,7 +60,7 @@ WHERE
     {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
     {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
     {% elif defined(linkId) %} AND link_id = {{ linkId }}
-    {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+    {% elif defined(
         tenantId
     ) or defined(folderIds) or defined(folderId) or defined(domain) or defined(
         tagIds
@@ -121,7 +118,7 @@ WHERE
     {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
     {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
     {% elif defined(linkId) %} AND link_id = {{ linkId }}
-    {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+    {% elif defined(
         tenantId
     ) or defined(folderIds) or defined(folderId) or defined(domain) or defined(
         tagIds
@@ -236,7 +233,7 @@ FROM
             {% if defined(workspaceId) %} AND se.workspace_id = {{ workspaceId }} {% end %}
             {% if defined(linkIds) %} AND se.link_id IN {{ Array(linkIds, 'String') }}
             {% elif defined(linkId) %} AND se.link_id = {{ linkId }}
-            {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+            {% elif defined(
                 tenantId
             ) or defined(folderIds) or defined(folderId) or defined(domain) or defined(
                 tagIds

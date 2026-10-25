@@ -41,27 +41,10 @@ export const sendOtpAction = actionClient
 
     const emailDomainBlocked = isDisposable || matchesBlockedTerms;
 
-    // if any of the flags match, run one final edge case check, before throwing an error
     if (isGenericEmail(email) || emailDomainBlocked) {
-      // edge case: the user already has a partner account on Dub with this email address,
-      // or they have an existing application for a program, we can allow them to continue
-      const [isPartnerAccount, hasExistingApplications] = await Promise.all([
-        prisma.partner.findUnique({
-          where: {
-            email,
-          },
-        }),
-        prisma.programApplication.findFirst({
-          where: {
-            email,
-          },
-        }),
-      ]);
-      if (!isPartnerAccount && !hasExistingApplications) {
-        throw new Error(
-          "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at dub.co/support",
-        );
-      }
+      throw new Error(
+        "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at dub.co/support",
+      );
     }
 
     const isExistingUser = await prisma.user.findUnique({

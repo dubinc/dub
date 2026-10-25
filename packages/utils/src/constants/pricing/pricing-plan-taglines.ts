@@ -5,12 +5,4 @@ export const PRICING_PLAN_TAGLINES = {
     Advanced: "For hyperscalers needing higher usage quotas",
     Enterprise: "For large organizations with custom needs",
   },
-  partners: {
-    Business:
-      "For startups looking to get started with affiliate and creator partnerships",
-    Advanced:
-      "For scaling teams with high-volume affiliate traffic and white-labeling needs",
-    Enterprise:
-      "For large organizations looking for dedicated support and volume discounts",
-  },
 };

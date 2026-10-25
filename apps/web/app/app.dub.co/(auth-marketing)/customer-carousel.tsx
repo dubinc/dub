@@ -19,39 +19,12 @@ const CUSTOMERS: {
   color: string;
 }[] = [
   {
-    name: "Framer",
-    slug: "framer",
-    logo: "https://assets.dub.co/companies/framer.svg",
-    image: "https://assets.dub.co/cms/framer-thumbnail.jpg",
-    headline:
-      "Learn how Framer manages $900K+ in monthly affiliate payouts with Dub",
-    color: "#0088FF",
-  },
-  {
     name: "Wispr Flow",
     slug: "wisprflow",
     logo: "https://assets.dub.co/companies/wisprflow.svg",
     image: "https://assets.dub.co/cms/wisprflow-cover.jpg",
     headline: "Learn how Wispr Flow reached millions more users with Dub",
     color: "#024F46",
-  },
-  {
-    name: "Chatbase",
-    slug: "chatbase",
-    logo: "https://assets.dub.co/companies/chatbase.svg",
-    image: "https://assets.dub.co/cms/chatbase-cover.jpg",
-    headline:
-      "Learn how Chatbase migrated from Rewardful and increased affiliate revenue by 318%",
-    color: "#D85AC8",
-  },
-  {
-    name: "Tella",
-    slug: "tella",
-    logo: "https://assets.dub.co/companies/tella.svg",
-    image: "https://assets.dub.co/cms/tella-thumbnail.jpg",
-    headline:
-      "Learn how Tella increased affiliate revenue by 38% by switching from Rewardful to Dub",
-    color: "#8278FA",
   },
 ];
 

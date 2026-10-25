@@ -134,8 +134,6 @@ export const POST = withAxiom(async (req) => {
         domain,
         key,
         url: cachedLink.url,
-        programId: cachedLink.programId,
-        partnerId: cachedLink.partnerId,
         skipRatelimit: true,
         shouldCacheClickId: true,
         trigger: "deeplink",

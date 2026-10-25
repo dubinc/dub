@@ -1,6 +1,4 @@
 import { getOwnedLinkImageKey } from "@/lib/api/links/get-owned-link-image-key";
-import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
-import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
@@ -31,16 +29,9 @@ export async function updateLink({
     key: string;
     image?: string | null;
     testCompletedAt?: Date | null;
-    // Required rather than optional: the link body accepts `partnerId`, so an
-    // update can move a link, and an optional field here would let the next
-    // caller omit the former owner and silently lose its re-index.
-    programId: string | null;
-    partnerId: string | null;
   };
   updatedLink: ProcessedLinkProps &
-    Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt"> & {
-      partnerLinkDetails?: unknown;
-    };
+    Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt">;
 }) {
   let {
     id,
@@ -54,11 +45,9 @@ export async function updateLink({
     proxy,
     geo,
     publicStats,
-    partnerId,
   } = updatedLink;
   const changedKey = key.toLowerCase() !== oldLink.key.toLowerCase();
   const changedDomain = domain !== oldLink.domain;
-  const changedPartnerId = partnerId !== oldLink.partnerId;
 
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
@@ -76,22 +65,9 @@ export async function updateLink({
     testVariants,
     testStartedAt,
     testCompletedAt,
-    partnerLinkTitle,
-    partnerLinkComments,
-    partnerLinkDetails: _partnerLinkDetails,
     ...rest
   } = updatedLink;
 
-  const partnerLinkDetailsProvided =
-    partnerLinkTitle !== undefined || partnerLinkComments !== undefined;
-  const partnerLinkDetailsTitle =
-    typeof partnerLinkTitle === "string" && partnerLinkTitle.trim()
-      ? truncate(partnerLinkTitle.trim(), 120)
-      : null;
-  const partnerLinkDetailsComments =
-    typeof partnerLinkComments === "string" && partnerLinkComments.trim()
-      ? partnerLinkComments
-      : null;
   const changedTestCompletedAt = testCompletedAt !== oldLink.testCompletedAt;
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
@@ -174,29 +150,6 @@ export async function updateLink({
         },
       }),
 
-      ...(partnerLinkDetailsProvided &&
-      (partnerLinkDetailsTitle || partnerLinkDetailsComments)
-        ? {
-            partnerLinkDetails: {
-              upsert: {
-                create: {
-                  title: partnerLinkDetailsTitle,
-                  comments: partnerLinkDetailsComments,
-                },
-                update: {
-                  title: partnerLinkDetailsTitle,
-                  comments: partnerLinkDetailsComments,
-                },
-              },
-            },
-          }
-        : {}),
-
-      // A link with no partner is no longer a partner-group default link.
-      ...(partnerId === null && {
-        partnerGroupDefaultLinkId: null,
-      }),
-
       // Shared dashboard
       ...(publicStats && {
         dashboard: {
@@ -210,20 +163,9 @@ export async function updateLink({
     },
     include: {
       ...includeTags,
-      // no need to includeProgramEnrollment because we're doing getPartnerEnrollmentInfo below
       webhooks: webhookIds ? true : false,
     },
   });
-
-  if (
-    partnerLinkDetailsProvided &&
-    !partnerLinkDetailsTitle &&
-    !partnerLinkDetailsComments
-  ) {
-    await prisma.partnerLinkDetails.deleteMany({
-      where: { linkId: id },
-    });
-  }
 
   const previousImageKey =
     oldLink.image && oldLink.image !== image
@@ -232,43 +174,15 @@ export async function updateLink({
 
   waitUntil(
     (async () => {
-      const { partner, discount } = await getPartnerEnrollmentInfo({
-        programId: response.programId,
-        partnerId: response.partnerId,
-        linkId: response.id,
-      });
-
       await Promise.allSettled([
         // Record link in Redis
-        linkCache.set({
-          ...response,
-          ...(partner && { partner }),
-          ...(discount && { discount }),
-        }),
+        linkCache.set(response),
 
         // Record link in Tinybird
-        recordLink({
-          ...response,
-          ...(partner && {
-            programEnrollment: {
-              ...(partner?.groupId && {
-                groupId: partner.groupId,
-              }),
-              programPartnerTags: partner?.partnerTagIds.map(
-                (partnerTagId: string) => ({
-                  partnerTagId,
-                }),
-              ),
-            },
-          }),
-        }),
+        recordLink(response),
 
         // If key is changed: delete the old key in Redis
         (changedDomain || changedKey) && linkCache.delete(oldLink),
-
-        // Queue an index update if the link key or partner ID changed (indexed fields)
-        (changedKey || changedPartnerId) &&
-          queuePartnerSearchSyncForLinks([oldLink, response]),
 
         // If proxy is true and image is not stored in R2, upload image to R2
         proxy &&

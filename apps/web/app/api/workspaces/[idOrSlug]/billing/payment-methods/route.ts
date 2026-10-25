@@ -1,28 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import {
-  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
-  DIRECT_DEBIT_PAYMENT_TYPES_INFO,
-  PAYMENT_METHOD_TYPES,
-  SEPA_ENABLED_WORKSPACE_IDS,
-} from "@/lib/constants/payouts";
-import { isProductionEnvironment } from "@/lib/sandbox/environment";
-import { SANDBOX_PAYMENT_METHOD } from "@/lib/sandbox/mock-payment-provider";
-import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
-import {
-  listPendingMicrodeposits,
-  withMicrodepositStatus,
-} from "@/lib/stripe/microdeposits";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
 import * as z from "zod/v4";
-
-const addPaymentMethodSchema = z.object({
-  method: z.enum(PAYMENT_METHOD_TYPES as [string, ...string[]]).optional(),
-});
 
 const deletePaymentMethodSchema = z.object({
   paymentMethodId: z.string().min(1),
@@ -54,13 +36,6 @@ async function getWorkspacePaymentMethod({
 // GET /api/workspaces/[idOrSlug]/billing/payment-methods - get all payment methods
 export const GET = withWorkspace(
   async ({ workspace }) => {
-    if (!isProductionEnvironment(workspace.environment)) {
-      return NextResponse.json({
-        paymentMethods: [SANDBOX_PAYMENT_METHOD],
-        defaultPaymentMethodId: SANDBOX_PAYMENT_METHOD.id,
-      });
-    }
-
     if (!workspace.stripeId) {
       return NextResponse.json({
         paymentMethods: [],
@@ -76,10 +51,6 @@ export const GET = withWorkspace(
         stripe.customers.retrieve(workspace.stripeId),
       ]);
 
-      const pendingMicrodeposits = await listPendingMicrodeposits(
-        workspace.stripeId,
-      ).catch(() => []);
-
       const defaultPaymentMethod =
         customer.deleted !== true
           ? customer.invoice_settings?.default_payment_method
@@ -90,21 +61,8 @@ export const GET = withWorkspace(
           ? defaultPaymentMethod
           : defaultPaymentMethod?.id ?? null;
 
-      const methods = withMicrodepositStatus({
-        paymentMethods: paymentMethods.data,
-        pendingMicrodeposits,
-      });
-
-      // reorder to put direct debit first
-      const directDebit = methods.find((method) =>
-        DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(method.type),
-      );
-
       return NextResponse.json({
-        paymentMethods: [
-          ...(directDebit ? [directDebit] : []),
-          ...methods.filter((method) => method.id !== directDebit?.id),
-        ],
+        paymentMethods: paymentMethods.data,
         defaultPaymentMethodId,
       });
     } catch (error) {
@@ -121,9 +79,7 @@ export const GET = withWorkspace(
 
 // POST /api/workspaces/[idOrSlug]/billing/payment-methods - add a payment method for the workspace
 export const POST = withWorkspace(
-  async ({ workspace, req }) => {
-    assertNotStagingWorkspace(workspace);
-
+  async ({ workspace }) => {
     if (!workspace.stripeId) {
       throw new DubApiError({
         code: "bad_request",
@@ -131,49 +87,12 @@ export const POST = withWorkspace(
       });
     }
 
-    const { method } = addPaymentMethodSchema.parse(
-      await parseRequestBody(req),
-    );
-
-    if (!method) {
-      const { url } = await stripe.billingPortal.sessions.create({
-        customer: workspace.stripeId,
-        return_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing#payment-methods`,
-        flow_data: {
-          type: "payment_method_update",
-        },
-      });
-
-      return NextResponse.json({ url });
-    }
-
-    if (
-      method === "sepa_debit" &&
-      workspace.plan !== "enterprise" &&
-      !SEPA_ENABLED_WORKSPACE_IDS.has(workspace.id)
-    ) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "SEPA Debit is only available on the Enterprise plan.",
-      });
-    }
-
-    const paymentMethodOption = DIRECT_DEBIT_PAYMENT_TYPES_INFO.find(
-      (type) => type.type === method,
-    )?.option;
-
-    const { url } = await stripe.checkout.sessions.create({
-      mode: "setup",
+    const { url } = await stripe.billingPortal.sessions.create({
       customer: workspace.stripeId,
-      payment_method_types: [
-        method as Stripe.Checkout.SessionCreateParams.PaymentMethodType,
-      ],
-      payment_method_options: {
-        [method]: paymentMethodOption,
+      return_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing#payment-methods`,
+      flow_data: {
+        type: "payment_method_update",
       },
-      currency: "usd",
-      success_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing#payment-methods`,
-      cancel_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing#payment-methods`,
     });
 
     return NextResponse.json({ url });
@@ -186,8 +105,6 @@ export const POST = withWorkspace(
 // PATCH /api/workspaces/[idOrSlug]/billing/payment-methods - set default payment method
 export const PATCH = withWorkspace(
   async ({ workspace, req }) => {
-    assertNotStagingWorkspace(workspace);
-
     if (!workspace.stripeId) {
       throw new DubApiError({
         code: "bad_request",
@@ -199,18 +116,10 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
-    const paymentMethod = await getWorkspacePaymentMethod({
+    await getWorkspacePaymentMethod({
       stripeId: workspace.stripeId,
       paymentMethodId,
     });
-
-    if (DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "Direct debit payment methods cannot be set as the default billing method.",
-      });
-    }
 
     await stripe.customers.update(workspace.stripeId, {
       invoice_settings: {
@@ -228,8 +137,6 @@ export const PATCH = withWorkspace(
 // DELETE /api/workspaces/[idOrSlug]/billing/payment-methods - remove a payment method
 export const DELETE = withWorkspace(
   async ({ workspace, req }) => {
-    assertNotStagingWorkspace(workspace);
-
     if (!workspace.stripeId) {
       throw new DubApiError({
         code: "bad_request",

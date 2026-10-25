@@ -1,7 +1,6 @@
 "use client";
 
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   CUSTOMER_EXPORT_COLUMNS,
@@ -16,7 +15,6 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -40,9 +38,6 @@ function ExportCustomersModal({
   showExportCustomersModal: boolean;
   setShowExportCustomersModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const pathname = usePathname();
-
-  const { program } = useProgram();
   const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
@@ -60,23 +55,13 @@ function ExportCustomersModal({
     },
   });
 
-  const scope = pathname.includes("/program") ? "program" : "workspace";
-
-  const visibleColumns = useMemo(() => {
-    const cols =
-      scope === "program"
-        ? [...CUSTOMER_EXPORT_COLUMNS]
-        : CUSTOMER_EXPORT_COLUMNS.filter((col) => !col.programOnly);
-
-    return cols.sort((a, b) => a.order - b.order);
-  }, [scope]);
+  const visibleColumns = useMemo(
+    () => [...CUSTOMER_EXPORT_COLUMNS].sort((a, b) => a.order - b.order),
+    [],
+  );
 
   const onSubmit = handleSubmit(async (data) => {
     if (!workspaceId) {
-      return;
-    }
-
-    if (scope === "program" && !program?.id) {
       return;
     }
 
@@ -85,29 +70,13 @@ function ExportCustomersModal({
     try {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      const programOnlyIds = new Set<string>(
-        CUSTOMER_EXPORT_COLUMNS.filter((col) => col.programOnly).map(
-          (col) => col.id,
-        ),
-      );
+      const { columns } = data;
 
-      const columns =
-        scope === "program"
-          ? data.columns
-          : data.columns.filter((c) => !programOnlyIds.has(c));
-
-      let baseParams: Record<string, string> = {
+      const baseParams: Record<string, string> = {
         timezone,
         workspaceId,
         ...(columns.length ? { columns: columns.join(",") } : {}),
       };
-
-      if (scope === "program" && program?.id) {
-        baseParams = {
-          ...baseParams,
-          programId: program?.id,
-        };
-      }
 
       const queryString = data.useFilters
         ? getQueryString(baseParams)

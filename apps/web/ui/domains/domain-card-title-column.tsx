@@ -1,5 +1,5 @@
 import { Tooltip } from "@dub/ui";
-import { ArrowTurnRight2, ConnectedDots4, Flag2, Globe } from "@dub/ui/icons";
+import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui/icons";
 import { cn, getPrettyUrl, punycode } from "@dub/utils";
 
 export function DomainCardTitleColumn({
@@ -8,7 +8,6 @@ export function DomainCardTitleColumn({
   url,
   description,
   primary = false,
-  program = false,
   defaultDomain = false,
 }: {
   domain: string;
@@ -16,7 +15,6 @@ export function DomainCardTitleColumn({
   url?: string | null;
   description?: string;
   primary?: boolean;
-  program?: boolean;
   defaultDomain?: boolean;
 }) {
   return (
@@ -54,14 +52,6 @@ export function DomainCardTitleColumn({
                 <span className="xs:px-3 xs:py-1 flex cursor-help items-center gap-1 rounded-full bg-sky-400/[.15] px-1.5 py-0.5 text-xs font-medium text-sky-600">
                   <Flag2 className="hidden h-3 w-3 sm:block" />
                   Primary
-                </span>
-              </Tooltip>
-            ) : null}
-            {program ? (
-              <Tooltip content="This domain is the [referral link domain](https://dub.co/help/article/partner-link-settings#changing-your-referral-link-domain) for your [partner program](https://dub.co/partners).">
-                <span className="xs:px-3 xs:py-1 flex cursor-help items-center gap-1 rounded-full bg-violet-400/[.15] px-1.5 py-0.5 text-xs font-medium text-violet-600">
-                  <ConnectedDots4 className="hidden h-3 w-3 sm:block" />
-                  Program
                 </span>
               </Tooltip>
             ) : null}

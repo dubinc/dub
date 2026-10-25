@@ -4,20 +4,10 @@ import {
   CUSTOMER_EXPORT_DEFAULT_COLUMNS,
 } from "@/lib/zod/schemas/customers";
 import { toCentsNumber } from "@dub/utils";
-import type { Customer, Link, ProgramEnrollment } from "@prisma/client";
+import type { Customer, Link } from "@prisma/client";
 
 type CustomerForExport = Customer & {
   link?: Pick<Link, "shortLink" | "url"> | null;
-  programEnrollment?:
-    | (ProgramEnrollment & {
-        partner: {
-          id: string;
-          name: string | null;
-          email: string | null;
-          image: string | null;
-        };
-      })
-    | null;
 };
 
 const dateToIso = (d: Date | null) => (d ? d.toISOString() : "");
@@ -35,7 +25,6 @@ export function formatCustomersForExport(
   );
 
   return customers.map((c) => {
-    const partner = c.programEnrollment?.partner;
     const link = c.link;
 
     const full: Record<string, string | number> = {
@@ -56,10 +45,6 @@ export function formatCustomersForExport(
       firstSaleAt: dateToIso(c.firstSaleAt),
       subscriptionCanceledAt: dateToIso(c.subscriptionCanceledAt),
       link: link?.shortLink ?? link?.url ?? "",
-      partnerId: partner?.id ?? "",
-      partnerName: partner?.name ?? "",
-      partnerEmail: partner?.email ?? "",
-      partnerTenantId: c.programEnrollment?.tenantId ?? "",
     };
 
     return sortedColumns.reduce<Record<string, string | number>>((acc, key) => {

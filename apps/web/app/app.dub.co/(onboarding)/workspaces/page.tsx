@@ -1,7 +1,5 @@
 "use client";
 
-import { WorkspaceEnvironmentIndicator } from "@/lib/sandbox/components/workspace-environment-indicator";
-import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { WorkspaceProps } from "@/lib/types";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
@@ -17,10 +15,7 @@ import { useRouter } from "next/navigation";
 import { ComponentType, SVGProps, useState } from "react";
 
 export default function WorkspacesPage() {
-  const { workspaces, error } = useWorkspaces();
-  const visibleWorkspaces = workspaces?.filter(
-    (workspace) => !isStagingEnvironment(workspace.environment),
-  );
+  const { workspaces: visibleWorkspaces, error } = useWorkspaces();
 
   return (
     <div className="flex min-h-[100dvh] w-full flex-col">
@@ -161,7 +156,7 @@ function WorkspaceList({ workspaces }: { workspaces: WorkspaceProps[] }) {
 }
 
 function WorkspaceRow({
-  workspace: { id, name, slug, logo, plan, disabledAt, environment },
+  workspace: { id, name, slug, logo, plan, disabledAt },
   onFocus,
 }: {
   workspace: WorkspaceProps;
@@ -190,7 +185,6 @@ function WorkspaceRow({
           <span className="min-w-0 truncate text-sm font-medium text-neutral-900">
             {name}
           </span>
-          <WorkspaceEnvironmentIndicator environment={environment} />
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
           {disabledAt && (
@@ -262,7 +256,7 @@ function NoWorkspaces() {
       <PageHeader
         icon={OfficeBuilding}
         title="No workspaces yet"
-        description="Workspaces are where you manage your short links, analytics, and partner programs. Create one to get started."
+        description="Workspaces are where you manage your short links and analytics. Create one to get started."
       />
 
       <Button

@@ -7,9 +7,6 @@ SQL >
     SELECT
         timestamp,
         amount,
-        round(
-            amount * arrayElement([0.3, 0.4, 0.5], 1 + (toUnixTimestamp(timestamp) % 3))
-        ) as commission,
         country,
         city,
         latitude,

@@ -1,4 +1,3 @@
-import { mutatePrefix } from "@/lib/swr/mutate";
 import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import { ExpandedLinkProps } from "@/lib/types";
@@ -6,7 +5,6 @@ import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import {
   Button,
-  IconMenu,
   PenWriting,
   Popover,
   useCopyToClipboard,
@@ -40,7 +38,6 @@ const OPTIONS = {
   archive: "a",
   transfer: "t",
   delete: "x",
-  ban: "b",
 };
 
 export function LinkControls({
@@ -99,7 +96,6 @@ export function LinkControls({
     useMoveLinkToFolderModal({ link, onSuccess: onMoveSuccess });
 
   const isRootLink = link.key === "_root";
-  const isProgramLinkWithLeads = link.programId !== null && link.leads > 0;
   const { folderId: currentFolderId } = useCurrentFolderId();
   const folderId = link.folderId || currentFolderId;
 
@@ -123,25 +119,6 @@ export function LinkControls({
       clicks: 0,
     },
   });
-
-  const handleBanLink = () => {
-    window.confirm(
-      "Are you sure you want to ban this link? It will blacklist the domain and prevent any links from that domain from being created.",
-    ) &&
-      (setOpenPopover(false),
-      toast.promise(
-        fetch(`/api/admin/links/ban?domain=${link.domain}&key=${link.key}`, {
-          method: "DELETE",
-        }).then(async () => {
-          await mutatePrefix("/api/admin/links");
-        }),
-        {
-          loading: "Banning link...",
-          success: "Link banned!",
-          error: "Error banning link.",
-        },
-      ));
-  };
 
   const canManageLink = useCheckFolderPermission(
     folderId,
@@ -177,13 +154,7 @@ export function LinkControls({
           copyLinkId();
           break;
         case "x":
-          canManageLink &&
-            !isRootLink &&
-            !isProgramLinkWithLeads &&
-            setShowDeleteLinkModal(true);
-          break;
-        case "b":
-          if (!slug) handleBanLink();
+          canManageLink && !isRootLink && setShowDeleteLinkModal(true);
           break;
       }
     },
@@ -340,31 +311,16 @@ export function LinkControls({
                   icon={<Trash className="size-4" />}
                   shortcut="X"
                   className="h-9 px-2 font-medium"
-                  disabled={isRootLink || isProgramLinkWithLeads}
+                  disabled={isRootLink}
                   disabledTooltip={
                     !canManageLink
                       ? "You don't have permission to delete this link."
                       : isRootLink
                         ? "You can't delete a custom domain link. You can delete the domain instead."
-                        : isProgramLinkWithLeads
-                          ? "You can't delete a partner link that has existing leads. We recommend archiving it instead."
-                          : undefined
+                        : undefined
                   }
                 />
               )}
-
-              {options.includes("ban") &&
-                !slug && ( // this is only shown in admin mode (where there's no slug)
-                  <button
-                    onClick={() => handleBanLink()}
-                    className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
-                  >
-                    <IconMenu text="Ban" icon={<Trash className="size-4" />} />
-                    <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
-                      B
-                    </kbd>
-                  </button>
-                )}
             </div>
           </div>
         }

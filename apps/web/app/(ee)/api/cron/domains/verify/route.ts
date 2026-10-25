@@ -34,8 +34,6 @@ export const GET = withCron(async () => {
           "elegance.ai",
         ],
       },
-      // only check domains that do not belong to a partner program
-      partnerProgram: null,
     },
     select: {
       slug: true,

@@ -1,6 +1,6 @@
 "use client";
 
-import { hasLegacyScopeGrant, scopesToName } from "@/lib/api/tokens/scopes";
+import { scopesToName } from "@/lib/api/tokens/scopes";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
@@ -32,7 +32,7 @@ import { useState } from "react";
 import useSWR from "swr";
 
 export default function TokensPage() {
-  const { id: workspaceId, role, defaultProgramId } = useWorkspace();
+  const { id: workspaceId, role } = useWorkspace();
   const { pagination, setPagination } = usePagination();
   const [createdToken, setCreatedToken] = useState<string | null>(null);
   const [selectedToken, setSelectedToken] = useState<TokenProps | null>(null);
@@ -112,20 +112,6 @@ export default function TokensPage() {
         cell: ({ row }) => (
           <span className="flex items-center gap-2">
             {scopesToName(row.original.scopes).name}
-            {defaultProgramId &&
-              hasLegacyScopeGrant({
-                scopes: row.original.scopes,
-                createdAt: row.original.createdAt,
-              }) && (
-                <StatusBadge
-                  variant="warning"
-                  size="sm"
-                  icon={null}
-                  tooltip="This key was created before partner program scopes were added, so it can still access partners, commissions, customers and other program data. Create a new key with only the scopes you need, then delete this one."
-                >
-                  Action required
-                </StatusBadge>
-              )}
           </span>
         ),
       },

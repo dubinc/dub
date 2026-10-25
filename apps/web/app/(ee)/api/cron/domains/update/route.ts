@@ -4,7 +4,6 @@ import {
 } from "@/lib/api/domains/queue-domain-update";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
-import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
@@ -28,7 +27,7 @@ export async function POST(req: Request) {
     });
 
     const payload = linkDomainUpdateSchema.parse(JSON.parse(rawBody));
-    const { newDomain, oldDomain, programId, startingAfter } = payload;
+    const { newDomain, oldDomain, startingAfter } = payload;
 
     const newDomainRecord = await prisma.domain.findUnique({
       where: {
@@ -43,12 +42,6 @@ export async function POST(req: Request) {
     const linksToUpdate = await prisma.link.findMany({
       where: {
         domain: oldDomain,
-        ...(programId && {
-          programId,
-          key: {
-            not: "_root", // edge case, but don't update the root link (since there's already a link for it)
-          },
-        }),
       },
       take: LINK_BATCH_SIZE,
       ...(startingAfter && {
@@ -91,7 +84,6 @@ export async function POST(req: Request) {
       },
       include: {
         ...includeTags,
-        ...includeProgramEnrollment,
       },
     });
 

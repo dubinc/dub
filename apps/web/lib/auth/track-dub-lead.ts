@@ -21,7 +21,6 @@ export const trackDubLead = async (user: User) => {
     customerAvatar: user.image,
   });
 
-  // delete the cookies
+  // delete the cookie
   cookieStore.delete("dub_id");
-  cookieStore.delete("dub_partner_data");
 };

@@ -16,30 +16,20 @@ import { Footer } from "../components/footer";
 
 export default function ExportReady({
   email = "panic@thedis.co",
-  downloadUrl = "https://dev.dubassets.com/exports/partners/xxxx.csv",
-  exportType = "partners",
+  downloadUrl = "https://dev.dubassets.com/exports/links/xxxx.csv",
+  exportType = "links",
   expiresInDays = 7,
-  program,
   workspace,
 }: {
   email: string;
   downloadUrl: string;
-  exportType:
-    | "partners"
-    | "commissions"
-    | "links"
-    | "events"
-    | "customers"
-    | "payouts";
+  exportType: "links" | "events" | "customers";
   expiresInDays?: number;
-  program?: {
-    name: string;
-  };
   workspace?: {
     name: string;
   };
 }) {
-  const contextName = program?.name || workspace?.name || "your workspace";
+  const contextName = workspace?.name || "your workspace";
   return (
     <Html>
       <Head />
@@ -55,8 +45,7 @@ export default function ExportReady({
             </Heading>
             <Text className="text-sm leading-6 text-black">
               Your {exportType} export from your <strong>{contextName}</strong>{" "}
-              {program ? "program" : "workspace"} has been completed and is
-              ready to download.
+              workspace has been completed and is ready to download.
             </Text>
             <Section className="my-8">
               <Link

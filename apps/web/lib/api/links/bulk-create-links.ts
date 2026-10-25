@@ -1,4 +1,3 @@
-import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
 import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
@@ -8,7 +7,6 @@ import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
-import { includeProgramEnrollment } from "./include-program-enrollment";
 import { includeTags } from "./include-tags";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { checkIfLinksHaveTags } from "./utils/check-if-links-have-tags";
@@ -85,9 +83,7 @@ export async function bulkCreateLinks({
         in: Array.from(shortLinkToIndexMap.keys()),
       },
     },
-    include: {
-      ...includeProgramEnrollment,
-    },
+    include: {},
   });
 
   if (hasTags || hasWebhooks) {
@@ -213,7 +209,6 @@ export async function bulkCreateLinks({
       },
       include: {
         ...includeTags,
-        ...includeProgramEnrollment,
         webhooks: hasWebhooks
           ? {
               select: {
@@ -236,11 +231,6 @@ export async function bulkCreateLinks({
         linksCount: links.length,
         timestamp: new Date().toISOString(),
       }),
-      // Queue an index update if any of the new links are associated with a partner
-      createdLinksData.some((link) => link.partnerId) &&
-        queuePartnerSearchSyncForLinks(
-          createdLinksData.filter((link) => link.partnerId),
-        ),
     ]),
   );
 

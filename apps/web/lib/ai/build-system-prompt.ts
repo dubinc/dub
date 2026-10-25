@@ -1,15 +1,10 @@
-import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { SupportChatContext } from "@/ui/support/types";
-import { COUNTRIES } from "@dub/utils";
-import { PartnerRole, Program, Project } from "@prisma/client";
+import { Project } from "@prisma/client";
 
 export type GlobalChatContext = {
   chatLocation?: SupportChatContext;
-  accountType?: "workspace" | "partner";
+  accountType?: "workspace";
   selectedWorkspace?: Pick<Project, "id" | "name" | "slug">;
-  selectedProgram?: Pick<Program, "id" | "name" | "slug">;
-  partnerCountry?: string | null;
-  partnerRole?: PartnerRole | null;
 };
 
 const CONTEXT_SYSTEM_PROMPTS: Record<SupportChatContext, string> = {
@@ -18,13 +13,6 @@ const CONTEXT_SYSTEM_PROMPTS: Record<SupportChatContext, string> = {
   When the user asks about their specific workspace data — such as their plan, usage, links count, billing cycle, or payment status — call getWorkspaceDetails with the workspace's ID before answering. Use this real data in your response instead of guessing or citing generic documentation.
   When users ask about plan differences, upgrades, or which plan includes a feature, call getPlanComparison before answering.
   When a user has a billing issue, account access problem, or a bug that can't be resolved through documentation, first call requestSupportTicket (to show them an upload form), then after the user confirms, call createSupportTicket.`,
-
-  partners: `You are a helpful Dub Partners support assistant helping affiliate partners with their programs.
-  Focus on: payouts, referral tracking, commission structure, partner links, bank account setup, payout countries, program enrollment, and affiliate performance.
-  When the user asks about their specific program data — such as earnings, commissions, payouts, minimum payout amount, holding period, or payout history — call getProgramPerformance with the program's ID before answering. Use this real data in your response instead of guessing or citing generic documentation.
-  Money amounts from getProgramPerformance are already formatted USD strings (e.g. $10). Never treat them as cents or multiply/divide.
-  When a user has a payout dispute, tax compliance issue, or a problem that can't be resolved through documentation, first call requestSupportTicket (to show them an upload form), then after the user confirms, call createSupportTicket.
-  Always try to provide the program's support email for program-specific issues.`,
 };
 
 const BASE_SYSTEM_PROMPT = `
@@ -32,8 +20,6 @@ const BASE_SYSTEM_PROMPT = `
   ALWAYS call the findRelevantDocs tool before answering any question — no exceptions. Do not answer from memory.
   If the user attached images, inspect them first. You may skip findRelevantDocs only when the question is purely about what is shown in the screenshot (error UI, unexpected screen). Still call findRelevantDocs for how-to or product questions.
   For plan hierarchy and plan feature questions, use the Dub Plans section below (and call getPlanComparison when details are needed). Do not infer plan order from plan names.
-  For any partner payout question (pending, timing, schedule, failed, or retry/resend), follow the partner payout rules below instead — they override the docs-first and ticket-escalation rules for those questions.
-  For partner profile country change requests, follow the partner profile country rules below instead — they override the docs-first rules for those questions.
   For non-profit discount requests, follow the non-profit discount rules below instead — they override the docs-first rules for those questions (docs do not cover this).
   Ground every answer in the content retrieved by findRelevantDocs.
   Respond in concise, clear markdown. Strictly avoid using headings (h1, h2, h3, h4, h5, h6) in your responses.
@@ -42,55 +28,6 @@ const BASE_SYSTEM_PROMPT = `
   Never make up information — if unsure, say so and offer to escalate.
   To create a support ticket: ALWAYS call requestSupportTicket first (never createSupportTicket directly). After the user submits the upload form and confirms, call createSupportTicket.
   `.trim();
-
-const PARTNERS_PAYOUT_PROMPT = `
-  For any partner payout question — pending, timing, schedule, or a failed/retry/resend request — always call getProgramPerformance first to get real data (payout status, holding period, minimum payout threshold). Money amounts from getProgramPerformance are already formatted USD (e.g. $10) — never treat them as cents or multiply/divide. Then branch by status:
-
-  Status is pending, processing, processed, sent, or completed (i.e. NOT failed):
-  - Explain using the real data from getProgramPerformance. Call findRelevantDocs too if helpful for general context.
-  - Close with: "If you have further questions about the payout schedule, reach out to the {program name} support team at {supportEmail}." Use supportEmail from getProgramPerformance — if it's missing, point them to the program's help center or dashboard messaging instead of inventing an email.
-  - Do NOT offer a Dub support ticket here — this is program-specific. Only offer one if the partner explicitly asks to speak with Dub or create a ticket.
-  - End with "Do you have any other questions?" to keep the conversation open.
-
-  Status is failed:
-  - A failed payout could be Dub related. Never tell the partner the program needs to trigger, retry, or resend it.
-  - Suggest they double-check their payout details in the partner dashboard (Settings > Payouts).
-  - Offer to create a Dub support ticket (call requestSupportTicket, then createSupportTicket once the user confirms) so Dub can investigate further.
-  `.trim();
-
-function buildPartnerProfileCountryPrompt({
-  partnerCountry,
-  partnerRole,
-}: Pick<GlobalChatContext, "partnerCountry" | "partnerRole">) {
-  const canUpdateCountry =
-    partnerCountry === "US" &&
-    !!partnerRole &&
-    hasPermission(partnerRole, "partner_profile.update");
-
-  let countryChangeInstruction =
-    "They cannot change it themselves. Tell them their current country and that support has to update it. In that same response, call requestSupportTicket so the upload form appears. Do not only ask whether they want a ticket. After they confirm, call createSupportTicket.";
-
-  if (canUpdateCountry) {
-    countryChangeInstruction =
-      "They can update it themselves in partner profile settings at https://partners.dub.co/profile. Tell them to change it there. Do not create a support ticket.";
-  } else if (partnerCountry === "US") {
-    countryChangeInstruction =
-      "They do not have permission to update the partner profile. An owner of this partner account can change the country in partner profile settings at https://partners.dub.co/profile. Tell them to ask an owner. Do not create a support ticket.";
-  }
-
-  return `
-  Partner profile country:
-  The partner's profile country is based on their current location at signup.
-  Current profile country: ${
-    partnerCountry
-      ? `${COUNTRIES[partnerCountry] ?? partnerCountry} (${partnerCountry})`
-      : "unknown"
-  }.
-  The current user's role on this partner account is ${partnerRole ?? "unknown"}.
-  ${countryChangeInstruction}
-  Do not confuse this with which countries support payouts — that is a different question and can still use docs.
-  `.trim();
-}
 
 const NONPROFIT_DISCOUNT_PROMPT = `
   Non-profit discounts:
@@ -112,13 +49,9 @@ function buildAccountSpecificPrompt(context: GlobalChatContext): string[] {
     `The user is asking about their ${context.accountType} account.`,
   ];
 
-  if (context.accountType === "workspace" && context.selectedWorkspace) {
+  if (context.selectedWorkspace) {
     prompts.push(
       `They are specifically asking about workspace: ${JSON.stringify(context.selectedWorkspace)}`,
-    );
-  } else if (context.accountType === "partner" && context.selectedProgram) {
-    prompts.push(
-      `They are specifically asking about program: ${JSON.stringify(context.selectedProgram)}`,
     );
   }
 
@@ -136,10 +69,6 @@ export function buildSystemPrompt(globalContext?: GlobalChatContext): string {
       : null,
     BASE_SYSTEM_PROMPT,
     NONPROFIT_DISCOUNT_PROMPT,
-    globalContext?.accountType === "partner" ? PARTNERS_PAYOUT_PROMPT : null,
-    globalContext?.accountType === "partner"
-      ? buildPartnerProfileCountryPrompt(globalContext)
-      : null,
     ...accountSpecificPrompts,
   ].filter((section): section is string => Boolean(section));
 

@@ -9,7 +9,7 @@ import { WorkspaceProps } from "@/lib/types";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { WorkspaceSelector } from "@/ui/workspaces/workspace-selector";
 import { Button } from "@dub/ui";
-import { Integration, WorkspaceEnvironment } from "@prisma/client";
+import { Integration } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -117,7 +117,6 @@ export const AuthorizeForm = ({
               workspaces?.find((workspace) => workspace.slug === slug) ?? null,
             );
           }}
-          environments={Object.values(WorkspaceEnvironment)}
         />
       </div>
       <div className="mt-4 flex justify-between gap-4">

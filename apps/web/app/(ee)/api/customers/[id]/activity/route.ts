@@ -19,7 +19,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     customerId: customer.id,
   });
 
-  // get the first partner link that this customer interacted with
+  // get the first link that this customer interacted with
   const firstLinkId =
     events.length > 0 ? events[events.length - 1].link_id : customer.linkId;
 

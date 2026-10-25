@@ -3,13 +3,9 @@
 import { testIds } from "@/lib/e2e/test-ids";
 import { OnboardingStep } from "@/lib/onboarding/types";
 import {
-  Bolt,
   Button,
   CircleCheck,
   Crown,
-  CursorRays,
-  Flask,
-  Globe,
   type Icon,
   withFillVariant,
 } from "@dub/ui";
@@ -19,13 +15,11 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { ReactNode } from "react";
 import { LaterButton } from "../../later-button";
-import { useOnboardingProduct } from "../../use-onboarding-product";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function DefaultDomainSelector() {
   const searchParams = useSearchParams();
   const workspaceSlug = searchParams.get("workspace");
-  const product = useOnboardingProduct();
 
   return (
     <>
@@ -37,109 +31,42 @@ export function DefaultDomainSelector() {
           bannerText="Recommended setup"
           bannerVariant="recommended"
           title="Connect a custom domain"
-          description={
-            product === "links"
-              ? "Already have a domain? Connect it to your Dub workspace."
-              : undefined
-          }
-          features={
-            product === "partners"
-              ? [
-                  {
-                    icon: CursorRays,
-                    text: (
-                      <>
-                        <a
-                          href="https://dub.co/blog/custom-domains"
-                          target="_blank"
-                          className="underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-700"
-                        >
-                          Higher click-through rates
-                        </a>
-                      </>
-                    ),
-                  },
-                  {
-                    icon: Globe,
-                    text: (
-                      <>
-                        Requires a{" "}
-                        <a
-                          href="https://dub.co/help/article/choosing-a-custom-domain"
-                          target="_blank"
-                          className="underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-700"
-                        >
-                          dedicated domain
-                        </a>
-                      </>
-                    ),
-                  },
-                ]
-              : undefined
-          }
+          description="Already have a domain? Connect it to your Dub workspace."
           cta="Connect domain"
           testId={testIds.onboarding.connectDomain}
         />
-        {product === "partners" && (
-          <DomainOption
-            step="domain/subdomain"
-            icon="https://assets.dub.co/icons/gift.webp"
-            bannerIcon={withFillVariant(Bolt)}
-            bannerText="Instant setup"
-            title={
-              <>
-                Use <DomainChip>.dub.link</DomainChip> subdomain
-              </>
-            }
-            features={[
-              {
-                icon: Flask,
-                text: "Best for testing purposes",
-              },
-              {
-                icon: withFillVariant(Bolt),
-                text: "Instant subdomain setup",
-              },
-            ]}
-            cta="Use .dub.link subdomain"
-          />
-        )}
-        {product === "links" && (
-          <DomainOption
-            step="domain/register"
-            icon="https://assets.dub.co/icons/gift.webp"
-            bannerIcon={Crown}
-            bannerText="Paid plan required"
-            title={
-              <>
-                Claim a free <DomainChip>.link</DomainChip> domain
-              </>
-            }
-            description={
-              <>
-                Register a domain like{" "}
-                <span className="font-mono font-semibold text-neutral-900">
-                  {workspaceSlug && workspaceSlug.length < 8
-                    ? workspaceSlug
-                    : "company"}
-                  .link
-                </span>{" "}
-                – free for 1 year
-              </>
-            }
-            cta="Claim .link domain"
-          />
-        )}
+        <DomainOption
+          step="domain/register"
+          icon="https://assets.dub.co/icons/gift.webp"
+          bannerIcon={Crown}
+          bannerText="Paid plan required"
+          title={
+            <>
+              Claim a free <DomainChip>.link</DomainChip> domain
+            </>
+          }
+          description={
+            <>
+              Register a domain like{" "}
+              <span className="font-mono font-semibold text-neutral-900">
+                {workspaceSlug && workspaceSlug.length < 8
+                  ? workspaceSlug
+                  : "company"}
+                .link
+              </span>{" "}
+              – free for 1 year
+            </>
+          }
+          cta="Claim .link domain"
+        />
       </div>
-      {product === "links" && (
-        <div className="mx-auto mt-8 w-full max-w-sm">
-          <LaterButton
-            next="plan"
-            className="mt-4"
-            data-testid={testIds.onboarding.skipDomain}
-          />
-        </div>
-      )}
+      <div className="mx-auto mt-8 w-full max-w-sm">
+        <LaterButton
+          next="plan"
+          className="mt-4"
+          data-testid={testIds.onboarding.skipDomain}
+        />
+      </div>
     </>
   );
 }

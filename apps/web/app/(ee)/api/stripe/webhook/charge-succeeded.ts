@@ -3,10 +3,8 @@ import {
   isDomainRegistrationInvoice,
   parseRegisteredDomainSlugs,
 } from "@/lib/api/domains/is-domain-registration-invoice";
-import { qstash } from "@/lib/cron";
 import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Invoice } from "@prisma/client";
 import Stripe from "stripe";
 
@@ -65,46 +63,11 @@ export async function chargeSucceeded(event: Stripe.ChargeSucceededEvent) {
     },
   });
 
-  if (invoice.type === "partnerPayout") {
-    return await processPayoutInvoice({ invoice });
-  } else if (invoice.type === "domainRenewal") {
+  if (invoice.type === "domainRenewal") {
     return await processDomainRenewalInvoice({ invoice });
   }
 
   return `Unsupported invoice type (${invoice.type}), skipping...`;
-}
-
-async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
-  const payoutsToProcess = await prisma.payout.count({
-    where: {
-      invoiceId: invoice.id,
-      status: {
-        not: "completed",
-      },
-    },
-  });
-
-  if (payoutsToProcess === 0) {
-    return `No payouts to process found for invoice ${invoice.id}, skipping...`;
-  }
-
-  const qstashResponse = await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
-    label: invoice.id,
-    flowControl: {
-      key: invoice.id,
-      parallelism: 1,
-    },
-    body: {
-      invoiceId: invoice.id,
-    },
-  });
-
-  if (qstashResponse.messageId) {
-    return `Message sent to Qstash with id ${qstashResponse.messageId}`;
-  } else {
-    return `Error sending message to Qstash: ${JSON.stringify(qstashResponse)}`;
-  }
 }
 
 async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {

@@ -14,7 +14,6 @@ import {
   TimestampTooltip,
   Tooltip,
   TooltipContent,
-  useCurrentSubdomain,
   useInViewport,
 } from "@dub/ui";
 import {
@@ -85,17 +84,13 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
 
   const hasQuickViewSettings = quickViewSettings.some(({ key }) => link?.[key]);
 
-  const { subdomain } = useCurrentSubdomain();
   const { folderId: currentFolderId } = useCurrentFolderId();
 
   const showFolderIcon = useMemo(() => {
     return Boolean(
-      !loading &&
-        link.folderId &&
-        currentFolderId !== link.folderId &&
-        subdomain !== "admin",
+      !loading && link.folderId && currentFolderId !== link.folderId,
     );
-  }, [loading, link.folderId, currentFolderId, subdomain]);
+  }, [loading, link.folderId, currentFolderId]);
 
   const { folder } = useFolder({
     folderId: link.folderId,

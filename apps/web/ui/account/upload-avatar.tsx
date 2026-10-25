@@ -6,11 +6,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-export default function UploadAvatar({
-  onSubmit,
-}: {
-  onSubmit?: (image: string | null) => Promise<void> | void;
-}) {
+export default function UploadAvatar() {
   const { data: session, update } = useSession();
 
   const [image, setImage] = useState<string | null>(null);
@@ -30,24 +26,20 @@ export default function UploadAvatar({
         e.preventDefault();
 
         try {
-          if (onSubmit) {
-            await onSubmit(image);
-          } else {
-            const res = await fetch("/api/user", {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ image }),
-            });
+          const res = await fetch("/api/user", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ image }),
+          });
 
-            if (res.status === 200) {
-              await update();
-              toast.success("Successfully updated your profile picture!");
-            } else {
-              const { error } = await res.json();
-              toast.error(error.message);
-            }
+          if (res.status === 200) {
+            await update();
+            toast.success("Successfully updated your profile picture!");
+          } else {
+            const { error } = await res.json();
+            toast.error(error.message);
           }
         } catch (error) {
           toast.error(

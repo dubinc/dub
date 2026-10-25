@@ -1,13 +1,9 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
-import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
-import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import {
@@ -43,29 +39,10 @@ export const GET = withWorkspace(
       key,
       linkId,
       externalId,
-      programId,
     } = parsedParams;
 
     event = oldEvent || event;
     groupBy = oldType || groupBy;
-
-    let programStartedAt: Date | null | undefined = null;
-    if (programId) {
-      const workspaceProgramId = getDefaultProgramIdOrThrow(workspace);
-      if (programId !== workspaceProgramId) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: `Program ${programId} does not belong to workspace ${prefixWorkspaceId(workspace.id)}.`,
-        });
-      }
-      if (groupBy === "timeseries") {
-        const program = await getProgramOrThrow({
-          workspaceId: workspace.id,
-          programId,
-        });
-        programStartedAt = program.startedAt;
-      }
-    }
 
     let folderIdToVerify = getFirstFilterValue(folderId);
     if (!linkId && (externalId || (domain && key))) {
@@ -125,7 +102,7 @@ export const GET = withWorkspace(
       isDeprecatedClicksEndpoint,
       // dataAvailableFrom is only relevant for timeseries groupBy
       ...(groupBy === "timeseries" && {
-        dataAvailableFrom: programStartedAt ?? workspace.createdAt,
+        dataAvailableFrom: workspace.createdAt,
       }),
     });
     console.timeEnd("getAnalytics");

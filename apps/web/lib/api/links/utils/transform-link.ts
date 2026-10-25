@@ -1,8 +1,3 @@
-import {
-  DiscountProps,
-  PartnerProps,
-  ProgramEnrollmentProps,
-} from "@/lib/types";
 import { toCentsNumber } from "@dub/utils";
 import { Dashboard, Link, Tag } from "@prisma/client";
 import { prefixWorkspaceId } from "../../workspaces/workspace-id";
@@ -14,25 +9,6 @@ export type ExpandedLink = Link & {
   tags?: { tag: Pick<Tag, "id" | "name" | "color"> }[];
   webhooks?: { webhookId: string }[];
   dashboard?: Dashboard | null;
-  partner?:
-    | (Pick<PartnerProps, "id" | "name" | "image"> & {
-        groupId?: string | null;
-        tenantId?: string | null;
-      })
-    | null;
-  discount?: Pick<
-    DiscountProps,
-    "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"
-  > | null;
-  programEnrollment?:
-    | (Pick<ProgramEnrollmentProps, "groupId"> & {
-        programPartnerTags?: { partnerTagId: string }[] | null;
-      })
-    | null;
-  partnerLinkDetails?: {
-    title: string | null;
-    comments: string | null;
-  } | null;
 };
 
 // Transform link with additional properties
@@ -48,16 +24,12 @@ export const transformLink = (
   }
 
   const {
-    // remove webhooks array, dashboard, partnerGroupDefaultLinkId
+    // remove webhooks array, dashboard
     webhooks,
     dashboard,
-    partnerGroupDefaultLinkId,
     // hide undocumented fields from the API response for now
     lastLeadAt,
     lastConversionAt,
-    programEnrollment,
-    // partner-private relation; returned only by partner-profile link schemas
-    partnerLinkDetails,
     ...rest
   } = link;
 

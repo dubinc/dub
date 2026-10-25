@@ -379,174 +379,6 @@ describe("Advanced Filters - Unit Tests", () => {
     });
   });
 
-  describe("extractWorkspaceLinkFilters - partnerId", () => {
-    test("extracts single partnerId with IN operator", () => {
-      const result = extractWorkspaceLinkFilters({
-        partnerId: {
-          operator: "IS",
-          sqlOperator: "IN",
-          values: ["pn_abc123"],
-        },
-      });
-      expect(result.partnerId).toEqual(["pn_abc123"]);
-      expect(result.partnerIdOperator).toBe("IN");
-    });
-
-    test("extracts multiple partnerIds with IN operator", () => {
-      const result = extractWorkspaceLinkFilters({
-        partnerId: {
-          operator: "IS_ONE_OF",
-          sqlOperator: "IN",
-          values: ["pn_abc123", "pn_def456", "pn_ghi789"],
-        },
-      });
-      expect(result.partnerId).toEqual(["pn_abc123", "pn_def456", "pn_ghi789"]);
-      expect(result.partnerIdOperator).toBe("IN");
-    });
-
-    test("extracts single partnerId with NOT IN operator", () => {
-      const result = extractWorkspaceLinkFilters({
-        partnerId: {
-          operator: "IS_NOT",
-          sqlOperator: "NOT IN",
-          values: ["pn_abc123"],
-        },
-      });
-      expect(result.partnerId).toEqual(["pn_abc123"]);
-      expect(result.partnerIdOperator).toBe("NOT IN");
-    });
-
-    test("extracts multiple partnerIds with NOT IN operator", () => {
-      const result = extractWorkspaceLinkFilters({
-        partnerId: {
-          operator: "IS_NOT_ONE_OF",
-          sqlOperator: "NOT IN",
-          values: ["pn_abc123", "pn_def456"],
-        },
-      });
-      expect(result.partnerId).toEqual(["pn_abc123", "pn_def456"]);
-      expect(result.partnerIdOperator).toBe("NOT IN");
-    });
-
-    test("returns undefined partnerId when not provided", () => {
-      const result = extractWorkspaceLinkFilters({});
-      expect(result.partnerId).toBeUndefined();
-      expect(result.partnerIdOperator).toBe("IN"); // default
-    });
-
-    test("works alongside other workspace link filters", () => {
-      const result = extractWorkspaceLinkFilters({
-        domain: {
-          operator: "IS",
-          sqlOperator: "IN",
-          values: ["dub.sh"],
-        },
-        partnerId: {
-          operator: "IS_ONE_OF",
-          sqlOperator: "IN",
-          values: ["pn_abc123", "pn_def456"],
-        },
-        folderId: {
-          operator: "IS_NOT",
-          sqlOperator: "NOT IN",
-          values: ["fold_xyz"],
-        },
-      });
-      expect(result.domain).toEqual(["dub.sh"]);
-      expect(result.domainOperator).toBe("IN");
-      expect(result.partnerId).toEqual(["pn_abc123", "pn_def456"]);
-      expect(result.partnerIdOperator).toBe("IN");
-      expect(result.folderId).toEqual(["fold_xyz"]);
-      expect(result.folderIdOperator).toBe("NOT IN");
-    });
-  });
-
-  describe("extractWorkspaceLinkFilters - groupId", () => {
-    test("extracts single groupId with IN operator", () => {
-      const result = extractWorkspaceLinkFilters({
-        groupId: {
-          operator: "IS",
-          sqlOperator: "IN",
-          values: ["grp_abc123"],
-        },
-      });
-      expect(result.groupId).toEqual(["grp_abc123"]);
-      expect(result.groupIdOperator).toBe("IN");
-    });
-
-    test("extracts multiple groupIds with IN operator", () => {
-      const result = extractWorkspaceLinkFilters({
-        groupId: {
-          operator: "IS_ONE_OF",
-          sqlOperator: "IN",
-          values: ["grp_abc123", "grp_def456", "grp_ghi789"],
-        },
-      });
-      expect(result.groupId).toEqual([
-        "grp_abc123",
-        "grp_def456",
-        "grp_ghi789",
-      ]);
-      expect(result.groupIdOperator).toBe("IN");
-    });
-
-    test("extracts single groupId with NOT IN operator", () => {
-      const result = extractWorkspaceLinkFilters({
-        groupId: {
-          operator: "IS_NOT",
-          sqlOperator: "NOT IN",
-          values: ["grp_abc123"],
-        },
-      });
-      expect(result.groupId).toEqual(["grp_abc123"]);
-      expect(result.groupIdOperator).toBe("NOT IN");
-    });
-
-    test("extracts multiple groupIds with NOT IN operator", () => {
-      const result = extractWorkspaceLinkFilters({
-        groupId: {
-          operator: "IS_NOT_ONE_OF",
-          sqlOperator: "NOT IN",
-          values: ["grp_abc123", "grp_def456"],
-        },
-      });
-      expect(result.groupId).toEqual(["grp_abc123", "grp_def456"]);
-      expect(result.groupIdOperator).toBe("NOT IN");
-    });
-
-    test("returns undefined groupId when not provided", () => {
-      const result = extractWorkspaceLinkFilters({});
-      expect(result.groupId).toBeUndefined();
-      expect(result.groupIdOperator).toBe("IN"); // default
-    });
-
-    test("works alongside partnerId and other filters", () => {
-      const result = extractWorkspaceLinkFilters({
-        partnerId: {
-          operator: "IS",
-          sqlOperator: "IN",
-          values: ["pn_abc123"],
-        },
-        groupId: {
-          operator: "IS_ONE_OF",
-          sqlOperator: "IN",
-          values: ["grp_abc123", "grp_def456"],
-        },
-        domain: {
-          operator: "IS_NOT",
-          sqlOperator: "NOT IN",
-          values: ["spam.com"],
-        },
-      });
-      expect(result.partnerId).toEqual(["pn_abc123"]);
-      expect(result.partnerIdOperator).toBe("IN");
-      expect(result.groupId).toEqual(["grp_abc123", "grp_def456"]);
-      expect(result.groupIdOperator).toBe("IN");
-      expect(result.domain).toEqual(["spam.com"]);
-      expect(result.domainOperator).toBe("NOT IN");
-    });
-  });
-
   describe("extractWorkspaceLinkFilters - tenantId", () => {
     test("extracts single tenantId with IN operator", () => {
       const result = extractWorkspaceLinkFilters({
@@ -597,8 +429,6 @@ describe("Advanced Filters - Unit Tests", () => {
     test("works alongside all other workspace link filters", () => {
       const result = extractWorkspaceLinkFilters({
         domain: { operator: "IS", sqlOperator: "IN", values: ["dub.sh"] },
-        partnerId: { operator: "IS", sqlOperator: "IN", values: ["pn_abc"] },
-        groupId: { operator: "IS", sqlOperator: "IN", values: ["grp_abc"] },
         tenantId: {
           operator: "IS_ONE_OF",
           sqlOperator: "IN",
@@ -611,8 +441,6 @@ describe("Advanced Filters - Unit Tests", () => {
         },
       });
       expect(result.domain).toEqual(["dub.sh"]);
-      expect(result.partnerId).toEqual(["pn_abc"]);
-      expect(result.groupId).toEqual(["grp_abc"]);
       expect(result.tenantId).toEqual(["t1", "t2"]);
       expect(result.tenantIdOperator).toBe("IN");
       expect(result.folderId).toEqual(["fold_x"]);

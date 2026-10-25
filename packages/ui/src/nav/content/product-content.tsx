@@ -4,26 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { CSSProperties } from "react";
 import { Grid } from "../..";
-import { DubAnalyticsIcon, DubLinksIcon, DubPartnersIcon } from "../../icons";
+import { DubAnalyticsIcon, DubLinksIcon } from "../../icons";
 import { AnalyticsGraphic } from "./graphics/analytics-graphic";
 import { LinksGraphic } from "./graphics/links-graphic";
-import { PartnersGraphic } from "./graphics/partners-graphic";
 import { NAV_UTM_PARAMS } from "./shared";
 
 const products = [
-  {
-    icon: (
-      <div className="flex size-4 items-center justify-center rounded bg-violet-400">
-        <DubPartnersIcon className="size-2.5 text-violet-900" />
-      </div>
-    ),
-    title: "Dub Partners",
-    description: "Grow your revenue on auto-pilot with partnerships.",
-    href: "/partners",
-    color: "#818cf8",
-    graphicsContainerClassName: "pl-2",
-    graphic: <PartnersGraphic />,
-  },
   {
     icon: (
       <div className="flex size-4 items-center justify-center rounded bg-green-400">
@@ -84,7 +70,7 @@ const largeLinks = [
 export function ProductContent({ domain }: { domain: string }) {
   return (
     <div className="grid w-[1020px] grid-cols-1 gap-4 p-4">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {products.map(
           ({
             title,

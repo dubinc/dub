@@ -1,8 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getDubAdminRole, withWorkspace } from "@/lib/auth";
-import { getDubCustomer } from "@/lib/dub";
 import { getFeatureFlags } from "@/lib/edge-config";
-import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
 import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
@@ -23,8 +21,6 @@ const upgradePlanSchema = z.object({
 // POST /api/workspaces/[idOrSlug]/billing/upgrade
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    assertNotStagingWorkspace(workspace);
-
     let { plan, period, tier, baseUrl, onboarding } = upgradePlanSchema.parse(
       await req.json(),
     );
@@ -139,8 +135,6 @@ export const POST = withWorkspace(
         throw error;
       }
     } else {
-      const customer = await getDubCustomer(session.user.id);
-
       const stripeSession = await stripe.checkout.sessions.create({
         ...(workspace.stripeId
           ? {
@@ -160,19 +154,7 @@ export const POST = withWorkspace(
           : `${APP_DOMAIN}/${workspace.slug}?upgraded=true&plan=${plan}&period=${period}`,
         cancel_url: baseUrl,
         line_items: [{ price: prices.data[0].id, quantity: 1 }],
-        ...(customer?.discount?.couponId
-          ? {
-              discounts: [
-                {
-                  coupon:
-                    process.env.NODE_ENV !== "production" &&
-                    customer.discount.couponTestId
-                      ? customer.discount.couponTestId
-                      : customer.discount.couponId,
-                },
-              ],
-            }
-          : { allow_promotion_codes: true }),
+        allow_promotion_codes: true,
         automatic_tax: {
           enabled: true,
         },

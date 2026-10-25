@@ -8,12 +8,9 @@ import {
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
 import { getOwnedLinkImageKey } from "@/lib/api/links/get-owned-link-image-key";
-import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { partnerRemovalOverrides } from "@/lib/api/links/partner-removal";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { checkIfLinksHaveFolders } from "@/lib/api/links/utils/check-if-links-have-folders";
-import { checkIfLinksHaveProgramPartners } from "@/lib/api/links/utils/check-if-links-have-program-partners";
 import { isRootDomainLinkKey } from "@/lib/api/links/utils/is-root-domain-link-key";
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -214,55 +211,6 @@ export const POST = withWorkspace(
           errorLinks.push({
             error: `You don't have write access to the folder: ${link.folderId}`,
             code: "forbidden",
-            link,
-          });
-
-          return false;
-        }
-
-        return true;
-      });
-    }
-
-    if (checkIfLinksHaveProgramPartners(validLinks)) {
-      const partnerIds = [
-        ...new Set(
-          validLinks.map((link) => link.partnerId).filter(Boolean) as string[],
-        ),
-      ];
-
-      const enrollments =
-        workspace.defaultProgramId && partnerIds.length > 0
-          ? await prisma.programEnrollment.findMany({
-              where: {
-                programId: workspace.defaultProgramId,
-                partnerId: { in: partnerIds },
-              },
-              select: {
-                partnerId: true,
-              },
-            })
-          : [];
-
-      const enrolledPartnerIds = new Set(
-        enrollments.map(({ partnerId }) => partnerId),
-      );
-
-      validLinks = validLinks.filter((link) => {
-        if (link.programId && link.programId !== workspace.defaultProgramId) {
-          errorLinks.push({
-            error: `Invalid programId detected: ${link.programId}`,
-            code: "unprocessable_entity",
-            link,
-          });
-
-          return false;
-        }
-
-        if (link.partnerId && !enrolledPartnerIds.has(link.partnerId)) {
-          errorLinks.push({
-            error: `Invalid partnerId detected: ${link.partnerId}`,
-            code: "unprocessable_entity",
             link,
           });
 
@@ -476,40 +424,6 @@ export const PATCH = withWorkspace(
       });
     }
 
-    if (data.programId || data.partnerId) {
-      if (data.programId && data.programId !== workspace.defaultProgramId) {
-        throw new DubApiError({
-          code: "unprocessable_entity",
-          message: `Invalid programId detected: ${data.programId}`,
-        });
-      }
-
-      if (data.partnerId) {
-        const enrollment = workspace.defaultProgramId
-          ? await prisma.programEnrollment.findUnique({
-              where: {
-                partnerId_programId: {
-                  partnerId: data.partnerId,
-                  programId: workspace.defaultProgramId,
-                },
-              },
-              select: {
-                partnerId: true,
-              },
-            })
-          : null;
-
-        if (!enrollment) {
-          throw new DubApiError({
-            code: "unprocessable_entity",
-            message: `Invalid partnerId detected: ${data.partnerId}`,
-          });
-        }
-      }
-    }
-
-    const removal = partnerRemovalOverrides(data);
-
     const processedLinks = await Promise.all(
       links.map(async (link) =>
         processLink({
@@ -530,7 +444,6 @@ export const PATCH = withWorkspace(
                 ? link.testStartedAt.toISOString()
                 : link.testStartedAt,
             ...data,
-            ...removal,
           },
           workspace,
           userId: link.userId ?? undefined,
@@ -561,7 +474,6 @@ export const PATCH = withWorkspace(
             linkIds: validLinkIds,
             data: {
               ...data,
-              ...removal,
               tagIds,
               expiresAt,
             },
@@ -640,7 +552,6 @@ export const DELETE = withWorkspace(
       },
       include: {
         ...includeTags,
-        ...includeProgramEnrollment,
       },
     });
 

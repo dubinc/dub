@@ -1,5 +1,4 @@
 import { ErrorCode } from "@/lib/api/error-codes";
-import { STAGING_DUB_DOMAIN_SUFFIX } from "@/lib/sandbox/constants";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import * as z from "zod/v4";
 
@@ -48,23 +47,6 @@ export function validateDubLinkSubdomain(
   slug: string,
 ): { error: string; code: ApiErrorCode } | null {
   const lower = slug.trim().toLowerCase();
-
-  // Staging workspaces use `{slug}.staging.dub.link` (e.g. acme.staging.dub.link)
-  if (lower.endsWith(STAGING_DUB_DOMAIN_SUFFIX)) {
-    const labelError = validateDubLinkLabel(
-      lower.slice(0, -STAGING_DUB_DOMAIN_SUFFIX.length),
-    );
-
-    if (labelError) {
-      return labelError;
-    }
-
-    // Only staging workspace provisioning may create these hosts.
-    return {
-      error: "This subdomain is reserved.",
-      code: "unprocessable_entity",
-    };
-  }
 
   if (!lower.endsWith(DUB_LINK_SUFFIX)) {
     return null;

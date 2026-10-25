@@ -14,8 +14,7 @@ export const updateConfig = async ({
     | "emails"
     | "emailDomainTerms"
     | "reserved"
-    | "reservedUsernames"
-    | "partnersPortal";
+    | "reservedUsernames";
   value: string;
 }) => {
   if (!process.env.EDGE_CONFIG_ID) {

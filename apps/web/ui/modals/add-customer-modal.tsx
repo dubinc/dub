@@ -4,7 +4,7 @@ import {
   createCustomerBodySchema,
   StripeCustomerSchema,
 } from "@/lib/zod/schemas/customers";
-import { CountryCombobox } from "@/ui/partners/country-combobox";
+import { CountryCombobox } from "@/ui/shared/country-combobox";
 import {
   AnimatedSizeContainer,
   ArrowUpRight,
@@ -352,7 +352,7 @@ export const AddCustomerModal = ({
                                   )}
                                   {customer.dubCustomerId && (
                                     <a
-                                      href={`/${slug}/program/customers/${customer.dubCustomerId}`}
+                                      href={`/${slug}/links/customers/${customer.dubCustomerId}`}
                                       target="_blank"
                                       className="rounded bg-neutral-200/80 px-1.5 py-0.5 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-900"
                                     >
@@ -480,7 +480,8 @@ export const AddCustomerModal = ({
                         })}
                       />
                       <p className="mt-1.5 text-xs text-neutral-500">
-                        Used to attribute recurring sales to partners.
+                        Used to attribute recurring Stripe sales to this
+                        customer.
                       </p>
                     </div>
                   )}

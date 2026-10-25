@@ -3,7 +3,6 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import { testIds } from "@/lib/e2e/test-ids";
-import useGroupsCount from "@/lib/swr/use-groups-count";
 import { useLinkTagsCount } from "@/lib/swr/use-link-tags-count";
 import {
   UsageResource,
@@ -25,30 +24,24 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import {
-  CirclePercentage,
-  CreditCard,
   CrownSmall,
   CursorRays,
   Folder5,
   Globe,
   Hyperlink,
-  MoneyBills2,
   Tag,
   Users,
-  Users6,
 } from "@dub/ui/icons";
 import {
   capitalize,
   cn,
   getBillingPeriodBounds,
   INFINITY_NUMBER,
-  isLegacyBusinessPlan,
   isWorkspaceBillingTrialActive,
   nFormatter,
   sleep,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { WorkspaceEnvironment } from "@prisma/client";
 import Link from "next/link";
 import { ComponentProps, CSSProperties, ReactNode, useMemo } from "react";
 import { toast } from "sonner";
@@ -66,18 +59,10 @@ export default function PlanUsage() {
     linksUsage,
     linksLimit,
     totalLinks,
-    payoutsUsage,
-    payoutsLimit,
-    payoutFee,
-    payoutFeeWaiverLimit,
-    payoutFeeWaiverUsage,
     domains,
     domainsLimit,
     foldersUsage,
     foldersLimit,
-    partnersUsage,
-    partnersLimit,
-    groupsLimit,
     tagsLimit,
     usersLimit,
     billingCycleStart,
@@ -85,40 +70,19 @@ export default function PlanUsage() {
     trialEndsAt,
     subscriptionCanceledAt,
     billingCycleEndsAt,
-    environment,
-    defaultProgramId,
-    loading,
     mutate,
   } = useWorkspace();
 
-  const permissionsError = clientAccessCheck({
+  const managePlanError = clientAccessCheck({
     action: "billing.write",
     role,
   }).error;
-
-  const { error: managePlanStagingError } = clientAccessCheck({
-    action: "billing.write",
-    role,
-    environment,
-    restrictedEnvironments: [
-      WorkspaceEnvironment.staging,
-      WorkspaceEnvironment.sandbox,
-    ],
-    restrictedEnvironmentMessage:
-      environment === WorkspaceEnvironment.staging
-        ? "Plans can only be managed from your production workspace (your staging workspace inherits your production plan)."
-        : "You cannot manage your subscription in a sandbox workspace.",
-  });
-
-  const managePlanError = permissionsError || managePlanStagingError;
 
   const { StartPaidPlanModal, setShowStartPaidPlanModal } =
     useStartPaidPlanModal();
 
   const { data: tags } = useLinkTagsCount();
   const { users } = useWorkspaceUsers();
-
-  const { groupsCount } = useGroupsCount();
 
   const [billingStart, billingEnd, billingPeriodLabel] = useMemo(() => {
     if (billingCycleStart) {
@@ -148,25 +112,23 @@ export default function PlanUsage() {
   }, [billingCycleStart, planPeriod, billingCycleEndsAt]);
 
   const usageTabs = useMemo(() => {
-    const tabs: Omit<
-      ComponentProps<typeof UsageTabCard>,
-      "managePlanError"
-    >[] = [
-      {
-        resource: "events",
-        icon: CursorRays,
-        title: "Events tracked",
-        usage: usage,
-        limit: usageLimit,
-      },
-      {
-        resource: "links",
-        icon: Hyperlink,
-        title: "Links created",
-        usage: linksUsage,
-        limit: linksLimit,
-      },
-    ];
+    const tabs: Omit<ComponentProps<typeof UsageTabCard>, "managePlanError">[] =
+      [
+        {
+          resource: "events",
+          icon: CursorRays,
+          title: "Events tracked",
+          usage: usage,
+          limit: usageLimit,
+        },
+        {
+          resource: "links",
+          icon: Hyperlink,
+          title: "Links created",
+          usage: linksUsage,
+          limit: linksLimit,
+        },
+      ];
     if (totalLinks && totalLinks > MEGA_WORKSPACE_LINKS_LIMIT) {
       // Find the links tab and move it to the first position
       const linksTabIndex = tabs.findIndex((tab) => tab.resource === "links");
@@ -175,56 +137,8 @@ export default function PlanUsage() {
         tabs.unshift(linksTab);
       }
     }
-    // Reserve the payouts slot while the workspace loads to avoid layout shift
-    if (defaultProgramId || loading) {
-      tabs.splice(1, 0, {
-        resource: "payouts",
-        icon: MoneyBills2,
-        title: "Payouts sent",
-        usage: payoutsUsage,
-        limit: payoutsLimit,
-        unit: "$",
-      });
-    }
     return tabs;
-  }, [
-    usage,
-    usageLimit,
-    linksUsage,
-    linksLimit,
-    totalLinks,
-    defaultProgramId,
-    loading,
-    payoutsUsage,
-    payoutsLimit,
-  ]);
-
-  // Display the payout fee in a readable format
-  const payoutFeeDisplay = useMemo((): ReactNode => {
-    if (!plan || payoutFee === undefined) return undefined;
-
-    const hasTieredPricing = payoutFeeWaiverLimit && payoutFeeWaiverLimit > 0;
-    const hasWaiverRemaining =
-      payoutFeeWaiverUsage !== undefined &&
-      payoutFeeWaiverUsage < payoutFeeWaiverLimit!;
-
-    if (hasTieredPricing && hasWaiverRemaining) {
-      const waiverLimitFormatted = nFormatter(payoutFeeWaiverLimit / 100, {
-        full: payoutFeeWaiverLimit < 100000,
-      });
-
-      return (
-        <>
-          <span className="text-neutral-400 line-through">
-            {payoutFee * 100}%
-          </span>{" "}
-          0% for the first ${waiverLimitFormatted}
-        </>
-      );
-    }
-
-    return `${payoutFee * 100}%`;
-  }, [plan, payoutFee, payoutFeeWaiverLimit, payoutFeeWaiverUsage]);
+  }, [usage, usageLimit, linksUsage, linksLimit, totalLinks]);
 
   const pendingCancellationEndDate =
     subscriptionCanceledAt && billingCycleEndsAt && plan !== "free" && stripeId
@@ -331,12 +245,7 @@ export default function PlanUsage() {
         <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
           <div>
             <h2 className="flex items-center gap-2 text-xl font-medium">
-              <span>
-                {plan && isLegacyBusinessPlan({ plan, partnersLimit })
-                  ? "Business (Legacy)"
-                  : capitalize(plan)}{" "}
-                Plan
-              </span>
+              <span>{capitalize(plan)} Plan</span>
               {planPeriod && (
                 <Badge variant="gray">{capitalize(planPeriod)}</Badge>
               )}
@@ -460,7 +369,7 @@ export default function PlanUsage() {
           </div>
           <div
             className={cn(
-              "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3",
+              "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-xl bg-neutral-200 md:grid-cols-3",
               "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
             )}
           >
@@ -493,36 +402,6 @@ export default function PlanUsage() {
               href={`/${slug}/settings/people`}
             />
           </div>
-          <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-xl bg-neutral-200 md:grid-cols-4">
-            <UsageCategory
-              title="Partners"
-              icon={Users}
-              usage={partnersUsage}
-              usageLimit={partnersLimit}
-              href={`/${slug}/program/partners`}
-            />
-            <UsageCategory
-              title="Partner groups"
-              icon={Users6}
-              usage={groupsCount ?? 0}
-              usageLimit={groupsLimit}
-              href={`/${slug}/program/groups`}
-            />
-            <UsageCategory
-              title="Partner payouts"
-              icon={CreditCard}
-              usage={payoutsUsage}
-              usageLimit={payoutsLimit}
-              unit="$"
-              href={`/${slug}/program/payouts?status=pending`}
-            />
-            <UsageCategory
-              title="Payout fees"
-              icon={CirclePercentage}
-              usage={payoutFeeDisplay}
-              href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
-            />
-          </div>
         </div>
       </div>
     </>
@@ -551,16 +430,15 @@ function UsageTabCard({
   const { queryParams, searchParamsObj } = useRouterStuff();
   const { slug, plan } = useWorkspace();
 
-  const isPayouts = resource === "payouts";
-
   const hasActiveFilters = useMemo(() => {
     return !!(
-      (!isPayouts && (searchParamsObj.folderId || searchParamsObj.domain)) ||
+      searchParamsObj.folderId ||
+      searchParamsObj.domain ||
       searchParamsObj.interval ||
       searchParamsObj.start ||
       searchParamsObj.end
     );
-  }, [searchParamsObj, isPayouts]);
+  }, [searchParamsObj]);
 
   const { usage: usageTimeseries, activeResource } = useUsageTimeseries({
     resource: hasActiveFilters ? resource : undefined,
@@ -696,7 +574,7 @@ function UsageTabCard({
           )}
         </AnimatedSizeContainer>
       </button>
-      {resource !== "payouts" && plan !== "enterprise" && (
+      {plan !== "enterprise" && (
         <ManageUsageButton
           type={resource}
           warning={warning}

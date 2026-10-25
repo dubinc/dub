@@ -8,20 +8,15 @@
     "billingCycleStart": 1,
     "usageLimit": 100000,
     "linksLimit": 100000,
-    "payoutsLimit": 100000,
     "domainsLimit": 100,
     "tagsLimit": 100,
     "foldersLimit": 100,
     "usersLimit": 100,
     "aiLimit": 100,
-    "groupsLimit": 100,
-    "partnersLimit": 100,
-    "defaultProgramId": "prog_CYCu7IMAapjkRpTnr8F1azjN",
     "invoicePrefix": "ACME",
     "conversionEnabled": true,
     "webhookEnabled": true,
     "dotLinkClaimed": true,
-    "fastDirectDebitPayouts": true,
     "publishableKey": "dub_pk_acme_local_dev_000000000000"
   },
   "users": [
@@ -61,150 +56,12 @@
       "verified": true
     }
   ],
-  "emailDomains": [
-    {
-      "id": "dom_1KETZ919F83ZJH6A80EMAILDOM",
-      "slug": "getacme.link",
-      "status": "verified"
-    }
-  ],
   "folders": [
     {
       "id": "fold_1K2J9DRWPPJ2F1RX53N92TSGB",
-      "name": "Partner Links",
-      "description": "Default folder for partner links",
+      "name": "Example Folder",
+      "description": "An example folder for organizing links",
       "accessLevel": "write"
-    }
-  ],
-  "rewards": [
-    {
-      "id": "rw_1K2J9DRWPPJ2F1RX53N92TSGD",
-      "groupId": "grp_1K2J9DRWPPJ2F1RX53N92TSGC",
-      "event": "lead",
-      "type": "flat",
-      "amountInCents": 1000,
-      "maxDuration": null,
-      "description": null,
-      "tooltipDescription": null
-    },
-    {
-      "id": "rw_1K2J9DRWPPJ2F1RX53N92TSGE",
-      "groupId": "grp_1K2J9DRWPPJ2F1RX53N92TSGC",
-      "event": "sale",
-      "type": "flat",
-      "amountInCents": 3000,
-      "maxDuration": 12,
-      "description": null,
-      "tooltipDescription": null
-    }
-  ],
-  "groups": [
-    {
-      "id": "grp_1K2J9DRWPPJ2F1RX53N92TSGC",
-      "name": "Default Group",
-      "slug": "default",
-      "color": null,
-      "leadRewardId": "rw_1K2J9DRWPPJ2F1RX53N92TSGD",
-      "saleRewardId": "rw_1K2J9DRWPPJ2F1RX53N92TSGE",
-      "additionalLinks": [
-        {
-          "domain": "acme.com",
-          "validationMode": "domain"
-        }
-      ],
-      "defaultLinks": [
-        {
-          "url": "https://acme.com"
-        },
-        {
-          "url": "https://example.com"
-        }
-      ]
-    }
-  ],
-  "program": {
-    "id": "prog_CYCu7IMAapjkRpTnr8F1azjN",
-    "name": "Acme",
-    "slug": "acme",
-    "defaultFolderId": "fold_1K2J9DRWPPJ2F1RX53N92TSGB",
-    "defaultGroupId": "grp_1K2J9DRWPPJ2F1RX53N92TSGC",
-    "domain": "dub.sh",
-    "url": "https://acme.com",
-    "termsUrl": "https://acme.com/terms",
-    "helpUrl": "https://acme.com/help",
-    "supportEmail": "support@acme.com",
-    "logo": "https://assets.dub.co/logo.png"
-  },
-  "partners": [
-    {
-      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGD",
-      "name": "Partner 1",
-      "email": "partner1@dub-internal-test.com",
-      "description": "Partner 1 description",
-      "country": "US",
-      "createdAt": "2026-01-21T00:00:00.000Z",
-      "user": {
-        "id": "user_cl8dea8g1073109m7wkwlldqj",
-        "name": "Partner 1",
-        "email": "partner1@dub-internal-test.com",
-        "emailVerified": "2026-01-21T00:00:00.000Z"
-      }
-    },
-    {
-      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGE",
-      "name": "Partner 2",
-      "email": "partner2@dub-internal-test.com",
-      "description": "Partner 2 description",
-      "country": "US",
-      "createdAt": "2026-01-21T00:00:00.000Z",
-      "user": {
-        "id": "user_cludszk1h0000wmd2e0ea2b0t",
-        "name": "Partner 2",
-        "email": "partner2@dub-internal-test.com",
-        "emailVerified": "2026-01-21T00:00:00.000Z"
-      }
-    },
-    {
-      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGF",
-      "name": "Partner 3",
-      "email": "partner3@dub-internal-test.com",
-      "description": "Partner 3 description",
-      "country": "US",
-      "createdAt": "2026-01-21T00:00:00.000Z",
-      "user": {
-        "id": "user_cludszk1h0000wmd2e0ea2b0u",
-        "name": "Partner 3",
-        "email": "partner3@dub-internal-test.com",
-        "emailVerified": "2026-01-21T00:00:00.000Z"
-      }
-    },
-    {
-      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGG",
-      "name": "Partner 4",
-      "email": "partner4@dub-internal-test.com",
-      "description": "Partner 4 description",
-      "country": "US",
-      "createdAt": "2026-01-21T00:00:00.000Z",
-      "user": {
-        "id": "user_cludszk1h0000wmd2e0ea2b0v",
-        "name": "Partner 4",
-        "email": "partner4@dub-internal-test.com",
-        "emailVerified": "2026-01-21T00:00:00.000Z"
-      }
-    },
-    {
-      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGH",
-      "name": "Partner 5",
-      "email": "partner5@dub-internal-test.com",
-      "description": "Partner 5 description",
-      "country": "US",
-      "createdAt": "2026-01-21T00:00:00.000Z",
-      "user": {
-        "id": "user_cludszk1h0000wmd2e0ea2b0w",
-        "name": "Partner 5",
-        "email": "partner5@dub-internal-test.com",
-        "emailVerified": "2026-01-21T00:00:00.000Z"
-      }
     }
   ],
   "integrations": [
@@ -258,7 +115,7 @@
       "name": "Zapier",
       "slug": "zapier",
       "description": "Connect your Dub workspace to 7,000+ apps via Zapier.",
-      "readme": "This is the official Zapier integration for Dub. It's easy to implement, does not require coding, and allows you to connect Dub with other apps in minutes.\n\n## Supported actions\n\n**Dub Links**:\n- [Create link](https://dub.co/docs/api-reference/endpoint/create-a-link)\n- [Retrieve link](https://dub.co/docs/api-reference/endpoint/retrieve-a-link)\n- [Update link](https://dub.co/docs/api-reference/endpoint/update-a-link)\n- [Upsert link](https://dub.co/docs/api-reference/endpoint/upsert-a-link)\n- [Delete link](https://dub.co/docs/api-reference/endpoint/delete-a-link)\n\n**Dub Partners**:\n- [Track a lead event](https://dub.co/docs/api-reference/endpoint/track-lead)\n- [Track a sale event](https://dub.co/docs/api-reference/endpoint/track-sale)\n\n## Supported triggers\n\n**Dub Links**\n- `link.created`\n- `link.updated`\n- `link.deleted`\n- `link.clicked`\n\n**Dub Partners**\n- `lead.created`\n- `sale.created`\n- `partner.enrolled`\n- `partner.application_submitted`",
+      "readme": "This is the official Zapier integration for Dub. It's easy to implement, does not require coding, and allows you to connect Dub with other apps in minutes.\n\n## Supported actions\n\n**Dub Links**:\n- [Create link](https://dub.co/docs/api-reference/endpoint/create-a-link)\n- [Retrieve link](https://dub.co/docs/api-reference/endpoint/retrieve-a-link)\n- [Update link](https://dub.co/docs/api-reference/endpoint/update-a-link)\n- [Upsert link](https://dub.co/docs/api-reference/endpoint/upsert-a-link)\n- [Delete link](https://dub.co/docs/api-reference/endpoint/delete-a-link)\n\n**Dub Conversions**:\n- [Track a lead event](https://dub.co/docs/api-reference/endpoint/track-lead)\n- [Track a sale event](https://dub.co/docs/api-reference/endpoint/track-sale)\n\n## Supported triggers\n\n**Dub Links**\n- `link.created`\n- `link.updated`\n- `link.deleted`\n- `link.clicked`\n\n**Dub Conversions**\n- `lead.created`\n- `sale.created`",
       "developer": "Dub",
       "website": "https://zapier.com/apps/dub/integrations",
       "logo": "https://dubassets.com/integrations/clzlmz336000fjeqynwhfv8vo_S4yz4ak",
@@ -417,8 +274,8 @@
       "id": "int_ffw3qgrFAahY6qs1hXaH3wHS",
       "name": "Hubspot",
       "slug": "hubspot",
-      "description": "Track Hubspot leads/deal changes and auto-generate partner commissions on Dub.",
-      "readme": "Easily track and attribute leads and sales from HubSpot inside Dub.\n\n## Features\n\n- Bidirectional sync between HubSpot contacts and Dub lead events\n- Automatic attribution of leads to the exact Dub link or partner\n- Support for HubSpot Forms and HubSpot Meeting Scheduler\n- Closed Won sale tracking\n\n## Setup process\n\n1. Enable conversion tracking in Dub\n2. Install the `@dub/analytics` script on your site\n3. Connect HubSpot via the Dub integration\n4. (Optional) Set your custom **Closed Won Deal Stage ID**\n\nOnce connected, Dub gives you full visibility into your funnel — from click → lead → meeting → Closed Won revenue.",
+      "description": "Track Hubspot leads/deal changes as conversions on Dub.",
+      "readme": "Easily track and attribute leads and sales from HubSpot inside Dub.\n\n## Features\n\n- Bidirectional sync between HubSpot contacts and Dub lead events\n- Automatic attribution of leads to the exact Dub link\n- Support for HubSpot Forms and HubSpot Meeting Scheduler\n- Closed Won sale tracking\n\n## Setup process\n\n1. Enable conversion tracking in Dub\n2. Install the `@dub/analytics` script on your site\n3. Connect HubSpot via the Dub integration\n4. (Optional) Set your custom **Closed Won Deal Stage ID**\n\nOnce connected, Dub gives you full visibility into your funnel — from click → lead → meeting → Closed Won revenue.",
       "developer": "Dub",
       "website": "https://dub.co/docs/conversions/leads/hubspot",
       "logo": "https://dubassets.com/integrations/int_ffw3qgrFAahY6qs1hXaH3wHS_JPoCPOh",

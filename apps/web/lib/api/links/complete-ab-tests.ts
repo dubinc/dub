@@ -6,7 +6,6 @@ import { ABTestVariantsSchema, linkEventSchema } from "@/lib/zod/schemas/links";
 import { Link } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { linkCache } from "./cache";
-import { includeProgramEnrollment } from "./include-program-enrollment";
 import { includeTags } from "./include-tags";
 
 export async function completeABTests(link: Link) {
@@ -67,7 +66,6 @@ export async function completeABTests(link: Link) {
     },
     include: {
       ...includeTags,
-      ...includeProgramEnrollment,
       project: true,
     },
   });

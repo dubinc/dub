@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
-import { syncPartnerLinksStats } from "../../lib/api/partners/sync-partner-links-stats";
 import { getSaleEvents } from "./get-sale-events";
 
 // delete tinybird sale event
@@ -66,12 +65,6 @@ async function main() {
         decrement: oldData.amount,
       },
     },
-  });
-
-  await syncPartnerLinksStats({
-    partnerId: link.partnerId!,
-    programId: link.programId!,
-    eventType: "sale",
   });
 }
 

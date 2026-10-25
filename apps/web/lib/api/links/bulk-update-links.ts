@@ -1,4 +1,3 @@
-import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { bulkUpdateLinksBodySchema } from "@/lib/zod/schemas/links";
@@ -7,7 +6,6 @@ import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { combineTagIds } from "../tags/combine-tag-ids";
-import { includeProgramEnrollment } from "./include-program-enrollment";
 import { includeTags } from "./include-tags";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { transformLink } from "./utils";
@@ -42,17 +40,6 @@ export async function bulkUpdateLinks(
 
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url || "");
-
-  // The bulk payload omits link key but not `partnerId`, so an
-  // update can move links between partners. The former owners are unrecoverable
-  // after the write, so read them first, and only when the payload can move one.
-  const previousPartnersForLinks =
-    rest.partnerId !== undefined || rest.programId !== undefined
-      ? await prisma.link.findMany({
-          where: { id: { in: linkIds } },
-          select: { programId: true, partnerId: true },
-        })
-      : [];
 
   const updatedLinks = await Promise.all(
     linkIds.map((linkId) =>
@@ -112,11 +99,6 @@ export async function bulkUpdateLinks(
             },
           }),
 
-          // Removing the partner also detaches the group default-link template.
-          ...(rest.partnerId === null && {
-            partnerGroupDefaultLinkId: null,
-          }),
-
           // Associate webhooks
           ...(webhookIds && {
             webhooks: {
@@ -129,7 +111,6 @@ export async function bulkUpdateLinks(
         },
         include: {
           ...includeTags,
-          ...includeProgramEnrollment,
           webhooks: webhookIds ? { select: { webhookId: true } } : false,
         },
       }),
@@ -142,12 +123,6 @@ export async function bulkUpdateLinks(
       propagateBulkLinkChanges({
         links: updatedLinks,
       }),
-      // Queue an index update if there are previous partners (meaning partnerId was bulk updated)
-      previousPartnersForLinks.length > 0 &&
-        queuePartnerSearchSyncForLinks([
-          ...previousPartnersForLinks,
-          ...updatedLinks,
-        ]),
       // if proxy is true and image is not stored in R2, upload image to R2
       proxy &&
         image &&

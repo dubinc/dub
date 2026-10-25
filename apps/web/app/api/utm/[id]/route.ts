@@ -1,11 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
-import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
-import { syncGroupUtmJob } from "@/lib/jobs/handlers/sync-group-utm-job";
 import { prisma } from "@/lib/prisma";
 import { updateUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
-import { constructURLFromUTMParams, deepEqual } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // PATCH /api/utm/[id] – update a UTM template
@@ -51,53 +47,7 @@ export const PATCH = withWorkspace(
           utm_content,
           ref,
         },
-        include: {
-          partnerGroup: {
-            include: {
-              partnerGroupDefaultLinks: true,
-            },
-          },
-        },
       });
-
-      const utmFieldsChanged = !deepEqual(
-        extractUtmParams(updatedTemplate),
-        extractUtmParams(template),
-      );
-
-      if (utmFieldsChanged) {
-        waitUntil(
-          (async () => {
-            const partnerGroup = updatedTemplate.partnerGroup;
-            if (!partnerGroup) return;
-
-            const defaultLinks = partnerGroup.partnerGroupDefaultLinks;
-
-            if (defaultLinks && defaultLinks.length > 0) {
-              for (const defaultLink of defaultLinks) {
-                const res = await prisma.partnerGroupDefaultLink.update({
-                  where: {
-                    id: defaultLink.id,
-                  },
-                  data: {
-                    url: constructURLFromUTMParams(
-                      defaultLink.url,
-                      extractUtmParams(updatedTemplate),
-                    ),
-                  },
-                });
-                console.log(
-                  `Updated default link ${defaultLink.id} with URL: ${res.url}`,
-                );
-              }
-            }
-
-            await syncGroupUtmJob.dispatch({
-              groupId: partnerGroup.id,
-            });
-          })(),
-        );
-      }
 
       return NextResponse.json(updatedTemplate);
     } catch (error) {
@@ -126,22 +76,12 @@ export const DELETE = withWorkspace(
         id,
         projectId: workspace.id,
       },
-      include: {
-        partnerGroup: true,
-      },
     });
 
     if (!template) {
       throw new DubApiError({
         code: "not_found",
         message: "UTM template not found.",
-      });
-    }
-
-    if (template.partnerGroup) {
-      throw new DubApiError({
-        code: "conflict",
-        message: `This template is linked to the partner group "${template.partnerGroup.name}" and cannot be deleted.`,
       });
     }
 

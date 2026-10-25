@@ -1,5 +1,4 @@
 import { testIds } from "@/lib/e2e/test-ids";
-import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { Button, Modal, useRouterStuff, useScrollProgress } from "@dub/ui";
@@ -37,7 +36,6 @@ function UpgradedModal({
   const {
     dotLinkClaimed,
     trialEndsAt,
-    environment,
     loading: workspaceLoading,
     mutate: mutateWorkspaceData,
   } = useWorkspace();
@@ -68,7 +66,6 @@ function UpgradedModal({
   const showDotLinkClaimUi =
     checkoutWorkspaceSynced &&
     !workspaceLoading &&
-    isProductionEnvironment(environment) &&
     !dotLinkClaimed &&
     !isWorkspaceBillingTrialActive(trialEndsAt);
 

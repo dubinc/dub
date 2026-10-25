@@ -35,9 +35,3 @@ export const TWO_WEEKS_IN_SECONDS = 60 * 60 * 24 * 14;
 export const DUB_FOUNDING_DATE = new Date("2022-09-22T00:00:00.000Z");
 
 export const INFINITY_NUMBER = 1000000000;
-
-export const DUPLICATE_IDENTITY_DECLINE_REASON =
-  "This identity has already been verified on another account.";
-
-// Days a partner must wait before re-applying after a "standard" program application rejection
-export const STANDARD_REAPPLICATION_DAYS = 30;

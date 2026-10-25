@@ -6,7 +6,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps } from "@/lib/types";
 import { getCustomersQuerySchema } from "@/lib/zod/schemas/customers";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
-import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
@@ -25,7 +24,6 @@ import {
   TimestampTooltip,
   useColumnVisibility,
   useCopyToClipboard,
-  useCurrentProduct,
   usePagination,
   useRouterStuff,
   useTable,
@@ -64,7 +62,6 @@ export function CustomersTable({
   query?: Partial<z.infer<typeof getCustomersQuerySchema>>;
 }) {
   const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
-  const { product } = useCurrentProduct();
   const { canManageCustomers } = getPlanCapabilities(plan);
 
   const router = useRouter();
@@ -104,7 +101,6 @@ export function CustomersTable({
     all: [
       "customer",
       "country",
-      ...(product === "program" ? ["partner"] : ["link"]),
       "link",
       "saleAmount",
       "createdAt",
@@ -115,7 +111,7 @@ export function CustomersTable({
     defaultVisible: [
       "customer",
       "country",
-      ...(product === "program" ? ["partner"] : ["link"]),
+      "link",
       "saleAmount",
       "createdAt",
       "firstSaleAt",
@@ -124,9 +120,7 @@ export function CustomersTable({
   };
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    product === "program"
-      ? "program-customers-table-columns"
-      : "customers-table-columns",
+    "customers-table-columns",
     customersColumns,
   );
 
@@ -169,25 +163,6 @@ export function CustomersTable({
                 </span>
               </div>
             );
-          },
-        },
-        {
-          id: "partner",
-          header: "Partner",
-          cell: ({ row }) =>
-            row.original.partner ? (
-              <PartnerRowItem partner={row.original.partner} />
-            ) : (
-              "-"
-            ),
-          size: 200,
-          meta: {
-            filterParams: ({ row }) =>
-              row.original.partner?.id
-                ? {
-                    partnerId: row.original.partner.id,
-                  }
-                : undefined,
           },
         },
         {
@@ -328,11 +303,11 @@ export function CustomersTable({
           cell: ({ row }) => <RowMenuButton row={row} />,
         },
       ].filter((c) => c.id === "menu" || customersColumns.all.includes(c.id)),
-    [product, workspaceSlug],
+    [workspaceSlug],
   );
 
   const getCustomerUrl = (row: Row<CustomerProps>) =>
-    `/${workspaceSlug}/${product}/customers/${row.original.id}`;
+    `/${workspaceSlug}/links/customers/${row.original.id}`;
 
   const { table, ...tableProps } = useTable({
     data: canManageCustomers ? customers || [] : EXAMPLE_CUSTOMER_DATA,

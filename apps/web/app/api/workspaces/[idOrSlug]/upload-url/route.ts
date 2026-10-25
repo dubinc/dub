@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const schema = signedUploadInputSchema.extend({
-  folder: z.enum(["integrationScreenshots", "programLogos"]),
+  folder: z.enum(["integrationScreenshots"]),
 });
 
 // POST /api/workspaces/[idOrSlug]/upload-url – get a signed URL to upload a file to a workspace
@@ -21,10 +21,7 @@ export const POST = withWorkspace(
       contentLength,
     } = schema.parse(await req.json());
 
-    const key =
-      policy === "integrationScreenshots"
-        ? `integration-screenshots/${nanoid(10)}`
-        : `program-logos/${nanoid(10)}`;
+    const key = `integration-screenshots/${nanoid(10)}`;
 
     validateSignedUpload({
       contentLength,

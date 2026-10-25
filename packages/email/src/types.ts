@@ -5,14 +5,7 @@ export type WorkspaceProps = {
   usage: number;
   usageLimit: number;
   plan: string;
-  defaultProgramId: string | null;
 };
-
-export type PartnerPayoutMethod =
-  | "connect"
-  | "stablecoin"
-  | "paypal"
-  | "tremendous";
 
 export type TrialMarketingEmailProps = {
   email: string;
@@ -20,20 +13,3 @@ export type TrialMarketingEmailProps = {
   plan: string;
   workspaceSlug: string;
 };
-
-// constants
-export const STABLECOIN_PAYOUT_FEE_RATE = 0.005;
-export const MIN_WITHDRAWAL_AMOUNT_CENTS = 10_00;
-export const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50;
-
-export type CommissionStatus =
-  | "pending"
-  | "processed"
-  | "paid"
-  | "refunded"
-  | "duplicate"
-  | "fraud"
-  | "canceled"
-  | "hold";
-
-export type WorkspaceEnvironment = "production" | "staging" | "sandbox";

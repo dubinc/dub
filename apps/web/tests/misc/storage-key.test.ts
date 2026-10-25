@@ -1,5 +1,4 @@
 import { getOwnedLinkImageKey } from "@/lib/api/links/get-owned-link-image-key";
-import { sanitizeFileName } from "@/lib/messages/utils";
 import { storage } from "@/lib/storage";
 import {
   assertSafeStorageKey,
@@ -115,16 +114,5 @@ describe("storage client", () => {
     await expect(
       storage.delete({ key: "images/link_1/../../resumes/ZbOEyTdkAe" }),
     ).rejects.toThrow("Invalid storage key.");
-  });
-});
-
-describe("sanitizeFileName", () => {
-  it("keeps a slashy or relative file name inside one safe segment", () => {
-    expect(
-      isSafeStorageKey(`messages/prog/${sanitizeFileName("../../secret.pdf")}`),
-    ).toBe(true);
-    expect(sanitizeFileName("../../secret.pdf")).toBe("..-..-secret.pdf");
-    expect(sanitizeFileName("..")).toBe("_");
-    expect(sanitizeFileName("100%.pdf")).toBe("100%25.pdf");
   });
 });

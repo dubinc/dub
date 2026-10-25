@@ -41,8 +41,8 @@ export const DEFAULT_QR_DESIGN: QRCodeDesign = {
 
 /**
  * The inner content of the QR code design form — preview, style toggles, color
- * pickers, and action buttons. Both link and partner modals render this,
- * differing only in their header and the optional `logoSection` slot.
+ * pickers, and action buttons. Modals render this with their own header and
+ * the optional `logoSection` slot.
  */
 export function QRCodeDesignFields({
   data,

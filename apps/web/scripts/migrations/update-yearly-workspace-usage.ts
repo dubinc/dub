@@ -37,7 +37,7 @@ async function main() {
           const billingStart = subYears(workspace.billingCycleEndsAt!, 1);
           const billingEnd = new Date();
 
-          const [usage, linksUsage, payoutsUsage] = await Promise.all([
+          const [usage, linksUsage] = await Promise.all([
             getWorkspaceUsage({
               workspaceId: workspace.id,
               resource: "events",
@@ -51,20 +51,6 @@ async function main() {
               start: billingStart,
               end: billingEnd,
             }).then((data) => data.reduce((acc, curr) => acc + curr.value, 0)),
-
-            prisma.invoice.aggregate({
-              where: {
-                workspaceId: workspace.id,
-                type: "partnerPayout",
-                status: "completed",
-                paidAt: {
-                  gte: billingStart,
-                },
-              },
-              _sum: {
-                amount: true,
-              },
-            }),
           ]);
 
           const newUsageLimit = Math.min(
@@ -75,12 +61,7 @@ async function main() {
             workspace.linksLimit * 12,
             INFINITY_NUMBER,
           );
-          const newPayoutsLimit = Math.min(
-            workspace.payoutsLimit * 12,
-            INFINITY_NUMBER,
-          );
           const newAiLimit = workspace.aiLimit * 12;
-          const newPayoutsUsage = payoutsUsage._sum.amount ?? 0;
 
           await prisma.project.update({
             where: {
@@ -89,16 +70,14 @@ async function main() {
             data: {
               usage,
               linksUsage,
-              payoutsUsage: newPayoutsUsage,
               usageLimit: newUsageLimit,
               linksLimit: newLinksLimit,
-              payoutsLimit: newPayoutsLimit,
               aiLimit: newAiLimit,
             },
           });
 
           console.log(
-            `Updated ${workspace.slug}: clicks ${usage}/${newUsageLimit}, links ${linksUsage}/${newLinksLimit}, payouts ${newPayoutsUsage}/${newPayoutsLimit}, ai ${workspace.aiUsage}/${newAiLimit}`,
+            `Updated ${workspace.slug}: clicks ${usage}/${newUsageLimit}, links ${linksUsage}/${newLinksLimit}, ai ${workspace.aiUsage}/${newAiLimit}`,
           );
         }),
       );

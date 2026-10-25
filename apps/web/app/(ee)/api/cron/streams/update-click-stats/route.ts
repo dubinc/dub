@@ -31,25 +31,17 @@ type WorkspaceAggregate = {
   clicks: number;
 };
 
-type EnrollmentAggregate = {
-  programId: string;
-  partnerId: string;
-  clicks: number;
-};
-
 const aggregateClickStats = (
   entries: RedisStreamEntry<LinkClickEvent>[],
 ): {
   linkUpdates: LinkAggregate[];
   workspaceUpdates: WorkspaceAggregate[];
-  enrollmentUpdates: EnrollmentAggregate[];
 } => {
   const links = new Map<string, LinkAggregate>();
   const workspaces = new Map<string, WorkspaceAggregate>();
-  const enrollments = new Map<string, EnrollmentAggregate>();
 
   for (const entry of entries) {
-    const { linkId, workspaceId, programId, partnerId, timestamp } = entry.data;
+    const { linkId, workspaceId, timestamp } = entry.data;
 
     if (!linkId) {
       continue;
@@ -88,26 +80,11 @@ const aggregateClickStats = (
         });
       }
     }
-
-    if (programId && partnerId) {
-      const key = `${programId}:${partnerId}`;
-      const existingEnrollment = enrollments.get(key);
-      if (existingEnrollment) {
-        existingEnrollment.clicks += 1;
-      } else {
-        enrollments.set(key, {
-          programId,
-          partnerId,
-          clicks: 1,
-        });
-      }
-    }
   }
 
   return {
     linkUpdates: Array.from(links.values()),
     workspaceUpdates: Array.from(workspaces.values()),
-    enrollmentUpdates: Array.from(enrollments.values()),
   };
 };
 
@@ -157,7 +134,6 @@ const processClickStatsStreamBatch = () =>
           success: true,
           linkUpdates: [],
           workspaceUpdates: [],
-          enrollmentUpdates: [],
           processedEntryIds: [],
           totalProcessed: 0,
           errors: [],
@@ -166,8 +142,7 @@ const processClickStatsStreamBatch = () =>
 
       console.log(`Aggregating ${entries.length} click stats events`);
 
-      const { linkUpdates, workspaceUpdates, enrollmentUpdates } =
-        aggregateClickStats(entries);
+      const { linkUpdates, workspaceUpdates } = aggregateClickStats(entries);
 
       if (linkUpdates.length === 0) {
         console.log("No click stats updates to process");
@@ -175,7 +150,6 @@ const processClickStatsStreamBatch = () =>
           success: true,
           linkUpdates: [],
           workspaceUpdates: [],
-          enrollmentUpdates: [],
           processedEntryIds: entries.map((entry) => entry.id),
           totalProcessed: 0,
           errors: [],
@@ -183,7 +157,7 @@ const processClickStatsStreamBatch = () =>
       }
 
       console.log(
-        `Processing ${linkUpdates.length} link, ${workspaceUpdates.length} workspace, ${enrollmentUpdates.length} enrollment click stats updates...`,
+        `Processing ${linkUpdates.length} link, ${workspaceUpdates.length} workspace click stats updates...`,
       );
 
       const processedEntryIds: string[] = [];
@@ -238,40 +212,11 @@ const processClickStatsStreamBatch = () =>
       );
       errors.push(...workspaceResult.errors);
 
-      const enrollmentResult = await processInSubBatches(
-        enrollmentUpdates,
-        async (update) => {
-          try {
-            await conn.execute(
-              "UPDATE ProgramEnrollment SET totalClicks = totalClicks + ? WHERE programId = ? AND partnerId = ?",
-              [update.clicks, update.programId, update.partnerId],
-            );
-            return { success: true };
-          } catch (error) {
-            console.error(
-              `Failed to update program enrollment ${update.programId}:${update.partnerId}:`,
-              error,
-            );
-            return {
-              success: false,
-              error: {
-                programId: update.programId,
-                partnerId: update.partnerId,
-                error,
-              },
-            };
-          }
-        },
-      );
-      errors.push(...enrollmentResult.errors);
-
       const totalProcessed =
-        linkResult.totalProcessed +
-        workspaceResult.totalProcessed +
-        enrollmentResult.totalProcessed;
+        linkResult.totalProcessed + workspaceResult.totalProcessed;
 
       console.log(
-        `Processed ${linkResult.totalProcessed}/${linkUpdates.length} links, ${workspaceResult.totalProcessed}/${workspaceUpdates.length} workspaces, ${enrollmentResult.totalProcessed}/${enrollmentUpdates.length} enrollments`,
+        `Processed ${linkResult.totalProcessed}/${linkUpdates.length} links, ${workspaceResult.totalProcessed}/${workspaceUpdates.length} workspaces`,
       );
 
       if (errors.length > 0) {
@@ -284,7 +229,6 @@ const processClickStatsStreamBatch = () =>
       return {
         linkUpdates,
         workspaceUpdates,
-        enrollmentUpdates,
         errors,
         totalProcessed,
         processedEntryIds,

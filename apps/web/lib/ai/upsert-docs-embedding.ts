@@ -1,9 +1,7 @@
 import { vectorIndex } from "../../lib/upstash/vector";
-import { PAYOUT_SUPPORTED_COUNTRIES } from "../constants/payouts-supported-countries";
 /**
  * Clean raw MDX fetched from Mintlify's .md endpoint.
  * Strips frontmatter, imports, images, JSX components.
- * Replaces <PayoutSupportedCountries /> with the actual country list.
  * Returns the cleaned content and the article title extracted from the H1 heading.
  */
 async function cleanMdx(
@@ -19,20 +17,6 @@ async function cleanMdx(
   content = content.replace(/^---[\s\S]*?---\s*/m, "");
   content = content.replace(/^import\s+.*from\s+['"][^'"]*['"]\s*;?\s*$/gm, "");
   content = content.replace(/!\[.*?\]\(.*?\)/g, "");
-
-  const PAYOUT_METHODS_MAP = {
-    stablecoin: "Stablecoin",
-    connect: "Bank Account",
-    paypal: "PayPal",
-  };
-
-  content = content.replace(
-    /<PayoutSupportedCountries\s*\/>/g,
-    PAYOUT_SUPPORTED_COUNTRIES.map(
-      (c) =>
-        `- ${c.name} [${c.code}] (${c.methods.map((m) => PAYOUT_METHODS_MAP[m]).join(", ")})`,
-    ).join("\n"),
-  );
 
   content = content.replace(/<[A-Z][A-Za-z]*\s*\/>/g, "");
 

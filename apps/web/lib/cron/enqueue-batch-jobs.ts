@@ -3,15 +3,7 @@ import type { PublishBatchRequest } from "@upstash/qstash";
 import { qstash } from ".";
 
 type EnqueueBatchJobsProps = PublishBatchRequest<unknown> & {
-  queueName?:
-    | "ban-partner"
-    | "send-partner-summary"
-    | "sync-bounty-social-metrics"
-    | "process-hubspot-webhook"
-    | "process-intercom-webhook"
-    | "delete-discount-code"
-    | "create-referral-commissions"
-    | "aggregate-clicks";
+  queueName?: "process-hubspot-webhook";
 };
 
 // Generic helper to enqueue a batch of QStash jobs.

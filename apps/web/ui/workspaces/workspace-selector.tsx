@@ -1,26 +1,18 @@
-import { WorkspaceEnvironmentIndicator } from "@/lib/sandbox/components/workspace-environment-indicator";
-import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { BlurImage, Button, Combobox } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { WorkspaceEnvironment } from "@prisma/client";
 import { useMemo, useState } from "react";
 import { useAddWorkspaceModal } from "../modals/add-workspace-modal";
 
 interface WorkspaceSelectorProps {
   selectedWorkspace: string;
   setSelectedWorkspace: (workspace: string | null) => void;
-  environments?: WorkspaceEnvironment[]; // only display workspaces in these environments (defaults to production and sandbox)
   showAddWorkspaceButton?: boolean;
 }
 
 export function WorkspaceSelector({
   selectedWorkspace,
   setSelectedWorkspace,
-  environments = [
-    WorkspaceEnvironment.production,
-    WorkspaceEnvironment.sandbox,
-  ],
   showAddWorkspaceButton = true,
 }: WorkspaceSelectorProps) {
   const [openPopover, setOpenPopover] = useState(false);
@@ -29,17 +21,7 @@ export function WorkspaceSelector({
   const { AddWorkspaceModal, setShowAddWorkspaceModal } =
     useAddWorkspaceModal();
 
-  const filteredWorkspaces = useMemo(() => {
-    if (!workspaces) {
-      return [];
-    }
-
-    return workspaces.filter((workspace) =>
-      environments
-        ? environments.includes(workspace.environment)
-        : !isStagingEnvironment(workspace.environment),
-    );
-  }, [workspaces, environments]);
+  const filteredWorkspaces = useMemo(() => workspaces ?? [], [workspaces]);
 
   const workspaceOptions = useMemo(
     () =>
@@ -56,17 +38,6 @@ export function WorkspaceSelector({
           />
         ),
       })),
-    [filteredWorkspaces],
-  );
-
-  const environmentBySlug = useMemo(
-    () =>
-      new Map(
-        filteredWorkspaces.map((workspace) => [
-          workspace.slug,
-          workspace.environment,
-        ]),
-      ),
     [filteredWorkspaces],
   );
 
@@ -121,11 +92,6 @@ export function WorkspaceSelector({
             "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
           ),
         }}
-        optionRight={(option) => (
-          <WorkspaceEnvironmentIndicator
-            environment={environmentBySlug.get(option.value)}
-          />
-        )}
         emptyState={
           <div className="flex w-full flex-col items-center gap-2 py-4">
             No workspaces found
@@ -151,9 +117,6 @@ export function WorkspaceSelector({
         ) : selectedOption ? (
           <span className="flex w-full min-w-0 items-center gap-1.5">
             <span className="min-w-0 truncate">{selectedOption.label}</span>
-            <WorkspaceEnvironmentIndicator
-              environment={environmentBySlug.get(selectedOption.value)}
-            />
           </span>
         ) : null}
       </Combobox>

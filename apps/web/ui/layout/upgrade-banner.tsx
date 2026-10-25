@@ -25,12 +25,11 @@ export function useUpgradeBannerVisibility() {
   const {
     exceededEvents,
     exceededLinks,
-    exceededPayouts,
     paymentFailedAt,
     subscriptionCanceledAt,
   } = useWorkspace();
 
-  const needsUpgrade = exceededEvents || exceededLinks || exceededPayouts;
+  const needsUpgrade = exceededEvents || exceededLinks;
   const subscriptionCanceled =
     subscriptionCanceledAt && new Date(subscriptionCanceledAt) < new Date();
 
@@ -43,14 +42,8 @@ export function useUpgradeBannerVisibility() {
 }
 
 export function UpgradeBanner() {
-  const {
-    slug,
-    exceededEvents,
-    exceededLinks,
-    exceededPayouts,
-    trialEndsAt,
-    role,
-  } = useWorkspace();
+  const { slug, exceededEvents, exceededLinks, trialEndsAt, role } =
+    useWorkspace();
   const { openTrialLimitModal, TrialLimitActivateModal } =
     useTrialLimitActivateModal();
   const { setShowRetryPaymentModal, RetryPaymentModal } =
@@ -68,7 +61,6 @@ export function UpgradeBanner() {
   const overageLimitResource = getTrialLimitResourceForOverageBanner({
     exceededEvents: Boolean(exceededEvents),
     exceededLinks: Boolean(exceededLinks),
-    exceededPayouts: Boolean(exceededPayouts),
   });
 
   const customButtonClassname = "h-6 w-fit shrink-0 px-1.5 text-xs font-medium";
@@ -107,12 +99,7 @@ export function UpgradeBanner() {
               <>
                 You&rsquo;ve hit the{" "}
                 <Link href={`/${slug}/settings/billing`} className="underline">
-                  {exceededEvents
-                    ? "events"
-                    : exceededLinks
-                      ? "links"
-                      : "payouts"}{" "}
-                  limit
+                  {exceededEvents ? "events" : "links"} limit
                 </Link>
                 <span className="hidden sm:inline"> on your current plan</span>
               </>
@@ -155,12 +142,7 @@ export function UpgradeBanner() {
               variant="secondary"
               onClick={() =>
                 openTrialLimitModal(
-                  overageLimitResource ??
-                    (exceededEvents
-                      ? "clicks"
-                      : exceededLinks
-                        ? "links"
-                        : "payouts"),
+                  overageLimitResource ?? (exceededEvents ? "clicks" : "links"),
                 )
               }
               className={customButtonClassname}

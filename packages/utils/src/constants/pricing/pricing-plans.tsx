@@ -21,14 +21,9 @@ export type PlanDetails = {
   limits: {
     links: number;
     clicks: number;
-    payouts: number;
     domains: number;
     tags: number;
-    partnerTags: number;
     folders: number;
-    groups: number;
-    networkInvites: number;
-    partners: number;
     users: number;
     ai: number;
     api: number;
@@ -151,14 +146,9 @@ export const PLANS: PlanDetails[] = [
     limits: {
       links: 25,
       clicks: 1_000,
-      payouts: 0,
       domains: 3,
       tags: 5,
-      partnerTags: 0,
       folders: 0,
-      groups: 0,
-      networkInvites: 0,
-      partners: 0,
       users: 1,
       ai: 10,
       api: 60,
@@ -176,14 +166,9 @@ export const PLANS: PlanDetails[] = [
     limits: {
       links: 1_000,
       clicks: 50_000,
-      payouts: 0,
       domains: 10,
       tags: 25,
-      partnerTags: 0,
       folders: 3,
-      groups: 0,
-      networkInvites: 0,
-      partners: 0,
       users: 3,
       ai: 1_000,
       api: 600,
@@ -267,14 +252,9 @@ export const PLANS: PlanDetails[] = [
     limits: {
       links: 10_000,
       clicks: 250_000,
-      payouts: 2_500_00,
       domains: 100,
       tags: INFINITY_NUMBER,
-      partnerTags: 10,
       folders: 20,
-      groups: 3,
-      networkInvites: 0,
-      partners: 500,
       users: 10,
       ai: 1_000,
       api: 1_200,
@@ -309,27 +289,8 @@ export const PLANS: PlanDetails[] = [
         text: "3-year analytics retention",
       },
       {
-        id: "payouts",
-        text: "$2.5K partner payouts/mo",
-        tooltip: {
-          title:
-            "Send payouts to your partners with 1-click (or automate it completely) – all across the world.",
-          cta: "Learn more.",
-          href: "https://dub.co/help/article/partner-payouts",
-        },
-      },
-      {
         id: "users",
         text: "10 users",
-      },
-      {
-        id: "partners",
-        text: "Dub Partners",
-        tooltip: {
-          title: "Use Dub Partners to manage and pay out your affiliates.",
-          cta: "Learn more.",
-          href: "https://dub.co/partners",
-        },
       },
       {
         id: "customerinsights",
@@ -377,14 +338,9 @@ export const PLANS: PlanDetails[] = [
     limits: {
       links: 50_000,
       clicks: 1_000_000,
-      payouts: 15_000_00,
       domains: 250,
       tags: INFINITY_NUMBER,
-      partnerTags: INFINITY_NUMBER,
       folders: 50,
-      groups: INFINITY_NUMBER,
-      networkInvites: 0,
-      partners: INFINITY_NUMBER,
       users: 20,
       ai: 1_000,
       api: 3_000,
@@ -430,56 +386,8 @@ export const PLANS: PlanDetails[] = [
         text: "5-year analytics retention",
       },
       {
-        id: "payouts",
-        text: "$15K partner payouts/mo",
-        tooltip: {
-          title:
-            "Send payouts to your partners with 1-click (or automate it completely) – all across the world.",
-          cta: "Learn more.",
-          href: "https://dub.co/help/article/partner-payouts",
-        },
-      },
-      {
         id: "users",
         text: "20 users",
-      },
-      {
-        id: "flexiblerewards",
-        text: "Advanced reward structures",
-        tooltip: {
-          title:
-            "Create dynamic click, lead, or sale-based rewards with country and product-specific modifiers.",
-          cta: "Learn more.",
-          href: "https://dub.co/help/article/partner-rewards",
-        },
-      },
-      {
-        id: "embeddedreferrals",
-        text: "Embedded referral dashboard",
-        tooltip: {
-          title:
-            "Let users join your referral program and start sharing + earning commissions – all without leaving your app.",
-          cta: "Learn more.",
-          href: "https://dub.co/docs/partners/embedded-referrals",
-        },
-      },
-      {
-        id: "messages",
-        text: "Messaging center",
-        tooltip: {
-          title:
-            "Easily communicate with your partners using our messaging center.",
-        },
-      },
-      {
-        id: "email",
-        text: "Email campaigns",
-        tooltip: {
-          title:
-            "Send marketing and transactional emails to your partners to increase engagement and drive conversions.",
-          cta: "Learn more.",
-          href: "https://dub.co/help/article/email-campaigns",
-        },
       },
       {
         id: "slack",
@@ -496,14 +404,9 @@ export const PLANS: PlanDetails[] = [
     limits: {
       links: 500_000,
       clicks: 5_000_000,
-      payouts: INFINITY_NUMBER,
       domains: 250,
       tags: INFINITY_NUMBER,
-      partnerTags: INFINITY_NUMBER,
       folders: INFINITY_NUMBER,
-      groups: INFINITY_NUMBER,
-      networkInvites: 20,
-      partners: INFINITY_NUMBER,
       users: 30,
       ai: 1_000,
       api: 3_000,
@@ -663,11 +566,3 @@ export const getSuggestedPlan = ({
 
   return match ?? { plan: ENTERPRISE_PLAN, planTier: 1 };
 };
-
-export const isLegacyBusinessPlan = ({
-  plan = "business",
-  partnersLimit = 0,
-}: {
-  plan?: string;
-  partnersLimit?: number;
-}) => plan === "business" && partnersLimit === 0;

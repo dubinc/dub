@@ -11,14 +11,11 @@ export default defineConfig({
       priorityPaths: [
         "lib/auth/",
         "app/api/",
-        "app/(ee)/api/payouts/",
-        "app/(ee)/api/partners/",
-        "app/(ee)/api/admin/",
-        "app/(ee)/api/oauth/",
+        "app/api/oauth/",
         "app/(ee)/api/cron/",
       ],
       promptAppend:
-        "Focus on IDOR/tenant isolation, authz gaps, SSRF, XSS, and payout/money-movement bugs. Ignore style and tests.",
+        "Focus on IDOR/tenant isolation, authz gaps, SSRF, XSS, and billing bugs. Ignore style and tests.",
     },
   ],
 });

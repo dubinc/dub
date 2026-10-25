@@ -29,17 +29,16 @@ import * as z from "zod/v4";
 import { defineJob } from "../index";
 
 const inputSchema = z.object({
-  programId: z.string(),
-  partnerId: z.string(),
+  tagId: z.string(),
 });
 
-export const unbanPartnerJob = defineJob({
-  name: "unban-partner-job",
+export const linkTagDeletedJob = defineJob({
+  name: "link-tag-deleted-job",
   schema: inputSchema,
   defaults: {
     retries: 3, // optional; QStash retries on 5xx
-    // queue: "unban-partner", // optional; named QStash queue
-    // flowControl: { key: "unban-partner", parallelism: 20 },
+    // queue: "link-tag-deleted", // optional; named QStash queue
+    // flowControl: { key: "link-tag-deleted", parallelism: 20 },
   },
   async handle(input) {
     // skip (permanent / not found) → return (process route returns 2xx, QStash does not retry)
@@ -52,17 +51,16 @@ Export the const as camelCase `{name}Job` matching the kebab `name`.
 
 Reference handlers:
 
-- Simple skip/work: `unban-partner-job.ts`, `create-tremendous-campaign-job.ts`
-- Self-pagination: `folder-deleted-job.ts`, `domain-deleted-job.ts`, `partner-search-sync-job.ts`
-- `defaults.flowControl`: `partner-search-sync-job.ts`
+- Simple skip/work: `welcome-user-job.ts`, `process-shopify-order-job.ts`
+- Self-pagination: `folder-deleted-job.ts`, `domain-deleted-job.ts`, `link-tag-deleted-job.ts`
 
 ## 2. Register it
 
 Add a **static** `import()` in [`apps/web/lib/jobs/registry.ts`](apps/web/lib/jobs/registry.ts) `jobLoaders`. The object key must equal `defineJob({ name })`. Webpack code-splits each handler.
 
 ```ts
-"unban-partner-job": () =>
-  import("./handlers/unban-partner-job").then((m) => m.unbanPartnerJob),
+"link-tag-deleted-job": () =>
+  import("./handlers/link-tag-deleted-job").then((m) => m.linkTagDeletedJob),
 ```
 
 Do not register by editing the process route. `loadJob` throws if `job.name !==` the registry key.
@@ -72,12 +70,9 @@ Do not register by editing the process route. `loadJob` throws if `job.name !==`
 Import the handler (not `qstash`) and call `dispatch` / `dispatchBatch`:
 
 ```ts
-import { unbanPartnerJob } from "@/lib/jobs/handlers/unban-partner-job";
+import { linkTagDeletedJob } from "@/lib/jobs/handlers/link-tag-deleted-job";
 
-await unbanPartnerJob.dispatch(
-  { workspaceId, programId, partnerId },
-  { label: partnerId },
-);
+await linkTagDeletedJob.dispatch({ tagId }, { label: tagId });
 
 await folderDeletedJob.dispatchBatch(
   folderIds.map((folderId) => ({ folderId })),
@@ -87,9 +82,9 @@ await folderDeletedJob.dispatchBatch(
 
 Per-dispatch options merge over `defaults`: `delay`, `notBefore`, `deduplicationId`, `retries`, `queue`, `flowControl`, `label`.
 
-Failed QStash publish is persisted to the jobs outbox automatically — do not catch-and-swallow unless even the outbox persist failing must not fail the source mutation (see `queue-partner-search-sync.ts`).
+Failed QStash publish is persisted to the jobs outbox automatically — do not catch-and-swallow unless even the outbox persist failing must not fail the source mutation.
 
-Self-pagination: call `theJob.dispatch(nextPayload, { delay: 1 })` from `handle` (see `folder-deleted-job`, `partner-search-sync-job`).
+Self-pagination: call `theJob.dispatch(nextPayload, { delay: 1 })` from `handle` (see `folder-deleted-job`, `link-tag-deleted-job`).
 
 Do not call `job.execute` from app code. That is only for the process route (and cron drain shims below).
 
@@ -102,12 +97,12 @@ Do not call `job.execute` from app code. That is only for the process route (and
 
 ## Handle semantics
 
-| Outcome | What to do | HTTP from process route | QStash |
-| --- | --- | --- | --- |
-| Work done | `return` | 200 | stop |
-| Skip (not found, already done, env not configured) | `console.*` + `return` | 200 | stop |
-| Bad payload | throw `ZodError` (schema.parse) | 200 | stop (non-retryable) |
-| Transient failure | `throw` | 500 | retry |
+| Outcome                                            | What to do                      | HTTP from process route | QStash               |
+| -------------------------------------------------- | ------------------------------- | ----------------------- | -------------------- |
+| Work done                                          | `return`                        | 200                     | stop                 |
+| Skip (not found, already done, env not configured) | `console.*` + `return`          | 200                     | stop                 |
+| Bad payload                                        | throw `ZodError` (schema.parse) | 200                     | stop (non-retryable) |
+| Transient failure                                  | `throw`                         | 500                     | retry                |
 
 Unknown job names and invalid envelopes also return 2xx so QStash does not retry forever.
 

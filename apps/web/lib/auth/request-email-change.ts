@@ -12,35 +12,20 @@ import { RATELIMIT_POLICIES } from "../upstash/ratelimit-policies";
 
 const EMAIL_CHANGE_MIN_ACCOUNT_AGE_MS = 60 * 60 * 1000; // 1 hour
 
-// Send the OTP to confirm the email address change for existing users/partners
+// Send the OTP to confirm the email address change for existing users
 export const requestEmailChange = async ({
   email,
   newEmail,
   identifier,
   userId,
-  isPartnerProfile = false,
-  syncIdentity = false,
-  partnerId,
-  redirectTo,
   hostName,
 }: {
   email: string;
   newEmail: string;
   identifier: string;
   userId: string;
-  isPartnerProfile?: boolean; // If true, the email is being changed for a partner profile
-  syncIdentity?: boolean; // If true, update both user and partner email on confirm
-  partnerId?: string;
-  redirectTo?: "/profile" | "/account/settings";
   hostName: string;
 }) => {
-  if (syncIdentity && !partnerId) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "Partner ID is required when syncing identity.",
-    });
-  }
-
   await assertRateLimit({
     policy: RATELIMIT_POLICIES.emailChangeRequest,
     identifier: userId,
@@ -52,12 +37,6 @@ export const requestEmailChange = async ({
     },
     select: {
       createdAt: true,
-      partners: {
-        select: {
-          id: true,
-        },
-        take: 1,
-      },
     },
   });
 
@@ -84,12 +63,9 @@ export const requestEmailChange = async ({
     identifier: newEmail.toLowerCase(),
   });
 
-  const hasPartnerAccount = user.partners.length > 0;
-
   const allowEmailChange = await canChangeEmail({
     currentEmail: email,
     newEmail,
-    hasPartnerAccount,
   });
 
   if (!allowEmailChange) {
@@ -126,9 +102,6 @@ export const requestEmailChange = async ({
     {
       email,
       newEmail,
-      ...(isPartnerProfile && { isPartnerProfile }),
-      ...(syncIdentity && { syncIdentity, partnerId }),
-      ...(redirectTo && { redirectTo }),
     },
     {
       px: expiresIn,

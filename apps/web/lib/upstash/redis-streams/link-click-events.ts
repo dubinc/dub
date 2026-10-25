@@ -11,26 +11,20 @@ export interface LinkClickEvent {
   linkId: string;
   timestamp: string;
   workspaceId?: string;
-  programId?: string;
-  partnerId?: string;
 }
 
 // Publishes a link click event to the stream to update:
 // - link clicks count + lastClicked timestamp
 // - workspace usage + totalClicks
-// - program enrollment totalClicks
 export const publishLinkClickEvent = async ({
   linkId,
   timestamp,
   workspaceId,
-  programId,
-  partnerId,
 }: LinkClickEvent) => {
   const payload = {
     linkId,
     timestamp,
     ...(workspaceId && { workspaceId }),
-    ...(programId && partnerId && { programId, partnerId }),
   };
 
   try {
@@ -43,8 +37,6 @@ export const publishLinkClickEvent = async ({
       correlation: {
         linkId,
         workspaceId,
-        programId,
-        partnerId,
       },
     });
 
@@ -58,13 +50,6 @@ export const publishLinkClickEvent = async ({
         ? conn.execute(
             "UPDATE Project p SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE id = ?",
             [workspaceId],
-          )
-        : null,
-
-      programId && partnerId
-        ? conn.execute(
-            "UPDATE ProgramEnrollment SET totalClicks = totalClicks + 1 WHERE programId = ? AND partnerId = ?",
-            [programId, partnerId],
           )
         : null,
 

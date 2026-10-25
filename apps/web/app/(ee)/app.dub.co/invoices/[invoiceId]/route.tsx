@@ -2,7 +2,6 @@ import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DomainRenewalInvoice } from "./domain-renewal-invoice";
-import { PartnerPayoutInvoice } from "./partner-payout-invoice";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +19,6 @@ export const GET = withSession(async ({ session, params }) => {
           name: true,
           slug: true,
           stripeId: true,
-          environment: true,
         },
       },
     },
@@ -52,12 +50,7 @@ export const GET = withSession(async ({ session, params }) => {
 
   let pdf: Buffer | null = null;
 
-  if (invoice.type === "partnerPayout") {
-    pdf = await PartnerPayoutInvoice({
-      invoice,
-      workspace: invoice.workspace,
-    });
-  } else if (invoice.type === "domainRenewal") {
+  if (invoice.type === "domainRenewal") {
     pdf = await DomainRenewalInvoice({
       invoice,
       workspace: invoice.workspace,

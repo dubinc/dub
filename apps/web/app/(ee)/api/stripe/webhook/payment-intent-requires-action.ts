@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
 import { processDomainRenewalFailure } from "./utils/process-domain-renewal-failure";
-import { processPayoutInvoiceFailure } from "./utils/process-payout-invoice-failure";
 
 export async function paymentIntentRequiresAction(
   event: Stripe.PaymentIntentRequiresActionEvent,
@@ -36,10 +35,7 @@ export async function paymentIntentRequiresAction(
     },
   });
 
-  if (invoice.type === "partnerPayout") {
-    await processPayoutInvoiceFailure({ invoice });
-    return `Processed partner payout failure for invoice ${invoice.id}.`;
-  } else if (invoice.type === "domainRenewal") {
+  if (invoice.type === "domainRenewal") {
     await processDomainRenewalFailure({ invoice });
     return `Processed domain renewal failure for invoice ${invoice.id}.`;
   }

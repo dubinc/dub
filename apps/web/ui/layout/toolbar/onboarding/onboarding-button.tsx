@@ -1,12 +1,8 @@
 "use client";
 
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import useCustomersCount from "@/lib/swr/use-customers-count";
 import useDomainsCount from "@/lib/swr/use-domains-count";
-import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
-import { useAnalyticsConnectedStatus } from "@/ui/analytics/use-analytics-connected-status";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import {
   Button,
@@ -39,33 +35,14 @@ function OnboardingButtonInner({
   onHideForever: () => void;
 }) {
   const { slug } = useParams() as { slug: string };
-  const { plan, totalLinks, defaultProgramId } = useWorkspace();
-
-  const { canTrackConversions, canManageProgram } = getPlanCapabilities(plan);
+  const { totalLinks } = useWorkspace();
 
   const { data: domainsCount, loading: domainsLoading } = useDomainsCount({
     ignoreParams: true,
   });
   const { users, loading: usersLoading } = useWorkspaceUsers();
 
-  const { isConnected: connectedAnalytics } = useAnalyticsConnectedStatus();
-  const { data: customersCount, loading: customersCountLoading } =
-    useCustomersCount<number>({
-      includeParams: [],
-      enabled: canTrackConversions && !connectedAnalytics,
-    });
-
-  const { partnersCount, loading: partnersCountLoading } =
-    usePartnersCount<number>({
-      ignoreParams: true,
-      enabled: Boolean(defaultProgramId) && canManageProgram,
-    });
-
-  const loading =
-    domainsLoading ||
-    usersLoading ||
-    customersCountLoading ||
-    partnersCountLoading;
+  const loading = domainsLoading || usersLoading;
 
   const tasks = useMemo(() => {
     return [
@@ -75,53 +52,20 @@ function OnboardingButtonInner({
         checked: domainsCount && domainsCount > 0,
         recommended: true,
       },
-      ...(defaultProgramId
-        ? [
-            {
-              display: "Create a program",
-              cta: `/${slug}/program`,
-              checked: true,
-              recommended: true,
-            },
-            {
-              display: "Set up conversion tracking",
-              cta: `/${slug}/settings/tracking`,
-              checked:
-                connectedAnalytics || (customersCount && customersCount > 0),
-              recommended: true,
-            },
-            {
-              display: "Invite your partners",
-              cta: `/${slug}/program/partners`,
-              checked: partnersCount && partnersCount > 0,
-              recommended: true,
-            },
-          ]
-        : [
-            {
-              display: "Create a short link",
-              cta: `/${slug}/links`,
-              checked: totalLinks && totalLinks > 0,
-              recommended: true,
-            },
-            {
-              display: "Invite your team",
-              cta: `/${slug}/settings/people`,
-              checked: users && users.length > 1,
-              recommended: false,
-            },
-          ]),
+      {
+        display: "Create a short link",
+        cta: `/${slug}/links`,
+        checked: totalLinks && totalLinks > 0,
+        recommended: true,
+      },
+      {
+        display: "Invite your team",
+        cta: `/${slug}/settings/people`,
+        checked: users && users.length > 1,
+        recommended: false,
+      },
     ];
-  }, [
-    slug,
-    defaultProgramId,
-    domainsCount,
-    connectedAnalytics,
-    customersCount,
-    partnersCount,
-    totalLinks,
-    users,
-  ]);
+  }, [slug, domainsCount, totalLinks, users]);
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -142,8 +86,7 @@ function OnboardingButtonInner({
               <div>
                 <span className="text-base font-medium">Complete setup</span>
                 <p className="mt-1 text-sm text-neutral-300">
-                  Finish setting up your{" "}
-                  {defaultProgramId ? "program" : "workspace"}
+                  Finish setting up your workspace
                   <br className="hidden sm:block" />
                   to get the most out of Dub
                 </p>

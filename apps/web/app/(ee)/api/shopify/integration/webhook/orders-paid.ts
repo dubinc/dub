@@ -13,14 +13,10 @@ export async function ordersPaid({
   workspace,
 }: {
   event: any;
-  workspace: Pick<WorkspaceProps, "id" | "defaultProgramId">;
+  workspace: Pick<WorkspaceProps, "id">;
 }) {
   const order = shopifyOrderSchema.parse(event);
-  const {
-    customer: orderCustomer,
-    checkout_token: checkoutToken,
-    discount_codes: discountCodes,
-  } = order;
+  const { customer: orderCustomer, checkout_token: checkoutToken } = order;
 
   // If the order has a customer, try to find the customer in our database
   if (orderCustomer) {
@@ -54,40 +50,7 @@ export async function ordersPaid({
     }
   }
 
-  // Check if the order has created using a program discount code
-  if (discountCodes && discountCodes.length > 0 && workspace.defaultProgramId) {
-    const programDiscountCodes = await prisma.discountCode.findMany({
-      where: {
-        programId: workspace.defaultProgramId,
-        code: {
-          in: discountCodes.map(({ code }) => code),
-        },
-      },
-      include: {
-        link: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    if (programDiscountCodes.length > 0) {
-      await processShopifyOrderJob.dispatch(
-        {
-          order,
-          clickId: null,
-          workspaceId: workspace.id,
-        },
-        {
-          deduplicationId: `shopify-order-${checkoutToken}`,
-        },
-      );
-
-      return `[Shopify] Partner discount code ${programDiscountCodes[0].code} found. Order queued for processing.`;
-    }
-  }
-
-  // At this stage, we know the order has no customer or partner discount code
+  // At this stage, we know the order has no existing customer
   // Prefer dubClickId from note_attributes when present; otherwise wait for the pixel
   let clickId =
     order.note_attributes.find(({ name }) => name === "dubClickId")?.value ||

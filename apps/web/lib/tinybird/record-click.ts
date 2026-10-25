@@ -27,8 +27,6 @@ export async function recordClick({
   domain,
   key,
   url,
-  programId,
-  partnerId,
   skipRatelimit,
   timestamp,
   referrer,
@@ -42,8 +40,6 @@ export async function recordClick({
   domain: string;
   key: string;
   url?: string;
-  programId?: string;
-  partnerId?: string;
   skipRatelimit?: boolean;
   timestamp?: string;
   referrer?: string;
@@ -192,7 +188,6 @@ export async function recordClick({
           linkId,
           timestamp: clickData.timestamp,
           ...(workspaceId && url && { workspaceId }),
-          ...(programId && partnerId && { programId, partnerId }),
         }),
 
         // Publish the click event

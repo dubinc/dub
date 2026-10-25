@@ -3,13 +3,12 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, FileUpload } from "@dub/ui";
-import { WorkspaceEnvironment } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
 export default function UploadLogo() {
-  const { id, logo, role, isOwner, environment } = useWorkspace();
+  const { id, logo, role, isOwner } = useWorkspace();
   const [image, setImage] = useState<string | null>();
   const [uploading, setUploading] = useState(false);
 
@@ -20,10 +19,6 @@ export default function UploadLogo() {
   const { error } = clientAccessCheck({
     action: "workspaces.write",
     role,
-    environment,
-    restrictedEnvironments: [WorkspaceEnvironment.staging],
-    restrictedEnvironmentMessage:
-      "Your workspace logo must be updated from your production workspace (changes are automatically synced to staging).",
   });
 
   return (

@@ -30,11 +30,4 @@ export const HUBSPOT_DUB_CONTACT_PROPERTIES = [
     fieldType: "text",
     groupName: "contactinformation",
   },
-  {
-    label: "Dub Partner Email",
-    name: "dub_partner_email",
-    type: "string",
-    fieldType: "text",
-    groupName: "contactinformation",
-  },
 ];

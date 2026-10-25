@@ -1,6 +1,4 @@
 import { getOwnedLinkImageKey } from "@/lib/api/links/get-owned-link-image-key";
-import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
-import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
@@ -59,13 +57,6 @@ export async function bulkDeleteLinks(
           const key = getOwnedLinkImageKey(link.image, link.id);
           return key ? [storage.delete({ key })] : [];
         }),
-
-        // Queue an index update if any of the deleted links are associated with a partner
-        // The program enrollments outlives them, so the document is re-serialized without them.
-        links.some((link) => link.partnerId) &&
-          queuePartnerSearchSyncForLinks(
-            links.filter((link) => link.partnerId),
-          ),
       ]),
     );
   }
@@ -77,19 +68,6 @@ export async function bulkDeleteLinks(
 
 async function deleteLinksBatch(links: ExpandedLink[]): Promise<number> {
   const linkIds = links.map((link) => link.id);
-
-  const discountCodes = await prisma.discountCode.findMany({
-    where: {
-      linkId: {
-        in: linkIds,
-      },
-    },
-    include: {
-      discount: true,
-    },
-  });
-
-  await deleteDiscountCodes(discountCodes);
 
   const workspaceId = links[0].projectId;
 

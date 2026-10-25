@@ -1,10 +1,5 @@
 import { editQueryString } from "@/lib/analytics/utils";
-import {
-  MiniAreaChart,
-  useCurrentProduct,
-  useMediaQuery,
-  useRouterStuff,
-} from "@dub/ui";
+import { MiniAreaChart, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { capitalize, cn, fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { useCallback, useContext, useEffect } from "react";
@@ -22,7 +17,6 @@ type TimeseriesData = {
 export default function EventsTabs() {
   const { searchParams, queryParams } = useRouterStuff();
   const { isMobile } = useMediaQuery();
-  const { product } = useCurrentProduct();
 
   const tab = searchParams.get("event") || "clicks";
 
@@ -38,11 +32,10 @@ export default function EventsTabs() {
 
   const { data: timeseriesData, isLoading: isLoadingTimeseries } =
     useSWRImmutable<TimeseriesData>(
-      product &&
-        `${baseApiPath}?${editQueryString(queryString, {
-          groupBy: "timeseries",
-          event: fetchCompositeStats ? "composite" : "clicks",
-        })}`,
+      `${baseApiPath}?${editQueryString(queryString, {
+        groupBy: "timeseries",
+        event: fetchCompositeStats ? "composite" : "clicks",
+      })}`,
       fetcher,
       {
         shouldRetryOnError: !requiresUpgrade,
@@ -96,7 +89,7 @@ export default function EventsTabs() {
                   value={
                     event === "sales" && saleUnit === "saleAmount"
                       ? (totalEvents.saleAmount ?? 0) / 100
-                      : (totalEvents[event] ?? 0)
+                      : totalEvents[event] ?? 0
                   }
                   className={cn(
                     "text-2xl transition-opacity",

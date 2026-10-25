@@ -2,12 +2,11 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
-  DEPRECATED_WEBHOOK_TRIGGERS,
   LINK_CLICK_WEBHOOK_TRIGGER,
   WEBHOOK_TRIGGER_DESCRIPTIONS,
 } from "@/lib/webhook/constants";
 import type { WebhookTrigger } from "@/lib/webhook/types";
-import { Badge, Checkbox, RadioGroup, RadioGroupItem } from "@dub/ui";
+import { Checkbox, RadioGroup, RadioGroupItem } from "@dub/ui";
 import { arrayEqual, cn, fetcher } from "@dub/utils";
 import { LinkScope } from "@prisma/client";
 import { useEffect } from "react";
@@ -165,8 +164,6 @@ export function WebhookTriggerSelector({
   return (
     <div className="flex flex-col gap-3">
       {availableTriggers.map((trigger) => {
-        const replacement = DEPRECATED_WEBHOOK_TRIGGERS.get(trigger);
-
         return (
           <div key={trigger}>
             <div className="group flex items-start gap-2">
@@ -188,16 +185,9 @@ export function WebhookTriggerSelector({
                   <span className="font-mono text-sm font-medium leading-5 text-neutral-800 group-hover:text-neutral-900">
                     {trigger}
                   </span>
-                  {replacement && <Badge variant="amber">Deprecated</Badge>}
                 </span>
                 <span className="text-[11px] leading-snug text-neutral-500">
                   {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
-                  {replacement && (
-                    <>
-                      . Use <code className="font-mono">{replacement}</code>{" "}
-                      instead.
-                    </>
-                  )}
                 </span>
               </label>
             </div>
