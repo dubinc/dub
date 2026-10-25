@@ -58,7 +58,7 @@ test("POST /utm", async ({ api, workspace }) => {
     utm_campaign: "summer",
     utm_term: "shoes",
     utm_content: "cta",
-    ref: "partner",
+    ref: "newsletter",
   };
 
   try {

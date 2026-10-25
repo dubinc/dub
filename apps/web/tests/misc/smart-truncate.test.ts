@@ -6,8 +6,8 @@ const LIMIT = 33;
 describe("smartTruncate", () => {
   describe("protocol handling", () => {
     it("strips https:// and returns the pretty URL when it fits", () => {
-      expect(smartTruncate("https://refer.acme.com/partner", LIMIT)).toBe(
-        "refer.acme.com/partner",
+      expect(smartTruncate("https://refer.acme.com/invite", LIMIT)).toBe(
+        "refer.acme.com/invite",
       );
       expect(smartTruncate("https://refer.acme.com/f6s", LIMIT)).toBe(
         "refer.acme.com/f6s",
@@ -18,14 +18,14 @@ describe("smartTruncate", () => {
     });
 
     it("strips http:// the same way", () => {
-      expect(smartTruncate("http://refer.acme.com/partner", LIMIT)).toBe(
-        "refer.acme.com/partner",
+      expect(smartTruncate("http://refer.acme.com/invite", LIMIT)).toBe(
+        "refer.acme.com/invite",
       );
     });
 
     it("leaves already-pretty URLs unchanged when they fit", () => {
-      expect(smartTruncate("refer.acme.com/partner", LIMIT)).toBe(
-        "refer.acme.com/partner",
+      expect(smartTruncate("refer.acme.com/invite", LIMIT)).toBe(
+        "refer.acme.com/invite",
       );
     });
 
@@ -157,7 +157,7 @@ describe("smartTruncate", () => {
   describe("length budget", () => {
     it("never exceeds maxLength when truncation runs", () => {
       const inputs = [
-        "https://refer.acme.com/partner-name-that-is-quite-long",
+        "https://refer.acme.com/invite-name-that-is-quite-long",
         "https://acmesuperlongdomain.com/super-long-path-that-is-way-too-long-and-should-be-truncated",
         "https://verylongcustomapexdomainnamehere.com",
         "https://superlongcustomdomainnamehere.com/x",

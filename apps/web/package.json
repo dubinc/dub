@@ -12,7 +12,6 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "generate-openapi": "tsx ./scripts/generate-openapi.ts",
     "prisma:generate": "dotenv-flow -e .env -- prisma generate --schema=./prisma/schema",
     "prisma:push": "dotenv-flow -e .env -- prisma db push --schema=./prisma/schema",
     "prisma:studio": "dotenv-flow -e .env -- prisma studio --schema=./prisma/schema --browser none",
