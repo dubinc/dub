@@ -17,6 +17,9 @@ import {
   User,
 } from "@prisma/client";
 
+// Partners get an email only when the commission earnings reach this amount (in cents)
+const MIN_PARTNER_NOTIFICATION_EARNINGS = 1000;
+
 // Send email to partner and program owners when a commission is created
 export async function notifyPartnerCommission({
   program,
@@ -50,6 +53,13 @@ export async function notifyPartnerCommission({
   // - only for sale commissions
   // - only for the first commission per partner–customer combination
   const shouldNotifyProgram = commission.type === "sale" && isFirstCommission;
+
+  const shouldNotifyPartner =
+    commission.earnings >= MIN_PARTNER_NOTIFICATION_EARNINGS;
+
+  if (!shouldNotifyPartner && !shouldNotifyProgram) {
+    return;
+  }
 
   const [partner, workspaceUsers, partnerLink] = await Promise.all([
     prisma.partner.findUnique({
@@ -144,13 +154,13 @@ export async function notifyPartnerCommission({
     shortLink: partnerLink?.shortLink ?? null,
   };
 
-  const partnerEmailsToNotify = partner.users
-    .map(({ user }) => user.email)
-    .filter(Boolean) as string[];
+  const partnerEmailsToNotify = shouldNotifyPartner
+    ? (partner.users.map(({ user }) => user.email).filter(Boolean) as string[])
+    : [];
 
   // Create all emails first, then chunk them into batches of 100
   const allEmails: ResendBulkEmailOptions = [
-    // Partner emails (for all commission types)
+    // Partner emails (for all commission types with enough earnings)
     ...partnerEmailsToNotify.map(
       (email) =>
         ({
