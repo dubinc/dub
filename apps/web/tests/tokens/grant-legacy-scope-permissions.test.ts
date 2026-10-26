@@ -1,28 +1,13 @@
 import {
+  CUSTOMER_SCOPES_ENFORCED_AT,
   grantLegacyScopePermissions,
-  hasLegacyScopeGrant,
   LEGACY_SCOPE_GRANTS,
-  PARTNER_SCOPES_ENFORCED_AT,
 } from "@/lib/api/tokens/scopes";
 import { describe, expect, test } from "vitest";
 
-const ENFORCED_AT = PARTNER_SCOPES_ENFORCED_AT;
+const ENFORCED_AT = CUSTOMER_SCOPES_ENFORCED_AT;
 
-const LEGACY_PERMISSIONS = [
-  "partners.read",
-  "partners.write",
-  "program_applications.read",
-  "program_applications.write",
-  "customers.read",
-  "customers.write",
-  "discount_codes.read",
-  "discount_codes.write",
-  "commissions.read",
-  "commissions.write",
-  "bounties.read",
-  "bounties.write",
-  "payouts.read",
-] as const;
+const LEGACY_PERMISSIONS = ["customers.read", "customers.write"] as const;
 
 describe("grantLegacyScopePermissions", () => {
   test("grants legacy permissions when createdAt is missing", () => {
@@ -86,25 +71,10 @@ describe("grantLegacyScopePermissions", () => {
   test("keeps existing permissions and drops duplicates", () => {
     expect(
       grantLegacyScopePermissions({
-        permissions: ["partners.read", "links.write", "partners.read"],
+        permissions: ["customers.read", "links.write", "customers.read"],
         createdAt: null,
       }),
-    ).toEqual([
-      "partners.read",
-      "links.write",
-      "partners.write",
-      "program_applications.read",
-      "program_applications.write",
-      "customers.read",
-      "customers.write",
-      "discount_codes.read",
-      "discount_codes.write",
-      "commissions.read",
-      "commissions.write",
-      "bounties.read",
-      "bounties.write",
-      "payouts.read",
-    ]);
+    ).toEqual(["customers.read", "links.write", "customers.write"]);
   });
 
   describe("route grants", () => {
@@ -151,55 +121,5 @@ describe("grantLegacyScopePermissions", () => {
         }),
       ).not.toContain("links.write");
     });
-  });
-});
-
-describe("hasLegacyScopeGrant", () => {
-  const before = new Date(ENFORCED_AT.getTime() - 1);
-
-  test("is true for restricted and read-only keys made before the cutoff", () => {
-    expect(
-      hasLegacyScopeGrant({ scopes: ["links.read"], createdAt: before }),
-    ).toBe(true);
-
-    expect(
-      hasLegacyScopeGrant({ scopes: ["apis.read"], createdAt: before }),
-    ).toBe(true);
-  });
-
-  test("is false for all access keys", () => {
-    expect(
-      hasLegacyScopeGrant({ scopes: ["apis.all"], createdAt: before }),
-    ).toBe(false);
-  });
-
-  test("is false when the scopes already cover every legacy permission", () => {
-    expect(
-      hasLegacyScopeGrant({
-        scopes: [
-          "partners.write",
-          "program_applications.write",
-          "customers.write",
-          "discount_codes.write",
-          "commissions.write",
-          "bounties.write",
-          "payouts.read",
-        ],
-        createdAt: before,
-      }),
-    ).toBe(false);
-  });
-
-  test("is false for keys made at or after the cutoff", () => {
-    expect(
-      hasLegacyScopeGrant({ scopes: ["links.read"], createdAt: ENFORCED_AT }),
-    ).toBe(false);
-
-    expect(
-      hasLegacyScopeGrant({
-        scopes: ["apis.read"],
-        createdAt: ENFORCED_AT.toISOString(),
-      }),
-    ).toBe(false);
   });
 });

@@ -1,12 +1,9 @@
 "use client";
 
 import { GlobalChatContext } from "@/lib/ai/build-system-prompt";
-import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { useChat } from "@ai-sdk/react";
-import { Combobox } from "@dub/ui";
-import { OfficeBuilding, PaperPlane, Users2, Xmark } from "@dub/ui/icons";
+import { PaperPlane, Xmark } from "@dub/ui/icons";
 import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
-import { WorkspaceEnvironment } from "@prisma/client";
 import { DefaultChatTransport, isFileUIPart, UIMessage } from "ai";
 import { Paperclip } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -23,18 +20,11 @@ import {
   MAX_CHAT_IMAGES,
 } from "./compress-chat-image";
 import { SupportMessage } from "./message";
-import { ProgramCombobox, ProgramSummary } from "./program-combobox";
 import { extractSources, SourceCitations } from "./source-citations";
 import { StarterQuestions } from "./starter-questions";
 import { StatusIndicator } from "./status-indicator";
 import { TicketUpload } from "./ticket-upload";
-import {
-  DEFAULT_WORKSPACE_ENVIRONMENTS,
-  WorkspaceCombobox,
-  WorkspaceSummary,
-} from "./workspace-combobox";
-
-type AccountType = "workspace" | "partner";
+import { WorkspaceCombobox, WorkspaceSummary } from "./workspace-combobox";
 
 type PendingImage = {
   id: string;
@@ -94,21 +84,15 @@ export function ChatInterface({
     : null;
   const restoredRef = useRef(false);
 
-  const effectiveAccountType = selection.accountType;
-
-  const { data: workspaces } = useSWR<
-    (WorkspaceSummary & { environment: WorkspaceEnvironment })[]
-  >(
-    effectiveAccountType === "workspace" ? "/api/workspaces" : null,
+  const { data: workspaces } = useSWR<WorkspaceSummary[]>(
+    "/api/workspaces",
     fetcher,
   );
   useEffect(() => {
     if (!workspaces || !selection.selectedWorkspace) return;
 
     const stillVisible = workspaces.some(
-      (workspace) =>
-        workspace.slug === selection.selectedWorkspace?.slug &&
-        DEFAULT_WORKSPACE_ENVIRONMENTS.includes(workspace.environment),
+      (workspace) => workspace.slug === selection.selectedWorkspace?.slug,
     );
 
     if (!stillVisible) {
@@ -120,20 +104,7 @@ export function ChatInterface({
     }
   }, [workspaces, selection.selectedWorkspace]);
 
-  const { programEnrollments, isLoading: isLoadingPrograms } =
-    useProgramEnrollments();
-  const hasPartnerProfile = !!session?.user?.["defaultPartnerId"];
-  const hasNoProgramEnrollments =
-    hasPartnerProfile &&
-    !isLoadingPrograms &&
-    (programEnrollments?.length ?? 0) === 0;
-
-  let canChat: boolean;
-  if (effectiveAccountType === "workspace")
-    canChat = !!selection.selectedWorkspace;
-  else if (effectiveAccountType === "partner")
-    canChat = hasNoProgramEnrollments || !!selection.selectedProgram;
-  else canChat = false;
+  const canChat = !!selection.selectedWorkspace;
 
   const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
@@ -218,7 +189,8 @@ export function ChatInterface({
       if (!raw) return;
 
       const stored = JSON.parse(raw);
-      if (stored.selection) setSelection(stored.selection);
+      if (stored.selection?.selectedWorkspace)
+        setSelection({ selectedWorkspace: stored.selection.selectedWorkspace });
       if (stored.messages?.length) setMessages(stored.messages);
       if (stored.ticketSubmitted) setTicketSubmitted(true);
     } catch {}
@@ -340,8 +312,8 @@ export function ChatInterface({
     const requestBody = {
       globalContext: {
         ...selection,
-        chatLocation: effectiveAccountType === "partner" ? "partners" : "app",
-        accountType: effectiveAccountType,
+        chatLocation: "app",
+        accountType: "workspace",
       },
       slackThreadTs: getSlackThreadTs(),
     };
@@ -401,9 +373,8 @@ export function ChatInterface({
         body: {
           globalContext: {
             ...selection,
-            chatLocation:
-              effectiveAccountType === "partner" ? "partners" : "app",
-            accountType: effectiveAccountType,
+            chatLocation: "app",
+            accountType: "workspace",
           },
           slackThreadTs: getSlackThreadTs(),
           ...(attachmentIds.length ? { attachmentIds } : {}),
@@ -414,11 +385,6 @@ export function ChatInterface({
     setTicketSubmitted(true);
   };
 
-  const handleAccountTypeChange = (type: AccountType) => {
-    setSelection({ accountType: type });
-    setMessages([]);
-  };
-
   const handleWorkspaceSelect = (ws: WorkspaceSummary) => {
     if (selection.selectedWorkspace?.slug !== ws.slug) setMessages([]);
     setSelection((s) => ({
@@ -426,31 +392,6 @@ export function ChatInterface({
       selectedWorkspace: { id: ws.id, slug: ws.slug, name: ws.name },
     }));
   };
-
-  const handleProgramSelect = (program: ProgramSummary) => {
-    if (selection.selectedProgram?.slug !== program.slug) setMessages([]);
-    setSelection((s) => ({
-      ...s,
-      selectedProgram: {
-        id: program.id,
-        slug: program.slug,
-        name: program.name,
-      },
-    }));
-  };
-
-  const accountTypeOptions = [
-    {
-      value: "workspace",
-      label: "Workspace (app.dub.co)",
-      icon: <OfficeBuilding className="size-3.5 shrink-0" />,
-    },
-    {
-      value: "partner",
-      label: "Partner (partners.dub.co)",
-      icon: <Users2 className="size-3.5 shrink-0" />,
-    },
-  ];
 
   const requiresAuth = true;
   const isLoadingSession = requiresAuth && sessionStatus === "loading";
@@ -531,109 +472,28 @@ export function ChatInterface({
       >
         <SupportMessage avatar={assistantAvatar} animate={false}>
           <p className="text-sm text-neutral-700">
-            Hi there! I'm Dub's AI support assistant. Which account would you
+            Hi there! I'm Dub's AI support assistant. Which workspace would you
             like help with today?
           </p>
           <div className="mt-3 w-full max-w-72">
-            <Combobox
-              forceDropdown
-              selected={
-                accountTypeOptions.find(
-                  (o) => o.value === effectiveAccountType,
-                ) ?? null
-              }
-              setSelected={(opt) => {
-                if (opt && opt.value !== effectiveAccountType)
-                  handleAccountTypeChange(opt.value as AccountType);
-              }}
-              options={accountTypeOptions}
-              icon={
-                accountTypeOptions.find((o) => o.value === effectiveAccountType)
-                  ?.icon
-              }
-              caret
-              placeholder="Select account type"
-              hideSearch
-              matchTriggerWidth
-              popoverProps={{
-                contentClassName: "w-[var(--radix-popover-trigger-width)]",
-              }}
-              buttonProps={{
-                className: cn(
-                  "w-full max-w-72 justify-start border-neutral-300 px-2.5 h-9 text-sm",
-                  "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
-                  "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
-                ),
-              }}
-              labelProps={{ className: "text-sm text-neutral-600" }}
-              optionClassName="h-8"
+            <WorkspaceCombobox
+              workspaces={workspaces}
+              selectedSlug={selection.selectedWorkspace?.slug}
+              onSelect={handleWorkspaceSelect}
             />
           </div>
         </SupportMessage>
-
-        {effectiveAccountType === "workspace" && (
-          <SupportMessage avatar={assistantAvatar} animate>
-            <p className="text-sm text-neutral-700">
-              Which workspace is this about?
-            </p>
-            <div className="mt-3 w-full max-w-72">
-              <WorkspaceCombobox
-                workspaces={workspaces}
-                environments={DEFAULT_WORKSPACE_ENVIRONMENTS}
-                selectedSlug={selection.selectedWorkspace?.slug}
-                onSelect={handleWorkspaceSelect}
-              />
-            </div>
-          </SupportMessage>
-        )}
-
-        {effectiveAccountType === "partner" && !hasNoProgramEnrollments && (
-          <SupportMessage avatar={assistantAvatar} animate>
-            {!hasPartnerProfile ? (
-              <>
-                <p className="text-sm text-neutral-700">
-                  It looks like you don't have a partner account linked to your
-                  profile.
-                </p>
-                <a
-                  href="https://partners.dub.co"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:bg-neutral-50"
-                >
-                  Go to partners.dub.co ↗
-                </a>
-              </>
-            ) : (
-              <>
-                <p className="text-sm text-neutral-700">
-                  Which program is this about?
-                </p>
-                <div className="mt-3 w-full max-w-72">
-                  <ProgramCombobox
-                    enrollments={programEnrollments}
-                    isLoading={isLoadingPrograms}
-                    selectedSlug={selection.selectedProgram?.slug}
-                    onSelect={handleProgramSelect}
-                  />
-                </div>
-              </>
-            )}
-          </SupportMessage>
-        )}
 
         {showStarterQuestions && (
           <SupportMessage avatar={assistantAvatar} animate>
             <p className="text-sm text-neutral-700">
               How can I help you today?
             </p>
-            {effectiveAccountType !== "partner" && (
-              <StarterQuestions
-                context="app"
-                onSelect={handleSend}
-                className="mt-3"
-              />
-            )}
+            <StarterQuestions
+              context="app"
+              onSelect={handleSend}
+              className="mt-3"
+            />
           </SupportMessage>
         )}
 
@@ -897,10 +757,8 @@ export function ChatInterface({
                   isDragging
                     ? "Drop image to attach..."
                     : !canChat
-                      ? "Select an account above to start chatting..."
-                      : effectiveAccountType === "partner"
-                        ? "Ask about payouts, referrals, or commissions..."
-                        : "Ask about links, analytics, or your account..."
+                      ? "Select a workspace above to start chatting..."
+                      : "Ask about links, analytics, or your account..."
                 }
                 value={input}
                 disabled={

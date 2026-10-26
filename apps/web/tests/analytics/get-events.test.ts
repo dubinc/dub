@@ -6,7 +6,7 @@ import { describe, expect, test } from "vitest";
 import * as z from "zod/v4";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_PARTNER, E2E_PARTNERS, E2E_PROGRAM } from "../utils/resource";
+import { E2E_TENANT_ID } from "../utils/resource";
 
 const customerSchemaExtended = CustomerSchema.extend({
   createdAt: z.string().transform((str) => new Date(str)), // because the date is in UTC string in JSON
@@ -163,90 +163,6 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
       });
     });
 
-    test("filter events by single partnerId", async () => {
-      const { status, data } = await http.get<any[]>({
-        path: "/events",
-        query: {
-          event: "leads",
-          workspaceId,
-          interval: "all",
-          partnerId: E2E_PARTNER.id,
-        },
-      });
-
-      expect(status).toEqual(200);
-      const parsed = z.array(leadEventResponseSchema.strict()).safeParse(data);
-      expect(parsed.success).toBeTruthy();
-      parsed.data?.forEach((event) => {
-        // expect all events to have partnerId equal to E2E_PARTNER.id
-        expect(event.link.partnerId).toBe(E2E_PARTNER.id);
-        // also expect the programId to be the same as the E2E_PROGRAM.id
-        expect(event.link.programId).toBe(E2E_PROGRAM.id);
-      });
-    });
-
-    test("filter events by multiple partnerIds (IS ONE OF)", async () => {
-      const partnerIds = E2E_PARTNERS.map((p) => p.id);
-      const { status, data } = await http.get<any[]>({
-        path: "/events",
-        query: {
-          event: "leads",
-          workspaceId,
-          interval: "all",
-          partnerId: partnerIds.join(","),
-        },
-      });
-
-      expect(status).toEqual(200);
-      const parsed = z.array(leadEventResponseSchema.strict()).safeParse(data);
-      expect(parsed.success).toBeTruthy();
-      // expect all events to have partnerId equal to E2E_PARTNER.id
-      parsed.data?.forEach((event) => {
-        expect(partnerIds).toContain(event.link.partnerId);
-      });
-    });
-
-    test("exclude events by partnerId (IS NOT)", async () => {
-      const partnerIds = E2E_PARTNERS.map((p) => p.id);
-      const { status, data } = await http.get<any[]>({
-        path: "/events",
-        query: {
-          event: "clicks",
-          workspaceId,
-          interval: "all",
-          partnerId: `-${partnerIds.join(",")}`,
-        },
-      });
-
-      expect(status).toEqual(200);
-      const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
-      expect(parsed.success).toBeTruthy();
-      parsed.data?.forEach((event) => {
-        expect(partnerIds).not.toContain(event.link.partnerId);
-      });
-    });
-
-    test("filter events by partnerId combined with country", async () => {
-      const { status, data } = await http.get<any[]>({
-        path: "/events",
-        query: {
-          event: "clicks",
-          workspaceId,
-          interval: "all",
-          partnerId: E2E_PARTNER.id,
-          country: "US",
-        },
-      });
-
-      expect(status).toEqual(200);
-      const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
-      expect(parsed.success).toBeTruthy();
-      parsed.data?.forEach((event) => {
-        expect(event.click.country).toBe("US");
-        expect(event.link.partnerId).toBe(E2E_PARTNER.id);
-      });
-    });
-
     test("filter events by single tenantId", async () => {
       const { status, data } = await http.get<any[]>({
         path: "/events",
@@ -254,7 +170,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
           event: "clicks",
           workspaceId,
           interval: "all",
-          tenantId: E2E_PARTNER.tenantId,
+          tenantId: E2E_TENANT_ID,
         },
       });
 
@@ -262,7 +178,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
       const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
       expect(parsed.success).toBeTruthy();
       parsed.data?.forEach((event) => {
-        expect(event.link.tenantId).toBe(E2E_PARTNER.tenantId);
+        expect(event.link.tenantId).toBe(E2E_TENANT_ID);
       });
     });
 
@@ -273,7 +189,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
           event: "clicks",
           workspaceId,
           interval: "all",
-          tenantId: `-${E2E_PARTNER.tenantId}`,
+          tenantId: `-${E2E_TENANT_ID}`,
         },
       });
 
@@ -281,7 +197,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
       const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
       expect(parsed.success).toBeTruthy();
       parsed.data?.forEach((event) => {
-        expect(event.link.tenantId).not.toBe(E2E_PARTNER.tenantId);
+        expect(event.link.tenantId).not.toBe(E2E_TENANT_ID);
       });
     });
   });

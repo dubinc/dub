@@ -73,15 +73,10 @@ export async function customerSubscriptionUpdated(
           // revert to trial limits
           usageLimit: TRIAL_LIMITS.clicks,
           linksLimit: TRIAL_LIMITS.links,
-          payoutsLimit: TRIAL_LIMITS.payouts,
           domainsLimit: TRIAL_LIMITS.domains,
           aiLimit: TRIAL_LIMITS.ai,
           tagsLimit: TRIAL_LIMITS.tags,
-          partnerTagsLimit: TRIAL_LIMITS.partnerTags,
           foldersLimit: TRIAL_LIMITS.folders,
-          groupsLimit: TRIAL_LIMITS.groups,
-          networkInvitesLimit: TRIAL_LIMITS.networkInvites,
-          partnersLimit: TRIAL_LIMITS.partners,
           usersLimit: TRIAL_LIMITS.users,
         },
       });

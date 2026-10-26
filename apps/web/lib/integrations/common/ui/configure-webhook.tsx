@@ -26,7 +26,7 @@ export function ConfigureWebhook({
   supportedEvents: WebhookTrigger[]; // Not all integrations support all events.
 }) {
   const [saving, setSaving] = useState(false);
-  const { id: workspaceId, plan, role, defaultProgramId } = useWorkspace();
+  const { id: workspaceId, plan, role } = useWorkspace();
 
   const { data: webhook, isLoading } = useSWR<WebhookProps>(
     `/api/webhooks/${webhookId}?workspaceId=${workspaceId}`,
@@ -111,8 +111,6 @@ export function ConfigureWebhook({
     !permissionsError || plan === "free" || plan === "pro";
 
   const availableTriggers = getAvailableWebhookTriggers({
-    defaultProgramId,
-    subscribedTriggers: webhook?.triggers,
     supportedTriggers: supportedEvents,
   });
 

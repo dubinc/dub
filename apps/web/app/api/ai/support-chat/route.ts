@@ -5,15 +5,12 @@ import {
 import { createSupportTicketTool } from "@/lib/ai/create-support-ticket";
 import { findRelevantDocsTool } from "@/lib/ai/find-relevant-docs";
 import { getPlanComparisonTool } from "@/lib/ai/get-plan-comparison";
-import { getProgramPerformanceTool } from "@/lib/ai/get-program-performance";
 import { getWorkspaceDetailsTool } from "@/lib/ai/get-workspace-details";
 import { requestSupportTicketTool } from "@/lib/ai/request-support-ticket";
 import { withSession } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { getSlackClient } from "@/lib/slack/client";
 import { ratelimit } from "@/lib/upstash/ratelimit";
 import { anthropic } from "@ai-sdk/anthropic";
-import { PartnerRole } from "@prisma/client";
 import {
   convertToModelMessages,
   isFileUIPart,
@@ -191,48 +188,14 @@ export const POST = withSession(async ({ req, session }) => {
     });
   }
 
-  let partnerCountry: string | null | undefined;
-  let partnerRole: PartnerRole | null | undefined;
-
-  if (
-    globalContext?.accountType === "partner" &&
-    session.user.defaultPartnerId
-  ) {
-    const partner = await prisma.partner.findUnique({
-      where: {
-        id: session.user.defaultPartnerId,
-      },
-      select: {
-        country: true,
-        users: {
-          where: {
-            userId: session.user.id,
-          },
-          select: {
-            role: true,
-          },
-          take: 1,
-        },
-      },
-    });
-
-    partnerCountry = partner?.country;
-    partnerRole = partner?.users[0]?.role;
-  }
-
   const result = streamText({
     model: anthropic("claude-sonnet-4-6"),
-    system: buildSystemPrompt({
-      ...globalContext,
-      partnerCountry,
-      partnerRole,
-    }),
+    system: buildSystemPrompt(globalContext),
     messages: await convertToModelMessages(modelMessages),
     stopWhen: stepCountIs(5),
     tools: {
       findRelevantDocs: findRelevantDocsTool,
       getPlanComparison: getPlanComparisonTool,
-      getProgramPerformance: getProgramPerformanceTool,
       getWorkspaceDetails: getWorkspaceDetailsTool,
       requestSupportTicket: requestSupportTicketTool,
       createSupportTicket: createSupportTicketTool({
@@ -316,13 +279,6 @@ const getAccountContextLines = (globalContext?: GlobalChatContext) => {
     ];
   }
 
-  if (globalContext?.selectedProgram) {
-    const { name, slug } = globalContext.selectedProgram;
-    return [
-      `:handshake: *Partners* - ${escapeSlackMrkdwn(name)} (${escapeSlackMrkdwn(slug)})`,
-    ];
-  }
-
   return [escapeSlackMrkdwn(globalContext?.chatLocation ?? "Unknown context")];
 };
 
@@ -331,7 +287,6 @@ const SLACK_TOOL_LABELS: Record<string, string> = {
   createSupportTicket: "Created support ticket",
   findRelevantDocs: "Searched documentation",
   getWorkspaceDetails: "Looked up workspace details",
-  getProgramPerformance: "Looked up program performance",
   getPlanComparison: "Compared plans",
 };
 

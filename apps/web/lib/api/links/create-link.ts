@@ -1,10 +1,4 @@
-import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
-import {
-  hasRewardAssignment,
-  RewardOverrideIdsInput,
-} from "@/lib/api/rewards/reward-overrides";
 import { qstash } from "@/lib/cron";
-import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
@@ -28,11 +22,7 @@ import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
 
-type CreateLinkOptions = ProcessedLinkProps & {
-  linkReward?: RewardOverrideIdsInput;
-};
-
-export async function createLink(link: CreateLinkOptions) {
+export async function createLink(link: ProcessedLinkProps) {
   let {
     key,
     url,
@@ -53,32 +43,12 @@ export async function createLink(link: CreateLinkOptions) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  const {
-    tagId,
-    tagIds,
-    tagNames,
-    webhookIds,
-    linkReward,
-    partnerLinkTitle,
-    partnerLinkComments,
-    ...rest
-  } = link;
-
-  const partnerLinkDetailsTitle =
-    typeof partnerLinkTitle === "string" && partnerLinkTitle.trim()
-      ? truncate(partnerLinkTitle.trim(), 120)
-      : null;
-  const partnerLinkDetailsComments =
-    typeof partnerLinkComments === "string" && partnerLinkComments.trim()
-      ? partnerLinkComments
-      : null;
+  const { tagId, tagIds, tagNames, webhookIds, ...rest } = link;
 
   key = encodeKeyIfCaseSensitive({
     domain: link.domain,
     key,
   });
-
-  const hasLinkLevelReward = linkReward && hasRewardAssignment(linkReward);
 
   const response = await withPrismaRetry(() =>
     prisma.link.create({
@@ -156,33 +126,9 @@ export async function createLink(link: CreateLinkOptions) {
             },
           },
         }),
-
-        ...(partnerLinkDetailsTitle || partnerLinkDetailsComments
-          ? {
-              partnerLinkDetails: {
-                create: {
-                  title: partnerLinkDetailsTitle,
-                  comments: partnerLinkDetailsComments,
-                },
-              },
-            }
-          : {}),
-
-        // Link level rewards
-        ...(hasLinkLevelReward && {
-          linkReward: {
-            create: {
-              clickRewardId: linkReward.clickRewardId ?? null,
-              leadRewardId: linkReward.leadRewardId ?? null,
-              saleRewardId: linkReward.saleRewardId ?? null,
-              discountId: linkReward.discountId ?? null,
-            },
-          },
-        }),
       },
       include: {
         ...includeTags,
-        // no need to includeProgramEnrollment because we're doing getPartnerEnrollmentInfo below
         webhooks: webhookIds ? true : false,
       },
     }),
@@ -192,45 +138,12 @@ export async function createLink(link: CreateLinkOptions) {
 
   waitUntil(
     (async () => {
-      const { partner, discount } = await getPartnerEnrollmentInfo({
-        programId: response.programId,
-        partnerId: response.partnerId,
-        linkId: response.id,
-      });
-
       await Promise.allSettled([
         // Cache link in Redis
-        linkCache.set({
-          ...response,
-          ...(partner && { partner }),
-          ...(discount && { discount }),
-        }),
-
-        // Queue an index update because the new link adds a searchable
-        // shortLink. Default delay rather than the longer link one.
-        response.programId &&
-          response.partnerId &&
-          queuePartnerSearchSync({
-            partnerIds: [response.partnerId],
-            programId: response.programId,
-          }),
+        linkCache.set(response),
 
         // Record link in Tinybird
-        recordLink({
-          ...response,
-          ...(partner && {
-            programEnrollment: {
-              ...(partner?.groupId && {
-                groupId: partner.groupId,
-              }),
-              programPartnerTags: partner?.partnerTagIds.map(
-                (partnerTagId: string) => ({
-                  partnerTagId,
-                }),
-              ),
-            },
-          }),
-        }),
+        recordLink(response),
 
         // Upload image to R2 and update the link with the uploaded image URL when
         // proxy is enabled and image is set and is not a hosted image URL

@@ -1,12 +1,10 @@
 import * as z from "zod/v4";
-import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import {
   booleanQuerySchema,
   getCursorPaginationQuerySchema,
   getPaginationQuerySchema,
 } from "./misc";
-import { PartnerSchema } from "./partners";
 import { centsSchema, parseDateSchema } from "./utils";
 
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;
@@ -43,13 +41,9 @@ export const getCustomersQuerySchema = z
       .describe(
         "A filter on the list based on the customer's `linkId` field (the referral link ID).",
       ),
-    programId: z.string().optional().describe("Program ID to filter by."),
-    partnerId: z.string().optional().describe("Partner ID to filter by."),
     includeExpandedFields: booleanQuerySchema
       .optional()
-      .describe(
-        "Whether to include expanded fields on the customer (`link`, `partner`, `discount`).",
-      ),
+      .describe("Whether to include expanded fields on the customer (`link`)."),
     sortBy: z
       .enum([
         "createdAt",
@@ -96,7 +90,7 @@ export const getCustomersCountQuerySchema = getCustomersQuerySchema
     startingAfter: true,
     endingBefore: true,
   })
-  .extend({ groupBy: z.enum(["country", "linkId", "partnerId"]).optional() });
+  .extend({ groupBy: z.enum(["country", "linkId"]).optional() });
 
 export const createCustomerBodySchema = z.object({
   email: z.email().nullish().describe("The customer's email address."),
@@ -121,7 +115,7 @@ export const createCustomerBodySchema = z.object({
     .string()
     .nullish()
     .describe(
-      "The customer's Stripe customer ID. This is useful for attributing recurring sale events to the partner who referred the customer.",
+      "The customer's Stripe customer ID. This is useful for attributing recurring sale events to the customer.",
     ),
   country: z
     .string()
@@ -140,36 +134,6 @@ export const updateCustomerBodySchema = createCustomerBodySchema
       ),
   });
 
-export const reattributeCustomerBodySchema = z.object({
-  partnerId: z.string().describe("The partner to attribute this customer to."),
-  linkId: z
-    .string()
-    .describe("The partner referral link to attribute this customer to."),
-  createClawback: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe(
-      "If the previous partner was already paid, create a clawback for those earnings and recreate commissions for the new partner.",
-    ),
-});
-
-export const reattributeCustomerWorkflowSchema = z.object({
-  workspaceId: z.string(),
-  programId: z.string(),
-  oldCustomerId: z.string(),
-  newCustomerId: z.string(),
-  oldLinkId: z.string().nullable(),
-  newLinkId: z.string(),
-  oldPartnerId: z.string().nullable(),
-  newPartnerId: z.string(),
-  oldClickId: z.string().nullable(),
-  newClickId: z.string(),
-  createClawback: z.boolean(),
-  incrementConversions: z.boolean(),
-  decrementConversions: z.boolean(),
-});
-
 // used in webhook responses + regular /customers endpoints (without expanded fields)
 export const CustomerSchema = z.object({
   id: z
@@ -187,7 +151,7 @@ export const CustomerSchema = z.object({
     .string()
     .nullish()
     .describe(
-      "The customer's Stripe customer ID. This is useful for attributing recurring sale events to the partner who referred the customer.",
+      "The customer's Stripe customer ID. This is useful for attributing recurring sale events to the customer.",
     ),
   country: z.string().nullish().describe("Country of the customer."),
   sales: z
@@ -216,7 +180,7 @@ export const CustomerSchema = z.object({
     ),
 });
 
-// An extended schema that includes the customer's link, partner, and discount.
+// An extended schema that includes the customer's link.
 export const CustomerEnrichedSchema = CustomerSchema.extend({
   link: LinkSchema.pick({
     id: true,
@@ -224,18 +188,6 @@ export const CustomerEnrichedSchema = CustomerSchema.extend({
     key: true,
     shortLink: true,
     url: true,
-    programId: true,
-  }).nullish(),
-  programId: z.string().nullish(),
-  partner: PartnerSchema.pick({
-    id: true,
-    name: true,
-    email: true,
-    image: true,
-  }).nullish(),
-  discount: DiscountSchema.omit({
-    autoProvisionEnabledAt: true,
-    provider: true,
   }).nullish(),
 });
 
@@ -248,15 +200,6 @@ export const StripeCustomerSchema = z.object({
   dubCustomerId: z.string().nullable(),
 });
 
-export const StripeCustomerInvoiceSchema = z.object({
-  id: z.string(),
-  amount: z.number(),
-  createdAt: z.date(),
-  refunded: z.boolean(),
-  dubCommissionId: z.string().nullish(),
-  metadata: z.any(),
-});
-
 export const CUSTOMER_EXPORT_COLUMNS = [
   {
     id: "id",
@@ -264,7 +207,6 @@ export const CUSTOMER_EXPORT_COLUMNS = [
     type: "string",
     default: true,
     order: 1,
-    programOnly: false,
   },
   {
     id: "name",
@@ -272,7 +214,6 @@ export const CUSTOMER_EXPORT_COLUMNS = [
     type: "string",
     default: true,
     order: 2,
-    programOnly: false,
   },
   {
     id: "email",
@@ -280,7 +221,6 @@ export const CUSTOMER_EXPORT_COLUMNS = [
     type: "string",
     default: true,
     order: 3,
-    programOnly: false,
   },
   {
     id: "avatar",
@@ -288,7 +228,6 @@ export const CUSTOMER_EXPORT_COLUMNS = [
     type: "string",
     default: true,
     order: 4,
-    programOnly: false,
   },
   {
     id: "externalId",
@@ -296,7 +235,6 @@ export const CUSTOMER_EXPORT_COLUMNS = [
     type: "string",
     default: true,
     order: 5,
-    programOnly: false,
   },
   {
     id: "stripeCustomerId",
@@ -304,7 +242,6 @@ export const CUSTOMER_EXPORT_COLUMNS = [
     type: "string",
     default: true,
     order: 6,
-    programOnly: false,
   },
   {
     id: "country",
@@ -312,7 +249,6 @@ export const CUSTOMER_EXPORT_COLUMNS = [
     type: "string",
     default: true,
     order: 7,
-    programOnly: false,
   },
   {
     id: "sales",
@@ -320,7 +256,6 @@ export const CUSTOMER_EXPORT_COLUMNS = [
     type: "number",
     default: true,
     order: 8,
-    programOnly: false,
   },
   {
     id: "saleAmount",
@@ -328,7 +263,6 @@ export const CUSTOMER_EXPORT_COLUMNS = [
     type: "number",
     default: true,
     order: 9,
-    programOnly: false,
   },
   {
     id: "createdAt",
@@ -336,7 +270,6 @@ export const CUSTOMER_EXPORT_COLUMNS = [
     type: "date",
     default: true,
     order: 10,
-    programOnly: false,
   },
   {
     id: "firstSaleAt",
@@ -344,7 +277,6 @@ export const CUSTOMER_EXPORT_COLUMNS = [
     type: "date",
     default: true,
     order: 11,
-    programOnly: false,
   },
   {
     id: "subscriptionCanceledAt",
@@ -352,7 +284,6 @@ export const CUSTOMER_EXPORT_COLUMNS = [
     type: "date",
     default: true,
     order: 12,
-    programOnly: false,
   },
   {
     id: "link",
@@ -360,39 +291,6 @@ export const CUSTOMER_EXPORT_COLUMNS = [
     type: "string",
     default: false,
     order: 13,
-    programOnly: false,
-  },
-  {
-    id: "partnerId",
-    label: "Partner ID",
-    type: "string",
-    default: false,
-    order: 14,
-    programOnly: true,
-  },
-  {
-    id: "partnerName",
-    label: "Partner name",
-    type: "string",
-    default: false,
-    order: 15,
-    programOnly: true,
-  },
-  {
-    id: "partnerEmail",
-    label: "Partner email",
-    type: "string",
-    default: false,
-    order: 16,
-    programOnly: true,
-  },
-  {
-    id: "partnerTenantId",
-    label: "Partner tenant ID",
-    type: "string",
-    default: false,
-    order: 17,
-    programOnly: true,
   },
 ] as const;
 
@@ -437,7 +335,6 @@ export const customersExportQuerySchema = getCustomersQuerySchema
 export const customersExportCronInputSchema = customersExportQuerySchema.extend(
   {
     workspaceId: z.string(),
-    programId: z.string().optional(),
     userId: z.string(),
   },
 );

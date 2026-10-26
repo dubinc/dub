@@ -27,10 +27,7 @@ jobs:
       PLANETSCALE_DATABASE_URL: "http://root:unused@localhost:3900/planetscale"
 
       NEXTAUTH_SECRET: "e2e-test-secret-at-least-32-chars-long"
-      NEXTAUTH_URL: "http://partners.localhost:8888"
-
-      E2E_PARTNER_EMAIL: "partner1@dub-internal-test.com"
-      E2E_PARTNER_PASSWORD: "password"
+      NEXTAUTH_URL: "http://localhost:8888"
 
       # TINYBIRD_API_KEY / TINYBIRD_API_URL are set after Tinybird Local is ready
 
@@ -40,8 +37,6 @@ jobs:
       UPSTASH_REDIS_REST_TOKEN: "e2e_srh_token"
       UPSTASH_VECTOR_REST_URL: "https://sensible-camel-xxxx.upstash.io"
       UPSTASH_VECTOR_REST_TOKEN: "xx"
-      UPSTASH_VECTOR_EMOJI_REST_URL: "https://clever-bear-xxxx.upstash.io"
-      UPSTASH_VECTOR_EMOJI_REST_TOKEN: "xx"
 
       # QStash local-dev (User 1) — must match jobs.e2e Start QStash step
       QSTASH_URL: "http://127.0.0.1:8080"
@@ -60,10 +55,8 @@ jobs:
 
       STRIPE_SECRET_KEY: "xx"
       STRIPE_WEBHOOK_SECRET: "xx"
-      STRIPE_CONNECT_WEBHOOK_SECRET: "xx"
       STRIPE_APP_WEBHOOK_SECRET_TEST: "xx"
       STRIPE_APP_SECRET_KEY_TEST: "xx"
-      STRIPE_CONNECT_V2_WEBHOOK_SECRET: "xx"
       STRIPE_APP_SECRET_KEY_SANDBOX: "xx"
       STRIPE_APP_SECRET_KEY: "xx"
 
@@ -205,10 +198,6 @@ jobs:
         working-directory: apps/web
         run: pnpm prisma:push
 
-      - name: Seed test data
-        working-directory: apps/web
-        run: pnpm tsx playwright/seed.ts
-
       - name: Build application
         run: pnpm turbo build --filter=web
 
@@ -218,4 +207,4 @@ jobs:
 
       - name: Run Playwright UI tests
         working-directory: apps/web
-        run: pnpm test:e2e --project=partners --project=workspaces --project=chromium-workspace
+        run: pnpm test:e2e --project=workspaces --project=chromium-workspace

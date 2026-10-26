@@ -2,7 +2,6 @@ import { prismaEdge } from "@/lib/prisma/edge";
 import { UserProps } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
-import { getWorkspaceProduct } from "./utils/get-workspace-product";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
 import { parse } from "./utils/parse";
@@ -27,14 +26,9 @@ export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
   if (defaultWorkspace) {
     let redirectPath = path;
     if (["/", "/login", "/register"].includes(path)) {
-      redirectPath = "";
+      redirectPath = "/links";
     } else if (isTopLevelSettingsRedirect(path)) {
       redirectPath = `/settings/${path}`;
-    }
-
-    if (!redirectPath) {
-      const product = await getWorkspaceProduct(defaultWorkspace);
-      redirectPath = `/${product}`;
     }
 
     return NextResponse.redirect(

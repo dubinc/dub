@@ -2,7 +2,6 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
-import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { WorkspaceUserProps } from "@/lib/types";
@@ -42,7 +41,7 @@ import {
   UserCheck,
 } from "@dub/ui/icons";
 import { cn, fetcher, timeAgo } from "@dub/utils";
-import { WorkspaceEnvironment, WorkspaceRole } from "@prisma/client";
+import { WorkspaceRole } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus } from "lucide-react";
@@ -58,8 +57,7 @@ export default function WorkspaceMembersPage() {
 
   const { setShowInviteCodeModal, InviteCodeModal } = useInviteCodeModal();
 
-  const { role, plan, planPeriod, usersLimit, slug, environment } =
-    useWorkspace();
+  const { role, plan, planPeriod, usersLimit, slug } = useWorkspace();
   const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
   const { users: workspaceUsers } = useWorkspaceUsers();
@@ -181,10 +179,7 @@ export default function WorkspaceMembersPage() {
   }, [status, roleFilter]);
 
   useKeyboardShortcut("m", () => setShowInviteWorkspaceUserModal(true), {
-    enabled:
-      !isStagingEnvironment(environment) &&
-      !invitePermissionError &&
-      !isAtUserLimit,
+    enabled: !invitePermissionError && !isAtUserLimit,
   });
 
   const columns = useMemo<ColumnDef<WorkspaceUserProps>[]>(
@@ -301,21 +296,13 @@ export default function WorkspaceMembersPage() {
   const { error: inviteNewTeammatesError } = clientAccessCheck({
     action: "workspaces.write",
     role,
-    environment,
     customPermissionDescription: "invite new teammates",
-    restrictedEnvironments: [WorkspaceEnvironment.staging],
-    restrictedEnvironmentMessage:
-      "Teammates can only be invited from your production workspace (members are automatically synced to staging).",
   });
 
   const { error: generateInviteLinksError } = clientAccessCheck({
     action: "workspaces.write",
     role,
-    environment,
     customPermissionDescription: "generate invite links",
-    restrictedEnvironments: [WorkspaceEnvironment.staging],
-    restrictedEnvironmentMessage:
-      "Invite links can only be generated from your production workspace (members are automatically synced to staging).",
   });
 
   if (role === "viewer") {
@@ -408,7 +395,7 @@ function RoleCell({
   isCurrentUser: boolean;
   isCurrentUserOwner: boolean;
 }) {
-  const { plan, environment } = useWorkspace();
+  const { plan } = useWorkspace();
   const [role, setRole] = useState<WorkspaceRole>(user.role);
 
   useEffect(() => {
@@ -438,14 +425,11 @@ function RoleCell({
 
   // Only owners can change roles
   // Can't change your own role
-  // Can't change roles in staging workspaces
   const disabledTooltip = !isCurrentUserOwner
     ? "Only owners can change member roles"
     : isCurrentUser
       ? "You cannot change your own role"
-      : isStagingEnvironment(environment)
-        ? "Roles cannot be updated in staging workspaces (automatically synced from your production workspace)"
-        : undefined;
+      : undefined;
 
   return (
     <>
@@ -499,7 +483,6 @@ function RowMenuButton({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
-  const { environment } = useWorkspace();
 
   const user = row.original;
   const searchParams = useSearchParams();
@@ -521,12 +504,6 @@ function RowMenuButton({
     });
 
   const isCurrentUser = session?.user?.email === user.email;
-
-  // Leave workspace and member management are not available in staging
-  // (members are managed from the production workspace)
-  if (isStagingEnvironment(environment)) {
-    return null;
-  }
 
   // Only show menu if user is owner OR they're removing themselves
   if (!isCurrentUserOwner && !isCurrentUser) {

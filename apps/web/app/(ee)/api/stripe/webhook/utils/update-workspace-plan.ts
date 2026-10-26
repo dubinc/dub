@@ -1,34 +1,17 @@
 import { recomputeWorkspaceUsage } from "@/lib/api/billing/recompute-workspace-usage";
-import { pauseOrCancelCampaignsForProgramOnPlanDowngrade } from "@/lib/api/campaigns/pause-campaigns-on-plan-downgrade";
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
-import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip-advanced-reward-modifiers";
-import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
-import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
-import { qstash } from "@/lib/cron";
-import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import {
-  wouldGainPartnerAccess,
-  wouldLosePartnerAccess,
-} from "@/lib/plans/has-partner-access";
-import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { prisma } from "@/lib/prisma";
-import { queueCreateStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
 import {
   getSubscriptionBillingFields,
   getSubscriptionTrialEndsAt,
 } from "@/lib/stripe/workspace-subscription-fields";
 import { WorkspaceProps } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
-import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  getPlanAndTierFromPriceId,
-  NEW_BUSINESS_PRICE_IDS,
-} from "@dub/utils";
+import { getPlanAndTierFromPriceId } from "@dub/utils";
 import type Stripe from "stripe";
 import { getPlanPeriodFromStripeSubscription } from "./get-plan-period-from-stripe-subscription";
 import { getWorkspaceLimitsFromStripeSubscription } from "./get-workspace-limits-from-stripe-subscription";
@@ -43,15 +26,12 @@ export async function updateWorkspacePlan({
     | "id"
     | "name"
     | "slug"
-    | "defaultProgramId"
     | "planPeriod"
     | "planTier"
     | "trialEndsAt"
     | "billingCycleEndsAt"
     | "subscriptionCanceledAt"
     | "billingCycleStart"
-    | "partnersLimit"
-    | "stagingWorkspaceId"
   > & {
     plan: string;
     restrictedTokens: {
@@ -100,8 +80,7 @@ export async function updateWorkspacePlan({
 
   const newPlanName = newPlan.name.toLowerCase();
 
-  const { canMessagePartners, canCreateWebhooks, canAddFolder } =
-    getPlanCapabilities(newPlanName);
+  const { canCreateWebhooks, canAddFolder } = getPlanCapabilities(newPlanName);
 
   const limits = getWorkspaceLimitsFromStripeSubscription({
     planLimits: newPlan.limits,
@@ -119,14 +98,11 @@ export async function updateWorkspacePlan({
   // - workspace upgrades/downgrades their subscription
   // - workspace changes their plan period / tier
   // - trialEndsAt changes (i.e. free trial -> paid subscription)
-  // - the partners limit increases and the updated price ID is a new business price ID
   if (
     workspace.plan !== newPlanName ||
     workspace.planPeriod !== planPeriod ||
     workspace.planTier !== newPlanTier ||
-    isPaidPlanActivated ||
-    (workspace.partnersLimit < newPlan.limits.partners &&
-      NEW_BUSINESS_PRICE_IDS.includes(priceId))
+    isPaidPlanActivated
   ) {
     // A failed write must throw so the Stripe retry runs this block again
     const updatedWorkspace = await prisma.project.update({
@@ -138,15 +114,10 @@ export async function updateWorkspacePlan({
         planTier: newPlanTier,
         usageLimit: limits.clicks,
         linksLimit: limits.links,
-        payoutsLimit: limits.payouts,
         domainsLimit: limits.domains,
         aiLimit: limits.ai,
         tagsLimit: limits.tags,
-        partnerTagsLimit: limits.partnerTags,
         foldersLimit: limits.folders,
-        groupsLimit: limits.groups,
-        networkInvitesLimit: limits.networkInvites,
-        partnersLimit: limits.partners,
         usersLimit: limits.users,
         ...(["active", "trialing"].includes(subscription.status)
           ? { paymentFailedAt: null }
@@ -157,7 +128,6 @@ export async function updateWorkspacePlan({
         ...(recomputedUsage && {
           usage: recomputedUsage.usage,
           linksUsage: recomputedUsage.linksUsage,
-          payoutsUsage: recomputedUsage.payoutsUsage,
           sentEmails: {
             deleteMany: {
               type: {
@@ -205,19 +175,6 @@ export async function updateWorkspacePlan({
           ({ hashedKey }) => hashedKey,
         ),
       }),
-
-      ...(workspace.defaultProgramId
-        ? [
-            prisma.program.update({
-              where: {
-                id: workspace.defaultProgramId,
-              },
-              data: {
-                messagingEnabledAt: canMessagePartners ? new Date() : null,
-              },
-            }),
-          ]
-        : []),
     ]);
 
     console.log(
@@ -252,97 +209,11 @@ export async function updateWorkspacePlan({
     if (!canAddFolder) {
       await deleteWorkspaceFolders({
         workspaceId: workspace.id,
-        defaultProgramId: workspace.defaultProgramId,
       });
       console.log(`Deleted folders for workspace ${workspace.id}.`);
     }
 
-    // Deactivate the program if the workspace loses partner access (Business/Enterprise -> Pro/Free)
-    if (
-      wouldLosePartnerAccess({
-        currentPlan: workspace.plan,
-        newPlan: newPlanName,
-      }) &&
-      workspace.defaultProgramId
-    ) {
-      await deactivateProgram(workspace);
-      console.log(`Deactivated program for workspace ${workspace.id}.`);
-    }
-
-    // Reactivate all partners if the workspace gains partner access (Pro/Free -> Business/Enterprise)
-    if (
-      wouldGainPartnerAccess({
-        currentPlan: workspace.plan,
-        newPlan: newPlanName,
-      }) &&
-      workspace.defaultProgramId
-    ) {
-      await reactivateProgram(workspace);
-      console.log(`Reactivated program for workspace ${workspace.id}.`);
-    }
-
-    await Promise.allSettled([
-      queueCreateStagingWorkspace(updatedWorkspace),
-      syncStagingWorkspaceJob.dispatch({
-        action: "sync-workspace",
-        workspaceId: updatedWorkspace.id,
-      }),
-    ]);
-
     const workspaceOwners = updatedWorkspace.users.map((user) => user.user);
-
-    if (
-      workspace.defaultProgramId &&
-      wouldLoseAdvancedFeatures({
-        currentPlan: workspace.plan,
-        newPlan: newPlanName,
-      })
-    ) {
-      const results = await Promise.allSettled([
-        stripAdvancedRewardModifiersForProgram({
-          programId: workspace.defaultProgramId,
-        }),
-        pauseOrCancelCampaignsForProgramOnPlanDowngrade({
-          programId: workspace.defaultProgramId,
-        }),
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/fraud/release-all-hold-commissions`,
-          method: "POST",
-          body: {
-            programId: workspace.defaultProgramId,
-          },
-        }),
-        workspaceOwners.length > 0 &&
-          sendBatchEmail(
-            workspaceOwners.map((owner) => ({
-              to: owner.email!,
-              subject: "Your Advanced plan features have been removed",
-              react: AdvancedPlanDowngradeNotice({
-                email: owner.email!,
-                workspace: {
-                  name: workspace.name,
-                  slug: workspace.slug,
-                },
-              }),
-              variant: "notifications",
-              headers: {
-                "Idempotency-Key": `advanced-downgrade-notice:${workspace.id}:${owner.email}`,
-              },
-            })),
-          ),
-      ]);
-      console.log(
-        [
-          "stripAdvancedRewardModifiersForProgram",
-          "pauseOrCancelCampaignsForProgramOnPlanDowngrade",
-          "queueReleaseAllHoldCommissions",
-          "notifyWorkspaceOwners",
-        ].map((step, index) => ({
-          step,
-          result: results[index],
-        })),
-      );
-    }
 
     if (workspaceOwners.length > 0) {
       await Promise.allSettled([

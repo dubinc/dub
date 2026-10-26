@@ -352,17 +352,6 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The ID of the tenant that created the link inside your system. If set, it can be used to fetch all links for a tenant. Pass `null` or an empty string to remove it.",
     ),
-  programId: z
-    .string()
-    .nullish()
-    .describe("The ID of the program the short link is associated with."),
-  partnerId: z
-    .string()
-    .transform((v) => (v === "" ? null : v))
-    .nullish()
-    .describe(
-      "The ID of the partner the short link is associated with. Pass `null` or an empty string to remove the partner. Removing the partner also removes the program association.",
-    ),
   prefix: z
     .string()
     .optional()
@@ -614,14 +603,6 @@ export const LinkSchema = z
       .describe(
         "The ID of the tenant that created the link inside your system. If set, it can be used to fetch all links for a tenant.",
       ),
-    programId: z
-      .string()
-      .nullable()
-      .describe("The ID of the program the short link is associated with."),
-    partnerId: z
-      .string()
-      .nullable()
-      .describe("The ID of the partner the short link is associated with."),
     archived: z
       .boolean()
       .default(false)
@@ -845,7 +826,6 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.extend({
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe("Link IDs to filter by."),
-  partnerId: z.string().optional().describe("Partner ID to filter by."),
   searchMode: z
     .enum(["fuzzy", "exact"])
     .default("fuzzy")

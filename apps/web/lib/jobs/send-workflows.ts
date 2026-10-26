@@ -25,12 +25,6 @@ export const workflowNameSchema = z
   );
 
 const workflowPathMap = {
-  "partner-approved-workflow": "/api/workflows/partner-approved",
-  "merge-partner-accounts-workflow": "/api/workflows/merge-partner-accounts",
-  "create-partner-commission-workflow":
-    "/api/workflows/create-partner-commission",
-  "reattribute-customer-workflow": "/api/workflows/reattribute-customer",
-  "detach-discount-workflow": "/api/workflows/detach-discount",
   "renew-domains-workflow": "/api/workflows/renew-domains",
 } as const;
 

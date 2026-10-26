@@ -1,18 +1,10 @@
-import { pauseOrCancelCampaignsForProgramOnPlanDowngrade } from "@/lib/api/campaigns/pause-campaigns-on-plan-downgrade";
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { linkCache } from "@/lib/api/links/cache";
-import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip-advanced-reward-modifiers";
-import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
-import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
-import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
-import { sendEmail } from "@dub/email";
-import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
 import { capitalize, FREE_PLAN, log } from "@dub/utils";
 import Stripe from "stripe";
 import {
@@ -39,10 +31,7 @@ export async function customerSubscriptionDeleted(
         where: {
           key: "_root",
         },
-        include: {
-          ...includeTags,
-          ...includeProgramEnrollment,
-        },
+        include: includeTags,
       },
       users: {
         select: {
@@ -103,7 +92,7 @@ export async function customerSubscriptionDeleted(
   const workspaceLinks = workspace.links;
   const workspaceUsers = workspace.users.map(({ user }) => user);
 
-  const updatedWorkspace = await prisma.project.update({
+  await prisma.project.update({
     where: {
       stripeId,
     },
@@ -117,15 +106,10 @@ export async function customerSubscriptionDeleted(
         : new Date(),
       usageLimit: FREE_PLAN.limits.clicks!,
       linksLimit: FREE_PLAN.limits.links!,
-      payoutsLimit: FREE_PLAN.limits.payouts!,
       domainsLimit: FREE_PLAN.limits.domains!,
       aiLimit: FREE_PLAN.limits.ai!,
       tagsLimit: FREE_PLAN.limits.tags!,
-      partnerTagsLimit: FREE_PLAN.limits.partnerTags!,
       foldersLimit: FREE_PLAN.limits.folders!,
-      groupsLimit: FREE_PLAN.limits.groups!,
-      networkInvitesLimit: FREE_PLAN.limits.networkInvites!,
-      partnersLimit: FREE_PLAN.limits.partners!,
       usersLimit: FREE_PLAN.limits.users!,
       paymentFailedAt: null,
     },
@@ -209,11 +193,6 @@ export async function customerSubscriptionDeleted(
     // Open/uncollectible invoices remain payable after cancellation
     // Voiding is the only terminal status that prevents payment for a canceled subscription
     voidLatestInvoiceIfPayable(deletedSubscription),
-
-    syncStagingWorkspaceJob.dispatch({
-      action: "sync-workspace",
-      workspaceId: updatedWorkspace.id,
-    }),
   ]);
 
   // Reset cancellation feedback dedupe so a future resubscribe + cancel can send again
@@ -226,49 +205,7 @@ export async function customerSubscriptionDeleted(
 
   await deleteWorkspaceFolders({
     workspaceId: workspace.id,
-    defaultProgramId: workspace.defaultProgramId,
   });
-
-  // Deactivate the program if the workspace had partner access
-  if (workspace.defaultProgramId) {
-    await deactivateProgram(workspace);
-  }
-
-  const losesAdvancedFeatures = wouldLoseAdvancedFeatures({
-    currentPlan: workspace.plan,
-    newPlan: "free",
-  });
-
-  if (workspace.defaultProgramId && losesAdvancedFeatures) {
-    await Promise.all([
-      stripAdvancedRewardModifiersForProgram({
-        programId: workspace.defaultProgramId,
-      }),
-      pauseOrCancelCampaignsForProgramOnPlanDowngrade({
-        programId: workspace.defaultProgramId,
-      }),
-    ]);
-  }
-
-  const owner = workspaceUsers[0];
-
-  if (owner?.email && losesAdvancedFeatures) {
-    await sendEmail({
-      to: owner.email,
-      subject: "Your Advanced plan features have been removed",
-      react: AdvancedPlanDowngradeNotice({
-        email: owner.email,
-        workspace: {
-          name: workspace.name,
-          slug: workspace.slug,
-        },
-      }),
-      variant: "notifications",
-      headers: {
-        "Idempotency-Key": `advanced-downgrade-notice:${workspace.id}:${owner.email}`,
-      },
-    });
-  }
 
   return `Workspace ${workspace.slug} subscription deleted; downgraded to free.`;
 }

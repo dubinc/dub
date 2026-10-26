@@ -5,21 +5,16 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useDeleteWorkspaceModal } from "@/ui/modals/delete-workspace-modal";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { WorkspaceEnvironment } from "@prisma/client";
 
 export default function DeleteWorkspace() {
   const { setShowDeleteWorkspaceModal, DeleteWorkspaceModal } =
     useDeleteWorkspaceModal();
 
-  const { role, environment } = useWorkspace();
+  const { role } = useWorkspace();
 
   const { error } = clientAccessCheck({
     action: "workspaces.write",
     role,
-    environment,
-    restrictedEnvironments: [WorkspaceEnvironment.staging],
-    restrictedEnvironmentMessage:
-      "Deleting a staging workspace is not allowed.",
   });
 
   return (

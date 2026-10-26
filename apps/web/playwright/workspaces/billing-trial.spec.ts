@@ -178,8 +178,8 @@ test.describe("Free trial user navigation", () => {
         url.searchParams.get("plan") === "business"
       );
     });
-    await expect(
-      page.getByTestId(testIds.billing.upgradedHeading),
-    ).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId(testIds.billing.upgradedHeading)).toBeVisible(
+      { timeout: 15_000 },
+    );
   });
 });

@@ -5,7 +5,6 @@ const LAST_VISIBLE_CHARS = 6;
 
 // Map of route pattern -> response body fields that should be masked before logging.
 export const SENSITIVE_RESPONSE_FIELDS_BY_ROUTE = {
-  "/tokens/embed/referrals": ["publicToken"],
   "/tokens": ["token"],
   "/oauth/apps": ["clientSecret"],
   "/webhooks": ["secret"],

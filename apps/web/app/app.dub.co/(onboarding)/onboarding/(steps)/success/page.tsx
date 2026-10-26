@@ -20,7 +20,6 @@ export default async function SuccessPage({
       name: true,
       logo: true,
       plan: true,
-      defaultProgramId: true,
     },
     where: {
       slug,

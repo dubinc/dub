@@ -1,7 +1,5 @@
 "use client";
 
-import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
-import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { getStripe } from "@/lib/stripe/client";
 import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -16,8 +14,7 @@ import {
 import { useSession } from "next-auth/react";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
-import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmation-modal";
+import { useState } from "react";
 import { useStartPaidPlanModal } from "../modals/start-paid-plan-modal";
 import { useSwitchTrialPlanModal } from "../modals/switch-trial-plan-modal";
 
@@ -42,7 +39,6 @@ export function UpgradePlanButton({
     plan: currentPlan,
     planPeriod: currentPlanPeriod,
     stripeId,
-    defaultProgramId,
     trialEndsAt,
   } = workspace;
 
@@ -62,26 +58,6 @@ export function UpgradePlanButton({
   const isCurrentPlanAndPeriod =
     currentPlan === selectedPlan.name.toLowerCase() &&
     period === currentPlanPeriod;
-
-  // Check if this plan change would lose partner access / advanced features
-  const { losesPartnerAccess, losesAdvancedFeatures } = useMemo(() => {
-    if (currentPlan && defaultProgramId) {
-      return {
-        losesPartnerAccess: wouldLosePartnerAccess({
-          currentPlan,
-          newPlan: selectedPlan.name.toLowerCase(),
-        }),
-        losesAdvancedFeatures: wouldLoseAdvancedFeatures({
-          currentPlan,
-          newPlan: selectedPlan.name.toLowerCase(),
-        }),
-      };
-    }
-    return {
-      losesPartnerAccess: false,
-      losesAdvancedFeatures: false,
-    };
-  }, [currentPlan, defaultProgramId, selectedPlan.name]);
 
   const performUpgrade = async () => {
     setClicked(true);
@@ -131,18 +107,6 @@ export function UpgradePlanButton({
     }
   };
 
-  const { setShowPlanChangeConfirmationModal, PlanChangeConfirmationModal } =
-    usePlanChangeConfirmationModal({
-      newPlan: plan,
-      newPeriod: period,
-      newTier: tier,
-      onConfirm: performUpgrade,
-      confirmationMode:
-        losesAdvancedFeatures && !losesPartnerAccess
-          ? "advanced-downgrade"
-          : "program-downgrade",
-    });
-
   const { StartPaidPlanModal, setShowStartPaidPlanModal } =
     useStartPaidPlanModal();
 
@@ -162,10 +126,6 @@ export function UpgradePlanButton({
       setShowStartPaidPlanModal(true);
       return;
     }
-    if (losesPartnerAccess || losesAdvancedFeatures) {
-      setShowPlanChangeConfirmationModal(true);
-      return;
-    }
     if (isSwitchingTrialPlan) {
       setShowSwitchTrialPlanModal(true);
       return;
@@ -176,7 +136,6 @@ export function UpgradePlanButton({
 
   return (
     <>
-      <PlanChangeConfirmationModal />
       <StartPaidPlanModal />
       <SwitchTrialPlanModal />
       <Button

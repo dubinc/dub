@@ -9,12 +9,7 @@ import useSWR from "swr";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { ButtonProps, buttonVariants } from "../button";
 import { NavItemChild, NavItemChildren } from "../content";
-import {
-  DubAnalyticsIcon,
-  DubApiIcon,
-  DubLinksIcon,
-  DubPartnersIcon,
-} from "../icons";
+import { DubAnalyticsIcon, DubApiIcon, DubLinksIcon } from "../icons";
 import { NavWordmark } from "../nav-wordmark";
 import { navItems, type NavItem, type NavTheme } from "./nav";
 
@@ -22,11 +17,6 @@ const specialIcons: Record<string, ReactNode> = {
   "Dub Links": (
     <div className="flex size-5 items-center justify-center rounded bg-orange-400">
       <DubLinksIcon className="size-3 text-orange-900" />
-    </div>
-  ),
-  "Dub Partners": (
-    <div className="flex size-5 items-center justify-center rounded bg-violet-400">
-      <DubPartnersIcon className="size-3 text-violet-900" />
     </div>
   ),
   "Dub Analytics": (

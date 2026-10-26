@@ -20,10 +20,6 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     doIndex,
     projectId,
     webhooks,
-    programId,
-    partnerId,
-    partner,
-    discount,
     testVariants,
     testCompletedAt,
   } = link;
@@ -49,27 +45,6 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     ...(projectId && { projectId }), // projectId can be undefined for anonymous links
     ...(doIndex && { doIndex: true }),
     ...(webhookIds.length > 0 && { webhookIds }),
-    ...(programId && { programId }),
-    ...(partnerId && { partnerId }),
-    ...(partner && {
-      partner: {
-        id: partner.id,
-        name: partner.name,
-        image: partner.image || `https://api.dub.co/og/avatar/${partner.id}`,
-        ...(partner.groupId && { groupId: partner.groupId }),
-        ...(partner.tenantId && { tenantId: partner.tenantId }),
-      },
-    }),
-    ...(discount && {
-      discount: {
-        id: discount.id,
-        amount: discount.amount,
-        type: discount.type,
-        maxDuration: discount.maxDuration,
-        couponId: discount.couponId,
-        couponTestId: discount.couponTestId,
-      },
-    }),
     ...(Boolean(
       testVariants && testCompletedAt && new Date(testCompletedAt) > new Date(),
     ) && {

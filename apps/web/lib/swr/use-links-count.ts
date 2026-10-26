@@ -1,4 +1,4 @@
-import { useCurrentSubdomain, useRouterStuff } from "@dub/ui";
+import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import * as z from "zod/v4";
@@ -18,7 +18,6 @@ export default function useLinksCount<T = any>({
 } = {}) {
   const { id: workspaceId, isMegaWorkspace } = useWorkspace();
   const { getQueryString } = useRouterStuff();
-  const { subdomain } = useCurrentSubdomain();
 
   const { data, error } = useSWR<any>(
     workspaceId && !isMegaWorkspace && enabled
@@ -33,11 +32,7 @@ export default function useLinksCount<T = any>({
                 exclude: ["import", "upgrade", "newLink"],
               },
         )}`
-      : subdomain === "admin"
-        ? `/api/admin/links/count${getQueryString({
-            ...query,
-          })}`
-        : null,
+      : null,
     fetcher,
     {
       dedupingInterval: 60000,

@@ -2,7 +2,6 @@ import type { PlanProps } from "@/lib/types";
 import {
   APPSFLYER_INTEGRATION_ID,
   HUBSPOT_INTEGRATION_ID,
-  INTERCOM_INTEGRATION_ID,
   SHOPIFY_INTEGRATION_ID,
   SINGULAR_INTEGRATION_ID,
   STRIPE_INTEGRATION_ID,
@@ -24,24 +23,6 @@ export const ROUTE_PATTERNS = [
   "/track/open",
   ...PUBLISHABLE_KEY_REQUEST_PATHS,
 
-  // Programs
-  "/programs/:programId/reactivate",
-
-  // Program applications
-  "/program-applications/approve",
-  "/program-applications/reject",
-
-  // Partners
-  "/partners/links/upsert",
-  "/partners/links/:linkId",
-  "/partners/links",
-  "/partners/applications/approve",
-  "/partners/applications/reject",
-  "/partners/ban",
-  "/partners/deactivate",
-  "/partners/:partnerId",
-  "/partners",
-
   // Links
   "/links/bulk",
   "/links/upsert",
@@ -51,27 +32,8 @@ export const ROUTE_PATTERNS = [
   "/links",
 
   // Customers
-  "/customers/:id/reattribute",
   "/customers/:id",
   "/customers",
-
-  // Commissions
-  "/commissions/bulk",
-  "/commissions/:commissionId",
-  "/commissions",
-
-  // Bounties
-  "/bounties/:bountyId/submissions/:submissionId/approve",
-  "/bounties/:bountyId/submissions/:submissionId/reject",
-  "/bounties/:bountyId/sync-social-metrics",
-  "/bounties/:bountyId",
-  "/bounties",
-
-  // Campaigns
-  "/campaigns/:campaignId/duplicate",
-  "/campaigns/:campaignId/preview",
-  "/campaigns/:campaignId",
-  "/campaigns",
 
   // Folders
   "/folders/:folderId",
@@ -84,7 +46,6 @@ export const ROUTE_PATTERNS = [
   "/domains/register",
   "/domains/:domain/primary",
   "/domains/:domain/transfer",
-  "/domains/:domain/program",
   "/domains/:domain",
   "/domains",
 
@@ -93,7 +54,6 @@ export const ROUTE_PATTERNS = [
   "/tags",
 
   // Tokens
-  "/tokens/embed/referrals",
   "/tokens/:id",
   "/tokens",
 
@@ -109,22 +69,6 @@ export const ROUTE_PATTERNS = [
   "/dashboards/:id",
   "/dashboards",
 
-  // Groups
-  "/groups/:groupId/default-links/:defaultLinkId",
-  "/groups/:groupId/default-links",
-  "/groups/:groupId/default",
-  "/groups/:groupId/partners",
-  "/groups/:groupId",
-  "/groups",
-
-  // Discount codes
-  "/discount-codes/:discountCodeId",
-  "/discount-codes",
-
-  // Email domains
-  "/email-domains/:domain",
-  "/email-domains",
-
   // OAuth
   "/oauth/apps/:appId",
   "/oauth/apps",
@@ -132,9 +76,6 @@ export const ROUTE_PATTERNS = [
   // Integrations
   "/integrations/uninstall",
   "/stripe/integration",
-
-  // Fraud
-  "/fraud/rules",
 
   // Workspaces
   "/workspaces/:id/users",
@@ -145,7 +86,6 @@ export const ROUTE_PATTERNS = [
   "/workspaces/:id/billing/activate-paid-plan",
   "/workspaces/:id/billing/cancel",
   "/workspaces/:id/billing/manage",
-  "/workspaces/:id/billing/payment-methods/verify-microdeposits",
   "/workspaces/:id/billing/payment-methods",
   "/workspaces/:id/billing/retry-payment",
   "/workspaces/:id/billing/upgrade",
@@ -236,12 +176,6 @@ export const WEBHOOK_REQUEST_ACTORS_BY_PATH = {
     name: "HubSpot",
     image:
       "https://dubassets.com/integrations/int_ffw3qgrFAahY6qs1hXaH3wHS_JPoCPOh",
-  },
-  "/intercom/webhook": {
-    id: INTERCOM_INTEGRATION_ID,
-    name: "Intercom",
-    image:
-      "https://dubassets.com/integrations/int_1KV6R1E61E0044C0VFQKV2Q6K_PfbSFTk",
   },
   "/singular/webhook": {
     id: SINGULAR_INTEGRATION_ID,

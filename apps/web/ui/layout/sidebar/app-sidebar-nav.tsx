@@ -1,113 +1,50 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/client-access-check";
-import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { useProgramApplicationsCount } from "@/lib/program-applications/hooks/use-program-applications-count";
-import {
-  SubmissionsCountByStatus,
-  useBountySubmissionsCount,
-} from "@/lib/swr/use-bounty-submissions-count";
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
-import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
-import useProgram from "@/lib/swr/use-program";
-import { useProgramSubmittedLeadsCount } from "@/lib/swr/use-program-submitted-leads-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import {
   Bell,
   BookOpen,
-  Brush,
   ConnectedDots,
   CubeSettings,
   DiamondTurnRight,
-  Flag,
   Folder,
-  Gauge6,
   Gear2,
-  Gift,
   Globe,
-  GridPlus,
-  InvoiceDollar,
   Key,
-  LifeRing,
-  LinesY as LinesYStatic,
   MarketingTarget,
-  MoneyBills2,
-  Msgs,
-  PaperPlane,
   Receipt2,
   ShieldCheck,
-  Sliders,
   StackY3,
   Tag,
-  Trophy,
-  UserCheck,
-  UserPlus,
-  Users,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
 import { isWorkspaceBillingTrialActive } from "@dub/utils";
-import { DubProduct } from "@prisma/client";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
-import { toast } from "sonner";
-import { mutate } from "swr";
-import { DubPartnersPopup } from "./dub-partners-popup";
 import { Compass } from "./icons/compass";
-import { ConnectedDots4 } from "./icons/connected-dots4";
 import { CursorRays } from "./icons/cursor-rays";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 import { User } from "./icons/user";
 import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
 import { SidebarUsage } from "./sidebar-usage";
-import { SpecialNewsContent } from "./special-news-content";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
 type SidebarNavData = {
   slug: string;
   pathname: string;
   queryString: string;
-  defaultProduct?: "program" | "links";
-  hasProgram?: boolean;
   session?: Session | null;
-  pendingPayoutsCount?: number;
-  applicationsCount?: number;
-  submittedBountiesCount?: number;
-  unreadMessagesCount?: number;
-  pendingFraudEventsCount?: number;
-  pendingLeadsCount?: number;
-  submittedLeadsEnabled?: boolean;
-  partnerNetworkEnabled?: boolean;
 };
 
-const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
-  slug,
-  pathname,
-  defaultProduct,
-  hasProgram,
-}) => {
-  const programGroup = {
-    name: "Partner Program",
-    description: hasProgram
-      ? "Manage, grow, and measure the performance of your partner program."
-      : "Kickstart viral product-led growth with powerful, branded referral and affiliate programs.",
-    learnMoreHref: "https://dub.co/partners",
-    icon: ConnectedDots4,
-    href: slug ? `/${slug}/program` : "/program",
-    active:
-      !!slug &&
-      pathname.startsWith(`/${slug}`) &&
-      !pathname.startsWith(`/${slug}/links`) &&
-      !pathname.startsWith(`/${slug}/settings`),
-    popup: DubPartnersPopup,
-  };
-  const linksGroup = {
+const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ slug, pathname }) => [
+  {
     name: "Short Links",
     description:
       "Create, organize, and measure the performance of your short links.",
@@ -115,197 +52,10 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     icon: Compass,
     href: slug ? `/${slug}/links` : "/links",
     active: pathname.startsWith(`/${slug}/links`),
-  };
-
-  return defaultProduct === "links"
-    ? [linksGroup, programGroup]
-    : [programGroup, linksGroup];
-};
+  },
+];
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
-  // partner program
-  program: ({
-    slug,
-    pendingPayoutsCount,
-    applicationsCount,
-    submittedBountiesCount,
-    unreadMessagesCount,
-    pendingFraudEventsCount,
-    pendingLeadsCount,
-    submittedLeadsEnabled,
-    partnerNetworkEnabled,
-  }) => ({
-    title: "Partner Program",
-    direction: "left",
-    content: [
-      {
-        items: [
-          {
-            name: "Overview",
-            icon: Gauge6,
-            href: `/${slug}/program`,
-            exact: true,
-          },
-          {
-            name: "Payouts",
-            icon: MoneyBills2,
-            href: `/${slug}/program/payouts?status=pending`,
-            badge: pendingPayoutsCount
-              ? pendingPayoutsCount > 99
-                ? "99+"
-                : pendingPayoutsCount
-              : undefined,
-          },
-          {
-            name: "Messages",
-            icon: Msgs,
-            href: `/${slug}/program/messages`,
-            badge: unreadMessagesCount
-              ? unreadMessagesCount > 99
-                ? "99+"
-                : unreadMessagesCount
-              : undefined,
-          },
-        ],
-      },
-      {
-        name: "Partners",
-        items: [
-          {
-            name: "All Partners",
-            icon: Users,
-            href: `/${slug}/program/partners`,
-            isActive: (pathname: string, href: string) =>
-              pathname.startsWith(href) &&
-              !pathname.startsWith(`${href}/applications`),
-          },
-          {
-            name: "Groups",
-            icon: Users6,
-            href: `/${slug}/program/groups`,
-          },
-          ...(partnerNetworkEnabled
-            ? [
-                {
-                  name: "Partner Network",
-                  icon: UserPlus,
-                  href: `/${slug}/program/network` as `/${string}`,
-                  badge: "New",
-                },
-              ]
-            : []),
-          {
-            name: "Applications",
-            icon: UserCheck,
-            href: `/${slug}/program/partners/applications`,
-            badge: applicationsCount
-              ? applicationsCount > 99
-                ? "99+"
-                : applicationsCount
-              : undefined,
-          },
-        ],
-      },
-      {
-        name: "Insights",
-        items: [
-          {
-            name: "Analytics",
-            icon: LinesYStatic,
-            href: `/${slug}/program/analytics`,
-            isActive: (pathname: string, href: string) =>
-              pathname.startsWith(href) ||
-              pathname.startsWith(href.replace("/analytics", "/events")),
-          },
-          {
-            name: "Customers",
-            icon: User,
-            href: `/${slug}/program/customers`,
-          },
-          {
-            name: "Commissions",
-            icon: InvoiceDollar,
-            href: `/${slug}/program/commissions`,
-          },
-          {
-            name: "Risk Center",
-            icon: Flag,
-            href: `/${slug}/program/risks`,
-            badge: pendingFraudEventsCount
-              ? pendingFraudEventsCount > 99
-                ? "99+"
-                : pendingFraudEventsCount
-              : undefined,
-          },
-        ],
-      },
-      {
-        name: "Engagement",
-        items: [
-          {
-            name: "Bounties",
-            icon: Trophy,
-            href: `/${slug}/program/bounties`,
-            badge: submittedBountiesCount
-              ? submittedBountiesCount > 99
-                ? "99+"
-                : submittedBountiesCount
-              : "",
-          },
-          {
-            name: "Email Campaigns",
-            icon: PaperPlane,
-            href: `/${slug}/program/campaigns` as `/${string}`,
-          },
-          ...(submittedLeadsEnabled
-            ? [
-                {
-                  name: "Submitted Leads",
-                  icon: UserPlus,
-                  href: `/${slug}/program/leads` as `/${string}`,
-                  badge: pendingLeadsCount
-                    ? pendingLeadsCount > 99
-                      ? "99+"
-                      : pendingLeadsCount
-                    : undefined,
-                },
-              ]
-            : []),
-          {
-            name: "Resources",
-            icon: LifeRing,
-            href: `/${slug}/program/resources`,
-          },
-        ],
-      },
-      {
-        name: "Configuration",
-        items: [
-          {
-            name: "Rewards",
-            icon: Gift,
-            href: `/${slug}/program/groups/default/rewards`,
-            arrow: true,
-            isActive: () => false,
-          },
-          {
-            name: "Links",
-            icon: Sliders,
-            href: `/${slug}/program/groups/default/links`,
-            arrow: true,
-            isActive: () => false,
-          },
-          {
-            name: "Branding",
-            icon: Brush,
-            arrow: true,
-            href: `/${slug}/program/groups/default/branding`,
-            isActive: () => false,
-          },
-        ],
-      },
-    ],
-  }),
   // short links
   links: ({ slug, pathname, queryString }) => ({
     title: "Short Links",
@@ -489,11 +239,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: "/account/settings/security",
           },
           {
-            name: "Referrals",
-            icon: Gift,
-            href: "/account/settings/referrals",
-          },
-          {
             name: "Notifications",
             icon: Bell,
             href: "/settings/notifications",
@@ -516,144 +261,25 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { router, getQueryString } = useRouterStuff();
   const { data: session } = useSession();
-  const {
-    id: workspaceId,
-    plan,
-    defaultProduct,
-    defaultProgramId,
-    trialEndsAt,
-    role,
-    flags,
-  } = useWorkspace();
-
-  const canSetDefaultProduct = !clientAccessCheck({
-    action: "workspaces.write",
-    role,
-  }).error;
-
-  async function onSetDefaultProduct(product: DubProduct) {
-    if (!workspaceId || !slug) {
-      return;
-    }
-
-    await toast.promise(
-      (async () => {
-        const response = await fetch(`/api/workspaces/${workspaceId}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            defaultProduct: product,
-          }),
-        });
-
-        if (!response.ok) {
-          const { error } = await response.json();
-          throw new Error(error.message);
-        }
-
-        await mutate(`/api/workspaces/${slug}`);
-        router.push(`/${slug}/${product}`);
-      })(),
-      {
-        loading: "Setting default product...",
-        success: "Successfully updated your default product!",
-        error: (error) => error.message,
-      },
-    );
-  }
+  const { plan, trialEndsAt } = useWorkspace();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
       : pathname.startsWith(`/${slug}/settings`)
         ? "workspaceSettings"
-        : pathname.includes("/program/campaigns/") ||
-            pathname.includes("/program/messages/") ||
-            pathname.endsWith("/program/payouts/success")
-          ? null
-          : pathname.startsWith(`/${slug}/program`)
-            ? "program"
-            : "links";
+        : "links";
   }, [slug, pathname]);
 
-  // Navigate back to the default product when the Escape key is pressed in the workspace settings
-  useKeyboardShortcut(
-    "Escape",
-    () => router.push(`/${slug}/${defaultProduct}`),
-    {
-      enabled: currentArea === "workspaceSettings",
-    },
-  );
-
-  const { program } = useProgram({
-    enabled: Boolean(currentArea === "program" && defaultProgramId),
-  });
-
-  const { payoutsCount: pendingPayoutsCount } = usePayoutsCount({
-    eligibility: "eligible",
-    status: "pending",
-    ignoreParams: true,
-    enabled: Boolean(currentArea === "program" && defaultProgramId),
-  });
-
-  const { applicationsCount } = useProgramApplicationsCount<number | undefined>(
-    {
-      status: "pending",
-      ignoreParams: true,
-      enabled: Boolean(currentArea === "program" && defaultProgramId),
-    },
-  );
-
-  const { submissionsCount } = useBountySubmissionsCount<
-    SubmissionsCountByStatus[]
-  >({
-    ignoreParams: true,
-    enabled: Boolean(currentArea === "program" && defaultProgramId),
-  });
-
-  const submittedBountiesCount =
-    submissionsCount?.find(({ status }) => status === "submitted")?.count || 0;
-
-  const { count: unreadMessagesCount } = usePartnerMessagesCount({
-    enabled: Boolean(currentArea === "program"),
-    query: {
-      unread: true,
-    },
-  });
-
-  const { fraudGroupCount: pendingFraudEventsCount } = useFraudGroupCount<
-    number | undefined
-  >({
-    query: { status: "pending" },
-    enabled: Boolean(currentArea === "program" && defaultProgramId),
-    ignoreParams: true,
-  });
-
-  const { data: pendingLeadsCount } = useProgramSubmittedLeadsCount<number>({
-    query: { status: "pending" },
-    ignoreParams: true,
-    enabled: Boolean(
-      currentArea === "program" && defaultProgramId && flags?.submittedLeads,
-    ),
+  // Navigate back to the links page when the Escape key is pressed in the workspace settings
+  useKeyboardShortcut("Escape", () => router.push(`/${slug}/links`), {
+    enabled: currentArea === "workspaceSettings",
   });
 
   const { canTrackConversions } = getPlanCapabilities(plan);
 
   const AppBottomContent =
-    canSetDefaultProduct &&
-    (currentArea === "program" || currentArea === "links") &&
-    (defaultProduct ?? "links") !== currentArea ? (
-      <button
-        type="button"
-        onClick={() => onSetDefaultProduct(currentArea)}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-200"
-      >
-        <GridPlus className="size-4" />
-        Set as default product tab
-      </button>
-    ) : canTrackConversions && pathname.startsWith(`/${slug}/links`) ? (
+    canTrackConversions && pathname.startsWith(`/${slug}/links`) ? (
       <Link
         href={`/${slug}/settings/tracking`}
         className="flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-200"
@@ -678,19 +304,6 @@ export function AppSidebarNav({
           include: ["folderId"],
         }),
         session: session || undefined,
-        defaultProduct,
-        hasProgram: Boolean(defaultProgramId),
-        pendingPayoutsCount: pendingPayoutsCount?.[0]?.count ?? 0,
-        applicationsCount,
-        submittedBountiesCount,
-        unreadMessagesCount,
-        pendingFraudEventsCount,
-        pendingLeadsCount,
-        submittedLeadsEnabled: Boolean(
-          defaultProgramId && flags?.submittedLeads,
-        ),
-        partnerNetworkEnabled:
-          program && program.partnerNetworkEnabledAt !== null,
       }}
       switcher={<WorkspaceDropdown />}
       toolContent={toolContent}
@@ -703,13 +316,7 @@ export function AppSidebarNav({
         ) : undefined
       }
       newsContent={
-        currentArea === "program" &&
-        defaultProgramId &&
-        !["enterprise", "advanced"].includes(plan ?? "") ? (
-          <SpecialNewsContent />
-        ) : !freePlanOrTrial && currentArea === "links" ? (
-          newsContent
-        ) : undefined
+        !freePlanOrTrial && currentArea === "links" ? newsContent : undefined
       }
     />
   );

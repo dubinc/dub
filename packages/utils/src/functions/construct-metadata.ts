@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export function constructMetadata({
   title,
   fullTitle,
-  description = "Dub is the modern link attribution platform for short links, conversion tracking, and affiliate programs.",
+  description = "Dub is the modern link attribution platform for short links and conversion tracking.",
   image = "https://assets.dub.co/thumbnail.jpg",
   video,
   icons = [

@@ -43,16 +43,6 @@ export default function useWorkspace({
     isOwner: workspace?.users && workspace.users[0].role === "owner",
     exceededEvents: workspace && workspace.usage >= workspace.usageLimit,
     exceededLinks: workspace && workspace.linksUsage >= workspace.linksLimit,
-    exceededPayouts:
-      workspace?.payoutsLimit &&
-      workspace.payoutsUsage >= workspace.payoutsLimit
-        ? true
-        : false,
-    exceededPartners:
-      workspace?.partnersLimit &&
-      workspace.partnersUsage >= workspace.partnersLimit
-        ? true
-        : false,
     exceededAI: workspace && workspace.aiUsage >= workspace.aiLimit,
     exceededDomains:
       workspace?.domains && workspace.domains.length >= workspace.domainsLimit,

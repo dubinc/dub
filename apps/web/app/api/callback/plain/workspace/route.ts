@@ -68,7 +68,6 @@ export async function POST(req: NextRequest) {
 
   const topWorkspace = await prisma.project.findFirst({
     where: {
-      environment: "production",
       users: {
         some: {
           userId: customer.externalId,

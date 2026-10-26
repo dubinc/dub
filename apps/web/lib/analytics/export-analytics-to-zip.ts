@@ -9,15 +9,6 @@ import JSZip from "jszip";
 
 const DEFAULT_SKIP_ENDPOINTS = ["count"] as const;
 
-export const PARTNER_PROFILE_SKIP_ENDPOINTS = [
-  "count",
-  "top_partners",
-  "top_groups",
-  "top_partner_tags",
-  "top_folders",
-  "top_link_tags",
-] as const;
-
 type ExportAnalyticsToZipOptions = {
   params: AnalyticsFilters;
   workspaceId: string;

@@ -3,7 +3,6 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
 import { SlackSupportInviteModal } from "@/ui/workspaces/slack-support-invite-modal";
@@ -14,8 +13,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 
 export function SlackSupportSettingsCard() {
-  const { slug, plan, role, loading, trialEndsAt, environment } =
-    useWorkspace();
+  const { slug, plan, role, loading, trialEndsAt } = useWorkspace();
   const [slackInviteModalOpen, setSlackInviteModalOpen] = useState(false);
 
   const [dismissed, setDismissed] = useSyncedLocalStorage<boolean>(
@@ -33,7 +31,6 @@ export function SlackSupportSettingsCard() {
     !slug ||
     dismissed ||
     permissionsError ||
-    !isProductionEnvironment(environment) ||
     !getPlanCapabilities(plan).canRequestSlackSupportInvite ||
     isWorkspaceBillingTrialActive(trialEndsAt)
   ) {

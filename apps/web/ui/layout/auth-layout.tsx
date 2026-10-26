@@ -7,7 +7,7 @@ export const AuthLayout = ({
   className,
   children,
 }: PropsWithChildren<{
-  showTerms?: "app" | "partners";
+  showTerms?: "app";
   className?: string;
 }>) => {
   return (
@@ -31,11 +31,11 @@ export const AuthLayout = ({
           <p className="px-20 py-8 text-center text-xs font-medium text-neutral-500 md:px-0">
             By continuing, you agree to Dub&rsquo;s{" "}
             <a
-              href={`https://dub.co/legal/${showTerms === "app" ? "terms" : "partners"}`}
+              href="https://dub.co/legal/terms"
               target="_blank"
               className="font-semibold text-neutral-600 hover:text-neutral-800"
             >
-              {showTerms === "app" ? "Terms of Service" : "Partner Terms"}
+              Terms of Service
             </a>{" "}
             and{" "}
             <a

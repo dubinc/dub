@@ -1,32 +1,16 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
-import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
-import type {
-  PaymentMethodMicrodeposit,
-  WorkspacePaymentMethod,
-} from "@/lib/stripe/microdeposit-types";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useAddPaymentMethodModal } from "@/ui/modals/add-payment-method-modal";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
-import { useVerifyMicrodepositsModal } from "@/ui/modals/verify-microdeposits-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { ThreeDots } from "@/ui/shared/icons";
-import {
-  Badge,
-  Button,
-  CreditCard,
-  GreekTemple,
-  MenuItem,
-  MoneyBill2,
-  Popover,
-} from "@dub/ui";
+import { Badge, Button, CreditCard, MenuItem, Popover } from "@dub/ui";
 import { Flag2, LoadingSpinner, Plus, Trash } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Command } from "cmdk";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -38,14 +22,6 @@ export default function PaymentMethods() {
   const { paymentMethods, defaultPaymentMethodId } = usePaymentMethods();
   const [isLoading, setIsLoading] = useState(false);
   const { slug, stripeId, role } = useWorkspace();
-
-  const regularPaymentMethods = paymentMethods?.filter(
-    (pm) => !DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
-  );
-
-  const partnerPaymentMethods = paymentMethods?.filter((pm) =>
-    DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
-  );
 
   const addPaymentMethod = async () => {
     setIsLoading(true);
@@ -93,9 +69,9 @@ export default function PaymentMethods() {
         )}
       </div>
       <div className="grid gap-4 rounded-b-xl border-t border-neutral-200 bg-neutral-100 p-6">
-        {regularPaymentMethods ? (
-          regularPaymentMethods.length > 0 ? (
-            regularPaymentMethods.map((paymentMethod) => (
+        {paymentMethods ? (
+          paymentMethods.length > 0 ? (
+            paymentMethods.map((paymentMethod) => (
               <PaymentMethodCard
                 key={paymentMethod.id}
                 type={paymentMethod.type}
@@ -119,23 +95,6 @@ export default function PaymentMethods() {
         ) : (
           <PaymentMethodCardSkeleton />
         )}
-
-        {partnerPaymentMethods ? (
-          partnerPaymentMethods.length > 0 ? (
-            partnerPaymentMethods.map((paymentMethod) => (
-              <PaymentMethodCard
-                key={paymentMethod.id}
-                type={paymentMethod.type}
-                paymentMethod={paymentMethod}
-                forPayouts={true}
-              />
-            ))
-          ) : (
-            <NoPartnerPaymentMethods />
-          )
-        ) : (
-          <PaymentMethodCardSkeleton />
-        )}
       </div>
     </div>
   );
@@ -144,12 +103,10 @@ export default function PaymentMethods() {
 const PaymentMethodCard = ({
   type,
   paymentMethod,
-  forPayouts = false,
   isDefault = false,
 }: {
   type: Stripe.PaymentMethod.Type;
-  paymentMethod?: WorkspacePaymentMethod;
-  forPayouts?: boolean;
+  paymentMethod?: Stripe.PaymentMethod;
   isDefault?: boolean;
 }) => {
   const result = PaymentMethodTypesList(paymentMethod);
@@ -161,55 +118,37 @@ const PaymentMethodCard = ({
     description,
   } = result.find((method) => method.type === type) || result[0];
 
-  const microdeposit = paymentMethod?.microdeposit ?? null;
-
   return (
-    <>
-      <RecommendedForPayoutsWrapper recommended={forPayouts}>
-        <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-4 drop-shadow-sm">
-          <div className="flex items-center gap-4">
-            <div
-              className={cn(
-                "flex size-12 items-center justify-center rounded-lg bg-neutral-100",
-                iconBgColor,
-              )}
-            >
-              <Icon className="size-6 text-neutral-700" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="font-medium text-neutral-900">{title}</p>
-                {isDefault && (
-                  <Badge className="border-transparent bg-blue-100 text-[0.625rem] text-blue-700">
-                    Default
-                  </Badge>
-                )}
-                {forPayouts &&
-                  (microdeposit ? (
-                    <Badge variant="amber" className="text-[0.625rem]">
-                      Unverified
-                    </Badge>
-                  ) : (
-                    <Badge variant="green" className="text-[0.625rem]">
-                      Verified
-                    </Badge>
-                  ))}
-              </div>
-              <p className="text-sm text-neutral-500">{description}</p>
-            </div>
-          </div>
-          {paymentMethod && (
-            <PaymentMethodActions
-              paymentMethod={paymentMethod}
-              title={title}
-              isDefault={isDefault}
-              canSetDefault={!forPayouts && !microdeposit}
-              microdeposit={microdeposit}
-            />
+    <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-4 drop-shadow-sm">
+      <div className="flex items-center gap-4">
+        <div
+          className={cn(
+            "flex size-12 items-center justify-center rounded-lg bg-neutral-100",
+            iconBgColor,
           )}
+        >
+          <Icon className="size-6 text-neutral-700" />
         </div>
-      </RecommendedForPayoutsWrapper>
-    </>
+        <div>
+          <div className="flex items-center gap-2">
+            <p className="font-medium text-neutral-900">{title}</p>
+            {isDefault && (
+              <Badge className="border-transparent bg-blue-100 text-[0.625rem] text-blue-700">
+                Default
+              </Badge>
+            )}
+          </div>
+          <p className="text-sm text-neutral-500">{description}</p>
+        </div>
+      </div>
+      {paymentMethod && (
+        <PaymentMethodActions
+          paymentMethod={paymentMethod}
+          title={title}
+          isDefault={isDefault}
+        />
+      )}
+    </div>
   );
 };
 
@@ -217,14 +156,10 @@ const PaymentMethodActions = ({
   paymentMethod,
   title,
   isDefault,
-  canSetDefault,
-  microdeposit,
 }: {
-  paymentMethod: WorkspacePaymentMethod;
+  paymentMethod: Stripe.PaymentMethod;
   title: string;
   isDefault: boolean;
-  canSetDefault: boolean;
-  microdeposit: PaymentMethodMicrodeposit | null;
 }) => {
   const [openPopover, setOpenPopover] = useState(false);
   const [isSettingDefault, setIsSettingDefault] = useState(false);
@@ -235,12 +170,6 @@ const PaymentMethodActions = ({
     role,
     customPermissionDescription: "manage payment methods",
   }).error;
-
-  const { setShowVerifyMicrodepositsModal, verifyMicrodepositsModal } =
-    useVerifyMicrodepositsModal({
-      paymentMethodId: paymentMethod.id,
-      microdeposit: microdeposit ?? { type: "amounts", arrivalDate: null },
-    });
 
   const setDefaultPaymentMethod = async () => {
     setIsSettingDefault(true);
@@ -303,17 +232,7 @@ const PaymentMethodActions = ({
   return (
     <>
       {confirmModal}
-      {microdeposit && verifyMicrodepositsModal}
       <div className="flex items-center gap-2">
-        {microdeposit && (
-          <Button
-            type="button"
-            className="h-9 w-fit"
-            text="Verify"
-            onClick={() => setShowVerifyMicrodepositsModal(true)}
-            disabledTooltip={billingWriteError}
-          />
-        )}
         <Popover
           openPopover={openPopover}
           setOpenPopover={setOpenPopover}
@@ -321,7 +240,7 @@ const PaymentMethodActions = ({
           content={
             <Command tabIndex={0} loop className="focus:outline-none">
               <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[160px]">
-                {canSetDefault && !isDefault && (
+                {!isDefault && (
                   <MenuItem
                     as={Command.Item}
                     icon={isSettingDefault ? LoadingSpinner : Flag2}
@@ -365,86 +284,6 @@ const PaymentMethodActions = ({
         </Popover>
       </div>
     </>
-  );
-};
-
-const NoPartnerPaymentMethods = () => {
-  const { stripeId } = useWorkspace();
-  const { setShowAddPaymentMethodModal, AddPaymentMethodModal } =
-    useAddPaymentMethodModal();
-  const { role } = useWorkspace();
-
-  if (!stripeId) {
-    return null;
-  }
-
-  return (
-    <>
-      {AddPaymentMethodModal}
-      <RecommendedForPayoutsWrapper recommended={true}>
-        <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-4 drop-shadow-sm">
-          <div className="flex items-center gap-4">
-            <div
-              className={cn(
-                "flex size-12 items-center justify-center rounded-lg bg-neutral-100",
-              )}
-            >
-              <GreekTemple className="size-6 text-neutral-700" />
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="font-medium text-neutral-900">Bank account</p>
-              </div>
-              <p className="text-sm text-neutral-500">Not connected</p>
-            </div>
-          </div>
-
-          <Button
-            variant="primary"
-            className="h-9 w-fit"
-            text="Connect"
-            onClick={() => setShowAddPaymentMethodModal(true)}
-            disabledTooltip={
-              clientAccessCheck({
-                action: "billing.write",
-                role,
-                customPermissionDescription: "connect payment methods",
-              }).error || undefined
-            }
-          />
-        </div>
-      </RecommendedForPayoutsWrapper>
-    </>
-  );
-};
-
-const RecommendedForPayoutsWrapper = ({
-  recommended,
-  children,
-}: {
-  recommended: boolean;
-  children: React.ReactNode;
-}) => {
-  return recommended ? (
-    <div className="rounded-[0.75rem] bg-neutral-200 p-1">
-      {children}
-      <span className="flex items-center gap-2 px-3 pb-1 pt-1.5 text-xs text-neutral-800">
-        <MoneyBill2 className="size-3.5 shrink-0" />
-        <span>
-          Recommended for partner payouts.{" "}
-          <Link
-            href="https://dub.co/help/article/how-to-set-up-bank-account"
-            target="_blank"
-            className="underline underline-offset-2 transition-colors duration-75 hover:text-neutral-900"
-          >
-            Learn more
-          </Link>
-        </span>
-      </span>
-    </div>
-  ) : (
-    children
   );
 };
 

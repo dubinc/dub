@@ -1,4 +1,3 @@
-import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { buildCustomerCountWhere } from "@/lib/customers/api/customer-count-where";
 import { prisma } from "@/lib/prisma";
@@ -9,16 +8,11 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const parsedFilters = getCustomersCountQuerySchema.parse(searchParams);
 
-  let { programId, partnerId, groupBy } = parsedFilters;
-
-  if (programId || partnerId) {
-    programId = getDefaultProgramIdOrThrow(workspace);
-  }
+  const { groupBy } = parsedFilters;
 
   const commonWhere = buildCustomerCountWhere({
     ...parsedFilters,
     workspaceId: workspace.id,
-    programId,
   });
 
   // Get customer count by country

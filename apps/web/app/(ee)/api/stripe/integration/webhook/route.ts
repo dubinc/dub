@@ -6,13 +6,10 @@ import { waitUntil } from "@vercel/functions";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";
-import { chargeRefunded } from "./charge-refunded";
 import { checkoutSessionCompleted } from "./checkout-session-completed";
-import { couponDeleted } from "./coupon-deleted";
 import { customerSubscriptionCreated } from "./customer-subscription-created";
 import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { invoicePaid } from "./invoice-paid";
-import { promotionCodeUpdated } from "./promotion-code-updated";
 import { WebhookHandlerResponse } from "./types";
 import { getWorkspaceForStripeAccount } from "./utils/get-workspace-for-stripe-account";
 import { syncCustomer } from "./utils/sync-customer";
@@ -21,15 +18,12 @@ export const dynamic = "force-dynamic";
 
 const relevantEvents = new Set([
   "account.application.deauthorized",
-  "charge.refunded",
   "checkout.session.completed",
-  "coupon.deleted",
   "customer.created",
   "customer.updated",
   "customer.subscription.created",
   "customer.subscription.deleted",
   "invoice.paid",
-  "promotion_code.updated",
 ]);
 
 // POST /api/stripe/integration/webhook – listen to Stripe webhooks (for Stripe Integration)
@@ -132,23 +126,10 @@ export const POST = withAxiom(async (req: Request) => {
           workspace,
         });
         break;
-      case "charge.refunded":
-        result = await chargeRefunded({
-          event,
-          mode,
-          workspace,
-        });
-        break;
       case "checkout.session.completed":
         result = await checkoutSessionCompleted({
           event,
           mode,
-          workspace,
-        });
-        break;
-      case "coupon.deleted":
-        result = await couponDeleted({
-          event,
           workspace,
         });
         break;
@@ -173,12 +154,6 @@ export const POST = withAxiom(async (req: Request) => {
         result = await invoicePaid({
           event,
           mode,
-          workspace,
-        });
-        break;
-      case "promotion_code.updated":
-        result = await promotionCodeUpdated({
-          event,
           workspace,
         });
         break;

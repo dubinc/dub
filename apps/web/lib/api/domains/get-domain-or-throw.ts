@@ -17,7 +17,6 @@ export const getDomainOrThrow = async ({
     where: { slug: domain },
     include: {
       registeredDomain: true,
-      partnerProgram: true,
     },
   });
 

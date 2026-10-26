@@ -23,10 +23,7 @@ export function useLinkBuilderSubmit({
 
   return useCallback(
     async (data: LinkFormData) => {
-      const bodyData = buildLinkBody({
-        data,
-        defaultProgramId: workspace.defaultProgramId,
-      });
+      const bodyData = buildLinkBody({ data });
 
       const endpoint = props?.id
         ? {
@@ -146,7 +143,6 @@ export function useLinkBuilderSubmit({
     [
       workspace.id,
       workspace.slug,
-      workspace.defaultProgramId,
       workspace.nextPlan,
       props,
       copyToClipboard,

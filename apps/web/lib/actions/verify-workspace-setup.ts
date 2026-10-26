@@ -52,21 +52,13 @@ export const verifyWorkspaceSetup = authActionClient
       apiKey: process.env.FIRECRAWL_API_KEY,
     });
 
-    const [scrapeResult, program] = await Promise.all([
-      firecrawl.scrapeUrl(toVerifySiteUrl(hostname), {
-        formats: ["rawHtml"],
-        onlyMainContent: false,
-        parsePDF: false,
-        maxAge: 0,
-        waitFor: 5000,
-      }),
-      workspace.defaultProgramId
-        ? prisma.program.findUnique({
-            where: { id: workspace.defaultProgramId },
-            select: { domain: true },
-          })
-        : null,
-    ]);
+    const scrapeResult = await firecrawl.scrapeUrl(toVerifySiteUrl(hostname), {
+      formats: ["rawHtml"],
+      onlyMainContent: false,
+      parsePDF: false,
+      maxAge: 0,
+      waitFor: 5000,
+    });
 
     if (!scrapeResult.success || !scrapeResult.rawHtml) {
       return {
@@ -76,18 +68,13 @@ export const verifyWorkspaceSetup = authActionClient
       };
     }
 
-    const analysis = analyzeDubAnalyticsScript(scrapeResult.rawHtml, {
-      referDomain: program?.domain,
-    });
+    const analysis = analyzeDubAnalyticsScript(scrapeResult.rawHtml);
 
     if (analysis !== "ok") {
       return {
         status: "error",
         hostname,
         error: analysis,
-        ...(analysis === "missing_refer_domain" && program?.domain
-          ? { referDomain: program.domain }
-          : {}),
       };
     }
 

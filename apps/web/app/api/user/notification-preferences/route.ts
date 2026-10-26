@@ -44,8 +44,6 @@ export async function GET(request: NextRequest) {
         notificationPreferences: {
           select: {
             dubLinks: true,
-            dubPartners: true,
-            partnerAccount: true,
           },
         },
       },
@@ -59,13 +57,9 @@ export async function GET(request: NextRequest) {
     const preferences = user.notificationPreferences
       ? {
           dubLinks: user.notificationPreferences.dubLinks,
-          dubPartners: user.notificationPreferences.dubPartners,
-          partnerAccount: user.notificationPreferences.partnerAccount,
         }
       : {
           dubLinks: true,
-          dubPartners: true,
-          partnerAccount: true,
         };
 
     return NextResponse.json(preferences);
@@ -102,8 +96,6 @@ export async function POST(request: NextRequest) {
         notificationPreferences: {
           select: {
             dubLinks: true,
-            dubPartners: true,
-            partnerAccount: true,
           },
         },
       },
@@ -116,16 +108,11 @@ export async function POST(request: NextRequest) {
     // Get existing preferences or use defaults
     const existingPrefs = user.notificationPreferences || {
       dubLinks: true,
-      dubPartners: true,
-      partnerAccount: true,
     };
 
     // Merge preferences with existing values (field names now match schema directly)
     const updatedPrefs = {
       dubLinks: preferences.dubLinks ?? existingPrefs.dubLinks,
-      dubPartners: preferences.dubPartners ?? existingPrefs.dubPartners,
-      partnerAccount:
-        preferences.partnerAccount ?? existingPrefs.partnerAccount,
     };
 
     // Update or create notification preferences using upsert pattern

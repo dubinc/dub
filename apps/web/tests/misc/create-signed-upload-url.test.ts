@@ -17,7 +17,7 @@ vi.mock("@/lib/storage", () => ({
 const getSignedUploadUrlMock = vi.mocked(storage.getSignedUploadUrl);
 
 describe("createSignedUploadUrl", () => {
-  const key = "programs/prog_123/lander/image_abc";
+  const key = "integration-screenshots/image_abc";
   const signedUrl = "https://signed.example.test/upload";
 
   beforeEach(() => {
@@ -47,31 +47,23 @@ describe("createSignedUploadUrl", () => {
 
   it("forwards the private bucket to the signer", async () => {
     await createSignedUploadUrl({
-      key: "messages/prog_123/file.pdf",
+      key: "exports/ws_123/file.pdf",
       contentType: "application/pdf",
       contentLength: 2048,
       bucket: "private",
     });
 
     expect(getSignedUploadUrlMock).toHaveBeenCalledWith({
-      key: "messages/prog_123/file.pdf",
+      key: "exports/ws_123/file.pdf",
       bucket: "private",
       contentType: "application/pdf",
       contentLength: 2048,
     });
   });
 
-  it.each([
-    "integrationScreenshots",
-    "programLogos",
-    "programApplicationImages",
-    "programCampaignImages",
-    "programLanderImages",
-    "programResourceLogos",
-    "programResourceFiles",
-    "bountySubmissionImages",
-    "resumes",
-  ] as const satisfies ReadonlyArray<keyof typeof UPLOAD_POLICIES>)(
+  it.each(["integrationScreenshots"] as const satisfies ReadonlyArray<
+    keyof typeof UPLOAD_POLICIES
+  >)(
     "pins Content-Type and Content-Length into the signer for %s",
     async (policy) => {
       const contentType = UPLOAD_POLICIES[policy].contentTypes[0];
@@ -97,32 +89,17 @@ describe("validateSignedUpload", () => {
   it("accepts an allowed upload", () => {
     expect(
       validateSignedUpload({
-        policy: "programLanderImages",
+        policy: "integrationScreenshots",
         contentType: "image/png",
         contentLength: 1024,
       }),
-    ).toEqual(UPLOAD_POLICIES.programLanderImages);
-  });
-
-  it("rejects image/svg+xml for bounty submission images", () => {
-    expect(() =>
-      validateSignedUpload({
-        policy: "bountySubmissionImages",
-        contentType: "image/svg+xml",
-        contentLength: 1024,
-      }),
-    ).toThrow(
-      expect.objectContaining({
-        code: "unprocessable_entity",
-        message: expect.stringContaining("Invalid content type"),
-      } satisfies Partial<DubApiError>),
-    );
+    ).toEqual(UPLOAD_POLICIES.integrationScreenshots);
   });
 
   it("rejects content types not allowed by the policy", () => {
     expect(() =>
       validateSignedUpload({
-        policy: "programLogos",
+        policy: "integrationScreenshots",
         contentType: "image/svg+xml",
         contentLength: 1024,
       }),
@@ -137,7 +114,7 @@ describe("validateSignedUpload", () => {
   it("rejects an empty content type", () => {
     expect(() =>
       validateSignedUpload({
-        policy: "programLogos",
+        policy: "integrationScreenshots",
         contentType: "",
         contentLength: 1024,
       }),
@@ -148,7 +125,7 @@ describe("validateSignedUpload", () => {
     for (const contentLength of [0, -1, 1.5, Number.NaN]) {
       expect(() =>
         validateSignedUpload({
-          policy: "programLogos",
+          policy: "integrationScreenshots",
           contentType: "image/png",
           contentLength,
         }),
@@ -162,11 +139,11 @@ describe("validateSignedUpload", () => {
   });
 
   it("rejects files larger than the policy max", () => {
-    const maxBytes = UPLOAD_POLICIES.programLogos.maxBytes;
+    const maxBytes = UPLOAD_POLICIES.integrationScreenshots.maxBytes;
 
     expect(() =>
       validateSignedUpload({
-        policy: "programLogos",
+        policy: "integrationScreenshots",
         contentType: "image/png",
         contentLength: maxBytes + 1,
       }),
@@ -179,29 +156,21 @@ describe("validateSignedUpload", () => {
   });
 
   it("allows uploads at the exact policy size limit", () => {
-    const maxBytes = UPLOAD_POLICIES.programLogos.maxBytes;
+    const maxBytes = UPLOAD_POLICIES.integrationScreenshots.maxBytes;
 
     expect(
       validateSignedUpload({
-        policy: "programLogos",
+        policy: "integrationScreenshots",
         contentType: "image/avif",
         contentLength: maxBytes,
       }),
-    ).toEqual(UPLOAD_POLICIES.programLogos);
+    ).toEqual(UPLOAD_POLICIES.integrationScreenshots);
   });
 
   // Stored XSS on dubassets.com: unsigned Content-Type let clients PUT text/html.
   describe("Content-Type pinning (XSS regression)", () => {
     const publicPolicies = [
       "integrationScreenshots",
-      "programLogos",
-      "programApplicationImages",
-      "programCampaignImages",
-      "programLanderImages",
-      "programResourceLogos",
-      "programResourceFiles",
-      "bountySubmissionImages",
-      "resumes",
     ] as const satisfies ReadonlyArray<keyof typeof UPLOAD_POLICIES>;
 
     const xssContentTypes = [
@@ -243,26 +212,6 @@ describe("validateSignedUpload", () => {
         );
       },
     );
-
-    it("rejects text/html for private message attachment policies", () => {
-      for (const policy of [
-        "programMessageAttachments",
-        "partnerMessageAttachments",
-      ] as const) {
-        expect(() =>
-          validateSignedUpload({
-            policy,
-            contentType: "text/html",
-            contentLength: 128,
-          }),
-        ).toThrow(
-          expect.objectContaining({
-            code: "unprocessable_entity",
-            message: expect.stringContaining("Invalid content type"),
-          } satisfies Partial<DubApiError>),
-        );
-      }
-    });
 
     it("rejects HTML/scriptable types that are outside each public policy allowlist", () => {
       for (const policy of publicPolicies) {

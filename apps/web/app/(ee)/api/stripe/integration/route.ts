@@ -2,8 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
-import { capitalize, STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { StripeConnectMode } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -32,11 +31,6 @@ export const PATCH = withWorkspace(
         message: "You are not authorized to update the Stripe integration.",
       });
     }
-
-    assertProductionWorkspace(workspace, {
-      when: stripeMode === "live",
-      message: `Live Stripe mode cannot be used in ${capitalize(workspace.environment)} workspaces.`,
-    });
 
     const installation = await prisma.installedIntegration.findUnique({
       where: {

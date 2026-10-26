@@ -17,10 +17,6 @@
 3. Set environment variables in `apps/web/.env`:
 
    ```sh
-   # Required for login tests (seeded user)
-   E2E_PARTNER_EMAIL=partner1@dub-internal-test.com
-   E2E_PARTNER_PASSWORD=password
-
    # SMTP must point to MailHog — signup tests read OTP emails from it
    SMTP_HOST=localhost
    SMTP_PORT=1025
@@ -28,7 +24,7 @@
    # RESEND_API_KEY must NOT be set, otherwise emails go to Resend instead of MailHog
    ```
 
-   The seeded test user (`E2E_PARTNER_EMAIL`) must exist in your local database — run `tsx apps/web/playwright/seed.ts` to create it. Signup tests generate a fresh user each run via MailHog email verification.
+   Signup tests generate a fresh user each run via MailHog email verification.
 
 ## API tests
 

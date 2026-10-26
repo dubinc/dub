@@ -54,10 +54,7 @@ import {
   STRIPE_INTEGRATION_ID,
   ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
-import {
-  HUBSPOT_INTEGRATION_ID,
-  INTERCOM_INTEGRATION_ID,
-} from "@dub/utils/src/constants/integrations";
+import { HUBSPOT_INTEGRATION_ID } from "@dub/utils/src/constants/integrations";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -162,8 +159,6 @@ export default function IntegrationPageClient({
 
   const uninstallDisabledIntegrations = {
     stripe: `https://dashboard.stripe.com/${stripeConnectId}/${stripeConnectMode === "test" ? "test/" : ""}apps/installed/dub.co`,
-    intercom:
-      "https://app.intercom.com/a/apps/_/settings/app-settings/app-store?app_package_code=dub-ejgb",
   };
 
   const { canInstallAdvancedIntegrations } = getPlanCapabilities(plan);
@@ -356,7 +351,6 @@ export default function IntegrationPageClient({
                   disabledTooltip={
                     [
                       APPSFLYER_INTEGRATION_ID,
-                      INTERCOM_INTEGRATION_ID,
                       GOOGLE_ADS_INTEGRATION_ID,
                     ].includes(integration.id) &&
                     !canInstallAdvancedIntegrations ? (

@@ -1,5 +1,4 @@
 import * as z from "zod/v4";
-import { includeProgramEnrollment } from "../../api/links/include-program-enrollment";
 import { includeTags } from "../../api/links/include-tags";
 import { CRON_BATCH_SIZE } from "../../cron";
 import { prisma } from "../../prisma";
@@ -72,7 +71,6 @@ export const linkTagDeletedJob = defineJob({
         },
         include: {
           ...includeTags,
-          ...includeProgramEnrollment,
         },
       });
 

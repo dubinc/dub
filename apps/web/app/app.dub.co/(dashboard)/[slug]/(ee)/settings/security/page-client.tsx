@@ -1,6 +1,5 @@
 "use client";
 
-import { AuditLogs } from "./audit-logs";
 import { SAML } from "./saml";
 import { SCIM } from "./scim";
 
@@ -9,7 +8,6 @@ export default function WorkspaceSecurityClient() {
     <div className="flex flex-col gap-6">
       <SAML />
       <SCIM />
-      <AuditLogs />
     </div>
   );
 }

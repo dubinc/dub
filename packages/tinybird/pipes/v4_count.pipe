@@ -21,28 +21,6 @@ WHERE
         )
     }}
     AND deleted == 0
-    {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
-    {% if defined(partnerId) %}
-        {% if defined(partnerIdOperator) and String(partnerIdOperator) == 'NOT IN' %}
-            AND partner_id NOT IN {{ Array(partnerId, 'String') }}
-        {% else %} AND partner_id IN {{ Array(partnerId, 'String') }}
-        {% end %}
-    {% end %}
-    {% if defined(groupId) %}
-        {% if defined(groupIdOperator) and String(groupIdOperator) == 'NOT IN' %}
-            AND partner_group_id NOT IN {{ Array(groupId, 'String') }}
-        {% else %} AND partner_group_id IN {{ Array(groupId, 'String') }}
-        {% end %}
-    {% end %}
-    {% if defined(partnerTagId) %}
-        {% if defined(partnerTagIdOperator) and String(partnerTagIdOperator) == 'NOT IN' %}
-            AND length(
-                arrayFilter(x -> x NOT IN {{ Array(partnerTagId, 'String') }}, partner_tag_ids)
-            )
-            = length(partner_tag_ids)
-        {% else %} AND arrayIntersect(partner_tag_ids, {{ Array(partnerTagId, 'String') }}) != []
-        {% end %}
-    {% end %}
     {% if defined(tenantId) %}
         {% if defined(tenantIdOperator) and String(tenantIdOperator) == 'NOT IN' %}
             AND tenant_id NOT IN {{ Array(tenantId, 'String') }}
@@ -99,7 +77,7 @@ SQL >
             {% else %}
                 AND link_id IN {{ Array(linkId, 'String') }}
             {% end %}
-        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
+        {% elif defined(
             tenantId
         ) or defined(folderId) or defined(domain) or defined(
             tagId
@@ -245,7 +223,7 @@ SQL >
             {% else %}
                 AND link_id IN {{ Array(linkId, 'String') }}
             {% end %}
-        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
+        {% elif defined(
             tenantId
         ) or defined(folderId) or defined(domain) or defined(
             tagId
@@ -453,7 +431,7 @@ SQL >
                     {% else %}
                         AND se.link_id IN {{ Array(linkId, 'String') }}
                     {% end %}
-                {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
+                {% elif defined(
                     tenantId
                 ) or defined(folderId) or defined(domain) or defined(
                     tagId

@@ -5,31 +5,18 @@ enum PlanPeriod {
   biweekly
 }
 
-enum WorkspaceEnvironment {
-  production
-  staging
-  sandbox
-}
-
 enum StripeConnectMode {
   live
   test
   sandbox
 }
 
-enum DubProduct {
-  program
-  links
-}
-
 model Project {
-  id               String     @id
-  name             String
-  slug             String     @unique
-  logo             String?
-  inviteCode       String?    @unique
-  defaultProduct   DubProduct @default(links)
-  defaultProgramId String?    @unique // default affiliate program ID for the workspace
+  id         String  @id
+  name       String
+  slug       String  @unique
+  logo       String?
+  inviteCode String? @unique
 
   plan                   String      @default("free")
   planTier               Int         @default(1)
@@ -40,10 +27,7 @@ model Project {
   trialEndsAt            DateTime? // when set and in the future, the workspace is on a Stripe subscription free trial
   subscriptionCanceledAt DateTime? // when the workspace's subscription was canceled (or set to cancel)
   paymentFailedAt        DateTime?
-  invoicePrefix          String?     @unique // prefix used to generate unique invoice numbers (for Dub Payouts)
-
-  environment        WorkspaceEnvironment @default(production)
-  stagingWorkspaceId String?              @unique
+  invoicePrefix          String?     @unique // prefix used to generate unique invoice numbers (for domain renewals)
 
   stripeConnectId   String? // for Stripe Integration
   stripeConnectMode StripeConnectMode? // Stripe mode the account is connected in
@@ -52,41 +36,27 @@ model Project {
   totalLinks  Int @default(0) // Total number of links in the workspace
   totalClicks Int @default(0) // Total number of clicks in the workspace
 
-  usage                Int   @default(0)
-  usageLimit           Int   @default(1000)
-  linksUsage           Int   @default(0)
-  linksLimit           Int   @default(25)
-  payoutsUsage         Int   @default(0)
-  payoutsLimit         Int   @default(0)
-  payoutFee            Float @default(0.05) // processing fee (in decimals) for partner payouts
-  payoutFeeWaiverLimit Int   @default(0) // amount in cents for which the payout fee will be waived
-  payoutFeeWaiverUsage Int   @default(0) // how much of payoutFeeWaiverLimit has been used
+  usage      Int @default(0)
+  usageLimit Int @default(1000)
+  linksUsage Int @default(0)
+  linksLimit Int @default(25)
 
-  domainsLimit        Int @default(3)
-  tagsLimit           Int @default(5)
-  partnerTagsLimit    Int @default(0)
-  foldersUsage        Int @default(0)
-  foldersLimit        Int @default(0)
-  partnersUsage       Int @default(0)
-  partnersLimit       Int @default(0)
-  groupsLimit         Int @default(0)
-  usersLimit          Int @default(1)
-  aiUsage             Int @default(0)
-  aiLimit             Int @default(10)
-  networkInvitesLimit Int @default(0)
-
-  referralLinkId  String? @unique
-  referredSignups Int     @default(0)
+  domainsLimit Int @default(3)
+  tagsLimit    Int @default(5)
+  foldersUsage Int @default(0)
+  foldersLimit Int @default(0)
+  usersLimit   Int @default(1)
+  aiUsage      Int @default(0)
+  aiLimit      Int @default(10)
 
   store                     Json? // General key-value store for things like persisting toggles, dismissing popups, etc.
   siteVisitTrackingSettings Json? // Site visit tracking: sitemaps, short-link domain, Site Links folder id
   allowedHostnames          Json?
   publishableKey            String? @unique // for the client-side publishable key
 
-  conversionEnabled      Boolean @default(false) // Whether to enable conversion tracking for links by default
-  webhookEnabled         Boolean @default(false)
-  dotLinkClaimed         Boolean @default(false)
-  fastDirectDebitPayouts Boolean @default(false)
+  conversionEnabled Boolean @default(false) // Whether to enable conversion tracking for links by default
+  webhookEnabled    Boolean @default(false)
+  dotLinkClaimed    Boolean @default(false)
 
   ssoEmailDomain   String?   @unique
   ssoEnforcedAt    DateTime?
@@ -101,7 +71,6 @@ model Project {
   links                 Link[]
   domains               Domain[]
   tags                  Tag[]
-  programs              Program[]
   invoices              Invoice[]
   customers             Customer[]
   defaultDomains        DefaultDomains[]

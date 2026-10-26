@@ -8,44 +8,13 @@ const prefixes = [
   "tag_", // tag
   "fold_", // folder
   "dom_", // domain
-  "po_", // payout
   "dash_", // dashboard
   "int_", // integration
   "app_", // oauth app
   "cus_", // customer
   "utm_", // utm template
   "wh_", // webhook
-  "pn_", // partner
-  "dpn_", // discovered partner
-  "prog_", // program
-  "pga_", // program application
-  "pga_evt_", // program application event
-  "pgi_", // program invitation
-  "pge_", // program enrollment
-  "pgr_", // program resources
-  "pgdl_", // program group default link
   "inv_", // invoice
-  "cm_", // commission
-  "rw_", // reward
-  "disc_", // discount
-  "dcode_", // discount code
-  "dub_embed_", // dub embed
-  "audit_", // audit log
-  "import_", // import log
-  "grp_", // partner group
-  "ptag_", // partner tag
-  "bnty_", // bounty
-  "bnty_sub_", // bounty submission
-  "wf_", // workflow
-  "msg_", // message
-  "msa_", // message attachment
-  "em_", // notification email,
-  "cmp_", // campaign
-  "fr_", // fraud rule
-  "fre_", // fraud event
-  "frg_", // fraud event group
-  "sbl_", // submitted lead
-  "pb_", // partner postback
   "req_", // api request log
   "job_", // background job
 ] as const;

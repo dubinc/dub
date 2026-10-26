@@ -1,15 +1,11 @@
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { recordWebhookEvent } from "@/lib/tinybird/record-webhook-event";
-import {
-  EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER,
-  WEBHOOK_TRIGGERS,
-} from "@/lib/webhook/constants";
+import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import {
   handleWebhookFailure,
   resetWebhookFailureCount,
 } from "@/lib/webhook/failure";
-import { handleExternalPayoutEvent } from "@/lib/webhook/handle-external-payout-event";
 import { webhookCallbackSchema } from "@/lib/zod/schemas/webhooks";
 import { getSearchParams } from "@dub/utils";
 import * as z from "zod/v4";
@@ -29,12 +25,9 @@ export const POST = async (req: Request) => {
   const { url, status, body, sourceBody, sourceMessageId } =
     webhookCallbackSchema.parse(JSON.parse(rawBody));
 
-  const {
-    webhookId,
-    eventId,
-    event,
-    failed: deliveryFailed, // failed after all the retries
-  } = searchParamsSchema.parse(getSearchParams(req.url));
+  const { webhookId, eventId, event } = searchParamsSchema.parse(
+    getSearchParams(req.url),
+  );
 
   const webhook = await prisma.webhook.findUnique({
     where: {
@@ -85,21 +78,6 @@ export const POST = async (req: Request) => {
     // Only reset if there were previous failures
     ...(webhook.consecutiveFailures > 0 && !isFailed
       ? [resetWebhookFailureCount(webhookId)]
-      : []),
-
-    // Handle external payout events
-    ...(event === EXTERNAL_PAYOUT_CONFIRMED_WEBHOOK_TRIGGER
-      ? [
-          handleExternalPayoutEvent({
-            webhook,
-            payload: JSON.parse(request),
-            status: deliveryFailed
-              ? "failure"
-              : isFailed
-                ? "temporary_failure"
-                : "success",
-          }),
-        ]
       : []),
   ]);
 

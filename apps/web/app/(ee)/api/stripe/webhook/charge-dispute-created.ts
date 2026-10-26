@@ -33,17 +33,10 @@ export async function chargeDisputeCreated(
 
   await disableWorkspaceLinks(workspace.id);
 
-  const workspaceIds = [
-    workspace.id,
-    ...(workspace.stagingWorkspaceId ? [workspace.stagingWorkspaceId] : []),
-  ];
-
   // Update all users to viewer role except for LEGAL_USER_ID
   const updatedUsers = await prisma.projectUsers.updateMany({
     where: {
-      projectId: {
-        in: workspaceIds,
-      },
+      projectId: workspace.id,
       userId: {
         not: LEGAL_USER_ID,
       },
@@ -57,7 +50,7 @@ export async function chargeDisputeCreated(
 
   // Add LEGAL_USER_ID as owner
   await Promise.all(
-    workspaceIds.map((projectId) =>
+    [workspace.id].map((projectId) =>
       prisma.projectUsers.upsert({
         where: {
           userId_projectId: {

@@ -1,11 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { hashToken } from "@/lib/auth/hash-token";
 import { prisma } from "@/lib/prisma";
-import {
-  DEFAULT_ADDITIONAL_PARTNER_LINKS,
-  DEFAULT_PARTNER_GROUP,
-} from "@/lib/zod/schemas/groups";
-import { EventType, RewardStructure } from "@prisma/client";
 import { config as loadEnv } from "dotenv-flow";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
@@ -14,43 +9,6 @@ import { PLAYWRIGHT_API_BASE } from "./constants";
 loadEnv({
   silent: true,
 });
-
-export const TEST_APPLICATION_FORM = {
-  fields: [
-    {
-      id: "pw_website",
-      type: "short-text" as const,
-      label: "Website / Social media channel",
-      required: true,
-      data: {
-        placeholder: "https://example.com",
-      },
-    },
-    {
-      id: "pw_promote",
-      type: "long-text" as const,
-      label: "How do you plan to promote us?",
-      required: true,
-      data: {
-        placeholder: "",
-      },
-    },
-    {
-      id: "pw_comments",
-      type: "long-text" as const,
-      label: "Any additional questions or comments?",
-      required: false,
-      data: {
-        placeholder: "",
-      },
-    },
-  ],
-} as const;
-
-export const TEST_APPLICATION_FIELD_VALUES = {
-  website: "https://example.com/playwright",
-  promote: "I will promote via a newsletter and blog posts.",
-} as const;
 
 export const TEST_WORKSPACE = {
   user: {
@@ -65,80 +23,16 @@ export const TEST_WORKSPACE = {
     name: "Playwright API",
     value: "dub_playwright_api_test_key_fixed", // Fixed local/CI-only key
   },
-  program: {
-    domain: "playwright-api.dub-internal-test.com",
-    url: "https://example.com",
-  },
+  domain: "playwright-api.dub-internal-test.com",
   shopify: {
     storeId: "playwright-api.myshopify.com",
-  },
-} as const;
-
-export const TEST_COMMISSION_REWARDS = {
-  lead: {
-    id: "rw_playwright_api_lead",
-    event: EventType.lead,
-    type: RewardStructure.flat,
-    amountInCents: 1000,
-    modifiers: [
-      {
-        operator: "AND",
-        type: RewardStructure.flat,
-        amountInCents: 5000,
-        conditions: [
-          {
-            entity: "lead",
-            attribute: "metadata",
-            metadataField: "plan",
-            operator: "equals_to",
-            value: "pro",
-          },
-        ],
-      },
-    ],
-  },
-  sale: {
-    id: "rw_playwright_api_sale",
-    event: EventType.sale,
-    type: RewardStructure.flat,
-    amountInCents: 2500,
-    maxDuration: 0,
-    modifiers: [
-      {
-        operator: "AND",
-        type: RewardStructure.flat,
-        amountInCents: 5000,
-        conditions: [
-          {
-            entity: "sale",
-            attribute: "productId",
-            operator: "equals_to",
-            value: "sku_pro",
-          },
-        ],
-      },
-      {
-        operator: "AND",
-        type: RewardStructure.flat,
-        amountInCents: 7500,
-        conditions: [
-          {
-            entity: "sale",
-            attribute: "metadata",
-            metadataField: "plan",
-            operator: "equals_to",
-            value: "pro",
-          },
-        ],
-      },
-    ],
   },
 } as const;
 
 const authFile = path.join(__dirname, "../.auth/api.json");
 
 // Upserts a dedicated Playwright API user, workspace, membership,
-// RestrictedToken, and partner program. Safe to run repeatedly from globalSetup.
+// RestrictedToken, and domain. Safe to run repeatedly from globalSetup.
 export async function setupTestWorkspace() {
   const user = await prisma.user.upsert({
     where: {
@@ -172,8 +66,6 @@ export async function setupTestWorkspace() {
       usersLimit: 100,
       foldersLimit: 100,
       aiLimit: 1000,
-      partnersLimit: 1000,
-      groupsLimit: 100,
       shopifyStoreId: TEST_WORKSPACE.shopify.storeId,
     },
     create: {
@@ -189,8 +81,6 @@ export async function setupTestWorkspace() {
       usersLimit: 100,
       foldersLimit: 100,
       aiLimit: 1000,
-      partnersLimit: 1000,
-      groupsLimit: 100,
       shopifyStoreId: TEST_WORKSPACE.shopify.storeId,
     },
   });
@@ -247,9 +137,20 @@ export async function setupTestWorkspace() {
     },
   });
 
-  const { programId, defaultGroupId } = await setupTestProgram({
-    workspaceId: workspace.id,
-    userId: user.id,
+  await prisma.domain.upsert({
+    where: {
+      slug: TEST_WORKSPACE.domain,
+    },
+    update: {
+      projectId: workspace.id,
+      verified: true,
+    },
+    create: {
+      id: createId({ prefix: "dom_" }),
+      slug: TEST_WORKSPACE.domain,
+      projectId: workspace.id,
+      verified: true,
+    },
   });
 
   await mkdir(path.dirname(authFile), { recursive: true });
@@ -262,8 +163,6 @@ export async function setupTestWorkspace() {
         baseURL: PLAYWRIGHT_API_BASE,
         userId: user.id,
         workspaceSlug: workspace.slug,
-        programId,
-        defaultGroupId,
       },
       null,
       2,
@@ -275,194 +174,5 @@ export async function setupTestWorkspace() {
     userId: user.id,
     workspaceId: workspace.id,
     workspaceSlug: workspace.slug,
-    programId,
-    defaultGroupId,
-  };
-}
-
-async function setupTestProgram({
-  workspaceId,
-  userId,
-}: {
-  workspaceId: string;
-  userId: string;
-}) {
-  await prisma.domain.upsert({
-    where: {
-      slug: TEST_WORKSPACE.program.domain,
-    },
-    update: {
-      projectId: workspaceId,
-      verified: true,
-    },
-    create: {
-      id: createId({ prefix: "dom_" }),
-      slug: TEST_WORKSPACE.program.domain,
-      projectId: workspaceId,
-      verified: true,
-    },
-  });
-
-  const folderId = createId({ prefix: "fold_" });
-  const folder = await prisma.folder.upsert({
-    where: {
-      name_projectId: {
-        name: "Partner Links",
-        projectId: workspaceId,
-      },
-    },
-    update: {},
-    create: {
-      id: folderId,
-      name: "Partner Links",
-      projectId: workspaceId,
-      accessLevel: "write",
-    },
-  });
-
-  await prisma.folderUser.upsert({
-    where: {
-      folderId_userId: {
-        folderId: folder.id,
-        userId,
-      },
-    },
-    update: {
-      role: "owner",
-    },
-    create: {
-      folderId: folder.id,
-      userId,
-      role: "owner",
-    },
-  });
-
-  const didCreateFolder = folder.id === folderId;
-  const programId = createId({ prefix: "prog_" });
-  const defaultGroupId = createId({ prefix: "grp_" });
-
-  const program = await prisma.program.upsert({
-    where: {
-      slug: TEST_WORKSPACE.workspace.slug,
-    },
-    create: {
-      id: programId,
-      workspaceId,
-      name: TEST_WORKSPACE.workspace.name,
-      slug: TEST_WORKSPACE.workspace.slug,
-      domain: TEST_WORKSPACE.program.domain,
-      url: TEST_WORKSPACE.program.url,
-      defaultFolderId: folder.id,
-      defaultGroupId,
-      addedToMarketplaceAt: new Date(),
-    },
-    update: {
-      name: TEST_WORKSPACE.workspace.name,
-      domain: TEST_WORKSPACE.program.domain,
-      url: TEST_WORKSPACE.program.url,
-      defaultFolderId: folder.id,
-      addedToMarketplaceAt: new Date(),
-    },
-  });
-
-  await Promise.all(
-    [TEST_COMMISSION_REWARDS.lead, TEST_COMMISSION_REWARDS.sale].map(
-      (reward) => {
-        const { id, ...data } = reward;
-        return prisma.reward.upsert({
-          where: {
-            id,
-          },
-          create: {
-            id,
-            programId: program.id,
-            groupId: program.defaultGroupId,
-            ...data,
-          },
-          update: {
-            ...data,
-            groupId: program.defaultGroupId,
-          },
-        });
-      },
-    ),
-  );
-
-  const group = await prisma.partnerGroup.upsert({
-    where: {
-      programId_slug: {
-        programId: program.id,
-        slug: DEFAULT_PARTNER_GROUP.slug,
-      },
-    },
-    create: {
-      id: program.defaultGroupId,
-      programId: program.id,
-      slug: DEFAULT_PARTNER_GROUP.slug,
-      name: DEFAULT_PARTNER_GROUP.name,
-      color: DEFAULT_PARTNER_GROUP.color,
-      maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
-      leadRewardId: TEST_COMMISSION_REWARDS.lead.id,
-      saleRewardId: TEST_COMMISSION_REWARDS.sale.id,
-      applicationFormData: TEST_APPLICATION_FORM,
-      applicationFormPublishedAt: new Date(),
-    },
-    update: {
-      name: DEFAULT_PARTNER_GROUP.name,
-      maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
-      leadRewardId: TEST_COMMISSION_REWARDS.lead.id,
-      saleRewardId: TEST_COMMISSION_REWARDS.sale.id,
-      applicationFormData: TEST_APPLICATION_FORM,
-      applicationFormPublishedAt: new Date(),
-    },
-  });
-
-  await prisma.program.update({
-    where: {
-      id: program.id,
-    },
-    data: {
-      defaultGroupId: group.id,
-    },
-  });
-
-  await prisma.partnerGroupDefaultLink.upsert({
-    where: {
-      groupId_url: {
-        groupId: group.id,
-        url: TEST_WORKSPACE.program.url,
-      },
-    },
-    create: {
-      id: createId({ prefix: "pgdl_" }),
-      programId: program.id,
-      groupId: group.id,
-      domain: TEST_WORKSPACE.program.domain,
-      url: TEST_WORKSPACE.program.url,
-    },
-    update: {
-      domain: TEST_WORKSPACE.program.domain,
-    },
-  });
-
-  await prisma.project.update({
-    where: {
-      id: workspaceId,
-    },
-    data: {
-      defaultProduct: "program",
-      defaultProgramId: program.id,
-      partnersLimit: 1000,
-      ...(didCreateFolder && {
-        foldersUsage: {
-          increment: 1,
-        },
-      }),
-    },
-  });
-
-  return {
-    programId: program.id,
-    defaultGroupId: group.id,
   };
 }

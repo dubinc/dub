@@ -21,7 +21,6 @@ model Domain {
   project          Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   links            Link[]
   registeredDomain RegisteredDomain?
-  partnerProgram   Program?
 
   @@index(projectId)
   @@index(lastChecked(sort: Asc))
@@ -58,32 +57,4 @@ model DefaultDomains {
   loooooooong Boolean @default(false)
   projectId   String  @unique
   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-}
-
-enum EmailDomainStatus {
-  pending
-  verified
-  failed
-  temporary_failure
-  not_started
-  // Resend aggregate statuses when send/receive (or dual sending CNAMEs) diverge
-  partially_verified
-  partially_failed
-}
-
-model EmailDomain {
-  id             String            @id
-  workspaceId    String
-  programId      String
-  slug           String            @unique
-  status         EmailDomainStatus @default(pending)
-  resendDomainId String?           @unique
-  lastChecked    DateTime          @default(now())
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-
-  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-
-  @@index(lastChecked(sort: Asc))
-  @@index(programId)
 }

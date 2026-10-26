@@ -115,33 +115,6 @@ export const analyticsQuerySchema = z.object({
         "Examples: `folder_123`, `folder_123,folder_456`, `-folder_789`. " +
         "If not provided, return analytics for all links.",
     ),
-  partnerTagId: z
-    .string()
-    .optional()
-    .transform(parseFilterValue)
-    .describe(
-      "The partner tag ID(s) to retrieve analytics for. " +
-        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-        "Examples: `ptag_123`, `ptag_123,ptag_456`, `-ptag_789`.",
-    ),
-  groupId: z
-    .string()
-    .optional()
-    .transform(parseFilterValue)
-    .describe(
-      "The group ID to retrieve analytics for. " +
-        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-        "Examples: `grp_123`, `grp_123,grp_456`, `-grp_789`.",
-    ),
-  partnerId: z
-    .string()
-    .optional()
-    .transform(parseFilterValue)
-    .describe(
-      "The ID of the partner to retrieve analytics for. " +
-        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-        "Examples: `pn_123`, `pn_123,pn_456`, `-pn_789`.",
-    ),
   customerId: z
     .string()
     .optional()
@@ -376,13 +349,6 @@ export const analyticsQuerySchema = z.object({
         "Examples: `metadata['key']:'value'`",
     ),
   // deprecated fields
-  programId: z
-    .string()
-    .optional()
-    .describe(
-      "Deprecated: This is automatically inferred from your workspace's defaultProgramId. The ID of the program to retrieve analytics for.",
-    )
-    .meta({ deprecated: true }),
   tagIds: z
     .string()
     .optional()
@@ -465,30 +431,6 @@ export const analyticsFilterTB = z.object({
       "The folder ID(s) to retrieve analytics for (with operator support).",
     ),
   folderIdOperator: z.enum(["IN", "NOT IN"]).optional(),
-  groupId: z
-    .union([z.string(), z.array(z.string())])
-    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-    .optional()
-    .describe(
-      "The group ID(s) to retrieve analytics for (with operator support).",
-    ),
-  groupIdOperator: z.enum(["IN", "NOT IN"]).optional(),
-  partnerId: z
-    .union([z.string(), z.array(z.string())])
-    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-    .optional()
-    .describe(
-      "The partner ID(s) to retrieve analytics for (with operator support).",
-    ),
-  partnerIdOperator: z.enum(["IN", "NOT IN"]).optional(),
-  partnerTagId: z
-    .union([z.string(), z.array(z.string())])
-    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-    .optional()
-    .describe(
-      "The partner tag ID(s) to retrieve analytics for (with operator support).",
-    ),
-  partnerTagIdOperator: z.enum(["IN", "NOT IN"]).optional(),
   customerId: z.string().optional(),
   start: z.string(),
   end: z.string(),
@@ -506,7 +448,6 @@ export const analyticsFilterTB = z.object({
     .describe(
       "Filter for root domain links. True = root only, false = links only. Single value (no operator).",
     ),
-  programId: z.string().optional(),
   saleType: z
     .enum(["new", "recurring"])
     .optional()

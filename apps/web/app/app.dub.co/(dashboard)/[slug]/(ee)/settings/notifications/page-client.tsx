@@ -4,9 +4,8 @@ import { updateWorkspaceNotificationPreference } from "@/lib/actions/update-work
 import useWorkspace from "@/lib/swr/use-workspace";
 import { notificationTypes } from "@/lib/zod/schemas/workspaces";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
-import { Globe, Hyperlink, Msgs, ShieldAlert, UserPlus } from "@dub/ui/icons";
+import { Globe, Hyperlink } from "@dub/ui/icons";
 import { isClickOnInteractiveChild } from "@dub/utils";
-import { DollarSign, ListChecks, Trophy } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import React from "react";
 import * as z from "zod/v4";
@@ -31,49 +30,6 @@ export default function NotificationsSettingsPageClient() {
       title: "Monthly links usage summary",
       description:
         "Monthly summary email of your top 5 links by usage & total links created.",
-    },
-  ];
-
-  const partnerProgramNotifications = [
-    {
-      type: "newPartnerSale",
-      icon: DollarSign,
-      title: "New partner sale",
-      description: "Alert when a new sale is made in your partner program.",
-    },
-    {
-      type: "newBountySubmitted",
-      icon: Trophy,
-      title: "New bounty submitted",
-      description:
-        "Alert when a new bounty is submitted in your partner program.",
-    },
-    {
-      type: "newMessageFromPartner",
-      icon: Msgs,
-      title: "New message from partner",
-      description:
-        "Alert when a new message is received from a partner in your partner program.",
-    },
-    {
-      type: "newPartnerApplication",
-      icon: UserPlus,
-      title: "New partner application",
-      description:
-        "Alert when a new partner application is made in your partner program.",
-    },
-    {
-      type: "pendingApplicationsSummary",
-      icon: ListChecks,
-      title: "Pending applications summary",
-      description: "Daily summary email of pending partner applications.",
-    },
-    {
-      type: "fraudEventsSummary",
-      icon: ShieldAlert,
-      title: "Daily risk events summary",
-      description:
-        "Daily summary email of unresolved risk events detected in your partner program.",
     },
   ];
 
@@ -219,10 +175,6 @@ export default function NotificationsSettingsPageClient() {
       {renderSection({
         title: "Short links",
         notifications: workspaceNotifications,
-      })}
-      {renderSection({
-        title: "Partner program",
-        notifications: partnerProgramNotifications,
       })}
     </div>
   );

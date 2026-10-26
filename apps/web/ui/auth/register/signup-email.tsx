@@ -4,7 +4,7 @@ import { sendOtpAction } from "@/lib/actions/send-otp";
 import { testIds } from "@/lib/e2e/test-ids";
 import { signUpSchema } from "@/lib/zod/schemas/auth";
 import { PasswordRequirements } from "@/ui/shared/password-requirements";
-import { Button, Input, useCurrentSubdomain, useMediaQuery } from "@dub/ui";
+import { Button, Input, useMediaQuery } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { FormEvent, useCallback, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -16,7 +16,6 @@ type SignUpProps = z.infer<typeof signUpSchema>;
 
 export const SignUpEmail = () => {
   const { isMobile } = useMediaQuery();
-  const { subdomain } = useCurrentSubdomain();
 
   const { setStep, setEmail, setPassword, email, lockEmail } =
     useRegisterContext();
@@ -72,7 +71,7 @@ export const SignUpEmail = () => {
       <div className="flex flex-col gap-y-6">
         <label>
           <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
-            {subdomain === "partners" ? "Email" : "Work email"}
+            Work email
           </span>
           <Input
             type="email"

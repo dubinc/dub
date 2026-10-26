@@ -5,7 +5,6 @@ import {
   sendWorkspaceLimitAlert,
 } from "@/lib/cron/send-limit-alert";
 import { prisma } from "@/lib/prisma";
-import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { getWorkspaceUsage } from "@/lib/tinybird/get-workspace-usage";
 import { WorkspaceProps } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
@@ -106,7 +105,6 @@ export const updateUsage = async () => {
             data: {
               usage: resetEventsUsage ? 0 : undefined,
               linksUsage: 0,
-              payoutsUsage: 0,
               aiUsage: 0,
               sentEmails: {
                 deleteMany: {
@@ -126,12 +124,10 @@ export const updateUsage = async () => {
         }
 
         /* Only send the 30-day summary email if:
-           - the workspace is production (skip staging/sandbox)
            - the workspace has at least 1 link click
            - the workspace was created more than 30 days ago
          */
         if (
-          isProductionEnvironment(workspace.environment) &&
           workspace.usage > 0 &&
           workspace.createdAt.getTime() <
             new Date().getTime() - 30 * 24 * 60 * 60 * 1000
@@ -223,11 +219,9 @@ export const updateUsage = async () => {
     },
   });
 
-  // Get all production workspaces that have exceeded usage
-  // (skip staging/sandbox notifications; resets still run above)
+  // Get all workspaces that have exceeded usage
   const exceedingUsage = workspaces.filter(
-    ({ usage, usageLimit, environment }) =>
-      isProductionEnvironment(environment) && usage > usageLimit,
+    ({ usage, usageLimit }) => usage > usageLimit,
   );
 
   const slackWebhookByWorkspace = await getSlackWebhooks(

@@ -1,7 +1,6 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { EventType } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
-import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
@@ -34,21 +33,7 @@ export function AnalyticsAreaChart({
   resource: EventType;
   demo?: boolean;
 }) {
-  const { createdAt: workspaceCreatedAt } = useWorkspace();
-  const { programEnrollment } = useProgramEnrollment();
-  const dataAvailableFrom = [
-    workspaceCreatedAt,
-    programEnrollment?.program.startedAt,
-    programEnrollment?.program.createdAt,
-  ]
-    .filter(Boolean)
-    .reduce(
-      (earliest, current) =>
-        !earliest || (current && new Date(current) < new Date(earliest))
-          ? current
-          : earliest,
-      null,
-    ) as Date;
+  const { createdAt: dataAvailableFrom } = useWorkspace();
 
   const {
     baseApiPath,

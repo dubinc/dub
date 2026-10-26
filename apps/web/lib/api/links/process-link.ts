@@ -33,7 +33,6 @@ export async function processLink<T extends Record<string, any>>({
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
   skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
   skipFolderChecks = false, // only skip for update / upsert links
-  skipProgramChecks = false, // only skip for when program is already validated
 }: {
   payload: NewLinkProps & T;
   workspace?: Pick<Project, "id" | "plan"> & {
@@ -44,7 +43,6 @@ export async function processLink<T extends Record<string, any>>({
   skipKeyChecks?: boolean;
   skipExternalIdChecks?: boolean;
   skipFolderChecks?: boolean;
-  skipProgramChecks?: boolean;
 }): Promise<
   | {
       link: NewLinkProps & T;
@@ -71,9 +69,6 @@ export async function processLink<T extends Record<string, any>>({
     tagNames,
     folderId,
     externalId,
-    tenantId,
-    partnerId,
-    programId,
     webhookIds,
     testVariants,
     ios,
@@ -85,7 +80,6 @@ export async function processLink<T extends Record<string, any>>({
   let testCompletedAt: string | Date | null | undefined =
     payload.testCompletedAt;
 
-  let defaultProgramFolderId: string | null = null;
   const tagIds = combineTagIds(payload);
 
   // if URL is defined, perform URL checks
@@ -436,53 +430,6 @@ export async function processLink<T extends Record<string, any>>({
       }
     }
 
-    // only perform program validity checks if not bulk creation (we do that check separately in the route itself)
-    // A stored programId resolves the partner from partnerId or tenantId.
-    // Removing a partner has to clear programId first (see partnerRemovalOverrides),
-    // otherwise the stored tenantId puts that partner back.
-    if (programId && !skipProgramChecks) {
-      if (!partnerId && !tenantId) {
-        return {
-          link: payload,
-          error:
-            "programId was passed but no valid partnerId or tenantId was provided.",
-          code: "unprocessable_entity",
-        };
-      }
-
-      const program = await prisma.program.findUnique({
-        where: { id: programId },
-        select: {
-          workspaceId: true,
-          defaultFolderId: true,
-          partners: {
-            where: {
-              ...(partnerId ? { partnerId } : { tenantId }),
-            },
-          },
-        },
-      });
-
-      if (!program || program.workspaceId !== workspace?.id) {
-        return {
-          link: payload,
-          error: "Program not found.",
-          code: "not_found",
-        };
-      }
-
-      if (!program.partners.length) {
-        return {
-          link: payload,
-          error: "Invalid partnerId or tenantId provided.",
-          code: "not_found",
-        };
-      }
-
-      partnerId = program.partners[0].partnerId;
-      defaultProgramFolderId = program.defaultFolderId;
-    }
-
     // Webhook validity checks
     if (webhookIds && webhookIds.length > 0) {
       if (!workspace || workspace.plan === "free" || workspace.plan === "pro") {
@@ -588,8 +535,6 @@ export async function processLink<T extends Record<string, any>>({
       expiredUrl,
       testVariants,
       testCompletedAt,
-      // partnerId derived from payload or program enrollment
-      partnerId: partnerId || null,
       // make sure projectId is set to the current workspace
       projectId: workspace?.id || null,
       // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
@@ -599,7 +544,7 @@ export async function processLink<T extends Record<string, any>>({
       ...(webhookIds && {
         webhookIds,
       }),
-      folderId: folderId || defaultProgramFolderId,
+      folderId,
     },
     error: null,
   };

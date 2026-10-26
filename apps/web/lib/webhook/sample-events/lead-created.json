@@ -40,8 +40,6 @@
     "trackConversion": true,
     "externalId": null,
     "tenantId": null,
-    "partnerId": "pn_cm0lcuvtz000xcutmqw4a7wi3",
-    "programId": "prog_CYCu7IMAapjkRpTnr8F1azjN",
     "archived": false,
     "expiresAt": null,
     "expiredUrl": null,
@@ -85,6 +83,5 @@
     "testCompletedAt": null,
     "testStartedAt": null
   },
-  "partner": null,
   "metadata": null
 }

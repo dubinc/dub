@@ -106,7 +106,6 @@ export const POST = withWorkspace(
       assetLinks,
       appleAppSiteAssociation,
       deepviewData,
-      isOnboardingSubdomainFlow,
     } = await createDomainBodySchemaExtended.parseAsync(body);
 
     if (workspace.plan === "free") {
@@ -184,29 +183,11 @@ export const POST = withWorkspace(
     const domainRecord = await prisma.$transaction(
       async (tx) => {
         if (slug.endsWith(".dub.link")) {
-          if (!isOnboardingSubdomainFlow && !workspace.defaultProgramId) {
-            throw new DubApiError({
-              code: "forbidden",
-              message:
-                "You are not allowed to claim a .dub.link subdomain. Please contact support if you think this is an error: dub.co/support",
-            });
-          }
-
-          const alreadyClaimed = await tx.domain.count({
-            where: {
-              projectId: workspace.id,
-              slug: {
-                endsWith: ".dub.link",
-              },
-            },
+          throw new DubApiError({
+            code: "forbidden",
+            message:
+              "You are not allowed to claim a .dub.link subdomain. Please contact support if you think this is an error: dub.co/support",
           });
-          if (alreadyClaimed) {
-            throw new DubApiError({
-              code: "forbidden",
-              message:
-                "You can only claim one .dub.link subdomain per workspace.",
-            });
-          }
         }
 
         const totalDomains = await tx.domain.count({

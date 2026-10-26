@@ -98,16 +98,13 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
     await assertCanConfirmEmailChange({
       userId: session.user.id,
       tokenFound,
-      data,
     });
   } catch (error) {
     if (error instanceof EmailChangeAuthError) {
       return (
         <EmptyState
           icon={InputPassword}
-          title={
-            error.reason === "unauthorized" ? "Unauthorized" : "Invalid Token"
-          }
+          title="Invalid Token"
           description={error.message}
         />
       );

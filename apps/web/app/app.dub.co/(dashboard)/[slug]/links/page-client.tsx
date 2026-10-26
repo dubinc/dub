@@ -1,6 +1,5 @@
 "use client";
 
-import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import {
   useCheckFolderPermission,
@@ -131,7 +130,6 @@ export function WorkspaceLinksList() {
     // - The user has not claimed their .link domain
     // - The user has not dismissed the .link offer modal
     if (
-      isProductionEnvironment(workspace.environment) &&
       !searchParams.has("upgraded") &&
       workspace.stripeId &&
       workspace.plan &&

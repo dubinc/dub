@@ -29,14 +29,6 @@ export const randomTagName = (length?: number) => {
   return `e2e-${randomId(length)}`;
 };
 
-export const randomPartnerEmail = ({
-  domain = "dub-internal-test.com",
-}: {
-  domain?: string;
-} = {}) => {
-  return `${generateRandomName().split(" ").join(".").toLowerCase()}@${domain}`;
-};
-
 export const randomSaleAmount = () => {
   return randomValue([400, 900, 1900]);
 };

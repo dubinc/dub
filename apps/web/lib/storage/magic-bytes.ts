@@ -3,13 +3,7 @@
  * Used by Next.js processR2ObjectCreated (Worker only forwards queue messages).
  */
 
-export const USER_UPLOAD_KEY_PREFIXES = [
-  "programs/",
-  "integration-screenshots/",
-  "program-logos/",
-  "messages/",
-  "resumes/",
-] as const;
+export const USER_UPLOAD_KEY_PREFIXES = ["integration-screenshots/"] as const;
 
 export const DANGEROUS_CONTENT_TYPES = [
   "text/html",

@@ -97,8 +97,6 @@ export const getEvents = async (params: EventsFilters) => {
 
   const allFilters = [...metadataFilters, ...advancedFilters];
 
-  const partnerIdFilter = ensureParsedFilter(params.partnerId);
-  const partnerTagIdFilter = ensureParsedFilter(params.partnerTagId);
   const linkIdFilter = ensureParsedFilter(params.linkId);
   const folderIdFilter = ensureParsedFilter(params.folderId);
 
@@ -111,18 +109,10 @@ export const getEvents = async (params: EventsFilters) => {
     tagIdOperator,
     folderId: folderIdParam,
     folderIdOperator,
-    partnerId: partnerIdParam,
-    partnerIdOperator,
-    partnerTagId: partnerTagIdParam,
-    partnerTagIdOperator,
-    groupId: groupIdParam,
-    groupIdOperator,
     tenantId: tenantIdParam,
     tenantIdOperator,
   } = extractWorkspaceLinkFilters({
     ...params,
-    partnerId: partnerIdFilter,
-    partnerTagId: partnerTagIdFilter,
     linkId: linkIdFilter,
     folderId: folderIdFilter,
   });
@@ -130,20 +120,13 @@ export const getEvents = async (params: EventsFilters) => {
   const tinybirdParams: any = {
     eventType,
     workspaceId,
-    programId: params.programId,
     customerId: params.customerId,
     linkId: linkIdParam,
     linkIdOperator,
     folderId: folderIdParam,
     folderIdOperator,
-    partnerId: partnerIdParam,
-    partnerIdOperator,
-    partnerTagId: partnerTagIdParam,
-    partnerTagIdOperator,
     tenantId: tenantIdParam,
     tenantIdOperator,
-    groupId: groupIdParam,
-    groupIdOperator,
     ...(typeof triggerForPipe !== "object" && triggerForPipe
       ? { trigger: triggerForPipe }
       : {}),

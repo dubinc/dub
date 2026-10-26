@@ -4,10 +4,8 @@ import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import { SlackSupportSettingsCard } from "@/ui/workspaces/slack-support-settings-card";
-import UpdateDefaultProduct from "@/ui/workspaces/update-default-product";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import { Form } from "@dub/ui";
-import { WorkspaceEnvironment } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -15,15 +13,11 @@ import { mutate } from "swr";
 
 export default function WorkspaceSettingsClient() {
   const router = useRouter();
-  const { id, name, slug, role, environment } = useWorkspace();
+  const { id, name, slug, role } = useWorkspace();
 
   const { error } = clientAccessCheck({
     action: "workspaces.write",
     role,
-    environment,
-    restrictedEnvironments: [WorkspaceEnvironment.staging],
-    restrictedEnvironmentMessage:
-      "Workspace settings must be updated from your production workspace (changes are automatically synced to staging).",
   });
 
   const { update } = useSession();
@@ -99,7 +93,6 @@ export default function WorkspaceSettingsClient() {
         }
       />
       <UploadLogo />
-      <UpdateDefaultProduct />
       <DeleteWorkspace />
     </div>
   );

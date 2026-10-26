@@ -16,21 +16,8 @@ export const SCOPES = [
   "workspaces.write",
   "webhooks.read",
   "webhooks.write",
-  "groups.read",
-  "groups.write",
-  "partners.read",
-  "partners.write",
-  "program_applications.read",
-  "program_applications.write",
   "customers.read",
   "customers.write",
-  "discount_codes.read",
-  "discount_codes.write",
-  "commissions.read",
-  "commissions.write",
-  "bounties.read",
-  "bounties.write",
-  "payouts.read",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
 ] as const;
@@ -102,48 +89,6 @@ const RESOURCE_SCOPES: {
     resource: "domains",
   },
   {
-    scope: "groups.read",
-    roles: ["owner", "member", "viewer", "billing"],
-    permissions: ["groups.read"],
-    type: "read",
-    resource: "groups",
-  },
-  {
-    scope: "groups.write",
-    roles: ["owner", "member"],
-    permissions: ["groups.write", "groups.read"],
-    type: "write",
-    resource: "groups",
-  },
-  {
-    scope: "partners.read",
-    roles: ["owner", "member", "viewer", "billing"],
-    permissions: ["partners.read"],
-    type: "read",
-    resource: "partners",
-  },
-  {
-    scope: "partners.write",
-    roles: ["owner", "member"],
-    permissions: ["partners.write", "partners.read"],
-    type: "write",
-    resource: "partners",
-  },
-  {
-    scope: "program_applications.read",
-    roles: ["owner", "member", "viewer", "billing"],
-    permissions: ["program_applications.read"],
-    type: "read",
-    resource: "program_applications",
-  },
-  {
-    scope: "program_applications.write",
-    roles: ["owner", "member"],
-    permissions: ["program_applications.write", "program_applications.read"],
-    type: "write",
-    resource: "program_applications",
-  },
-  {
     scope: "customers.read",
     roles: ["owner", "member", "viewer", "billing"],
     permissions: ["customers.read"],
@@ -156,55 +101,6 @@ const RESOURCE_SCOPES: {
     permissions: ["customers.write", "customers.read"],
     type: "write",
     resource: "customers",
-  },
-  {
-    scope: "discount_codes.read",
-    roles: ["owner", "member", "viewer", "billing"],
-    permissions: ["discount_codes.read"],
-    type: "read",
-    resource: "discount_codes",
-  },
-  {
-    scope: "discount_codes.write",
-    roles: ["owner", "member"],
-    permissions: ["discount_codes.write", "discount_codes.read"],
-    type: "write",
-    resource: "discount_codes",
-  },
-  {
-    scope: "commissions.read",
-    roles: ["owner", "member", "viewer", "billing"],
-    permissions: ["commissions.read"],
-    type: "read",
-    resource: "commissions",
-  },
-  {
-    scope: "commissions.write",
-    roles: ["owner", "member"],
-    permissions: ["commissions.write", "commissions.read"],
-    type: "write",
-    resource: "commissions",
-  },
-  {
-    scope: "bounties.read",
-    roles: ["owner", "member", "viewer", "billing"],
-    permissions: ["bounties.read"],
-    type: "read",
-    resource: "bounties",
-  },
-  {
-    scope: "bounties.write",
-    roles: ["owner", "member"],
-    permissions: ["bounties.write", "bounties.read"],
-    type: "write",
-    resource: "bounties",
-  },
-  {
-    scope: "payouts.read",
-    roles: ["owner", "member", "viewer", "billing"],
-    permissions: ["payouts.read"],
-    type: "read",
-    resource: "payouts",
   },
   {
     scope: "workspaces.read",
@@ -251,14 +147,7 @@ const RESOURCE_SCOPES: {
       "domains.read",
       "workspaces.read",
       "analytics.read",
-      "groups.read",
-      "partners.read",
-      "program_applications.read",
       "customers.read",
-      "discount_codes.read",
-      "commissions.read",
-      "bounties.read",
-      "payouts.read",
     ],
   },
   {
@@ -276,21 +165,8 @@ const RESOURCE_SCOPES: {
       "workspaces.read",
       "workspaces.write",
       "analytics.read",
-      "groups.read",
-      "groups.write",
-      "partners.read",
-      "partners.write",
-      "program_applications.read",
-      "program_applications.write",
       "customers.read",
       "customers.write",
-      "discount_codes.read",
-      "discount_codes.write",
-      "commissions.read",
-      "commissions.write",
-      "bounties.read",
-      "bounties.write",
-      "payouts.read",
     ],
   },
 ];
@@ -301,8 +177,8 @@ export type LegacyScopeGrant = {
 };
 
 // Keys and OAuth installations created before this date were made before the
-// partner program scopes existed.
-export const PARTNER_SCOPES_ENFORCED_AT = new Date("2026-10-13T18:35:00.000Z");
+// customer scopes existed.
+export const CUSTOMER_SCOPES_ENFORCED_AT = new Date("2026-10-13T18:35:00.000Z");
 
 // Scopes introduced after API keys already existed. A key or OAuth installation
 // created before `enforcedAt` keeps these permissions without selecting the scope.
@@ -310,22 +186,8 @@ export const PARTNER_SCOPES_ENFORCED_AT = new Date("2026-10-13T18:35:00.000Z");
 // scope needs a different cutoff.
 export const LEGACY_SCOPE_GRANTS: LegacyScopeGrant[] = [
   {
-    enforcedAt: PARTNER_SCOPES_ENFORCED_AT,
-    permissions: [
-      "partners.read",
-      "partners.write",
-      "program_applications.read",
-      "program_applications.write",
-      "customers.read",
-      "customers.write",
-      "discount_codes.read",
-      "discount_codes.write",
-      "commissions.read",
-      "commissions.write",
-      "bounties.read",
-      "bounties.write",
-      "payouts.read",
-    ],
+    enforcedAt: CUSTOMER_SCOPES_ENFORCED_AT,
+    permissions: ["customers.read", "customers.write"],
   },
 ];
 
@@ -387,25 +249,6 @@ export const grantLegacyScopePermissions = ({
   }
 
   return [...new Set<PermissionAction>([...permissions, ...legacyPermissions])];
-};
-
-// True when the legacy grant gives a key permissions that its own scopes do
-// not include, so the key has more access than the dashboard shows. "All
-// access" keys already have every permission and return false.
-export const hasLegacyScopeGrant = ({
-  scopes,
-  createdAt,
-}: {
-  scopes: string[];
-  createdAt: Date | string;
-}) => {
-  const permissions = new Set(mapScopesToPermissions(scopes as Scope[]));
-
-  return (
-    new Set(
-      grantLegacyScopePermissions({ permissions: [...permissions], createdAt }),
-    ).size > permissions.size
-  );
 };
 
 // Get SCOPES_BY_RESOURCE based on user role in a workspace

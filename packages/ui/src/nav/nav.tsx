@@ -52,7 +52,6 @@ export const navItems: NavItem[] = [
     segments: [
       "/links",
       "/analytics",
-      "/partners",
       "/integrations",
       "/compare",
       "/features",
@@ -83,7 +82,6 @@ export const navItems: NavItem[] = [
       "/blog",
       "/changelog",
       "/contact",
-      "/marketplace",
     ],
   },
   {

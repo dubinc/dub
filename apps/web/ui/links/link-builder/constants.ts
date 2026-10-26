@@ -13,7 +13,7 @@ import {
   InputPassword,
   WindowSearch,
 } from "@dub/ui/icons";
-import { Settings, User2 } from "lucide-react";
+import { Settings } from "lucide-react";
 import { UseFormSetValue } from "react-hook-form";
 
 type MoreItem = {
@@ -66,17 +66,6 @@ export const MORE_ITEMS: MoreItem[] = [
       }),
     remove: (setValue) =>
       setValue("linkRetentionCleanupDisabledAt", null, { shouldDirty: true }),
-  },
-  {
-    key: "partnerId",
-    icon: User2,
-    label: "Assign to Partner",
-    shortcutKey: "b",
-    type: "modal",
-    enabled: (data) => Boolean(data.partnerId),
-    add: false,
-    description: "Assign this link to a partner.",
-    learnMoreUrl: "https://dub.co/help/article/dub-partners",
   },
   {
     key: "advanced",

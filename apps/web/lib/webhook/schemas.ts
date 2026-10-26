@@ -1,18 +1,7 @@
 import * as z from "zod/v4";
 import { clickEventSchema } from "../zod/schemas/clicks";
-import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { CustomerSchema } from "../zod/schemas/customers";
-import { DiscountCodeWebhookSchema } from "../zod/schemas/discount";
 import { linkEventSchema } from "../zod/schemas/links";
-import {
-  EnrolledPartnerSchema,
-  partnerMergedWebhookSchema,
-  WebhookPartnerSchema,
-} from "../zod/schemas/partners";
-import {
-  partnerApplicationWebhookSchema,
-  programApplicationWebhookSchema,
-} from "../zod/schemas/program-application";
 import { WEBHOOK_TRIGGERS } from "./constants";
 
 const webhookSaleSchema = z.object({
@@ -49,7 +38,6 @@ export const leadWebhookEventSchema = z.object({
   customer: CustomerSchema,
   click: clickEventSchema,
   link: linkEventSchema,
-  partner: WebhookPartnerSchema.nullish(),
   metadata: metadataSchema,
 });
 
@@ -59,7 +47,6 @@ export const saleWebhookEventSchema = z.object({
   click: clickEventSchema,
   link: linkEventSchema,
   sale: webhookSaleSchema,
-  partner: WebhookPartnerSchema.nullish(),
   metadata: metadataSchema,
 });
 
@@ -132,91 +119,6 @@ export const webhookEventSchema = z
         description: "Triggered when a sale is created.",
         id: "SaleCreatedEvent",
         outputId: "SaleCreatedEvent",
-      }),
-
-    z
-      .object({
-        id: z.string(),
-        event: z.literal("partner.enrolled"),
-        createdAt: z.string(),
-        data: EnrolledPartnerSchema,
-      })
-      .meta({
-        description: "Triggered when a partner is enrolled.",
-        id: "PartnerEnrolledEvent",
-        outputId: "PartnerEnrolledEvent",
-      }),
-
-    z
-      .object({
-        id: z.string(),
-        event: z.literal("partner.application_submitted"),
-        createdAt: z.string(),
-        data: partnerApplicationWebhookSchema,
-      })
-      .meta({
-        description:
-          "Deprecated: Use `program_application.created` instead. Triggered when a partner submits an application to join a program.",
-        deprecated: true,
-        id: "ProgramApplicationSubmittedEvent",
-        outputId: "ProgramApplicationSubmittedEvent",
-      }),
-
-    z
-      .object({
-        id: z.string(),
-        event: z.literal("program_application.created"),
-        createdAt: z.string(),
-        data: programApplicationWebhookSchema,
-      })
-      .meta({
-        description:
-          "Triggered when a partner submits an application to join a program.",
-        id: "ProgramApplicationCreatedEvent",
-        outputId: "ProgramApplicationCreatedEvent",
-      }),
-
-    z
-      .object({
-        id: z.string(),
-        event: z.literal("partner.merged"),
-        createdAt: z.string(),
-        data: partnerMergedWebhookSchema,
-      })
-      .meta({
-        description:
-          "Triggered when two partner accounts are merged. Fired once per program the source partner was enrolled in.",
-        id: "PartnerMergedEvent",
-        outputId: "PartnerMergedEvent",
-      }),
-
-    z
-      .object({
-        id: z.string(),
-        event: z.literal("commission.created"),
-        createdAt: z.string(),
-        data: CommissionWebhookSchema,
-      })
-      .meta({
-        description: "Triggered when a commission is created for a partner.",
-        id: "CommissionCreatedEvent",
-        outputId: "CommissionCreatedEvent",
-      }),
-
-    z
-      .object({
-        id: z.string(),
-        event: z.union([
-          z.literal("discount_code.created"),
-          z.literal("discount_code.deleted"),
-        ]),
-        createdAt: z.string(),
-        data: DiscountCodeWebhookSchema,
-      })
-      .meta({
-        description: "Triggered when a discount code is created or deleted.",
-        id: "DiscountCodeWebhookEvent",
-        outputId: "DiscountCodeWebhookEvent",
       }),
   ])
   .meta({

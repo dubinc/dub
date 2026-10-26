@@ -43,14 +43,6 @@ export function randomCustomer({
   };
 }
 
-export function randomPartnerEmail({
-  domain = "dub-internal-test.com",
-}: {
-  domain?: string;
-} = {}) {
-  return `pw.${nanoid(12)}@${domain}`;
-}
-
 export function expectSortedById(
   items: { id: string }[],
   order: "asc" | "desc",

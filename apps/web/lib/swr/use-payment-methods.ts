@@ -1,12 +1,10 @@
-import type { WorkspacePaymentMethod } from "@/lib/stripe/microdeposit-types";
 import { fetcher } from "@dub/utils";
+import Stripe from "stripe";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
-export type { WorkspacePaymentMethod };
-
 type PaymentMethodsResponse = {
-  paymentMethods: WorkspacePaymentMethod[];
+  paymentMethods: Stripe.PaymentMethod[];
   defaultPaymentMethodId: string | null;
 };
 

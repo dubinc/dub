@@ -124,10 +124,10 @@ describe("decideQuarantine", () => {
     expect(decision.action).toBe("skip");
   });
 
-  it("allows matching PNG on programs/", () => {
-    expect(isUserUploadKey("programs/prog_x/emails/image_abc")).toBe(true);
+  it("allows matching PNG on integration-screenshots/", () => {
+    expect(isUserUploadKey("integration-screenshots/image_abc")).toBe(true);
     const decision = decideQuarantine({
-      key: "programs/prog_x/emails/image_abc",
+      key: "integration-screenshots/image_abc",
       contentType: "image/png",
       bytes: bytes(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a),
     });
@@ -153,7 +153,7 @@ describe("decideQuarantine", () => {
 
   it("quarantines dangerous content types", () => {
     const decision = decideQuarantine({
-      key: "program-logos/logo",
+      key: "integration-screenshots/logo",
       contentType: "text/html",
       bytes: bytes(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a),
     });
@@ -163,11 +163,11 @@ describe("decideQuarantine", () => {
     }
   });
 
-  it("allows text/plain and text/csv under programs/", () => {
+  it("allows text/plain and text/csv under integration-screenshots/", () => {
     const plain = decideQuarantine({
-      key: "programs/prog_x/files/notes-abcd.txt",
+      key: "integration-screenshots/notes-abcd.txt",
       contentType: "text/plain",
-      bytes: new TextEncoder().encode("hello partner resources"),
+      bytes: new TextEncoder().encode("hello world"),
     });
     expect(plain).toMatchObject({
       action: "allow",
@@ -175,7 +175,7 @@ describe("decideQuarantine", () => {
     });
 
     const csv = decideQuarantine({
-      key: "programs/prog_x/files/export-abcd.csv",
+      key: "integration-screenshots/export-abcd.csv",
       contentType: "text/csv",
       bytes: new TextEncoder().encode("name,email\nAda,ada@example.com\n"),
     });
@@ -188,7 +188,7 @@ describe("decideQuarantine", () => {
   it("quarantines HTML declared as text/plain", () => {
     const html = new TextEncoder().encode("<!DOCTYPE html><html>xss</html>");
     const decision = decideQuarantine({
-      key: "programs/prog_x/files/notes-abcd.txt",
+      key: "integration-screenshots/notes-abcd.txt",
       contentType: "text/plain",
       bytes: html,
     });
@@ -199,11 +199,11 @@ describe("decideQuarantine", () => {
     }
   });
 
-  it("allows legacy doc/xls OLE under programs/", () => {
+  it("allows legacy doc/xls OLE under integration-screenshots/", () => {
     const ole = bytes(0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1, 0x00);
     expect(
       decideQuarantine({
-        key: "programs/prog_x/files/brief-abcd.doc",
+        key: "integration-screenshots/brief-abcd.doc",
         contentType: "application/msword",
         bytes: ole,
       }),
@@ -213,7 +213,7 @@ describe("decideQuarantine", () => {
     });
     expect(
       decideQuarantine({
-        key: "programs/prog_x/files/sheet-abcd.xls",
+        key: "integration-screenshots/sheet-abcd.xls",
         contentType: "application/vnd.ms-excel",
         bytes: ole,
       }),
@@ -227,7 +227,7 @@ describe("decideQuarantine", () => {
     const png = bytes(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
     expect(
       decideQuarantine({
-        key: "programs/prog_x/emails/image_abc",
+        key: "integration-screenshots/image_abc",
         contentType: null,
         bytes: png,
       }),
@@ -237,7 +237,7 @@ describe("decideQuarantine", () => {
     });
     expect(
       decideQuarantine({
-        key: "programs/prog_x/emails/image_abc",
+        key: "integration-screenshots/image_abc",
         contentType: "application/octet-stream",
         bytes: png,
       }),
@@ -249,16 +249,18 @@ describe("decideQuarantine", () => {
 
   it("quarantines zip/svg when Content-Type is missing", () => {
     const zip = decideQuarantine({
-      key: "programs/prog_x/files/archive-abcd.zip",
+      key: "integration-screenshots/archive-abcd.zip",
       contentType: null,
       bytes: bytes(0x50, 0x4b, 0x03, 0x04),
     });
     expect(zip.action).toBe("quarantine");
 
     const svg = decideQuarantine({
-      key: "programs/prog_x/logos/mark-abcd.svg",
+      key: "integration-screenshots/mark-abcd.svg",
       contentType: null,
-      bytes: new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"/>'),
+      bytes: new TextEncoder().encode(
+        '<svg xmlns="http://www.w3.org/2000/svg"/>',
+      ),
     });
     expect(svg.action).toBe("quarantine");
   });

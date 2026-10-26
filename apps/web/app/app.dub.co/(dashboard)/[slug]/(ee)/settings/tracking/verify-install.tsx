@@ -25,7 +25,6 @@ const VERIFY_SUPPORT_HREF = "https://dub.co/support";
 const ERROR_HEADLINE = {
   not_installed: "Script is not installed.",
   missing_attributes: "Script missing attributes.",
-  missing_refer_domain: "Script is missing the referral link domain.",
   duplicate: "Duplicate script.",
   malformed: "Malformed script.",
   unreachable: "We couldn’t reach this hostname.",
@@ -35,10 +34,6 @@ const ERROR_HEADLINE = {
 const getErrorHeadline = (
   result: Extract<VerifyInstallationResult, { status: "error" }>,
 ) => {
-  if (result.error === "missing_refer_domain" && result.referDomain) {
-    return `Script is missing the referral link domain (${result.referDomain}).`;
-  }
-
   return ERROR_HEADLINE[result.error];
 };
 

@@ -1,7 +1,5 @@
 "use client";
 
-import { getPublishableKeyPrefix } from "@/lib/sandbox/environment";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { Button, Copy, Key, Tick, Tooltip, useCopyToClipboard } from "@dub/ui";
 import { nanoid } from "@dub/utils";
@@ -22,11 +20,9 @@ export function PublishableKeyField({
   disabled?: boolean;
   disabledTooltip?: string;
 }) {
-  const { environment } = useWorkspace();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
-  const generateKey = () =>
-    `${getPublishableKeyPrefix(environment)}${nanoid(24)}`;
+  const generateKey = () => `dub_pk_${nanoid(24)}`;
 
   const {
     setShowConfirmModal: setShowGenerateModal,

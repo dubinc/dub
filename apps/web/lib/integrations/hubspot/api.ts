@@ -56,7 +56,7 @@ export class HubSpotApi {
   async getContact(contactId: number | string) {
     try {
       const contact = await this.fetch(
-        `/objects/contacts/${contactId}?properties=email,firstname,lastname,dub_id,dub_link,dub_partner_email,lifecyclestage`,
+        `/objects/contacts/${contactId}?properties=email,firstname,lastname,dub_id,dub_link,lifecyclestage`,
       );
 
       return hubSpotContactSchema.parse(contact);

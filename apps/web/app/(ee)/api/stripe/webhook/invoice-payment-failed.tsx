@@ -25,7 +25,6 @@ export async function invoicePaymentFailed(
       name: true,
       slug: true,
       plan: true,
-      defaultProgramId: true,
       users: {
         select: {
           user: {

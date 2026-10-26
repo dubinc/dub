@@ -6,7 +6,6 @@ import { assertLocalDatabaseEnv } from "./playwright/assert-local-database";
 assertLocalDatabaseEnv();
 
 const workspaceBaseURL = "http://localhost:8888";
-const partnersBaseURL = "http://partners.localhost:8888";
 
 export default defineConfig({
   globalSetup: require.resolve("./playwright/global-setup"),
@@ -36,25 +35,6 @@ export default defineConfig({
       use: {
         baseURL: workspaceBaseURL,
       },
-    },
-    // Partner tests
-    {
-      name: "partner-setup",
-      testMatch: /partners\/auth\.setup\.ts/,
-      use: {
-        baseURL: partnersBaseURL,
-      },
-    },
-    {
-      name: "partners",
-      use: {
-        ...devices["Desktop Chrome"],
-        baseURL: partnersBaseURL,
-        storageState: "playwright/.auth/partner.json",
-      },
-      testDir: "./playwright/partners",
-      testIgnore: /auth\.setup\.ts/,
-      dependencies: ["partner-setup"],
     },
     // Workspace tests
     {

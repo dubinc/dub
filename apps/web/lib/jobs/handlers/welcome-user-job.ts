@@ -2,8 +2,7 @@ import { generateUnsubscribeToken } from "@/lib/email/unsubscribe-token";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import WelcomeEmail from "@dub/email/templates/welcome-email";
-import WelcomeEmailPartner from "@dub/email/templates/welcome-email-partner";
-import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
+import { APP_DOMAIN } from "@dub/utils";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
 
@@ -29,7 +28,6 @@ export const welcomeUserJob = defineJob({
       select: {
         name: true,
         email: true,
-        partners: true,
         projects: {
           select: {
             project: {
@@ -39,7 +37,6 @@ export const welcomeUserJob = defineJob({
                 logo: true,
                 plan: true,
                 trialEndsAt: true,
-                defaultProgramId: true,
               },
             },
           },
@@ -61,29 +58,12 @@ export const welcomeUserJob = defineJob({
       return;
     }
 
-    const isPartner = user.partners.length > 0;
-    const unsubscribeUrl = `${isPartner ? PARTNERS_DOMAIN : APP_DOMAIN}/unsubscribe/${generateUnsubscribeToken(user.email)}`;
+    const unsubscribeUrl = `${APP_DOMAIN}/unsubscribe/${generateUnsubscribeToken(user.email)}`;
 
-    if (isPartner) {
-      await sendEmail({
-        variant: "marketing",
-        to: user.email,
-        replyTo: "steven.tey@dub.co",
-        subject: "Welcome to Dub Partners!",
-        react: WelcomeEmailPartner({
-          email: user.email,
-          name: user.name,
-          unsubscribeUrl,
-        }),
-      });
-
-      // only send WelcomeEmail if the user has a workspace that:
-      // - is not in a trial
-      // - hasn't created a program yet
-    } else if (
+    // only send WelcomeEmail if the user has a workspace that is not in a trial
+    if (
       user.projects.length > 0 &&
-      user.projects[0].project.trialEndsAt === null &&
-      user.projects[0].project.defaultProgramId === null
+      user.projects[0].project.trialEndsAt === null
     ) {
       await sendEmail({
         variant: "marketing",

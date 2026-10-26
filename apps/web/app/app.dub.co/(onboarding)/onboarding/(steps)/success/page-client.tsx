@@ -1,15 +1,11 @@
 "use client";
 
-import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
 import { testIds } from "@/lib/e2e/test-ids";
 import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useDomains from "@/lib/swr/use-domains";
-import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkspaceProps } from "@/lib/types";
-import { useAnalyticsConnectedStatus } from "@/ui/analytics/use-analytics-connected-status";
 import { MarkdownDescription } from "@/ui/shared/markdown-description";
 import { SlackSupportInviteModal } from "@/ui/workspaces/slack-support-invite-modal";
 import {
@@ -18,15 +14,12 @@ import {
   Button,
   Check2,
   CircleQuestion,
-  ConnectedDots4,
   CursorRays,
   Globe,
-  GreekTemple,
   Hyperlink,
   LinesY,
   LoadingSpinner,
   Msg,
-  Plug2,
   Users,
 } from "@dub/ui";
 import { Slack } from "@dub/ui/icons";
@@ -39,21 +32,11 @@ import { useOnboardingProgress } from "../../use-onboarding-progress";
 export function SuccessPageClient({
   workspace,
 }: {
-  workspace: Pick<
-    WorkspaceProps,
-    "name" | "slug" | "logo" | "plan" | "defaultProgramId"
-  >;
+  workspace: Pick<WorkspaceProps, "name" | "slug" | "logo" | "plan">;
 }) {
-  const {
-    plan,
-    planPeriod,
-    trialEndsAt,
-    environment,
-    loading: isLoadingWorkspace,
-  } = useWorkspace();
+  const { plan, planPeriod, trialEndsAt } = useWorkspace();
 
   const showSlackInvite =
-    isProductionEnvironment(environment) &&
     getPlanCapabilities(workspace.plan).canRequestSlackSupportInvite &&
     !isWorkspaceBillingTrialActive(trialEndsAt);
 
@@ -65,19 +48,8 @@ export function SuccessPageClient({
 
   const { finish, isLoading, isSuccessful } = useOnboardingProgress();
 
-  const hasProgram = Boolean(workspace.defaultProgramId);
-
   const { allWorkspaceDomains, loading: isLoadingDomains } = useDomains();
   const connectedDomain = Boolean(allWorkspaceDomains?.length);
-
-  const { isConnected: connectedAnalytics } = useAnalyticsConnectedStatus();
-  const { paymentMethods, loading: isLoadingPaymentMethods } =
-    usePaymentMethods({
-      enabled: hasProgram,
-    });
-  const connectedBankAccount = paymentMethods?.some((pm) =>
-    DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
-  );
 
   const plausible = usePlausible();
   useEffect(() => {
@@ -85,7 +57,7 @@ export function SuccessPageClient({
       plausible(`Upgraded to ${capitalize(plan)}`);
       plausible("Upgraded Plan", {
         props: {
-          product: hasProgram ? "Partners" : "Links",
+          product: "Links",
           plan: capitalize(plan),
           planPeriod: capitalize(planPeriod),
         },
@@ -122,13 +94,12 @@ export function SuccessPageClient({
           The {workspace.name} workspace has been created
         </h1>
         <MarkdownDescription className="mt-2 text-pretty text-center text-base text-neutral-500">
-          {hasProgram
-            ? "Now you can manage your [partner program](https://dub.co/partners) and [short links](https://dub.co/links) all in one place"
-            : "Now you have one central, organized place to create and [manage all your short links](https://dub.co/help/category/link-management)."}
+          Now you have one central, organized place to create and [manage all
+          your short links](https://dub.co/help/category/link-management).
         </MarkdownDescription>
         <div className="mt-4 w-full">
           <Button
-            onClick={() => finish({ hasProgram })}
+            onClick={() => finish()}
             loading={isLoading || isSuccessful}
             text="Go to your dashboard"
             className="h-9 rounded-lg"
@@ -161,58 +132,27 @@ export function SuccessPageClient({
               loading: isLoadingDomains,
               complete: Boolean(allWorkspaceDomains?.length),
             },
-            ...(hasProgram
-              ? [
-                  {
-                    icon: ConnectedDots4,
-                    title: "Create a program",
-                    description: "Set up your Dub partner program",
-                    href: `/${workspace.slug}/program`,
-                    cta: "Manage",
-                    complete: true,
-                  },
-                  {
-                    icon: Plug2,
-                    title: "Set up conversion tracking",
-                    description: "Install the Dub tracking script",
-                    href: `/${workspace.slug}/settings/tracking`,
-                    cta: "Install",
-                    loading: isLoadingWorkspace,
-                    complete: connectedAnalytics,
-                  },
-                  {
-                    icon: GreekTemple,
-                    title: "Connect bank account",
-                    description: "Connect a bank account for payouts",
-                    href: `/${workspace.slug}/program/payouts`,
-                    cta: "Connect",
-                    loading: isLoadingWorkspace || isLoadingPaymentMethods,
-                    complete: connectedBankAccount,
-                  },
-                ]
-              : [
-                  {
-                    icon: Hyperlink,
-                    title: "Create a short link",
-                    description: "Create your first Dub short link",
-                    href: `/${workspace.slug}/links?newLink=true`,
-                    cta: "Create",
-                  },
-                  {
-                    icon: LinesY,
-                    title: "Explore analytics",
-                    description: "View clicks and performance data",
-                    href: `/${workspace.slug}/analytics`,
-                    cta: "View",
-                  },
-                  {
-                    icon: CursorRays,
-                    title: "Explore events",
-                    description: "View events for your short links",
-                    href: `/${workspace.slug}/events`,
-                    cta: "View",
-                  },
-                ]),
+            {
+              icon: Hyperlink,
+              title: "Create a short link",
+              description: "Create your first Dub short link",
+              href: `/${workspace.slug}/links?newLink=true`,
+              cta: "Create",
+            },
+            {
+              icon: LinesY,
+              title: "Explore analytics",
+              description: "View clicks and performance data",
+              href: `/${workspace.slug}/analytics`,
+              cta: "View",
+            },
+            {
+              icon: CursorRays,
+              title: "Explore events",
+              description: "View events for your short links",
+              href: `/${workspace.slug}/events`,
+              cta: "View",
+            },
           ].map(
             ({
               icon: Icon,

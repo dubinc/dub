@@ -1,5 +1,4 @@
 import { convertToCSV } from "@/lib/analytics/utils";
-import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { buildCustomerCountWhere } from "@/lib/customers/api/customer-count-where";
@@ -17,16 +16,11 @@ export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     const filters = customersExportQuerySchema.parse(searchParams);
 
-    let { programId, partnerId, columns } = filters;
-
-    if (programId || partnerId) {
-      programId = getDefaultProgramIdOrThrow(workspace);
-    }
+    const { columns } = filters;
 
     const where = buildCustomerCountWhere({
       ...filters,
       workspaceId: workspace.id,
-      programId,
     });
 
     const count = await prisma.customer.count({
@@ -39,7 +33,6 @@ export const GET = withWorkspace(
         body: {
           ...filters,
           workspaceId: workspace.id,
-          programId,
           userId: session.user.id,
           columns: columns.join(","),
         },
@@ -51,7 +44,6 @@ export const GET = withWorkspace(
     const customers = await getCustomers({
       ...filters,
       workspaceId: workspace.id,
-      programId,
       page: 1,
       pageSize: MAX_CUSTOMERS_TO_EXPORT,
       includeExpandedFields: true,

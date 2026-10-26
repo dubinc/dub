@@ -2,7 +2,6 @@ import { cn } from "@dub/utils";
 import { DubAnalyticsIcon } from "./dub-analytics";
 import { DubApiIcon } from "./dub-api";
 import { DubLinksIcon } from "./dub-links";
-import { DubPartnersIcon } from "./dub-partners";
 
 const icons = {
   links: {
@@ -12,10 +11,6 @@ const icons = {
   analytics: {
     icon: DubAnalyticsIcon,
     className: "text-green-900 bg-green-400",
-  },
-  partners: {
-    icon: DubPartnersIcon,
-    className: "text-purple-900 bg-purple-400",
   },
   api: {
     icon: DubApiIcon,
