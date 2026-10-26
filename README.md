@@ -2,12 +2,12 @@
   <img alt="Dub is the modern, open-source link attribution platform for short links and conversion tracking." src="https://github.com/user-attachments/assets/42cf0705-f5a2-4200-bc4a-c5acf0ba9e15">
 </a>
 
-<h3 align="center">Dub</h3>
+<h3 align="center">Dub Links</h3>
 
 <p align="center">
     The open-source link attribution platform.
     <br />
-    <a href="https://dub.co"><strong>Learn more »</strong></a>
+    <a href="https://dub.co/links"><strong>Learn more »</strong></a>
     <br />
     <br />
     <a href="#introduction"><strong>Introduction</strong></a> ·
@@ -30,9 +30,9 @@
 
 ## Introduction
 
-Dub is the modern, open-source link attribution platform for [short links](https://dub.co/home) and [conversion tracking](https://dub.co/analytics).
+[Dub Links](https://dub.co/links) is the modern, open-source link attribution platform for [short links](https://dub.co/links) and [conversion tracking](https://dub.co/analytics).
 
-Our platform powers 100M+ clicks and 2M+ links monthly, and is used by world-class marketing teams from companies like Twilio, Buffer, Framer, Perplexity, Vercel, Laravel, and [more](https://dub.co/customers).
+Our platform powers 250M+ clicks and 12M+ links monthly, and is used by world-class engineering teams at Twilio, Zillow, Jobber, Vercel, Raycast, and [more](https://dub.co/customers).
 
 ## Tech Stack
 
