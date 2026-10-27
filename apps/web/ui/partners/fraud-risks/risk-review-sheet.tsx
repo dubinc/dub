@@ -8,6 +8,8 @@ import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useRejectProgramApplicationModal } from "@/ui/modals/reject-program-application-modal";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { NetworkStatusBadges } from "@/ui/partners/partner-network/network-status-badges";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { TrustedPartnerBadge } from "@/ui/partners/trusted-partner-badge";
 import { X } from "@/ui/shared/icons";
 import { UserAvatar } from "@/ui/users/user-avatar";
@@ -18,6 +20,7 @@ import {
   ChevronRight,
   Msgs,
   Sheet,
+  StatusBadge,
   Tooltip,
   buttonVariants,
   useKeyboardShortcut,
@@ -59,6 +62,43 @@ const SHEET_TITLES: Record<FraudGroupProps["status"], string> = {
   expired: "Expired risk event",
 };
 
+function NetworkStatusBadge({
+  networkStatus,
+}: {
+  networkStatus: FraudGroupProps["partner"]["networkStatus"];
+}) {
+  const badge = NetworkStatusBadges[networkStatus];
+
+  if (!badge) return null;
+
+  return (
+    <StatusBadge
+      variant={badge.variant}
+      icon={badge.icon}
+      size="sm"
+      className="shrink-0"
+    >
+      {badge.label}
+    </StatusBadge>
+  );
+}
+
+function ProgramEnrollmentStatusBadge({
+  status,
+}: {
+  status: FraudGroupProps["partner"]["status"];
+}) {
+  const badge = PartnerStatusBadges[status];
+
+  if (!badge) return null;
+
+  return (
+    <StatusBadge variant={badge.variant} icon={badge.icon} size="sm">
+      {badge.label}
+    </StatusBadge>
+  );
+}
+
 function RiskReviewSheetContent({
   fraudGroup,
   onPrevious,
@@ -98,14 +138,26 @@ function RiskReviewSheetContent({
     isLoading: isCommissionsOnHoldCountLoading,
   } = useSWR<{ all: { count: number } }>(commissionsOnHoldCountKey, fetcher);
 
+  const onCommissionsUpdated = async () => {
+    onNext?.();
+    mutatePrefix("/api/fraud/groups");
+  };
+
   const { setShowMarkAllAsFraudModal, MarkAllAsFraudModal } =
     useMarkAllAsFraudModal({
       fraudGroup,
-      onResolve: async () => {
-        onNext?.();
-        mutatePrefix("/api/fraud/groups");
-      },
+      defaultStatus: "fraud",
+      onResolve: onCommissionsUpdated,
     });
+
+  const {
+    setShowMarkAllAsFraudModal: setShowMarkAllAsCanceledModal,
+    MarkAllAsFraudModal: MarkAllAsCanceledModal,
+  } = useMarkAllAsFraudModal({
+    fraudGroup,
+    defaultStatus: "canceled",
+    onResolve: onCommissionsUpdated,
+  });
 
   const { setShowResolveFraudGroupModal, ResolveFraudGroupModal } =
     useResolveFraudGroupModal({
@@ -165,6 +217,7 @@ function RiskReviewSheetContent({
       {RejectProgramApplicationModal}
       <BanPartnerModal />
       {MarkAllAsFraudModal}
+      {MarkAllAsCanceledModal}
       <div
         className={cn("flex h-full flex-col transition-opacity duration-200")}
       >
@@ -238,7 +291,7 @@ function RiskReviewSheetContent({
                 <h2 className="text-content-default text-sm font-semibold leading-5">
                   Partner details
                 </h2>
-                <div className="flex min-w-0 items-center gap-3">
+                <div className="flex min-w-0 items-center gap-3 pr-4">
                   <div className="relative w-fit shrink-0">
                     <PartnerAvatar partner={partner} className="size-10" />
                     {partner.networkStatus === "trusted" && (
@@ -246,15 +299,27 @@ function RiskReviewSheetContent({
                     )}
                   </div>
                   <div className="flex min-w-0 flex-col">
-                    <span className="text-content-emphasis truncate text-sm font-semibold">
-                      {partner.name}
-                    </span>
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <span className="text-content-emphasis truncate text-sm font-semibold">
+                        {partner.name}
+                      </span>
+                      <NetworkStatusBadge
+                        networkStatus={partner.networkStatus}
+                      />
+                    </div>
                     <span className="text-content-subtle truncate text-xs font-medium">
                       {partner.email}
                     </span>
                   </div>
                 </div>
               </Link>
+
+              <div className="bg-bg-muted border-border-subtle flex flex-col gap-3 rounded-xl border px-4 py-3 sm:w-44 sm:shrink-0">
+                <h2 className="text-content-default text-sm font-semibold leading-5">
+                  Program status
+                </h2>
+                <ProgramEnrollmentStatusBadge status={partner.status} />
+              </div>
 
               <div className="bg-bg-muted border-border-subtle flex flex-col gap-3 rounded-xl border px-4 py-3 sm:w-80 sm:shrink-0">
                 <h2 className="text-content-default text-sm font-semibold leading-5">
@@ -287,21 +352,34 @@ function RiskReviewSheetContent({
             {fraudGroup.status === "pending" &&
               COMMISSION_BLOCKING_FRAUD_TYPE.includes(fraudGroup.type) && (
                 <div className="flex flex-col gap-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 className="text-content-emphasis font-semibold leading-6">
                       Associated commissions
                     </h3>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      text="Mark all as fraud"
-                      className="h-7 w-fit shrink-0 rounded-lg px-2.5 py-2"
-                      disabled={
-                        isCommissionsOnHoldCountLoading ||
-                        (commissionsOnHoldCount?.all.count ?? 0) === 0
-                      }
-                      onClick={() => setShowMarkAllAsFraudModal(true)}
-                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        text="Mark all as canceled"
+                        className="h-7 w-fit shrink-0 rounded-lg px-2.5 py-2"
+                        disabled={
+                          isCommissionsOnHoldCountLoading ||
+                          (commissionsOnHoldCount?.all.count ?? 0) === 0
+                        }
+                        onClick={() => setShowMarkAllAsCanceledModal(true)}
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        text="Mark all as fraud"
+                        className="h-7 w-fit shrink-0 rounded-lg px-2.5 py-2"
+                        disabled={
+                          isCommissionsOnHoldCountLoading ||
+                          (commissionsOnHoldCount?.all.count ?? 0) === 0
+                        }
+                        onClick={() => setShowMarkAllAsFraudModal(true)}
+                      />
+                    </div>
                   </div>
                   <AssociatedCommissionsTable fraudGroup={fraudGroup} />
                 </div>

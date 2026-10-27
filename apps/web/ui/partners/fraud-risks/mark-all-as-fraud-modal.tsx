@@ -22,8 +22,10 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import * as z from "zod/v4";
 
+type CommissionPatchStatus = z.infer<typeof commissionPatchStatusSchema>;
+
 type FormData = {
-  status: z.infer<typeof commissionPatchStatusSchema>;
+  status: CommissionPatchStatus;
   resolutionReason: string;
 };
 
@@ -34,12 +36,14 @@ function MarkAllAsFraudModal({
   fraudGroup,
   onSuccess,
   onResolve,
+  defaultStatus = "fraud",
 }: {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   fraudGroup: FraudGroupProps;
   onSuccess?: () => Promise<void>; // Called when the commissions are marked as fraud
   onResolve?: () => Promise<void>; // Called when the risk event is resolved
+  defaultStatus?: CommissionPatchStatus;
 }) {
   const { id: workspaceId } = useWorkspace();
   const { makeRequest, isSubmitting } = useApiMutation();
@@ -49,7 +53,7 @@ function MarkAllAsFraudModal({
 
   const { register, handleSubmit, control, reset, watch } = useForm<FormData>({
     defaultValues: {
-      status: "fraud",
+      status: defaultStatus,
       resolutionReason: "",
     },
   });
@@ -79,12 +83,12 @@ function MarkAllAsFraudModal({
   useEffect(() => {
     if (showModal) {
       reset({
-        status: "fraud",
+        status: defaultStatus,
         resolutionReason: "",
       });
       setResolveRiskEvent(false);
     }
-  }, [showModal, reset]);
+  }, [showModal, reset, defaultStatus]);
 
   const isSaving = isSubmitting || isResolving;
   const selectedStatus = watch("status");
@@ -287,10 +291,12 @@ export function useMarkAllAsFraudModal({
   fraudGroup,
   onSuccess,
   onResolve,
+  defaultStatus = "fraud",
 }: {
   fraudGroup: FraudGroupProps;
   onSuccess?: () => Promise<void>;
   onResolve?: () => Promise<void>;
+  defaultStatus?: CommissionPatchStatus;
 }) {
   const [showMarkAllAsFraudModal, setShowMarkAllAsFraudModal] = useState(false);
 
@@ -302,6 +308,7 @@ export function useMarkAllAsFraudModal({
         fraudGroup={fraudGroup}
         onSuccess={onSuccess}
         onResolve={onResolve}
+        defaultStatus={defaultStatus}
       />
     ),
     [
@@ -310,6 +317,7 @@ export function useMarkAllAsFraudModal({
       fraudGroup,
       onSuccess,
       onResolve,
+      defaultStatus,
     ],
   );
 
