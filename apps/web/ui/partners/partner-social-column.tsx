@@ -1,5 +1,7 @@
+import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
 import { PartnerPlatformProps } from "@/lib/types";
-import { BadgeCheck2, TimestampTooltip } from "@dub/ui";
+import { PlatformStatTooltipContent } from "@/ui/partners/platform-stat-tooltip";
+import { BadgeCheck2, DynamicTooltipWrapper } from "@dub/ui";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { PlatformType } from "@prisma/client";
 
@@ -10,14 +12,20 @@ const PLATFORMS_WITH_AT: PlatformType[] = [
   "tiktok",
 ];
 
+type SocialColumnPlatform = Pick<
+  PartnerPlatformProps,
+  "identifier" | "verifiedAt"
+> & {
+  subscribers?: bigint | number | null;
+  posts?: bigint | number | null;
+  views?: bigint | number | null;
+};
+
 export function PartnerSocialColumn({
   platform,
   platformName,
 }: {
-  platform:
-    | Pick<PartnerPlatformProps, "identifier" | "verifiedAt">
-    | null
-    | undefined;
+  platform: SocialColumnPlatform | null | undefined;
   platformName: PlatformType;
 }) {
   if (!platform?.identifier) {
@@ -30,26 +38,54 @@ export function PartnerSocialColumn({
       ? getDomainWithoutWWW(platform.identifier) ?? "-"
       : platform.identifier;
   const verified = !!platform.verifiedAt;
+  const field = PARTNER_PLATFORM_FIELDS.find(
+    (platformField) => platformField.type === platformName,
+  );
+  const stats = field?.data([
+    {
+      type: platformName,
+      identifier: platform.identifier,
+      verifiedAt: platform.verifiedAt ? new Date(platform.verifiedAt) : null,
+      platformId: null,
+      avatarUrl: null,
+      subscribers: BigInt(platform.subscribers ?? 0),
+      posts: BigInt(platform.posts ?? 0),
+      views: BigInt(platform.views ?? 0),
+    },
+  ]);
 
-  return (
+  const content = (
     <div className="flex items-center gap-2">
       <span className="min-w-0 truncate">
         {needsAt && "@"}
         {value}
       </span>
       {verified && (
-        <TimestampTooltip
-          timestamp={platform.verifiedAt}
-          rows={["local", "utc", "unix"]}
-          side="top"
-          prefix="Verified"
-          delayDuration={150}
-        >
-          <div>
-            <BadgeCheck2 variant="fill" className="size-4 text-green-600" />
-          </div>
-        </TimestampTooltip>
+        <BadgeCheck2 variant="fill" className="size-4 text-green-600" />
       )}
     </div>
+  );
+
+  if (!field || !stats?.value) {
+    return content;
+  }
+
+  return (
+    <DynamicTooltipWrapper
+      tooltipProps={{
+        side: "top",
+        content: (
+          <PlatformStatTooltipContent
+            icon={field.icon}
+            value={stats.value}
+            stat={stats.stat}
+            info={stats.info}
+            verifiedAt={stats.verifiedAt}
+          />
+        ),
+      }}
+    >
+      {content}
+    </DynamicTooltipWrapper>
   );
 }

@@ -15,6 +15,18 @@ import {
 } from "./partners";
 import { ProgramEnrollmentSchema } from "./programs";
 
+const coercePlatformCount = (value: unknown) =>
+  typeof value === "bigint" || typeof value === "string"
+    ? Number(value)
+    : value;
+
+// Prisma stores audience stats as BigInt. Coerce them to numbers so the JSON
+// response keeps subscribers, views, and posts for the review sheet.
+const platformCountSchema = z.preprocess(
+  coercePlatformCount,
+  z.number().int().nonnegative().default(0),
+);
+
 // @deprecated Use ProgramApplicationSchema instead. Kept for GET /api/partners/applications and webhook payloads for backward compatibility.
 export const PartnerApplicationSchema = z.object({
   id: z.string(),
@@ -58,15 +70,27 @@ export const ProgramApplicationSchema = PartnerApplicationSchema.extend({
     .extend({
       platforms: z
         .array(
-          partnerPlatformSchema.pick({
-            type: true,
-            identifier: true,
-            verifiedAt: true,
-          }),
+          partnerPlatformSchema
+            .pick({
+              type: true,
+              identifier: true,
+              verifiedAt: true,
+            })
+            .extend({
+              subscribers: platformCountSchema.describe(
+                "Subscribers or followers for social profiles, or domain rating for websites.",
+              ),
+              posts: platformCountSchema.describe(
+                "Number of posts on the profile.",
+              ),
+              views: platformCountSchema.describe(
+                "Video views for YouTube, or impressions for other social profiles.",
+              ),
+            }),
         )
         .nullish()
         .describe(
-          "The partner's website and social profiles, including when each was verified.",
+          "The partner's website and social profiles, including when each was verified and audience stats (subscribers, views, and posts).",
         ),
     }),
 });

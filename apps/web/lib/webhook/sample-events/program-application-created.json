@@ -24,12 +24,18 @@
       {
         "type": "website",
         "identifier": "https://example.com",
-        "verifiedAt": "2025-10-02T14:03:11.000Z"
+        "verifiedAt": "2025-10-02T14:03:11.000Z",
+        "subscribers": 45,
+        "posts": 0,
+        "views": 12000
       },
       {
         "type": "twitter",
         "identifier": "matthewhayden",
-        "verifiedAt": null
+        "verifiedAt": null,
+        "subscribers": 12000,
+        "posts": 340,
+        "views": 0
       }
     ]
   },

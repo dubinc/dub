@@ -16,6 +16,7 @@ import {
 import { PartnerPlatformProps } from "../types";
 
 export const PARTNER_PLATFORM_FIELDS: {
+  type: PartnerPlatformProps["type"];
   label: string;
   icon: Icon;
   data: (platforms: PartnerPlatformProps[]) => {
@@ -28,6 +29,7 @@ export const PARTNER_PLATFORM_FIELDS: {
   };
 }[] = [
   {
+    type: "website",
     label: "Website",
     icon: Globe,
     data: (platforms) => {
@@ -53,6 +55,7 @@ export const PARTNER_PLATFORM_FIELDS: {
     },
   },
   {
+    type: "youtube",
     label: "YouTube",
     icon: YouTube,
     data: (platforms) => {
@@ -81,6 +84,7 @@ export const PARTNER_PLATFORM_FIELDS: {
     },
   },
   {
+    type: "twitter",
     label: "X/Twitter",
     icon: Twitter,
     data: (platforms) => {
@@ -109,6 +113,7 @@ export const PARTNER_PLATFORM_FIELDS: {
     },
   },
   {
+    type: "linkedin",
     label: "LinkedIn",
     icon: LinkedIn,
     data: (platforms) => {
@@ -125,6 +130,7 @@ export const PARTNER_PLATFORM_FIELDS: {
     },
   },
   {
+    type: "instagram",
     label: "Instagram",
     icon: Instagram,
     data: (platforms) => {
@@ -153,6 +159,7 @@ export const PARTNER_PLATFORM_FIELDS: {
     },
   },
   {
+    type: "tiktok",
     label: "Tiktok",
     icon: TikTok,
     data: (platforms) => {
