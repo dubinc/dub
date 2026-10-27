@@ -1,0 +1,92 @@
+import { prisma } from "@/lib/prisma";
+import { BountyType } from "@prisma/client";
+
+type BountyEligibilityCandidate = {
+  id: string;
+  name: string | null;
+  type: BountyType;
+  startsAt: Date | null;
+  endsAt: Date | null;
+  archivedAt: Date | null;
+  groups: { groupId: string }[];
+  partnerTags: { partnerTagId: string }[];
+};
+
+export function filterActiveGroupBounties(
+  bounties: BountyEligibilityCandidate[],
+  {
+    groupId,
+    now = new Date(),
+  }: {
+    groupId: string;
+    now?: Date;
+  },
+) {
+  return bounties.filter((bounty) => {
+    if (bounty.archivedAt) {
+      return false;
+    }
+
+    if (bounty.startsAt && bounty.startsAt > now) {
+      return false;
+    }
+
+    if (bounty.endsAt && bounty.endsAt <= now) {
+      return false;
+    }
+
+    if (bounty.partnerTags.length > 0) {
+      return false;
+    }
+
+    return (
+      bounty.groups.length === 0 ||
+      bounty.groups.some((group) => group.groupId === groupId)
+    );
+  });
+}
+
+export async function getGroupBountySummaries({
+  programId,
+  groupId,
+  now = new Date(),
+}: {
+  programId: string;
+  groupId: string;
+  now?: Date;
+}) {
+  const bounties = await prisma.bounty.findMany({
+    where: {
+      programId,
+    },
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      startsAt: true,
+      endsAt: true,
+      archivedAt: true,
+      groups: {
+        select: {
+          groupId: true,
+        },
+      },
+      partnerTags: {
+        select: {
+          partnerTagId: true,
+        },
+      },
+    },
+    orderBy: {
+      startsAt: "asc",
+    },
+  });
+
+  return filterActiveGroupBounties(bounties, { groupId, now }).map(
+    (bounty) => ({
+      id: bounty.id,
+      name: bounty.name || "Untitled bounty",
+      type: bounty.type,
+    }),
+  );
+}

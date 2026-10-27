@@ -4,6 +4,7 @@ import {
   ANALYTICS_SALE_UNIT,
   ANALYTICS_VIEWS,
   DUB_LINKS_ANALYTICS_INTERVAL,
+  DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
 import {
   AnalyticsResponseOptions,
@@ -12,7 +13,10 @@ import {
   EventType,
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import { isPartnerRevenueHidden } from "@/lib/partners/is-partner-revenue-hidden";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanProps } from "@/lib/types";
 import { useLocalStorage } from "@dub/ui";
@@ -71,6 +75,9 @@ export const AnalyticsContext = createContext<{
     [key in AnalyticsResponseOptions]: number;
   };
   totalEventsLoading?: boolean;
+  adminPage?: boolean;
+  partnerPage?: boolean;
+  hidePartnerRevenue?: boolean;
   showConversions?: boolean;
   fetchCompositeStats?: boolean;
   requiresUpgrade?: boolean;
@@ -86,6 +93,9 @@ export const AnalyticsContext = createContext<{
   queryString: "",
   start: new Date(),
   end: new Date(),
+  adminPage: false,
+  partnerPage: false,
+  hidePartnerRevenue: false,
   showConversions: false,
   fetchCompositeStats: false,
   requiresUpgrade: false,
@@ -93,9 +103,11 @@ export const AnalyticsContext = createContext<{
 });
 
 export default function AnalyticsProvider({
+  adminPage,
   dashboardProps,
   children,
 }: PropsWithChildren<{
+  adminPage?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
 }>) {
   const searchParams = useSearchParams();
@@ -103,9 +115,21 @@ export default function AnalyticsProvider({
 
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
-  const { dashboardId } = useParams() as {
+  const { dashboardId, programSlug } = useParams() as {
     dashboardId?: string;
+    programSlug?: string;
   };
+
+  const { partner } = usePartnerProfile();
+  const partnerPage = partner?.id && programSlug ? true : false;
+
+  const { programEnrollment } = useProgramEnrollment({
+    enabled: Boolean(partnerPage),
+  });
+
+  const hidePartnerRevenue =
+    partnerPage &&
+    (!programEnrollment || isPartnerRevenueHidden(programEnrollment.group));
 
   const domainSlug = searchParams?.get("domain");
 
@@ -117,6 +141,9 @@ export default function AnalyticsProvider({
     useLocalStorage<AnalyticsSaleUnit>(`analytics-sale-unit`, "saleAmount");
 
   const saleUnit: AnalyticsSaleUnit = useMemo(() => {
+    if (hidePartnerRevenue) {
+      return "sales";
+    }
     const searchParamsSaleUnit = searchParams.get(
       "saleUnit",
     ) as AnalyticsSaleUnit;
@@ -125,7 +152,7 @@ export default function AnalyticsProvider({
       return searchParamsSaleUnit;
     }
     return persistedSaleUnit;
-  }, [searchParams.get("saleUnit")]);
+  }, [searchParams.get("saleUnit"), hidePartnerRevenue]);
 
   const [persistedView, setPersistedView] = useLocalStorage<AnalyticsView>(
     `analytics-view`,
@@ -144,11 +171,25 @@ export default function AnalyticsProvider({
   }, [searchParams.get("view")]);
 
   const { basePath, domain, baseApiPath, eventsApiPath } = useMemo(() => {
-    if (workspaceSlug) {
+    if (adminPage) {
+      return {
+        basePath: "analytics",
+        baseApiPath: "/api/admin/analytics",
+        eventsApiPath: "/api/admin/events",
+        domain: domainSlug,
+      };
+    } else if (workspaceSlug) {
       return {
         basePath: `/${workspaceSlug}/analytics`,
         baseApiPath: "/api/analytics",
         eventsApiPath: "/api/events",
+        domain: domainSlug,
+      };
+    } else if (partnerPage) {
+      return {
+        basePath: `/api/partner-profile/programs/${programSlug}/analytics`,
+        baseApiPath: `/api/partner-profile/programs/${programSlug}/analytics`,
+        eventsApiPath: `/api/partner-profile/programs/${programSlug}/events`,
         domain: domainSlug,
       };
     } else if (dashboardId) {
@@ -165,7 +206,14 @@ export default function AnalyticsProvider({
         domain: "", // TODO [refactor]
       };
     }
-  }, [workspaceSlug, dashboardProps?.domain, dashboardId, domainSlug]);
+  }, [
+    adminPage,
+    workspaceSlug,
+    partnerPage,
+    dashboardProps?.domain,
+    dashboardId,
+    domainSlug,
+  ]);
 
   const {
     queryString,
@@ -180,7 +228,9 @@ export default function AnalyticsProvider({
     domain: domain ?? undefined,
     defaultKey: dashboardProps?.key,
     defaultFolderId: dashboardProps?.folderId,
-    defaultInterval: DUB_LINKS_ANALYTICS_INTERVAL,
+    defaultInterval: partnerPage
+      ? DUB_PARTNERS_ANALYTICS_INTERVAL
+      : DUB_LINKS_ANALYTICS_INTERVAL,
   });
 
   // Reset requiresUpgrade when query changes
@@ -191,11 +241,20 @@ export default function AnalyticsProvider({
   const fetchCompositeStats = useMemo(() => {
     // show composite stats if:
     // - shared dashboard and show conversions is set to true
+    // - it's an admin or partner page
     // - it's a workspace that has tracked conversions/customers/leads before
-    return dashboardProps?.showConversions || canTrackConversions === true
+    return dashboardProps?.showConversions ||
+      adminPage ||
+      partnerPage ||
+      canTrackConversions === true
       ? true
       : false;
-  }, [dashboardProps?.showConversions, canTrackConversions]);
+  }, [
+    dashboardProps?.showConversions,
+    adminPage,
+    partnerPage,
+    canTrackConversions,
+  ]);
 
   const { data: totalEvents, isLoading: totalEventsLoading } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
@@ -255,6 +314,9 @@ export default function AnalyticsProvider({
         interval, /// time period interval
         totalEvents, // totalEvents (clicks, leads, sales)
         totalEventsLoading: totalEventsLoading,
+        adminPage, // whether the user is an admin
+        partnerPage, // whether the user is viewing partner analytics
+        hidePartnerRevenue, // whether the partner's group hides sale dollar amounts
         showConversions, // whether to show conversions tabs/data
         fetchCompositeStats, // whether to pull composite stats or just clicks
         requiresUpgrade, // whether an upgrade is required to perform the query

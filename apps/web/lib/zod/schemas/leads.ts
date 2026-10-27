@@ -78,6 +78,8 @@ export const trackLeadResponseSchema = z.object({
     key: true,
     shortLink: true,
     url: true,
+    partnerId: true,
+    programId: true,
     tenantId: true,
     externalId: true,
   }).nullable(),

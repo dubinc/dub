@@ -1,0 +1,112 @@
+import { withCron } from "@/lib/cron/with-cron";
+import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
+import { prisma } from "@/lib/prisma";
+import { log } from "@dub/utils";
+import * as z from "zod/v4";
+import { logAndRespond } from "../../utils";
+import { processPayouts } from "./process-payouts";
+import { splitPayouts } from "./split-payouts";
+
+export const dynamic = "force-dynamic";
+export const maxDuration = 600; // This function can run for a maximum of 10 minutes
+
+const processPayoutsCronSchema = z.object({
+  workspaceId: z.string(),
+  userId: z.string(),
+  invoiceId: z.string(),
+  paymentMethodId: z.string(),
+  cutoffPeriod: CUTOFF_PERIOD_ENUM,
+  selectedPayoutIds: z.array(z.string()).optional(),
+  excludedPayoutIds: z.array(z.string()).optional(),
+});
+
+// POST /api/cron/payouts/process
+// This route is used to process payouts for a given invoice
+// we're intentionally offloading this to a cron job to avoid blocking the main thread
+export const POST = withCron(async ({ rawBody }) => {
+  try {
+    const {
+      workspaceId,
+      userId,
+      invoiceId,
+      paymentMethodId,
+      cutoffPeriod,
+      selectedPayoutIds,
+      excludedPayoutIds,
+    } = processPayoutsCronSchema.parse(JSON.parse(rawBody));
+
+    const workspace = await prisma.project.findUniqueOrThrow({
+      where: {
+        id: workspaceId,
+      },
+      include: {
+        programs: true,
+        invoices: {
+          where: {
+            id: invoiceId,
+          },
+        },
+      },
+    });
+
+    // should never happen, but just in case
+    if (workspace.programs.length === 0) {
+      return logAndRespond(
+        `Workspace ${workspaceId} has no programs. Skipping...`,
+      );
+    }
+
+    const program = workspace.programs[0];
+
+    // should never happen, but just in case
+    if (workspace.invoices.length === 0) {
+      return logAndRespond(
+        `Invoice ${invoiceId} not found for workspace ${workspaceId}. Skipping...`,
+      );
+    }
+
+    const invoice = workspace.invoices[0];
+
+    // avoid race condition where Stripe's charge.failed webhook is processed before this cron job
+    if (invoice.status === "failed") {
+      return logAndRespond(
+        `Invoice ${invoiceId} has already been marked as failed. Skipping...`,
+      );
+    }
+
+    if (cutoffPeriod) {
+      await splitPayouts({
+        program,
+        cutoffPeriod,
+        selectedPayoutIds,
+        excludedPayoutIds,
+      });
+    }
+
+    await processPayouts({
+      program,
+      workspace,
+      invoice,
+      userId,
+      paymentMethodId,
+      cutoffPeriod,
+      selectedPayoutIds,
+      excludedPayoutIds,
+    });
+
+    return logAndRespond(`Processed payouts for program ${program.name}.`);
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+
+    await log({
+      message: `Error confirming payouts for program: ${errorMessage}`,
+      type: "errors",
+      mention: true,
+    });
+
+    return logAndRespond(
+      `Error processing payouts for program: ${errorMessage}`,
+    );
+  }
+});

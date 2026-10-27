@@ -1,5 +1,6 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TabSelect } from "@dub/ui";
 import { useSelectedLayoutSegment } from "next/navigation";
@@ -9,7 +10,8 @@ export function DomainsHeader({
 }: {
   baseUrl?: `/${string}`;
 }) {
-  const { slug } = useWorkspace();
+  const { slug, plan, defaultProgramId } = useWorkspace();
+  const { canSendEmailCampaigns } = getPlanCapabilities(plan);
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
 
@@ -22,6 +24,15 @@ export function DomainsHeader({
             label: "Custom domains",
             href: `/${slug}${baseUrl}`,
           },
+          ...(canSendEmailCampaigns && defaultProgramId
+            ? [
+                {
+                  id: "email",
+                  label: "Email domains",
+                  href: `/${slug}${baseUrl}/email`,
+                },
+              ]
+            : []),
           {
             id: "default",
             label: "Default domains",

@@ -1,0 +1,219 @@
+import { updateProgramDomain } from "@/lib/api/domains/update-program-domain";
+import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import { withWorkspace } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
+import { defaultLinkDeletedJob } from "@/lib/jobs/handlers/default-link-deleted-job";
+import { prisma } from "@/lib/prisma";
+import {
+  createOrUpdateDefaultLinkSchema,
+  DEFAULT_PARTNER_GROUP,
+  PartnerGroupDefaultLinkSchema,
+} from "@/lib/zod/schemas/groups";
+import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
+import { NextResponse } from "next/server";
+
+// PATCH /api/groups/[groupIdOrSlug]/default-links/[defaultLinkId] - update a default link for a group
+export const PATCH = withWorkspace(
+  async ({ workspace, req, params }) => {
+    const { groupIdOrSlug } = params;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const { domain, url } = createOrUpdateDefaultLinkSchema.parse(
+      await parseRequestBody(req),
+    );
+
+    const group = await prisma.partnerGroup.findUniqueOrThrow({
+      where: {
+        ...(groupIdOrSlug.startsWith("grp_")
+          ? {
+              id: groupIdOrSlug,
+            }
+          : {
+              programId_slug: {
+                programId,
+                slug: groupIdOrSlug,
+              },
+            }),
+        programId,
+      },
+      include: {
+        utmTemplate: true,
+        partnerGroupDefaultLinks: {
+          where: {
+            id: params.defaultLinkId,
+          },
+        },
+        program: {
+          select: {
+            domain: true,
+          },
+        },
+      },
+    });
+
+    if (group.partnerGroupDefaultLinks.length === 0) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Default link ${params.defaultLinkId} not found for this partner group.`,
+      });
+    }
+
+    const defaultLink = group.partnerGroupDefaultLinks[0];
+
+    // Domain change detected, we should do the following
+    // - Update the program's domain
+    // - Update all default links across groups to use the new domain
+    // - Update all partner links to use the new domain (via cron job)
+    if (domain !== defaultLink.domain) {
+      await updateProgramDomain({
+        programId,
+        oldDomain: defaultLink.domain,
+        newDomain: domain,
+      });
+    }
+
+    if (url !== defaultLink.url) {
+      try {
+        const updatedDefaultLink = await prisma.$transaction(async (tx) => {
+          // if the group being updated is the default partner group,
+          // also update the program's URL to the new default link destination URL
+          if (group.slug === DEFAULT_PARTNER_GROUP.slug) {
+            await tx.program.update({
+              where: {
+                id: programId,
+              },
+              data: {
+                url,
+              },
+            });
+          }
+
+          return tx.partnerGroupDefaultLink.update({
+            where: {
+              id: defaultLink.id,
+            },
+            data: {
+              url: group.utmTemplate
+                ? constructURLFromUTMParams(
+                    url,
+                    extractUtmParams(group.utmTemplate),
+                  )
+                : url,
+            },
+          });
+        });
+
+        waitUntil(
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/update-default-links`,
+            body: {
+              defaultLinkId: defaultLink.id,
+            },
+          }),
+        );
+
+        return NextResponse.json(
+          PartnerGroupDefaultLinkSchema.parse(updatedDefaultLink),
+        );
+      } catch (error) {
+        if (error.code === "P2002") {
+          throw new DubApiError({
+            code: "conflict",
+            message:
+              "A default link with this destination URL already exists in this partner group.",
+          });
+        }
+
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: error.message,
+        });
+      }
+    }
+
+    // if no url changes were made, just return defaultLink (no changes needed)
+    return NextResponse.json(
+      PartnerGroupDefaultLinkSchema.parse({
+        ...defaultLink,
+        domain,
+      }),
+    );
+  },
+  {
+    requiredPermissions: ["groups.write"],
+    requiredPlan: ["business", "advanced", "enterprise"],
+  },
+);
+
+// DELETE /api/groups/[groupIdOrSlug]/default-links/[defaultLinkId] - delete a default link for a group
+export const DELETE = withWorkspace(
+  async ({ workspace, params }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const { groupIdOrSlug } = params;
+
+    const group = await prisma.partnerGroup.findUniqueOrThrow({
+      where: {
+        ...(groupIdOrSlug.startsWith("grp_")
+          ? {
+              id: groupIdOrSlug,
+            }
+          : {
+              programId_slug: {
+                programId,
+                slug: groupIdOrSlug,
+              },
+            }),
+        programId,
+      },
+      include: {
+        partnerGroupDefaultLinks: {
+          where: {
+            id: params.defaultLinkId,
+          },
+        },
+      },
+    });
+
+    if (group.partnerGroupDefaultLinks.length === 0) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Default link ${params.defaultLinkId} not found for this group.`,
+      });
+    }
+
+    const defaultLinkId = group.partnerGroupDefaultLinks[0].id;
+
+    // soft delete the default link by setting the groupId to null
+    await prisma.partnerGroupDefaultLink.update({
+      where: {
+        id: defaultLinkId,
+      },
+      data: {
+        groupId: null,
+      },
+    });
+
+    await defaultLinkDeletedJob.dispatch(
+      {
+        defaultLinkId,
+      },
+      {
+        label: defaultLinkId,
+      },
+    );
+
+    return NextResponse.json({
+      id: defaultLinkId,
+    });
+  },
+  {
+    requiredPermissions: ["groups.write"],
+    requiredPlan: ["business", "advanced", "enterprise"],
+  },
+);

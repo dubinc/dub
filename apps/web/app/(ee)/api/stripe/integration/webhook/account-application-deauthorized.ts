@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
@@ -10,7 +11,7 @@ export async function accountApplicationDeauthorized({
 }: WebhookHandlerInput<Stripe.AccountApplicationDeauthorizedEvent>): Promise<WebhookHandlerResponse> {
   const stripeAccountId = workspace.stripeConnectId!;
 
-  if (mode !== "live") {
+  if (mode !== "live" && isProductionEnvironment(workspace.environment)) {
     return {
       response: `Stripe Connect account ${stripeAccountId} deauthorized in ${mode} mode. Skipping...`,
     };

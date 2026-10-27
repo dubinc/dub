@@ -10,10 +10,13 @@ import { recordClickCache } from "@/lib/api/links/record-click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withAxiom } from "@/lib/axiom/server";
 import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
-import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
+import { getWorkspaceViaEdge } from "@/lib/planetscale";
+import { getLinkWithPartner } from "@/lib/planetscale/get-link-with-partner";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis, redisGlobalWithTimeout } from "@/lib/upstash";
+import { DiscountSchema } from "@/lib/zod/schemas/discount";
+import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { getDomainWithoutWWW, isValidUrl, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -31,6 +34,24 @@ const trackClickSchema = z.object({
 
 const trackClickResponseSchema = z.object({
   clickId: z.string(),
+  partner: PartnerSchema.pick({
+    id: true,
+    name: true,
+    image: true,
+  })
+    .extend({
+      groupId: z.string().nullish(),
+      tenantId: z.string().nullish(),
+    })
+    .nullish(),
+  discount: DiscountSchema.pick({
+    id: true,
+    amount: true,
+    type: true,
+    maxDuration: true,
+    couponId: true,
+    couponTestId: true,
+  }).nullish(),
 });
 
 // POST /api/track/click – Track a click event for a link
@@ -59,7 +80,7 @@ export const POST = withAxiom(async (req) => {
     const clickId = cachedClickId ?? nanoid(16);
 
     if (!cachedLink) {
-      const link = await getLinkViaEdge({
+      const link = await getLinkWithPartner({
         domain,
         key,
       });
@@ -128,14 +149,31 @@ export const POST = withAxiom(async (req) => {
         domain,
         key,
         url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         skipRatelimit: true,
         ...(referrer && { referrer }),
         shouldCacheClickId: true,
       });
     }
 
+    const isPartnerLink = Boolean(cachedLink.programId && cachedLink.partnerId);
+    const { partner = null, discount = null } = cachedLink;
+
     const response = trackClickResponseSchema.parse({
       clickId,
+      ...(isPartnerLink && {
+        partner,
+        discount: discount
+          ? {
+              ...discount,
+              // Support backwards compatibility with old cache format
+              // We could potentially remove after 24 hours
+              couponId: discount?.couponId ?? null,
+              couponTestId: discount?.couponTestId ?? null,
+            }
+          : null,
+      }),
     });
 
     return NextResponse.json(response, { headers: COMMON_CORS_HEADERS });

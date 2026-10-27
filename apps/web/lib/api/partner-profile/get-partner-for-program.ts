@@ -1,0 +1,90 @@
+import { prisma } from "@/lib/prisma";
+import { toCentsNumber } from "@dub/utils";
+
+export async function getPartnerForProgram({
+  partnerId,
+  programId,
+}: {
+  partnerId: string;
+  programId: string;
+}) {
+  const data = await prisma.programEnrollment.findUnique({
+    where: {
+      partnerId_programId: {
+        partnerId,
+        programId,
+      },
+    },
+    include: {
+      partner: {
+        include: {
+          industryInterests: true,
+          preferredEarningStructures: true,
+          salesChannels: true,
+          programPartnerTags: {
+            where: {
+              programId,
+            },
+            include: {
+              partnerTag: true,
+            },
+          },
+          platforms: true,
+        },
+      },
+      links: true,
+      discount: {
+        select: {
+          id: true,
+          provider: true,
+        },
+      },
+      applicationEvent: {
+        select: {
+          referralSource: true,
+        },
+      },
+    },
+  });
+
+  if (!data) {
+    return null;
+  }
+
+  const { partner, links, applicationEvent, ...programEnrollment } = data;
+
+  return {
+    ...partner,
+    ...programEnrollment,
+    applicationEvent,
+    netRevenue:
+      toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -
+      toCentsNumber(programEnrollment.totalCommissions ?? 0),
+    id: partner.id,
+    createdAt: new Date(programEnrollment.createdAt),
+    tags: partner.programPartnerTags
+      .map(({ partnerTag }) => partnerTag)
+      .filter((t) => t.programId != null && t.programId === programId),
+    links,
+    lastLeadAt: links.reduce((acc, link) => {
+      return link.lastLeadAt && link.lastLeadAt > (acc ?? new Date(0))
+        ? link.lastLeadAt
+        : acc;
+    }, undefined),
+    lastConversionAt: links.reduce((acc, link) => {
+      return link.lastConversionAt &&
+        link.lastConversionAt > (acc ?? new Date(0))
+        ? link.lastConversionAt
+        : acc;
+    }, undefined),
+    industryInterests: partner.industryInterests.map(
+      ({ industryInterest }) => industryInterest,
+    ),
+    preferredEarningStructures: partner.preferredEarningStructures.map(
+      ({ preferredEarningStructure }) => preferredEarningStructure,
+    ),
+    salesChannels: partner.salesChannels.map(
+      ({ salesChannel }) => salesChannel,
+    ),
+  };
+}

@@ -1,0 +1,143 @@
+import { updatePartnerCommission } from "@/lib/api/commissions/update-partner-commission";
+import { transformCustomerForCommission } from "@/lib/api/customers/transform-customer";
+import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
+import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import {
+  CommissionDetailSchema,
+  CommissionEnrichedSchema,
+  updateCommissionSchemaExtended,
+} from "@/lib/zod/schemas/commissions";
+import { NextResponse } from "next/server";
+
+// GET /api/commissions/:commissionId - get a single commission by ID
+export const GET = withWorkspace(
+  async ({ workspace, params }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const { commissionId } = params;
+
+    const commission = await prisma.commission.findUnique({
+      where: {
+        id: commissionId,
+        programId,
+      },
+      include: {
+        partner: true,
+        programEnrollment: {
+          select: {
+            partnerGroup: {
+              select: {
+                id: true,
+                holdingPeriodDays: true,
+              },
+            },
+          },
+        },
+        customer: true,
+        reward: {
+          select: {
+            description: true,
+            type: true,
+            event: true,
+            amountInCents: true,
+            amountInPercentage: true,
+          },
+        },
+        user: true,
+        payout: {
+          select: {
+            id: true,
+            paidAt: true,
+            initiatedAt: true,
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (!commission) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Commission ${commissionId} not found.`,
+      });
+    }
+
+    const { partner, programEnrollment, customer, reward, ...rest } =
+      commission;
+
+    return NextResponse.json(
+      CommissionDetailSchema.parse({
+        ...rest,
+        paidAt: rest.payout?.paidAt ?? null,
+        partner: {
+          ...partner,
+          groupId: programEnrollment.partnerGroup?.id ?? null,
+        },
+        customer: transformCustomerForCommission(customer),
+        reward: reward
+          ? {
+              ...reward,
+              amountInPercentage: reward.amountInPercentage
+                ? Number(reward.amountInPercentage)
+                : null,
+            }
+          : null,
+        holdingPeriodDays:
+          rest.type === "custom"
+            ? 0
+            : programEnrollment.partnerGroup?.holdingPeriodDays ?? 0,
+      }),
+    );
+  },
+  {
+    requiredPermissions: ["commissions.read"],
+  },
+);
+
+// PATCH /api/commissions/:commissionId - update a commission
+export const PATCH = withWorkspace(
+  async ({ workspace, params, req, session }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const { commissionId } = params;
+
+    const {
+      saleAmount,
+      modifySaleAmount,
+      earnings,
+      currency,
+      status,
+      updateHistoricalCommissions,
+      // Deprecated fields
+      amount,
+      modifyAmount,
+    } = updateCommissionSchemaExtended.parse(await parseRequestBody(req));
+
+    const updatedCommission = await updatePartnerCommission({
+      workspaceId: workspace.id,
+      programId,
+      commissionId,
+      userId: session.user.id,
+      saleAmount: saleAmount ?? amount,
+      modifySaleAmount: modifySaleAmount ?? modifyAmount,
+      currency,
+      status,
+      earnings,
+      updateHistoricalCommissions,
+    });
+
+    return NextResponse.json(
+      CommissionEnrichedSchema.parse({
+        ...updatedCommission,
+        paidAt: updatedCommission.payout?.paidAt ?? null,
+        customer: transformCustomerForCommission(updatedCommission.customer),
+      }),
+    );
+  },
+  {
+    requiredPermissions: ["commissions.write"],
+  },
+);

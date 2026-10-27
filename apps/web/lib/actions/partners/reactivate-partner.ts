@@ -1,0 +1,112 @@
+"use server";
+
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
+import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
+import { linkCache } from "@/lib/api/links/cache";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prisma } from "@/lib/prisma";
+import { deactivatePartnerSchema } from "@/lib/zod/schemas/partners";
+import { waitUntil } from "@vercel/functions";
+import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
+
+// Reactivate a partner
+export const reactivatePartnerAction = authActionClient
+  .inputSchema(deactivatePartnerSchema)
+  .action(async ({ parsedInput, ctx }) => {
+    const { workspace, user } = ctx;
+    const { partnerId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const where = {
+      programId,
+      partnerId,
+    };
+
+    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+      where: {
+        partnerId_programId: where,
+      },
+      include: {
+        program: true,
+        partner: true,
+      },
+    });
+
+    if (programEnrollment.status !== "deactivated") {
+      throw new Error("This partner is not deactivated.");
+    }
+
+    const partnerGroup = await getGroupOrThrow({
+      programId,
+      groupId:
+        programEnrollment.groupId || programEnrollment.program.defaultGroupId,
+    });
+
+    await prisma.$transaction([
+      prisma.link.updateMany({
+        where,
+        data: {
+          expiresAt: null,
+        },
+      }),
+
+      prisma.programEnrollment.update({
+        where: {
+          partnerId_programId: where,
+        },
+        data: {
+          status: "approved",
+          groupId: partnerGroup.id,
+          clickRewardId: partnerGroup.clickRewardId,
+          leadRewardId: partnerGroup.leadRewardId,
+          saleRewardId: partnerGroup.saleRewardId,
+          referralRewardId: partnerGroup.referralRewardId,
+          customRewardId: partnerGroup.customRewardId,
+          discountId: partnerGroup.discountId,
+        },
+      }),
+    ]);
+
+    waitUntil(
+      (async () => {
+        const links = await prisma.link.findMany({
+          where,
+          select: {
+            domain: true,
+            key: true,
+          },
+        });
+
+        await Promise.allSettled([
+          // TODO send email to partner
+          linkCache.expireMany(links),
+
+          // Queue an index update because the enrollment status moved back to approved
+          queuePartnerSearchSync({ partnerIds: [partnerId], programId }),
+
+          trackActivityLog({
+            workspaceId: workspace.id,
+            programId,
+            resourceType: "partner",
+            resourceId: partnerId,
+            userId: user.id,
+            action: "partner.reactivated",
+            changeSet: {
+              status: {
+                old: "deactivated",
+                new: "approved",
+              },
+            },
+          }),
+        ]);
+      })(),
+    );
+  });

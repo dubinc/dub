@@ -67,6 +67,7 @@ export const POST = withAxiom(async (req: Request) => {
     },
     select: {
       id: true,
+      defaultProgramId: true,
       webhookEnabled: true,
     },
   });

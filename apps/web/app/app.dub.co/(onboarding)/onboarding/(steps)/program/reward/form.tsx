@@ -1,0 +1,488 @@
+"use client";
+
+import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import { testIds } from "@/lib/e2e/test-ids";
+import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { ProgramData } from "@/lib/types";
+import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
+import { COMMISSION_TYPES } from "@/lib/zod/schemas/rewards";
+import { RewardQualityFieldIndicator } from "@/ui/partners/rewards/reward-quality";
+import { AnimatedSizeContainer, Button, CircleCheck } from "@dub/ui";
+import { capitalize, cn } from "@dub/utils";
+import type { EventType } from "@prisma/client";
+import { usePlausible } from "next-plausible";
+import { useAction } from "next-safe-action/hooks";
+import { useEffect, useId, useRef, useState } from "react";
+import { useFormContext } from "react-hook-form";
+import { toast } from "sonner";
+import { useOnboardingProgress } from "../../../use-onboarding-progress";
+
+const DEFAULT_REWARD_TYPES = [
+  {
+    key: "sale",
+    label: "Sale",
+    description: "Paid revenue",
+    mostCommon: true,
+  },
+  {
+    key: "lead",
+    label: "Lead",
+    description: "Sign ups and demos",
+    mostCommon: false,
+  },
+] as const;
+
+const PAYOUT_MODELS = [
+  {
+    key: "percentage",
+    label: "Percentage",
+    description: "Revenue based",
+    mostCommon: true,
+  },
+  {
+    key: "flat",
+    label: "Flat",
+    description: "Fixed amount",
+    mostCommon: false,
+  },
+] as const;
+
+export function Form() {
+  const { continueTo } = useOnboardingProgress();
+  const rewardAmountInputId = useId();
+
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const { id: workspaceId, mutate } = useWorkspace();
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { isSubmitting },
+  } = useFormContext<ProgramData>();
+
+  const [
+    type,
+    defaultRewardType,
+    maxDuration,
+    amountInCents,
+    amountInPercentage,
+  ] = watch([
+    "type",
+    "defaultRewardType",
+    "maxDuration",
+    "amountInCents",
+    "amountInPercentage",
+  ]);
+
+  const [commissionStructure, setCommissionStructure] = useState<
+    "one-off" | "recurring"
+  >("recurring");
+  const lastSaleMaxDurationRef = useRef<number | null | undefined>(
+    defaultRewardType === "sale" ? maxDuration : null,
+  );
+
+  useEffect(
+    () => setCommissionStructure(maxDuration === 0 ? "one-off" : "recurring"),
+    [maxDuration],
+  );
+
+  useEffect(() => {
+    if (defaultRewardType === "sale") {
+      lastSaleMaxDurationRef.current = maxDuration;
+    }
+  }, [defaultRewardType, maxDuration]);
+
+  const plausible = usePlausible();
+  const { executeAsync, isPending } = useAction(onboardProgramAction, {
+    onSuccess: () => {
+      plausible("Created Reward", {
+        props: {
+          rewardType: capitalize(defaultRewardType),
+          commissionStructure: capitalize(commissionStructure),
+          ...(type && { payoutModel: capitalize(type) }),
+        },
+      });
+      continueTo("plan");
+      mutate();
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+      setHasSubmitted(false);
+    },
+  });
+
+  const onSubmit = async (data: ProgramData) => {
+    if (!workspaceId) {
+      return;
+    }
+
+    setHasSubmitted(true);
+
+    await executeAsync({
+      ...data,
+      amountInCents:
+        data.amountInCents != null && data.type === "flat"
+          ? Math.round(data.amountInCents * 100)
+          : null,
+      amountInPercentage:
+        data.amountInPercentage != null && data.type === "percentage"
+          ? data.amountInPercentage
+          : null,
+      workspaceId,
+      step: "configure-reward",
+    });
+  };
+
+  const isLoading = isSubmitting || isPending || hasSubmitted;
+
+  const rewardAmount = type === "flat" ? amountInCents : amountInPercentage;
+  const isRewardAmountMissing =
+    rewardAmount == null || Number.isNaN(rewardAmount);
+
+  const disabledTooltip = isRewardAmountMissing
+    ? `Please enter a valid ${type === "percentage" ? "percentage" : "amount"} per ${defaultRewardType}.`
+    : undefined;
+
+  return (
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col gap-6 px-2"
+    >
+      <div className="grid grid-cols-1 gap-2">
+        <h2 className="text-content-emphasis text-sm font-semibold">
+          Reward type <span className="text-red-800">*</span>
+        </h2>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {DEFAULT_REWARD_TYPES.map(
+            ({ key, label, description, mostCommon }) => {
+              const isSelected = key === defaultRewardType;
+
+              return (
+                <div
+                  key={key}
+                  className={cn(
+                    "flex flex-col items-center",
+                    mostCommon &&
+                      "rounded-md border border-neutral-200 bg-neutral-100",
+                  )}
+                >
+                  <label
+                    className={cn(
+                      "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                      "transition-all duration-150",
+                      mostCommon && "border-transparent shadow-sm",
+                      isSelected &&
+                        "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      value={key}
+                      className="hidden"
+                      checked={isSelected}
+                      onChange={() => {
+                        setValue("defaultRewardType", key, {
+                          shouldDirty: true,
+                        });
+
+                        if (key === "sale") {
+                          setValue("type", "percentage", {
+                            shouldDirty: true,
+                          });
+                          setValue(
+                            "maxDuration",
+                            lastSaleMaxDurationRef.current ?? null,
+                            {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            },
+                          );
+                        }
+
+                        if (key === "lead") {
+                          lastSaleMaxDurationRef.current = maxDuration;
+                          setValue("type", "flat", { shouldDirty: true });
+                          setValue("maxDuration", 0, { shouldDirty: true });
+                        }
+                      }}
+                    />
+                    <div className="flex grow flex-col text-sm">
+                      <span className="text-sm font-semibold text-neutral-900">
+                        {label}
+                      </span>
+                      <span className="text-sm font-normal text-neutral-600">
+                        {description}
+                      </span>
+                    </div>
+                    <CircleCheck
+                      variant="fill"
+                      className={cn(
+                        "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                        isSelected && "scale-100 opacity-100",
+                      )}
+                    />
+                  </label>
+                  {mostCommon && (
+                    <span className="py-0.5 text-xs font-medium text-neutral-500">
+                      Most common
+                    </span>
+                  )}
+                </div>
+              );
+            },
+          )}
+        </div>
+      </div>
+
+      <div className="-m-1">
+        <AnimatedSizeContainer
+          height
+          transition={{ duration: 0.2, ease: "easeOut" }}
+        >
+          <div className="flex flex-col gap-6 p-1">
+            {defaultRewardType === "sale" && (
+              <div className="space-y-2">
+                <h2 className="text-content-emphasis text-sm font-semibold">
+                  Commission structure <span className="text-red-800">*</span>
+                </h2>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {COMMISSION_TYPES.map(
+                    ({ value, label, shortDescription }) => {
+                      const isSelected = value === commissionStructure;
+
+                      return (
+                        <div
+                          key={value}
+                          className={cn(
+                            "flex flex-col items-center",
+                            value === "recurring" &&
+                              "rounded-md border border-neutral-200 bg-neutral-100",
+                          )}
+                        >
+                          <label
+                            className={cn(
+                              "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                              "transition-all duration-150",
+                              value === "recurring" &&
+                                "border-transparent shadow-sm",
+                              isSelected &&
+                                "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                            )}
+                          >
+                            <input
+                              type="radio"
+                              value={value}
+                              className="hidden"
+                              checked={isSelected}
+                              onChange={() => {
+                                if (value === "one-off") {
+                                  setCommissionStructure("one-off");
+                                  setValue("maxDuration", 0, {
+                                    shouldValidate: true,
+                                  });
+                                }
+
+                                if (value === "recurring") {
+                                  setCommissionStructure("recurring");
+                                  setValue("maxDuration", null, {
+                                    shouldValidate: true,
+                                  });
+                                }
+                              }}
+                            />
+                            <div className="flex grow flex-col text-sm">
+                              <span className="text-sm font-semibold text-neutral-900">
+                                {label}
+                              </span>
+                              <span className="text-sm font-normal text-neutral-600">
+                                {shortDescription}
+                              </span>
+                            </div>
+                            <CircleCheck
+                              variant="fill"
+                              className={cn(
+                                "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                isSelected && "scale-100 opacity-100",
+                              )}
+                            />
+                          </label>
+                          {value === "recurring" && (
+                            <span className="py-0.5 text-xs font-medium text-neutral-500">
+                              Most common
+                            </span>
+                          )}
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
+              </div>
+            )}
+
+            {defaultRewardType === "sale" &&
+              commissionStructure === "recurring" && (
+                <label className="space-y-2">
+                  <span className="block text-sm font-medium text-neutral-800">
+                    Duration <span className="text-red-800">*</span>
+                  </span>
+                  <select
+                    {...register("maxDuration", {
+                      setValueAs: (v) => {
+                        if (v === "" || v === null) {
+                          return null;
+                        }
+
+                        return parseInt(v);
+                      },
+                    })}
+                    className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+                  >
+                    <option value="">Lifetime</option>
+                    {RECURRING_MAX_DURATIONS.filter(
+                      (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
+                    ).map((duration) => (
+                      <option key={duration} value={duration}>
+                        {duration} months
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+
+            {defaultRewardType === "sale" && (
+              <div className="space-y-2">
+                <h2 className="text-content-emphasis text-sm font-semibold">
+                  Payout model <span className="text-red-800">*</span>
+                </h2>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {PAYOUT_MODELS.map(
+                    ({ key, label, description, mostCommon }) => {
+                      const isSelected = key === type;
+
+                      return (
+                        <div
+                          key={key}
+                          className={cn(
+                            "flex flex-col items-center",
+                            mostCommon &&
+                              "rounded-md border border-neutral-200 bg-neutral-100",
+                          )}
+                        >
+                          <label
+                            className={cn(
+                              "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                              "transition-all duration-150",
+                              mostCommon && "border-transparent shadow-sm",
+                              isSelected &&
+                                "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                            )}
+                          >
+                            <input
+                              type="radio"
+                              value={key}
+                              className="hidden"
+                              checked={isSelected}
+                              onChange={() =>
+                                setValue("type", key, { shouldDirty: true })
+                              }
+                            />
+                            <div className="flex grow flex-col text-sm">
+                              <span className="text-sm font-semibold text-neutral-900">
+                                {label}
+                              </span>
+                              <span className="text-sm font-normal text-neutral-600">
+                                {description}
+                              </span>
+                            </div>
+                            <CircleCheck
+                              variant="fill"
+                              className={cn(
+                                "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                isSelected && "scale-100 opacity-100",
+                              )}
+                            />
+                          </label>
+                          {mostCommon && (
+                            <span className="py-0.5 text-xs font-medium text-neutral-500">
+                              Most common
+                            </span>
+                          )}
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <label
+                  htmlFor={rewardAmountInputId}
+                  className="text-content-emphasis block text-sm font-semibold"
+                >
+                  {type === "percentage" ? "Percentage" : "Amount"} per{" "}
+                  {defaultRewardType} <span className="text-red-800">*</span>
+                </label>
+                <RewardQualityFieldIndicator
+                  event={defaultRewardType as EventType}
+                  type={type}
+                  amountInCents={
+                    type === "flat" && amountInCents != null
+                      ? amountInCents * 100
+                      : null
+                  }
+                  amountInPercentage={
+                    type === "percentage" ? amountInPercentage : null
+                  }
+                  maxDuration={maxDuration}
+                />
+              </div>
+              <div className="relative rounded-md shadow-sm">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                  {type === "flat" && "$"}
+                </span>
+                <input
+                  id={rewardAmountInputId}
+                  data-testid={testIds.onboarding.rewardAmount}
+                  className={cn(
+                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    type === "flat" ? "pl-6 pr-12" : "pr-7",
+                  )}
+                  {...register(
+                    type === "flat" ? "amountInCents" : "amountInPercentage",
+                    {
+                      required: true,
+                      valueAsNumber: true,
+                      min: 0,
+                      max: type === "flat" ? 1000 : 100,
+                      onChange: handleMoneyInputChange,
+                    },
+                  )}
+                  onKeyDown={handleMoneyKeyDown}
+                />
+                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                  {type === "flat" ? "USD" : "%"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </AnimatedSizeContainer>
+      </div>
+
+      <Button
+        text="Continue"
+        className="w-full"
+        loading={isLoading}
+        disabledTooltip={!isLoading ? disabledTooltip : undefined}
+        type="submit"
+        data-testid={testIds.onboarding.rewardContinue}
+      />
+    </form>
+  );
+}

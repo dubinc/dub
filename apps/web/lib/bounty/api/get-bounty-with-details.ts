@@ -1,0 +1,94 @@
+import { DubApiError } from "@/lib/api/errors";
+import { prisma } from "@/lib/prisma";
+
+export const getBountyWithDetails = async ({
+  bountyId,
+  programId,
+}: {
+  bountyId: string;
+  programId: string;
+}) => {
+  const bounties = (await prisma.$queryRaw`
+    SELECT
+      b.id,
+      b.name,
+      b.description,
+      b.type,
+      b.startsAt,
+      b.endsAt,
+      b.startMode,
+      b.endsAfterDays,
+      b.submissionsOpenAt,
+      b.submissionFrequency,
+      b.maxSubmissions,
+      b.rewardAmount,
+      b.rewardDescription,
+      b.submissionRequirements,
+      b.socialMetricsLastSyncedAt,
+      b.performanceScope,
+      wf.triggerConditions,
+
+      --  Bounty groups
+      COALESCE(
+        (
+          SELECT JSON_ARRAYAGG(
+            JSON_OBJECT('id', groupId)
+          )
+          FROM BountyGroup
+          WHERE bountyId = b.id
+        ),
+        JSON_ARRAY()
+      ) AS \`groups\`,
+
+      --  Bounty partner tags
+      COALESCE(
+        (
+          SELECT JSON_ARRAYAGG(
+            JSON_OBJECT('id', partnerTagId)
+          )
+          FROM BountyPartnerTag
+          WHERE bountyId = b.id
+        ),
+        JSON_ARRAY()
+      ) AS \`partnerTags\`
+
+    FROM Bounty b
+    LEFT JOIN Workflow wf ON wf.id = b.workflowId
+    WHERE b.id = ${bountyId} AND b.programId = ${programId}
+    LIMIT 1
+  `) satisfies Array<any>;
+
+  if (!bounties.length) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Bounty ${bountyId} not found.`,
+    });
+  }
+
+  const bounty = bounties[0];
+  const performanceCondition =
+    bounty.triggerConditions?.length > 0 ? bounty.triggerConditions[0] : null;
+  const performanceScope = bounty.performanceScope;
+
+  return {
+    id: bounty.id,
+    name: bounty.name,
+    description: bounty.description,
+    type: bounty.type,
+    startsAt: bounty.startsAt,
+    endsAt: bounty.endsAt,
+    startMode: bounty.startMode,
+    endsAfterDays: bounty.endsAfterDays,
+    submissionsOpenAt: bounty.submissionsOpenAt,
+    submissionFrequency: bounty.submissionFrequency,
+    maxSubmissions: bounty.maxSubmissions,
+    rewardAmount: bounty.rewardAmount,
+    rewardDescription: bounty.rewardDescription,
+    submissionRequirements: bounty.submissionRequirements,
+    socialMetricsLastSyncedAt: bounty.socialMetricsLastSyncedAt ?? null,
+    performanceScope,
+    performanceCondition,
+    groups: bounty.groups.filter((group) => group !== null) ?? [],
+    partnerTags: bounty.partnerTags.filter((tag) => tag !== null) ?? [],
+  };
+};

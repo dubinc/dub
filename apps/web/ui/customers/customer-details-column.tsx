@@ -1,5 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerActivityResponse, CustomerEnriched } from "@/lib/types";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import {
   Button,
   CalendarIcon,
@@ -8,8 +9,10 @@ import {
   Globe,
   Hyperlink,
   MoneyBill2,
+  Shuffle,
   TimestampTooltip,
   Tooltip,
+  useCurrentProduct,
   UTM_PARAMETERS,
 } from "@dub/ui";
 import {
@@ -21,9 +24,11 @@ import {
   getPrettyUrl,
 } from "@dub/utils";
 import { Pencil } from "lucide-react";
-import { Fragment, HTMLProps, useMemo } from "react";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import { Fragment, HTMLProps, useCallback, useMemo } from "react";
 import { DeviceIcon } from "../analytics/device-icon";
 import { useEditCustomerModal } from "../modals/edit-customer-modal";
+import { useReattributeCustomerModal } from "../modals/reattribute-customer-modal";
 import { ConditionalLink } from "../shared/conditional-link";
 import { CustomerAvatar } from "./customer-avatar";
 
@@ -36,9 +41,30 @@ export function CustomerDetailsColumn({
   customerActivity?: CustomerActivityResponse;
   isCustomerActivityLoading: boolean;
 }) {
-  const { slug: workspaceSlug } = useWorkspace();
+  const { product } = useCurrentProduct();
+  const { programSlug } = useParams<{ programSlug: string }>();
+  const { slug: workspaceSlug, defaultProgramId } = useWorkspace();
+  const pathname = usePathname();
+  const router = useRouter();
 
   const { EditCustomerModal, openEditCustomerModal } = useEditCustomerModal();
+  const { ReattributeCustomerModal, openReattributeCustomerModal } =
+    useReattributeCustomerModal();
+
+  const handleReattributeCustomer = useCallback(() => {
+    if (customer) {
+      openReattributeCustomerModal(customer, {
+        onSuccess: (updatedCustomer) => {
+          if (
+            updatedCustomer.id !== customer.id &&
+            pathname.includes(customer.id)
+          ) {
+            router.push(pathname.replace(customer.id, updatedCustomer.id));
+          }
+        },
+      });
+    }
+  }, [customer, openReattributeCustomerModal, pathname, router]);
 
   const basicFields = [
     customer?.email
@@ -111,6 +137,7 @@ export function CustomerDetailsColumn({
       : null,
   ].filter((field): field is NonNullable<typeof field> => field !== null);
 
+  const partner = customer?.partner;
   const link = customerActivity?.link;
   const click = customerActivity?.events.find((e) => e.event === "click");
 
@@ -127,6 +154,7 @@ export function CustomerDetailsColumn({
   return (
     <>
       <EditCustomerModal />
+      <ReattributeCustomerModal />
       <div className="grid grid-cols-1 gap-6 overflow-hidden whitespace-nowrap text-sm text-neutral-900">
         <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border bg-white">
           <div className="p-4">
@@ -236,7 +264,7 @@ export function CustomerDetailsColumn({
                             href={
                               value === "Unknown"
                                 ? undefined
-                                : `/${workspaceSlug}/links/analytics?${key}=${encodeURIComponent(value)}`
+                                : `/${workspaceSlug ? `${workspaceSlug}/${product}` : `programs/${programSlug}`}/analytics?${key}=${encodeURIComponent(value)}`
                             }
                             target="_blank"
                           >
@@ -296,7 +324,7 @@ export function CustomerDetailsColumn({
                       <Fragment key={key}>
                         <span className="truncate">{label}</span>
                         <ConditionalLink
-                          href={`/${workspaceSlug}/links/analytics?${key}=${encodeURIComponent(value)}`}
+                          href={`/${workspaceSlug ? `${workspaceSlug}/${product}` : `programs/${programSlug}`}/analytics?${key}=${encodeURIComponent(value)}`}
                           target="_blank"
                           className="truncate text-neutral-500"
                         >
@@ -325,7 +353,9 @@ export function CustomerDetailsColumn({
                   href={
                     workspaceSlug
                       ? `/${workspaceSlug}/links/${link.domain}/${link.key}`
-                      : undefined
+                      : programSlug
+                        ? `/programs/${programSlug}/analytics?linkId=${link.id}`
+                        : undefined
                   }
                   target="_blank"
                   className="min-w-0 overflow-hidden truncate"
@@ -337,6 +367,46 @@ export function CustomerDetailsColumn({
               <span>-</span>
             )}
           </div>
+
+          {customer && workspaceSlug && defaultProgramId && (
+            <div className="mt-4 flex flex-col gap-2">
+              <h2 className="text-content-emphasis text-sm font-semibold">
+                Referral partner
+              </h2>
+
+              {partner ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <PartnerAvatar partner={partner} className="size-5" />
+                    <ConditionalLink
+                      href={`/${workspaceSlug}/program/partners/${partner.id}`}
+                      target="_blank"
+                      className="min-w-0 overflow-hidden truncate text-xs font-semibold"
+                    >
+                      {partner.name}
+                    </ConditionalLink>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    icon={<Shuffle className="size-3.5" />}
+                    text="Switch"
+                    className="h-7 w-fit rounded-lg px-2"
+                    onClick={handleReattributeCustomer}
+                  />
+                </div>
+              ) : (
+                <div className="text-xs text-neutral-500">
+                  Not attributed to a partner.{" "}
+                  <button
+                    className="underline decoration-dotted underline-offset-2 hover:text-neutral-700"
+                    onClick={handleReattributeCustomer}
+                  >
+                    Attribute now.
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </>

@@ -1,0 +1,61 @@
+import { getProgram } from "@/lib/fetchers/get-program";
+import { prisma } from "@/lib/prisma";
+import { constructMetadata } from "@dub/utils";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import RegisterPageClient from "./page-client";
+
+export const metadata = constructMetadata({
+  fullTitle: "Create your partners.dub.co account",
+  canonicalUrl: "https://partners.dub.co/register",
+});
+
+export default async function RegisterPage(props: {
+  params: Promise<{ programSlug?: string }>;
+}) {
+  const { programSlug } = await props.params;
+
+  const program = programSlug
+    ? (await getProgram({ slug: programSlug })) ?? undefined
+    : undefined;
+
+  if (programSlug && !program) {
+    redirect("/register");
+  }
+
+  let email: string | undefined = undefined;
+  let lockEmail = false;
+
+  if (program) {
+    const cookieStore = await cookies();
+    const programApplicationIds = cookieStore
+      .get("programApplicationIds")
+      ?.value?.split(",");
+
+    const applications = programApplicationIds?.length
+      ? await prisma.programApplication.findMany({
+          where: {
+            id: {
+              in: programApplicationIds.filter(Boolean),
+            },
+            enrollment: null,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 10,
+        })
+      : [];
+
+    if (applications.length) {
+      email = applications[0].email;
+      lockEmail =
+        applications.length === 1 ||
+        applications.every((app) => app.email === email);
+    }
+  }
+
+  return (
+    <RegisterPageClient program={program} email={email} lockEmail={lockEmail} />
+  );
+}

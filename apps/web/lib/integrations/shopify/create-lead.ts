@@ -1,13 +1,16 @@
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { generateRandomName } from "@/lib/names";
+import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { nanoid } from "@dub/utils";
+import { EventType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { queueGoogleAdsConversionUpload } from "../google-ads/upload-conversion";
 import { ShopifyError } from "./error";
@@ -51,23 +54,25 @@ export async function createShopifyLead({
 
   const { link_id: linkId, country, timestamp } = clickData;
 
-  const clickedLink = await prisma.link.findUnique({
+  const partnerLink = await prisma.link.findUnique({
     where: {
       id: linkId,
     },
     select: {
       id: true,
+      programId: true,
+      partnerId: true,
       disabledAt: true,
     },
   });
 
-  if (!clickedLink) {
+  if (!partnerLink) {
     throw new ShopifyError(
       "Link not found in your workspace. Skipping the order...",
     );
   }
 
-  if (clickedLink.disabledAt) {
+  if (partnerLink.disabledAt) {
     throw new ShopifyError("Link is disabled. Skipping the order...");
   }
 
@@ -80,6 +85,8 @@ export async function createShopifyLead({
       email,
       normalizedEmail: getNormalizedEmail(email),
       projectId: workspaceId,
+      programId: partnerLink.programId,
+      partnerId: partnerLink.partnerId,
       clickedAt: new Date(timestamp + "Z"),
       clickId,
       linkId,
@@ -147,7 +154,7 @@ export async function createShopifyLead({
 
       queueGoogleAdsConversionUpload({
         workspaceId: workspace.id,
-        eventType: "lead",
+        eventType: EventType.lead,
         eventId: leadData.event_id,
         eventName: leadData.event_name,
         conversionDateTime: new Date().toISOString(),
@@ -157,6 +164,40 @@ export async function createShopifyLead({
           url: clickData.url,
         },
       }),
+
+      ...(link.partnerId
+        ? [
+            sendPartnerPostback({
+              partnerId: link.partnerId,
+              event: "lead.created",
+              data: {
+                ...clickData,
+                eventName: leadEvent.name,
+                link,
+                customer,
+              },
+            }),
+          ]
+        : []),
+
+      ...(link.programId && link.partnerId
+        ? [
+            syncPartnerLinksStats({
+              partnerId: link.partnerId,
+              programId: link.programId,
+              eventType: "lead",
+            }),
+            prisma.customer.update({
+              where: {
+                id: customer.id,
+              },
+              data: {
+                programId: link.programId,
+                partnerId: link.partnerId,
+              },
+            }),
+          ]
+        : []),
     ]),
   );
 

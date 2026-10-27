@@ -58,7 +58,7 @@ const connect = (shopifyStoreId: string) =>
     action: "connect",
     shopifyStoreId,
     accessToken: "shpat_test",
-    scope: "read_orders",
+    scope: "read_orders,write_discounts",
   });
 
 const shopifyReturns = (response: Response) =>
@@ -132,7 +132,7 @@ describe("PATCH /api/shopify/integration/callback", () => {
         workspaceId: "ws_1",
         credentials: {
           accessToken: "encrypted:shpat_test",
-          scope: "read_orders",
+          scope: "read_orders,write_discounts",
         },
       }),
     );

@@ -158,7 +158,11 @@ export const LinksToolbar = memo(
           action: () => setShowDeleteLinkModal(true),
           disabledTooltip: selectedLinks.some(({ key }) => key === "_root")
             ? "You can't delete a custom domain link. You can delete the domain instead."
-            : undefined,
+            : selectedLinks.some(
+                  ({ programId, clicks }) => programId && clicks > 0,
+                )
+              ? "You can't delete partner links that have active stats on them."
+              : undefined,
           keyboardShortcut: "x",
         },
       ],

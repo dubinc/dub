@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getLeadEvent } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
+import { attributeViaDiscountCode } from "./attribute-via-discount-code";
 import { createShopifyLead } from "./create-lead";
 import { createShopifySale } from "./create-sale";
 import { ShopifyOrder } from "./schema";
@@ -12,10 +13,10 @@ export async function processShopifyOrder({
   clickId,
 }: {
   order: ShopifyOrder;
-  workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
+  workspace: Pick<WorkspaceProps, "id" | "defaultProgramId" | "webhookEnabled">;
   clickId: string | null; // ID of the click event from Shopify pixel
 }) {
-  const { customer: orderCustomer } = order;
+  const { customer: orderCustomer, discount_codes: discountCodes } = order;
 
   const sharedData = {
     checkoutToken: order.checkout_token,
@@ -63,6 +64,50 @@ export async function processShopifyOrder({
           eventId: saleData.event_id,
           customerId: customer.id,
           attribution: "existing_lead",
+        },
+      };
+    }
+  }
+
+  // Check if the order has created using a program discount code
+  if (discountCodes && discountCodes.length > 0 && workspace.defaultProgramId) {
+    const programDiscountCodes = await prisma.discountCode.findMany({
+      where: {
+        programId: workspace.defaultProgramId,
+        code: {
+          in: discountCodes.map(({ code }) => code),
+        },
+      },
+      include: {
+        link: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    if (programDiscountCodes.length > 0) {
+      const { leadEvent: leadData } = await attributeViaDiscountCode({
+        order,
+        workspace,
+        link: programDiscountCodes[0].link,
+      });
+
+      const { saleData } = await createShopifySale({
+        leadData,
+        order,
+        workspaceId: workspace.id,
+        customerId: leadData.customer_id,
+      });
+
+      return {
+        message: "Sale has been tracked for this order.",
+        data: {
+          ...sharedData,
+          eventId: saleData.event_id,
+          customerId: leadData.customer_id,
+          discountCode: programDiscountCodes[0].code,
+          attribution: "discount_code",
         },
       };
     }

@@ -5,6 +5,7 @@ import * as z from "zod/v4";
 export const linkDomainUpdateSchema = z.object({
   newDomain: z.string(),
   oldDomain: z.string(),
+  programId: z.string().optional().describe("Only update program's links."),
   startingAfter: z.string().optional(),
 });
 
@@ -16,6 +17,7 @@ interface QueueDomainUpdateProps
 export async function queueDomainUpdate({
   oldDomain,
   newDomain,
+  programId,
   startingAfter,
   delay,
 }: QueueDomainUpdateProps) {
@@ -25,6 +27,7 @@ export async function queueDomainUpdate({
     body: {
       oldDomain,
       newDomain,
+      ...(programId && { programId }),
       ...(startingAfter && { startingAfter }),
     },
   });

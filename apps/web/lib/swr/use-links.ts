@@ -1,4 +1,4 @@
-import { useRouterStuff } from "@dub/ui";
+import { useCurrentSubdomain, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
 import * as z from "zod/v4";
@@ -14,6 +14,8 @@ export default function useLinks(
 ) {
   const { id: workspaceId, isMegaWorkspace } = useWorkspace();
   const { getQueryString } = useRouterStuff();
+
+  const { subdomain } = useCurrentSubdomain();
 
   const {
     data: links,
@@ -52,7 +54,9 @@ export default function useLinks(
             ],
           },
         )}`
-      : null,
+      : subdomain === "admin"
+        ? `/api/admin/links${getQueryString(opts)}`
+        : null,
     fetcher,
     {
       dedupingInterval: 20000,

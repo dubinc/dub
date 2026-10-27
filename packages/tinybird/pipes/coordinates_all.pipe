@@ -56,7 +56,10 @@ SQL >
         latitude,
         longitude,
         device,
-        amount
+        amount,
+        round(
+            amount * arrayElement([0.3, 0.4, 0.5], 1 + (toUnixTimestamp(timestamp) % 3))
+        ) as commission
     FROM dub_sale_events_mv
     WHERE
         timestamp > now() - INTERVAL 12 HOUR
@@ -75,10 +78,13 @@ SQL >
     SELECT *
     FROM
         (
-            SELECT *, NULL AS amount
+            SELECT *, NULL AS amount, NULL AS commission
             FROM coordinates_leads_data
             UNION ALL
-            SELECT *, NULL AS amount
+            SELECT
+                *,
+                NULL AS amount,
+                NULL AS commission
             FROM coordinates_clicks_data
             UNION ALL
             SELECT *

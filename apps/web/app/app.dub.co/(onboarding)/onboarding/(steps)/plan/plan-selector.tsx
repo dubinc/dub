@@ -7,6 +7,7 @@ import {
   Badge,
   Button,
   Check,
+  DubProductIcon,
   PLAN_FEATURE_ICONS,
   ToggleGroup,
   Tooltip,
@@ -15,6 +16,7 @@ import {
   ADVANCED_PLAN,
   BUSINESS_PLAN,
   cn,
+  ENTERPRISE_PLAN,
   getPricingPlanMainFeatures,
   PRICING_PLAN_TAGLINES,
   PRO_PLAN,
@@ -22,14 +24,18 @@ import {
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CSSProperties, isValidElement, ReactNode, useState } from "react";
+import { OnboardingProduct } from "../../use-onboarding-product";
 
-const plans = [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
+export function PlanSelector({ product }: { product: OnboardingProduct }) {
+  const plans =
+    product === "partners"
+      ? [BUSINESS_PLAN, ADVANCED_PLAN, ENTERPRISE_PLAN]
+      : [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
 
-export function PlanSelector() {
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
 
   const [mobilePlanIndex, setMobilePlanIndex] = useState(() => {
-    const defaultPlanName = "Business";
+    const defaultPlanName = product === "partners" ? "Advanced" : "Business";
     return Math.max(
       0,
       plans.findIndex(
@@ -76,16 +82,20 @@ export function PlanSelector() {
         >
           {plans.map((plan) => {
             const features =
-              getPricingPlanMainFeatures(period).links[plan.name] || [];
+              getPricingPlanMainFeatures(period)[product][plan.name] || [];
 
             return (
               <div
-                key={plan.name}
+                key={`${product}-${plan.name}`}
                 className={cn(
                   "flex flex-col border-y border-l border-neutral-200 bg-white first:rounded-l-lg last:rounded-r-lg last:border-r",
                   "max-lg:overflow-hidden max-lg:rounded-lg max-lg:border-0 max-lg:ring-1 max-lg:ring-inset max-lg:ring-neutral-200",
-                  plan.name === "Business" &&
+                  product === "links" &&
+                    plan.name === "Business" &&
                     "bg-gradient-to-b from-orange-50 to-40%",
+                  product === "partners" &&
+                    plan.name === "Advanced" &&
+                    "bg-gradient-to-b from-violet-50 to-40%",
                 )}
               >
                 <div className="flex grow flex-col gap-6 p-5 pb-3">
@@ -94,9 +104,14 @@ export function PlanSelector() {
                       <h2 className="text-xl font-semibold text-neutral-800">
                         {plan.name}
                       </h2>
-                      {plan.name === "Business" && (
+                      {product === "links" && plan.name === "Business" && (
                         <div className="w-fit whitespace-nowrap rounded-full bg-orange-900 px-2 py-1.5 text-center text-[0.5rem] font-medium uppercase leading-none text-white">
                           Popular
+                        </div>
+                      )}
+                      {product === "partners" && plan.name === "Advanced" && (
+                        <div className="w-fit whitespace-nowrap rounded-full bg-violet-900 px-2 py-1.5 text-center text-[0.5rem] font-medium uppercase leading-none text-white">
+                          Best Value
                         </div>
                       )}
                     </div>
@@ -128,7 +143,7 @@ export function PlanSelector() {
                   </div>
 
                   <p className="min-h-10 text-sm text-neutral-600">
-                    {PRICING_PLAN_TAGLINES.links[plan.name]}
+                    {PRICING_PLAN_TAGLINES[product][plan.name]}
                   </p>
 
                   <div className="flex gap-2">
@@ -228,6 +243,50 @@ export function PlanSelector() {
                     ))}
                   </div>
                 </div>
+
+                {Boolean(
+                  (product === "links" && plan.limits.payouts) ||
+                    product === "partners",
+                ) && (
+                  <div className="flex grow flex-col justify-end">
+                    <div className="relative z-0 bg-neutral-100">
+                      <div className="border-border-subtle pointer-events-none relative z-10 -mx-px h-2.5 rounded-b-[0.625rem] border-x border-b bg-white" />
+                      <a
+                        href={`https://dub.co/${product === "links" ? "partners" : "links"}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group peer relative z-10 flex items-center justify-center px-5 py-2.5 transition-transform duration-100 active:scale-[0.97]"
+                      >
+                        <div className="relative flex items-center gap-2 transition-[transform,opacity] group-hover:-translate-y-1 group-hover:opacity-0">
+                          <DubProductIcon
+                            product={product === "links" ? "partners" : "links"}
+                            className="size-[1.125rem]"
+                          />
+                          <span className="text-content-default block text-sm">
+                            Includes{" "}
+                            <strong className="font-semibold">
+                              Dub {product === "links" ? "Partners" : "Links"}
+                            </strong>
+                          </span>
+                        </div>
+
+                        <div className="absolute inset-0 flex translate-y-1 items-center justify-center opacity-0 transition-[transform,opacity] group-hover:translate-y-0 group-hover:opacity-100">
+                          <span className="text-content-default block whitespace-nowrap text-sm font-medium">
+                            Learn more ↗
+                          </span>
+                        </div>
+                      </a>
+                      <div
+                        className={cn(
+                          "pointer-events-none absolute inset-0 opacity-0 duration-100 peer-hover:opacity-5",
+                          product === "links"
+                            ? "bg-violet-700"
+                            : "bg-orange-700",
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}

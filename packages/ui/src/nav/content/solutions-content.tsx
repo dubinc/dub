@@ -5,6 +5,7 @@ import {
   Microphone,
   OfficeBuilding,
   Rocket,
+  Users,
 } from "../../icons";
 import {
   ContentLinkCard,
@@ -13,6 +14,12 @@ import {
 } from "./shared";
 
 const useCaseLinks = [
+  {
+    icon: Users,
+    title: "Affiliate Management",
+    description: "Manage affiliates and automate payouts",
+    href: "/partners",
+  },
   {
     icon: DiamondTurnRight,
     title: "Marketing Attribution",
@@ -31,7 +38,7 @@ const stageLinks = [
   {
     icon: OfficeBuilding,
     title: "Enterprise",
-    description: "Dub for enterprise scale",
+    description: "Partner programs built for enterprise scale",
     href: "/enterprise",
   },
   {

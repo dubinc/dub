@@ -1,0 +1,33 @@
+name: "Deploy embed script"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/embeds/core/**"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      - name: Install dependencies & build
+        run: pnpm --filter @dub/embed-core build
+
+      # - name: Deploy to Cloudflare Pages (https://www.dubcdn.com/embed/script.js)
+      #   uses: cloudflare/wrangler-action@v3
+      #   with:
+      #     apiToken: ${{ secrets.CLOUDFLARE_PAGES_API_KEY }}
+      #     accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      #     command: pages deploy dist/embed/script.js --project-name=dub-cdn --commit-dirty=true
+      #     workingDirectory: packages/embeds/core
+      #     packageManager: pnpm

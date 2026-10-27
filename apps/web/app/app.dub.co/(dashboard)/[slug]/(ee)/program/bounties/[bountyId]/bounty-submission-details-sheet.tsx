@@ -1,0 +1,701 @@
+"use client";
+
+import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
+import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
+import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/social-metrics-milestones";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { clientAccessCheck } from "@/lib/client-access-check";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import useBounty from "@/lib/swr/use-bounty";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { BountySubmissionProps } from "@/lib/types";
+import { useConfirmApproveBountySubmissionModal } from "@/ui/modals/confirm-approve-bounty-submission-modal";
+import { PLATFORM_ICONS } from "@/ui/partners/bounties/bounty-platform-icons";
+import { EmphasisNumber } from "@/ui/partners/bounties/bounty-progress-bar-row";
+import { getBountyRewardCriteria } from "@/ui/partners/bounties/bounty-reward-criteria";
+import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
+import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
+import { useRejectBountySubmissionModal } from "@/ui/partners/bounties/reject-bounty-submission-modal";
+import { useSocialMetricsMilestones } from "@/ui/partners/bounties/use-social-metrics-milestones";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { ButtonLink } from "@/ui/placeholders/button-link";
+import { AmountInput } from "@/ui/shared/amount-input";
+import { X } from "@/ui/shared/icons";
+import {
+  Button,
+  ChevronLeft,
+  ChevronRight,
+  CopyButton,
+  Sheet,
+  StatusBadge,
+  Tooltip,
+  useKeyboardShortcut,
+  useRouterStuff,
+} from "@dub/ui";
+import { CircleHalfDottedClock } from "@dub/ui/icons";
+import {
+  cn,
+  currencyFormatter,
+  formatDate,
+  getPrettyUrl,
+  nFormatter,
+  pluralize,
+  timeAgo,
+} from "@dub/utils";
+import {
+  BountySubmissionStatus,
+  BountyType,
+  CommissionStatus,
+} from "@prisma/client";
+import Linkify from "linkify-react";
+import Link from "next/link";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
+import { toast } from "sonner";
+
+const PAYABLE_COMMISSION_STATUSES: CommissionStatus[] = [
+  "pending",
+  "processed",
+  "paid",
+  "hold",
+];
+
+type BountySubmissionDetailsSheetProps = {
+  submission: BountySubmissionProps;
+  onNext?: () => void;
+  onPrevious?: () => void;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
+};
+
+function BountySubmissionDetailsSheetContent({
+  submission,
+  onPrevious,
+  onNext,
+  setIsOpen,
+}: BountySubmissionDetailsSheetProps) {
+  const { bounty } = useBounty();
+  const { slug: workspaceSlug, role } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "bounties.write",
+    role,
+    customPermissionDescription: "review bounty submissions",
+  }).error;
+
+  const refreshPermissionsError = clientAccessCheck({
+    action: "bounties.write",
+    role,
+    customPermissionDescription: "refresh bounty stats",
+  }).error;
+
+  const { setShowRejectModal, RejectBountySubmissionModal } =
+    useRejectBountySubmissionModal(submission, onNext);
+
+  const {
+    openConfirmApproveBountySubmissionModal,
+    ConfirmApproveBountySubmissionModal,
+  } = useConfirmApproveBountySubmissionModal({
+    onApproveSuccess: () => (onNext ? onNext() : setIsOpen(false)),
+  });
+
+  const [rewardAmount, setRewardAmount] = useState<number | null>(null);
+
+  const { isSubmitting: isRefreshingSocialMetrics, makeRequest } =
+    useApiMutation();
+
+  const refreshSubmissionSocialMetrics = useCallback(() => {
+    if (!bounty?.id || !submission?.id) return;
+
+    makeRequest(`/api/bounties/${bounty.id}/sync-social-metrics`, {
+      method: "POST",
+      body: { submissionId: submission.id },
+      onSuccess: async () => {
+        await mutatePrefix(`/api/bounties/${bounty.id}/submissions`);
+        toast.success("Social content stats updated successfully.");
+      },
+      onError: (error) => {
+        toast.error(error);
+      },
+    });
+  }, [bounty?.id, submission?.id, makeRequest]);
+
+  // right arrow key onNext
+  useKeyboardShortcut(
+    "ArrowRight",
+    () => {
+      if (onNext) {
+        onNext();
+      }
+    },
+    { sheet: true },
+  );
+
+  // left arrow key onPrevious
+  useKeyboardShortcut(
+    "ArrowLeft",
+    () => {
+      if (onPrevious) {
+        onPrevious();
+      }
+    },
+    { sheet: true },
+  );
+
+  useKeyboardShortcut(
+    "a",
+    () => {
+      if (canApprove) {
+        openConfirmApproveBountySubmissionModal(
+          submission,
+          bounty ?? null,
+          rewardAmount,
+        );
+      }
+    },
+    { sheet: true, enabled: !permissionsError },
+  );
+
+  const isInProgressPerformanceSubmission =
+    submission.status === BountySubmissionStatus.draft &&
+    bounty?.type === BountyType.performance;
+
+  const canReject =
+    submission.status !== BountySubmissionStatus.rejected &&
+    submission.status !== BountySubmissionStatus.approved &&
+    !isInProgressPerformanceSubmission;
+
+  const rejectDisabledTooltip = permissionsError
+    ? permissionsError
+    : isInProgressPerformanceSubmission
+      ? "Performance bounty submissions can only be rejected after the partner completes the bounty."
+      : submission.status === BountySubmissionStatus.rejected
+        ? "Bounty submission already rejected."
+        : undefined;
+
+  useKeyboardShortcut(
+    "r",
+    () => {
+      if (canReject) {
+        setShowRejectModal(true);
+      }
+    },
+    { sheet: true, enabled: !permissionsError },
+  );
+
+  const isValidForm = useMemo(() => {
+    if (bounty?.rewardAmount) {
+      return true;
+    }
+
+    if (!rewardAmount) {
+      return false;
+    }
+
+    return true;
+  }, [bounty, rewardAmount]);
+
+  const {
+    isSocialMetricsBounty,
+    hasMultipleMilestones,
+    pendingMilestones,
+    hasReachedEarningCap,
+  } = useSocialMetricsMilestones({
+    bounty,
+    submission,
+  });
+
+  const canApprove =
+    submission?.status !== "draft" &&
+    (isSocialMetricsBounty ? pendingMilestones.length > 0 : isValidForm);
+
+  if (!submission || !submission.partner || !bounty) {
+    return null;
+  }
+
+  const bountyInfo = resolveBountyDetails(bounty);
+  const criteriaTexts = bounty ? getBountyRewardCriteria(bounty) : [];
+
+  const hasSocialContent =
+    bountyInfo?.hasSocialMetrics && (submission.urls?.length ?? 0) > 0;
+
+  const socialPlatform = bountyInfo?.socialPlatform;
+  const SocialPlatformIcon = socialPlatform
+    ? PLATFORM_ICONS[socialPlatform.value]
+    : null;
+  const socialMetricCount = submission.socialMetricCount ?? 0;
+  const socialMinCount = bountyInfo?.socialMetrics?.minCount ?? 0;
+  const socialMetricPercent =
+    socialMinCount > 0
+      ? Math.min((socialMetricCount / socialMinCount) * 100, 100)
+      : 100;
+  const socialMetricComplete = socialMetricPercent >= 100;
+
+  const viewCommissionsLink =
+    submission.commissions.length > 0 ? (
+      <Link
+        href={`/${workspaceSlug}/program/commissions?bountySubmissionId=${submission.id}&interval=all`}
+        target="_blank"
+        className="w-full"
+      >
+        <Button variant="secondary" text="View commissions" />
+      </Link>
+    ) : null;
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
+        <div className="flex h-16 items-center justify-between px-6 py-4">
+          <Sheet.Title className="text-lg font-semibold">
+            Review bounty submission
+          </Sheet.Title>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center">
+              <Button
+                type="button"
+                disabled={!onPrevious}
+                onClick={onPrevious}
+                variant="secondary"
+                className="size-9 rounded-l-lg rounded-r-none p-0"
+                icon={<ChevronLeft className="size-3.5" />}
+              />
+              <Button
+                type="button"
+                disabled={!onNext}
+                onClick={onNext}
+                variant="secondary"
+                className="-ml-px size-9 rounded-l-none rounded-r-lg p-0"
+                icon={<ChevronRight className="size-3.5" />}
+              />
+            </div>
+            <Sheet.Close asChild>
+              <Button
+                variant="outline"
+                icon={<X className="size-5" />}
+                className="h-auto w-fit p-1"
+              />
+            </Sheet.Close>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex grow flex-col">
+        <div className="px-6 pt-6">
+          <div className="flex items-center gap-4 rounded-xl bg-neutral-100 px-4 py-3">
+            <PartnerAvatar partner={submission.partner} className="size-10" />
+            <div className="min-w-0 flex-1">
+              <div className="text-base font-semibold text-neutral-800">
+                {submission.partner.name}
+              </div>
+              <div className="text-sm font-medium text-neutral-500">
+                {submission.partner.email}
+              </div>
+            </div>
+            <ButtonLink
+              href={`/${workspaceSlug}/program/partners/${submission.partner.id}`}
+              variant="secondary"
+              className="h-8 shrink-0 px-3 text-sm font-medium"
+              target="_blank"
+            >
+              View
+            </ButtonLink>
+          </div>
+        </div>
+
+        <div className="flex grow flex-col gap-6 overflow-y-auto p-6">
+          <div>
+            <h2 className="text-base font-semibold text-neutral-900">
+              Details
+            </h2>
+
+            <div className="mt-3 max-w-md space-y-2">
+              {[
+                {
+                  label: "Status",
+                  value: (
+                    <StatusBadge
+                      variant={
+                        BountySubmissionStatusBadges[submission.status].variant
+                      }
+                      icon={
+                        BountySubmissionStatusBadges[submission.status].icon
+                      }
+                    >
+                      {BountySubmissionStatusBadges[submission.status].label}
+                    </StatusBadge>
+                  ),
+                },
+                {
+                  label:
+                    bounty?.type === "performance" ? "Completed" : "Submitted",
+                  value: submission.completedAt
+                    ? formatDate(submission.completedAt, {
+                        month: "short",
+                      })
+                    : "-",
+                },
+                ...(bountyInfo?.socialMetrics
+                  ? [
+                      {
+                        label: "Criteria",
+                        value:
+                          criteriaTexts.length > 1 ? (
+                            <Tooltip
+                              // remove first item from criteriaTexts
+                              content={criteriaTexts.slice(1).join("\n")}
+                              align="end"
+                            >
+                              <div
+                                className={cn(
+                                  "w-fit text-sm font-medium text-neutral-800",
+                                  "cursor-help underline decoration-dotted underline-offset-2",
+                                )}
+                              >
+                                {`${bountyInfo.socialMetrics.minCount} ${bountyInfo.socialMetrics.metric}`}
+                              </div>
+                            </Tooltip>
+                          ) : (
+                            `${bountyInfo.socialMetrics.minCount} ${bountyInfo.socialMetrics.metric}`
+                          ),
+                      },
+                    ]
+                  : []),
+                ...(submission.status === "rejected"
+                  ? [
+                      {
+                        label: "Rejection reason",
+                        value:
+                          submission.rejectionReason &&
+                          REJECT_BOUNTY_SUBMISSION_REASONS[
+                            submission.rejectionReason as keyof typeof REJECT_BOUNTY_SUBMISSION_REASONS
+                          ],
+                      },
+                    ]
+                  : [
+                      {
+                        label: "Reward",
+                        value: (() => {
+                          if (submission.commissions.length > 0) {
+                            return currencyFormatter(
+                              submission.commissions.reduce(
+                                (total, { earnings, status }) =>
+                                  PAYABLE_COMMISSION_STATUSES.includes(status)
+                                    ? total + earnings
+                                    : total,
+                                0,
+                              ),
+                            );
+                          }
+                          const estimatedEarnings =
+                            calculateSocialMetricsRewardAmount({
+                              bounty,
+                              submission,
+                            });
+                          if (
+                            estimatedEarnings != null &&
+                            estimatedEarnings > 0
+                          ) {
+                            return (
+                              <Tooltip content="Estimated earnings based on reached reward tiers">
+                                <div className="hover:text-content-emphasis text-content-muted flex w-fit cursor-help items-center gap-1 underline decoration-dotted underline-offset-2">
+                                  <CircleHalfDottedClock className="size-3.5 shrink-0" />{" "}
+                                  {currencyFormatter(estimatedEarnings)}
+                                </div>
+                              </Tooltip>
+                            );
+                          }
+                          return "-";
+                        })(),
+                      },
+                    ]),
+              ].map((item, index) => (
+                <div key={index} className="grid grid-cols-2 gap-6">
+                  <span className="text-sm font-medium text-neutral-500">
+                    {item.label}
+                  </span>
+                  <span className="text-sm font-medium text-neutral-800">
+                    {item.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Rejection details for rejected submissions */}
+            {submission.status === "rejected" && submission.rejectionNote && (
+              <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+                <Linkify
+                  as="p"
+                  options={{
+                    target: "_blank",
+                    rel: "noopener noreferrer nofollow",
+                    format: (href) => getPrettyUrl(href),
+                    className:
+                      "underline underline-offset-4 text-red-400 hover:text-red-700",
+                  }}
+                  className="mt-1 whitespace-pre-wrap text-sm text-red-800"
+                >
+                  {submission.rejectionNote}
+                </Linkify>
+              </div>
+            )}
+          </div>
+
+          {bounty?.type === "submission" && (
+            <div>
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-base font-semibold text-neutral-900">
+                  Submission
+                </h2>
+                {hasSocialContent &&
+                  !["approved", "rejected"].includes(submission.status) &&
+                  !hasReachedEarningCap && (
+                    <div className="flex shrink-0 items-center gap-3">
+                      {submission.socialMetricsLastSyncedAt ? (
+                        <span className="whitespace-nowrap text-xs font-medium text-neutral-500">
+                          Last sync{" "}
+                          {timeAgo(submission.socialMetricsLastSyncedAt, {
+                            withAgo: true,
+                          })}
+                        </span>
+                      ) : null}
+                      <Button
+                        variant="secondary"
+                        text="Refresh"
+                        loading={isRefreshingSocialMetrics}
+                        onClick={refreshSubmissionSocialMetrics}
+                        disabledTooltip={refreshPermissionsError}
+                        className="h-8 rounded-lg px-3"
+                      />
+                    </div>
+                  )}
+              </div>
+
+              <div className="mt-3 flex flex-col gap-6">
+                {hasSocialContent && (
+                  <div className="rounded-xl border border-neutral-200 bg-neutral-50">
+                    <div className="flex flex-col gap-3 px-4 pb-3 pt-4">
+                      <div className="h-1 w-full rounded-full bg-neutral-200">
+                        <div
+                          className={cn(
+                            "h-full rounded-full",
+                            socialMetricComplete
+                              ? "bg-green-600"
+                              : "bg-amber-600",
+                          )}
+                          style={{ width: `${socialMetricPercent}%` }}
+                        />
+                      </div>
+
+                      {SocialPlatformIcon && bountyInfo?.socialMetrics && (
+                        <div className="flex items-center gap-2">
+                          <SocialPlatformIcon className="size-4 shrink-0" />
+                          <p className="text-sm font-medium text-neutral-600">
+                            <EmphasisNumber>
+                              {nFormatter(socialMetricCount, { full: true })}
+                            </EmphasisNumber>
+                            {" of "}
+                            <EmphasisNumber>
+                              {nFormatter(socialMinCount, { full: true })}
+                            </EmphasisNumber>
+                            {` ${bountyInfo.socialMetrics.metric} generated`}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    <BountySocialContentPreview
+                      bounty={bounty}
+                      submission={submission}
+                    />
+                  </div>
+                )}
+
+                {bountyInfo?.hasSocialMetrics && (
+                  <BountySocialMetricsRewardsTable
+                    bounty={bounty}
+                    submission={submission}
+                  />
+                )}
+
+                {Boolean(submission.files?.length) && (
+                  <div>
+                    <h2 className="text-content-emphasis text-sm font-medium">
+                      Files
+                    </h2>
+                    <div className="mt-2 flex flex-wrap gap-4">
+                      {submission.files!.map((file, idx) => (
+                        <a
+                          key={idx}
+                          className="border-border-subtle hover:border-border-default group relative flex size-14 items-center justify-center rounded-md border bg-white"
+                          target="_blank"
+                          href={file.url}
+                          rel="noopener noreferrer"
+                        >
+                          <div className="relative size-full overflow-hidden rounded-md">
+                            <img src={file.url} alt="object-cover" />
+                          </div>
+                          <span className="sr-only">
+                            {file.fileName || `File ${idx + 1}`}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {Boolean(submission.urls?.length) && !hasSocialContent && (
+                  <div>
+                    <h2 className="text-content-emphasis text-sm font-medium">
+                      URLs
+                    </h2>
+                    <div className="mt-2 flex flex-col gap-2">
+                      {submission.urls?.map((url, idx) => (
+                        <div
+                          className="relative"
+                          key={`${submission.id}-${idx}-${url}`}
+                        >
+                          <div className="border-border-subtle block w-full rounded-lg border px-3 py-2 pl-10 pr-12">
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block cursor-alias truncate text-sm font-normal text-neutral-800 decoration-dotted underline-offset-2 hover:underline"
+                            >
+                              {url}
+                            </a>
+                          </div>
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-2.5">
+                            <div className="flex size-6 items-center justify-center rounded-full bg-neutral-100 text-xs font-medium text-neutral-600">
+                              {idx + 1}
+                            </div>
+                          </div>
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
+                            <CopyButton
+                              value={url}
+                              onCopy={() => {
+                                toast.success("URL copied to clipboard!");
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {submission.description && (
+                  <div>
+                    <h2 className="text-content-emphasis text-sm font-medium">
+                      How did you complete this bounty?
+                    </h2>
+                    <span className="mt-2 whitespace-pre-wrap text-sm font-normal text-neutral-600">
+                      {submission.description}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
+          <div className="flex items-center justify-between gap-2 p-5">
+            {submission.status === "approved" && viewCommissionsLink ? (
+              viewCommissionsLink
+            ) : (
+              <div className="flex w-full flex-col gap-4">
+                {viewCommissionsLink}
+                {!bounty?.rewardAmount && (
+                  <div>
+                    <label className="text-sm font-medium text-neutral-800">
+                      Reward
+                    </label>
+                    <div className="mt-2">
+                      <AmountInput
+                        required
+                        amountType="flat"
+                        placeholder="0"
+                        value={rewardAmount || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setRewardAmount(val === "" ? null : parseFloat(val));
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex w-full gap-4">
+                  <Button
+                    type="button"
+                    variant="danger"
+                    text={hasMultipleMilestones ? "Reject all" : "Reject"}
+                    shortcut="R"
+                    disabled={!canReject}
+                    disabledTooltip={rejectDisabledTooltip}
+                    onClick={() => setShowRejectModal(true)}
+                  />
+
+                  <Button
+                    type="button"
+                    variant="primary"
+                    text={
+                      !hasMultipleMilestones
+                        ? "Approve"
+                        : pendingMilestones.length > 0
+                          ? `Approve ${pendingMilestones.length} ${pluralize("milestone", pendingMilestones.length)}`
+                          : "Waiting for milestone"
+                    }
+                    shortcut={canApprove ? "A" : undefined}
+                    onClick={() =>
+                      openConfirmApproveBountySubmissionModal(
+                        submission,
+                        bounty ?? null,
+                        rewardAmount,
+                      )
+                    }
+                    disabledTooltip={
+                      permissionsError
+                        ? permissionsError
+                        : isSocialMetricsBounty && !canApprove
+                          ? "The partner hasn't reached the next milestone yet."
+                          : submission.status === "draft"
+                            ? "Bounty submission is in progress."
+                            : undefined
+                    }
+                    disabled={!canApprove}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {RejectBountySubmissionModal}
+      {ConfirmApproveBountySubmissionModal}
+    </div>
+  );
+}
+
+export function BountySubmissionDetailsSheet({
+  isOpen,
+  ...rest
+}: BountySubmissionDetailsSheetProps & {
+  isOpen: boolean;
+}) {
+  const { queryParams } = useRouterStuff();
+  return (
+    <Sheet
+      open={isOpen}
+      onOpenChange={rest.setIsOpen}
+      onClose={() => queryParams({ del: "submissionId" })}
+    >
+      <BountySubmissionDetailsSheetContent {...rest} />
+    </Sheet>
+  );
+}

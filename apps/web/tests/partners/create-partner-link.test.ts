@@ -1,0 +1,52 @@
+import { nanoid } from "@dub/utils";
+import { Link } from "@prisma/client";
+import { expect, onTestFinished, test } from "vitest";
+import { IntegrationHarness } from "../utils/integration";
+import { E2E_PARTNER } from "../utils/resource";
+import { LinkSchema } from "../utils/schema";
+import { partnerLink } from "./resource";
+
+test("POST /api/partners/links", async () => {
+  const h = new IntegrationHarness();
+  const { http } = await h.init();
+
+  onTestFinished(async () => {
+    await h.deleteLink(link.id);
+  });
+
+  const { status, data: link } = await http.post<Link>({
+    path: "/partners/links",
+    body: {
+      partnerId: E2E_PARTNER.id,
+    },
+  });
+
+  expect(status).toEqual(201);
+  expect(LinkSchema.strict().parse(link)).toBeTruthy();
+  expect(link).toStrictEqual(partnerLink);
+});
+
+test("POST /api/partners/links with a URL outside additionalLinks", async () => {
+  const h = new IntegrationHarness();
+  const { http } = await h.init();
+  const url = `https://github.com/dubinc/${nanoid()}`;
+
+  onTestFinished(async () => {
+    await h.deleteLink(link.id);
+  });
+
+  const { status, data: link } = await http.post<Link>({
+    path: "/partners/links",
+    body: {
+      partnerId: E2E_PARTNER.id,
+      url,
+    },
+  });
+
+  expect(status).toEqual(201);
+  expect(LinkSchema.strict().parse(link)).toBeTruthy();
+  expect(link).toStrictEqual({
+    ...partnerLink,
+    url,
+  });
+});

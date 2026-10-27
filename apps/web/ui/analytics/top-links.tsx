@@ -1,4 +1,5 @@
 import { AnalyticsGroupByOptions } from "@/lib/analytics/types";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { LinkLogo, useRouterStuff } from "@dub/ui";
 import { Globe, Hyperlink } from "@dub/ui/icons";
@@ -56,7 +57,7 @@ const TAB_CONFIG: Record<
 export function TopLinks() {
   const { queryParams, searchParams } = useRouterStuff();
 
-  const { selectedTab, saleUnit, dashboardProps } =
+  const { selectedTab, saleUnit, adminPage, partnerPage, dashboardProps } =
     useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? saleUnit : "count";
 
@@ -133,6 +134,8 @@ export function TopLinks() {
   });
 
   const [persisted] = useWorkspacePreferences("linksDisplay");
+  const { displayProperties: partnerDisplayProperties } =
+    usePartnerLinksDisplay();
 
   const getItemTitle = useCallback(
     (d: Record<string, any>) => {
@@ -148,6 +151,16 @@ export function TopLinks() {
         return d.tag?.name || "Unknown";
       }
 
+      if (partnerPage) {
+        if (
+          partnerDisplayProperties.includes("title") &&
+          d.partnerLinkTitle
+        ) {
+          return d.partnerLinkTitle;
+        }
+        return d.shortLink || "Unknown";
+      }
+
       // For links subtab
       const displayProperties = persisted?.displayProperties;
 
@@ -157,7 +170,7 @@ export function TopLinks() {
 
       return d.shortLink || "Unknown";
     },
-    [persisted, tab, subtab],
+    [persisted, tab, subtab, partnerPage, partnerDisplayProperties],
   );
 
   const mapItem = useCallback(
@@ -204,7 +217,7 @@ export function TopLinks() {
   );
 
   const subTabProps = useMemo(() => {
-    if (dashboardProps) return {};
+    if (adminPage || partnerPage || dashboardProps) return {};
     const config = TAB_CONFIG[tab];
     return {
       subTabs: config.subtabs.map((s) => ({
@@ -214,7 +227,7 @@ export function TopLinks() {
       selectedSubTabId: subtab,
       onSelectSubTab: setSubtab,
     };
-  }, [tab, subtab]);
+  }, [tab, subtab, adminPage, partnerPage]);
 
   return (
     <AnalyticsCard

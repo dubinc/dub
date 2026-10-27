@@ -13,12 +13,14 @@ import EventsTabs from "./events-tabs";
 export default function AnalyticsEvents({
   staticDomain,
   staticUrl,
+  adminPage,
 }: {
   staticDomain?: string;
   staticUrl?: string;
+  adminPage?: boolean;
 }) {
   return (
-    <AnalyticsProvider {...{ staticDomain, staticUrl }}>
+    <AnalyticsProvider {...{ staticDomain, staticUrl, adminPage }}>
       <div className="pb-10">
         <AnalyticsToggle page="events" />
         <AnalyticsContext.Consumer>
@@ -27,7 +29,7 @@ export default function AnalyticsEvents({
               className={cn(
                 "mx-auto flex max-w-screen-xl flex-col gap-4 px-3 lg:px-10",
                 // TODO: [PageContent] Remove once all pages are migrated to the new PageContent
-                !dashboardProps && "lg:px-6",
+                !dashboardProps && !adminPage && "lg:px-6",
               )}
             >
               <EventsTabs />

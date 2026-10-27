@@ -8,7 +8,7 @@ import * as z from "zod/v4";
 
 const querySchema = z.object({
   type: z
-    .enum(["subscription", "domainRenewal"])
+    .enum(["subscription", "partnerPayout", "domainRenewal"])
     .optional()
     .default("subscription"),
   stripeStatus: z.enum(["open"]).optional(), // only for Stripe subscription invoices
@@ -73,7 +73,7 @@ const getOtherInvoices = async ({
   type,
 }: {
   workspaceId: string;
-  type: "domainRenewal";
+  type: "partnerPayout" | "domainRenewal";
 }) => {
   const invoices = await prisma.invoice.findMany({
     where: {
@@ -98,7 +98,8 @@ const getOtherInvoices = async ({
   return invoices.map((invoice) => {
     return {
       ...invoice,
-      description: "Dub domain renewal",
+      description:
+        type === "partnerPayout" ? "Dub partner payout" : "Dub domain renewal",
       pdfUrl: `${APP_DOMAIN}/invoices/${invoice.id}`,
     };
   });

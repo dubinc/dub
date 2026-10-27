@@ -23,12 +23,15 @@ function SendTestWebhookModal({
   setShowSendTestWebhookModal: Dispatch<SetStateAction<boolean>>;
   webhook: WebhookProps | undefined;
 }) {
-  const { id: workspaceId } = useWorkspace();
+  const workspace = useWorkspace();
   const [selectedTrigger, setSelectedTrigger] = useState<ComboboxOption | null>(
     null,
   );
 
-  const availableTriggers = getAvailableWebhookTriggers();
+  const availableTriggers = getAvailableWebhookTriggers({
+    defaultProgramId: workspace.defaultProgramId,
+    subscribedTriggers: webhook?.triggers,
+  });
 
   const triggerOptions = availableTriggers.map((trigger) => ({
     value: trigger,
@@ -64,7 +67,7 @@ function SendTestWebhookModal({
           }
 
           execute({
-            workspaceId: workspaceId!,
+            workspaceId: workspace.id!,
             webhookId: webhook.id,
             trigger: selectedTrigger?.value as WebhookTrigger,
           });

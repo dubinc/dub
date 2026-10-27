@@ -5,6 +5,7 @@ import {
   CardList,
   ExpandingArrow,
   useClickHandlers,
+  useCurrentSubdomain,
   useIntersectionObserver,
   useRouterStuff,
 } from "@dub/ui";
@@ -56,15 +57,20 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
   const { folderId: currentFolderId } = useCurrentFolderId();
   const { slug } = useWorkspace();
   const { queryParams } = useRouterStuff();
+  const { subdomain } = useCurrentSubdomain();
 
   // only show the folder icon if:
   // - loading is complete
   // - the link has a folder id AND the currentFolderId is not the same as the link's folder id
+  // - not the admin dashboard
   const showFolderIcon = useMemo(() => {
     return Boolean(
-      !loading && link.folderId && currentFolderId !== link.folderId,
+      !loading &&
+        link.folderId &&
+        currentFolderId !== link.folderId &&
+        subdomain !== "admin",
     );
-  }, [loading, link.folderId, currentFolderId]);
+  }, [loading, link.folderId, currentFolderId, subdomain]);
 
   const { folder } = useFolder({
     folderId: link.folderId,

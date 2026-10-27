@@ -1,0 +1,190 @@
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
+import { sendBatchEmail } from "@dub/email";
+import PartnerReactivated from "@dub/email/templates/partner-reactivated";
+import { Partner, Program, ProgramEnrollment } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
+import { trackActivityLog } from "../activity-log/track-activity-log";
+import { linkCache } from "../links/cache";
+import { queuePartnerSearchSync } from "./queue-partner-search-sync";
+
+type ProgramEnrollmentWithPartner = Pick<
+  ProgramEnrollment,
+  "id" | "partnerId" | "groupId"
+> & {
+  partner: Pick<Partner, "id" | "name" | "email">;
+};
+
+interface BulkReactivatePartnersParams {
+  program: Pick<
+    Program,
+    "id" | "name" | "slug" | "workspaceId" | "defaultGroupId" | "supportEmail"
+  >;
+  programEnrollments: ProgramEnrollmentWithPartner[];
+}
+
+export async function bulkReactivatePartners({
+  program,
+  programEnrollments,
+}: BulkReactivatePartnersParams) {
+  if (programEnrollments.length === 0) {
+    return;
+  }
+
+  const partnerIds = programEnrollments.map((e) => e.partnerId);
+
+  // Resolve effective groupId per enrollment (fall back to program default)
+  const resolvedGroupIds = programEnrollments.map(
+    (e) => e.groupId || program.defaultGroupId,
+  );
+
+  // Find the groups
+  const groups = await prisma.partnerGroup.findMany({
+    where: {
+      id: {
+        in: [...new Set(resolvedGroupIds.filter(Boolean))],
+      },
+    },
+    select: {
+      id: true,
+      clickRewardId: true,
+      leadRewardId: true,
+      saleRewardId: true,
+      referralRewardId: true,
+      customRewardId: true,
+      discountId: true,
+    },
+  });
+
+  // Build a map from resolved groupId -> partnerIds
+  const partnerIdsByGroupId = new Map<string, string[]>();
+
+  for (const enrollment of programEnrollments) {
+    const groupId = enrollment.groupId || program.defaultGroupId;
+
+    if (!groupId) {
+      continue;
+    }
+
+    const partnerIds = partnerIdsByGroupId.get(groupId) || [];
+    partnerIds.push(enrollment.partnerId);
+    partnerIdsByGroupId.set(groupId, partnerIds);
+  }
+
+  // Un-expire all links
+  while (true) {
+    const { count } = await prisma.link.updateMany({
+      where: {
+        programId: program.id,
+        partnerId: {
+          in: partnerIds,
+        },
+        expiresAt: {
+          not: null,
+        },
+      },
+      data: {
+        expiresAt: null,
+      },
+      limit: PRISMA_UPDATEMANY_LIMIT,
+    });
+    console.log(`Un-expired ${count} links`);
+    if (count < PRISMA_UPDATEMANY_LIMIT) break;
+  }
+
+  // Find all links and expire cache
+  const allLinks = await prisma.link.findMany({
+    where: {
+      programId: program.id,
+      partnerId: {
+        in: partnerIds,
+      },
+    },
+    select: {
+      domain: true,
+      key: true,
+    },
+  });
+
+  await linkCache.expireMany(allLinks);
+
+  // Update enrollments per group to restore rewards
+  const groupsById = new Map(groups.map((g) => [g.id, g]));
+
+  for (const [groupId, groupPartnerIds] of partnerIdsByGroupId) {
+    const group = groupsById.get(groupId);
+
+    if (!group) {
+      continue;
+    }
+
+    await prisma.programEnrollment.updateMany({
+      where: {
+        programId: program.id,
+        partnerId: {
+          in: groupPartnerIds,
+        },
+        status: "deactivated",
+      },
+      data: {
+        status: "approved",
+        groupId,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        referralRewardId: group.referralRewardId,
+        customRewardId: group.customRewardId,
+        discountId: group.discountId,
+      },
+    });
+  }
+
+  waitUntil(
+    Promise.allSettled([
+      trackActivityLog(
+        programEnrollments.map(({ partnerId }) => ({
+          workspaceId: program.workspaceId,
+          programId: program.id,
+          resourceType: "partner",
+          resourceId: partnerId,
+          action: "partner.reactivated",
+          changeSet: {
+            status: {
+              old: "deactivated",
+              new: "approved",
+            },
+          },
+        })),
+      ),
+
+      // Queue an index update because the enrollment statuses moved back to approved
+      queuePartnerSearchSync({
+        enrollmentIds: programEnrollments.map(({ id }) => id),
+      }),
+    ]),
+  );
+
+  // Send email notifications
+  const emailResponse = await sendBatchEmail(
+    programEnrollments.map(({ partner }) => ({
+      variant: "notifications",
+      subject: `The ${program.name} program has been reactivated`,
+      to: partner.email!,
+      replyTo: program.supportEmail || "noreply",
+      react: PartnerReactivated({
+        partner: {
+          name: partner.name,
+          email: partner.email!,
+        },
+        program: {
+          name: program.name,
+          slug: program.slug,
+        },
+      }),
+    })),
+  );
+
+  console.log("[bulkReactivatePartners] Sent notification emails.", {
+    response: emailResponse,
+  });
+}

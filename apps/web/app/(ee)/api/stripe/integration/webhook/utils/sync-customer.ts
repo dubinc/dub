@@ -1,16 +1,20 @@
 import { createId } from "@/lib/api/create-id";
 import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { generateRandomName } from "@/lib/names";
+import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
+import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { nanoid, pick } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { EventType, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "../types";
@@ -103,6 +107,8 @@ export async function syncCustomer({
     },
     select: {
       projectId: true,
+      programId: true,
+      partnerId: true,
     },
   });
 
@@ -140,6 +146,8 @@ export async function syncCustomer({
       projectConnectId: stripeAccountId,
       externalId: dubCustomerExternalId,
       projectId: workspace.id,
+      programId: link.programId,
+      partnerId: link.partnerId,
       linkId,
       clickId,
       clickedAt: new Date(clickData.timestamp + "Z"),
@@ -212,6 +220,62 @@ export async function syncCustomer({
 
   waitUntil(
     (async () => {
+      let webhookPartner:
+        | ReturnType<typeof constructWebhookPartner>
+        | undefined;
+
+      if (link.programId && link.partnerId) {
+        const programEnrollment = await prisma.programEnrollment.findUnique({
+          where: {
+            partnerId_programId: {
+              partnerId: link.partnerId,
+              programId: link.programId,
+            },
+          },
+          include: {
+            partner: true,
+            links: true,
+          },
+        });
+
+        webhookPartner = programEnrollment
+          ? constructWebhookPartner(programEnrollment)
+          : undefined;
+
+        await Promise.allSettled([
+          executeWorkflows({
+            event: "leadRecorded",
+            identity: {
+              workspaceId: workspace.id,
+              programId: link.programId,
+              partnerId: link.partnerId,
+            },
+            metrics: {
+              current: {
+                leads: 1,
+              },
+            },
+          }),
+
+          syncPartnerLinksStats({
+            partnerId: link.partnerId,
+            programId: link.programId,
+            eventType: "lead",
+          }),
+
+          sendPartnerPostback({
+            partnerId: link.partnerId,
+            event: "lead.created",
+            data: {
+              ...clickData,
+              eventName,
+              link: linkUpdated,
+              customer,
+            },
+          }),
+        ]);
+      }
+
       await Promise.allSettled([
         sendWorkspaceWebhook({
           trigger: "lead.created",
@@ -221,12 +285,13 @@ export async function syncCustomer({
             eventName,
             link: linkUpdated,
             customer,
+            partner: webhookPartner,
             metadata: null,
           }),
         }),
         queueGoogleAdsConversionUpload({
           workspaceId: workspace.id,
-          eventType: "lead",
+          eventType: EventType.lead,
           eventId: leadData.event_id,
           eventName: leadData.event_name,
           conversionDateTime: new Date().toISOString(),

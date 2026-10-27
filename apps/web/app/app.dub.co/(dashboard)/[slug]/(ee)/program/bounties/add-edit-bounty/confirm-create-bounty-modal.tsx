@@ -1,0 +1,231 @@
+import { getProgramBountyMeta } from "@/lib/bounty/bounty-period";
+import { getBountyRewardDescription } from "@/lib/bounty/rewards";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { BountyProps } from "@/lib/types";
+import { BountyEligibilitySummary } from "@/ui/partners/bounties/bounty-eligibility-summary";
+import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
+import {
+  Button,
+  Calendar6,
+  Checkbox,
+  DynamicTooltipWrapper,
+  Gift,
+  Modal,
+  TooltipContent,
+} from "@dub/ui";
+import { nFormatter, pluck, pluralize } from "@dub/utils";
+import { cn } from "@dub/utils/src";
+import { BountyStartMode } from "@prisma/client";
+import { Dispatch, SetStateAction, useState } from "react";
+
+type ConfirmCreateBountyModalProps = {
+  bounty?: Pick<
+    BountyProps,
+    | "type"
+    | "name"
+    | "startsAt"
+    | "endsAt"
+    | "startMode"
+    | "endsAfterDays"
+    | "rewardAmount"
+    | "rewardDescription"
+    | "submissionRequirements"
+    | "groups"
+    | "partnerTags"
+  >;
+  onConfirm: (data: { sendNotificationEmails: boolean }) => Promise<void>;
+};
+
+function ConfirmCreateBountyModal({
+  showConfirmCreateBountyModal,
+  setShowConfirmCreateBountyModal,
+  bounty,
+  onConfirm,
+}: {
+  showConfirmCreateBountyModal: boolean;
+  setShowConfirmCreateBountyModal: Dispatch<SetStateAction<boolean>>;
+} & ConfirmCreateBountyModalProps) {
+  const { plan, slug: workspaceSlug, isOwner } = useWorkspace();
+  const { canSendEmailCampaigns } = getPlanCapabilities(plan);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [sendNotificationEmails, setSendNotificationEmails] = useState(
+    canSendEmailCampaigns,
+  );
+
+  const isRelative = bounty?.startMode === BountyStartMode.relative;
+
+  const { totalPartners, loading } = usePartnersCountByGroupIds({
+    groupIds: isRelative
+      ? null
+      : bounty?.groups
+        ? pluck(bounty.groups, "id")
+        : [],
+    partnerTagIds: isRelative
+      ? null
+      : bounty?.partnerTags
+        ? pluck(bounty.partnerTags, "id")
+        : [],
+  });
+
+  if (!bounty) {
+    return null;
+  }
+
+  const handleConfirm = async () => {
+    setIsLoading(true);
+    try {
+      await onConfirm({
+        sendNotificationEmails: isRelative ? false : sendNotificationEmails,
+      });
+      setShowConfirmCreateBountyModal(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const { dateRangeLabel } = getProgramBountyMeta(bounty);
+
+  return (
+    <Modal
+      showModal={showConfirmCreateBountyModal}
+      setShowModal={setShowConfirmCreateBountyModal}
+    >
+      <div className="px-5 py-4 text-left">
+        <h3 className="text-content-emphasis text-base font-semibold">
+          Confirm bounty creation
+        </h3>
+        <p className="text-content-subtle mt-1 text-sm">
+          You are about to create this bounty for the selected partners.
+        </p>
+
+        <div className="border-border-subtle mt-4 rounded-xl border bg-white p-2">
+          <div className="flex flex-col gap-3.5">
+            <div className="relative flex h-[124px] items-center justify-center rounded-lg bg-neutral-100 py-5">
+              <div className="relative size-full">
+                <BountyThumbnailImage bounty={bounty} />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5 px-2 pb-1.5">
+              <h3 className="text-content-emphasis truncate text-sm font-semibold">
+                {bounty.name}
+              </h3>
+
+              <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
+                <Calendar6 className="size-3.5" />
+                <span>{dateRangeLabel}</span>
+              </div>
+
+              {!isOwner && (
+                <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
+                  <Gift className="size-3.5 shrink-0" />
+                  <span className="truncate">
+                    {getBountyRewardDescription(bounty)}
+                  </span>
+                </div>
+              )}
+
+              {isOwner && (
+                <BountyEligibilitySummary
+                  groups={bounty.groups}
+                  partnerTags={bounty.partnerTags}
+                  className="font-normal"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {!isRelative && (
+          <DynamicTooltipWrapper
+            tooltipProps={
+              !canSendEmailCampaigns
+                ? {
+                    content: (
+                      <TooltipContent
+                        title="New bounty notifications are only available on Advanced plans and above."
+                        cta="Upgrade to Advanced"
+                        href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
+                        target="_blank"
+                      />
+                    ),
+                  }
+                : undefined
+            }
+          >
+            <label
+              className={cn(
+                "mt-4 flex items-center gap-2",
+                !canSendEmailCampaigns &&
+                  "pointer-events-none cursor-not-allowed",
+              )}
+            >
+              <Checkbox
+                checked={canSendEmailCampaigns ? sendNotificationEmails : false}
+                onCheckedChange={(checked) =>
+                  setSendNotificationEmails(Boolean(checked))
+                }
+                disabled={!canSendEmailCampaigns}
+                className="data-[state=checked]:bg-black"
+              />
+              <span
+                className={cn(
+                  "text-content-default select-none text-sm font-medium",
+                  !canSendEmailCampaigns && "opacity-50",
+                )}
+              >
+                Send notification to{" "}
+                <strong className="text-content-emphasis font-semibold">
+                  {loading ? (
+                    <span className="inline-block h-4 w-6 animate-pulse rounded bg-neutral-200 align-text-bottom" />
+                  ) : (
+                    nFormatter(totalPartners, { full: true })
+                  )}{" "}
+                  selected {pluralize("partner", totalPartners)}
+                </strong>
+              </span>
+            </label>
+          </DynamicTooltipWrapper>
+        )}
+      </div>
+
+      <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-5 py-4">
+        <Button
+          variant="secondary"
+          className="h-8 w-fit px-3"
+          text="Cancel"
+          onClick={() => setShowConfirmCreateBountyModal(false)}
+        />
+        <Button
+          variant="primary"
+          className="h-8 w-fit px-3"
+          text="Confirm"
+          loading={isLoading}
+          onClick={handleConfirm}
+        />
+      </div>
+    </Modal>
+  );
+}
+
+export function useConfirmCreateBountyModal(
+  props: ConfirmCreateBountyModalProps,
+) {
+  const [showConfirmCreateBountyModal, setShowConfirmCreateBountyModal] =
+    useState(false);
+
+  return {
+    setShowConfirmCreateBountyModal,
+    confirmCreateBountyModal: (
+      <ConfirmCreateBountyModal
+        showConfirmCreateBountyModal={showConfirmCreateBountyModal}
+        setShowConfirmCreateBountyModal={setShowConfirmCreateBountyModal}
+        {...props}
+      />
+    ),
+  };
+}

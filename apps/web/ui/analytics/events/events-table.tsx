@@ -1,6 +1,7 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
@@ -16,6 +17,7 @@ import {
   TimestampTooltip,
   Tooltip,
   useColumnVisibility,
+  useCurrentProduct,
   usePagination,
   useRouterStuff,
   useTable,
@@ -26,6 +28,7 @@ import {
   COUNTRIES,
   REGIONS,
   capitalize,
+  cn,
   currencyFormatter,
   fetcher,
   formatDateTimeSmart,
@@ -35,6 +38,7 @@ import {
 import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ReactNode, useCallback, useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
@@ -145,6 +149,7 @@ export default function EventsTable({
 }) {
   const { slug } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
+  const { product } = useCurrentProduct();
 
   const { setExportQueryString } = useContext(EventsContext);
   const {
@@ -152,7 +157,11 @@ export default function EventsTable({
     queryString: originalQueryString,
     eventsApiPath,
     totalEvents,
+    partnerPage,
+    hidePartnerRevenue,
   } = useContext(AnalyticsContext);
+
+  const { programSlug } = useParams<{ programSlug: string }>();
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "events-table-columns",
@@ -160,9 +169,23 @@ export default function EventsTable({
   );
 
   const [persisted] = useWorkspacePreferences("linksDisplay");
+  const { displayProperties: partnerDisplayProperties } =
+    usePartnerLinksDisplay();
 
   const shortLinkTitle = useCallback(
-    (d: { url?: string; title?: string; shortLink?: string }) => {
+    (d: {
+      url?: string;
+      title?: string;
+      partnerLinkTitle?: string | null;
+      shortLink?: string;
+    }) => {
+      if (partnerPage) {
+        if (partnerDisplayProperties.includes("title") && d.partnerLinkTitle) {
+          return d.partnerLinkTitle;
+        }
+        return d.shortLink ? getPrettyUrl(d.shortLink) : "Unknown";
+      }
+
       const displayProperties = persisted?.displayProperties;
 
       if (displayProperties?.includes("title") && d.title) {
@@ -171,7 +194,7 @@ export default function EventsTable({
 
       return d.shortLink ? getPrettyUrl(d.shortLink) : "Unknown";
     },
-    [persisted],
+    [persisted, partnerPage, partnerDisplayProperties],
   );
 
   const sortBy = searchParams.get("sortBy") || "timestamp";
@@ -273,7 +296,11 @@ export default function EventsTable({
           cell: ({ getValue }) => (
             <CustomerRowItem
               customer={getValue()}
-              href={`/${slug}/links/customers/${getValue().id}`}
+              href={
+                partnerPage
+                  ? `/programs/${programSlug}/customers/${getValue().id}`
+                  : `/${slug}/${product}/customers/${getValue().id}`
+              }
               className="px-4 py-2.5"
             />
           ),
@@ -294,27 +321,31 @@ export default function EventsTable({
               <span className="text-neutral-400">-</span>
             ),
         },
-        {
-          id: "customerExternalId",
-          header: "Customer External ID",
-          accessorKey: "customer.externalId",
-          minSize: 300,
-          size: 300,
-          maxSize: 300,
-          cell: ({ getValue }) =>
-            getValue() ? (
-              <CopyText
-                value={getValue()}
-                successMessage="Copied customer external ID to clipboard!"
-              >
-                <span className="truncate font-mono" title={getValue()}>
-                  {getValue()}
-                </span>
-              </CopyText>
-            ) : (
-              <span className="text-neutral-400">-</span>
-            ),
-        },
+        ...(partnerPage
+          ? []
+          : [
+              {
+                id: "customerExternalId",
+                header: "Customer External ID",
+                accessorKey: "customer.externalId",
+                minSize: 300,
+                size: 300,
+                maxSize: 300,
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <CopyText
+                      value={getValue()}
+                      successMessage="Copied customer external ID to clipboard!"
+                    >
+                      <span className="truncate font-mono" title={getValue()}>
+                        {getValue()}
+                      </span>
+                    </CopyText>
+                  ) : (
+                    <span className="text-neutral-400">-</span>
+                  ),
+              },
+            ]),
         {
           id: "link",
           header: "Link",
@@ -328,7 +359,13 @@ export default function EventsTable({
           cell: ({ getValue }) => {
             const label = shortLinkTitle(getValue());
             const content = (
-              <div className="flex cursor-alias items-center gap-3 decoration-dotted hover:underline">
+              <div
+                className={cn(
+                  "flex items-center gap-3",
+                  !partnerPage &&
+                    "cursor-alias decoration-dotted hover:underline",
+                )}
+              >
                 <LinkLogo
                   apexDomain={getApexDomain(getValue().url)}
                   className="size-4 shrink-0 sm:size-4"
@@ -339,7 +376,9 @@ export default function EventsTable({
               </div>
             );
 
-            return (
+            return partnerPage ? (
+              content
+            ) : (
               <Link
                 href={`/${slug}/links/${getValue().domain}/${getValue().key}`}
                 target="_blank"
@@ -565,99 +604,105 @@ export default function EventsTable({
             </div>
           ),
         },
-        {
-          id: "ip",
-          header: "IP Address",
-          accessorKey: "click.ip",
-          cell: ({ getValue }) =>
-            getValue() ? (
-              <span className="truncate" title={getValue()}>
-                {getValue()}
-              </span>
-            ) : (
-              <Tooltip content="We do not record IP addresses for EU users.">
-                <span className="cursor-default truncate underline decoration-dotted">
-                  Unknown
-                </span>
-              </Tooltip>
-            ),
-        },
-        // Sale invoice ID
-        {
-          id: "invoiceId",
-          header: "Invoice ID",
-          accessorKey: "sale.invoiceId",
-          minSize: 200,
-          cell: ({ getValue }) =>
-            getValue() ? (
-              <CopyText
-                value={getValue()}
-                successMessage="Copied invoice ID to clipboard!"
-              >
-                <span className="truncate font-mono" title={getValue()}>
-                  {getValue()}
-                </span>
-              </CopyText>
-            ) : (
-              <span className="text-neutral-400">-</span>
-            ),
-        },
-        // Click ID
-        {
-          id: "clickId",
-          header: "Click ID",
-          accessorKey: "click.id",
-          maxSize: 200,
-          cell: ({ getValue }) =>
-            getValue() ? (
-              <CopyText
-                value={getValue()}
-                successMessage="Copied click ID to clipboard!"
-              >
-                <span className="truncate font-mono" title={getValue()}>
-                  {getValue()}
-                </span>
-              </CopyText>
-            ) : (
-              <span className="text-neutral-400">-</span>
-            ),
-        },
-        // Event ID
-        {
-          id: "eventId",
-          header: "Event ID",
-          accessorKey: "eventId",
-          maxSize: 200,
-          cell: ({ getValue }) =>
-            getValue() ? (
-              <CopyText
-                value={getValue()}
-                successMessage="Copied event ID to clipboard!"
-              >
-                <span className="truncate font-mono" title={getValue()}>
-                  {getValue()}
-                </span>
-              </CopyText>
-            ) : (
-              <span className="text-neutral-400">-</span>
-            ),
-        },
-        // Metadata
-        {
-          id: "metadata",
-          header: "Metadata",
-          accessorKey: "metadata",
-          minSize: 120,
-          size: 120,
-          maxSize: 120,
-          cell: ({ getValue }) => {
-            const metadata = getValue();
-            if (!metadata || Object.keys(metadata).length === 0) {
-              return <span className="text-neutral-400">-</span>;
-            }
-            return <MetadataViewer metadata={metadata} previewItems={0} />;
-          },
-        },
+        ...(partnerPage
+          ? []
+          : [
+              {
+                id: "ip",
+                header: "IP Address",
+                accessorKey: "click.ip",
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <span className="truncate" title={getValue()}>
+                      {getValue()}
+                    </span>
+                  ) : (
+                    <Tooltip content="We do not record IP addresses for EU users.">
+                      <span className="cursor-default truncate underline decoration-dotted">
+                        Unknown
+                      </span>
+                    </Tooltip>
+                  ),
+              },
+              // Sale invoice ID
+              {
+                id: "invoiceId",
+                header: "Invoice ID",
+                accessorKey: "sale.invoiceId",
+                minSize: 200,
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <CopyText
+                      value={getValue()}
+                      successMessage="Copied invoice ID to clipboard!"
+                    >
+                      <span className="truncate font-mono" title={getValue()}>
+                        {getValue()}
+                      </span>
+                    </CopyText>
+                  ) : (
+                    <span className="text-neutral-400">-</span>
+                  ),
+              },
+              // Click ID
+              {
+                id: "clickId",
+                header: "Click ID",
+                accessorKey: "click.id",
+                maxSize: 200,
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <CopyText
+                      value={getValue()}
+                      successMessage="Copied click ID to clipboard!"
+                    >
+                      <span className="truncate font-mono" title={getValue()}>
+                        {getValue()}
+                      </span>
+                    </CopyText>
+                  ) : (
+                    <span className="text-neutral-400">-</span>
+                  ),
+              },
+              // Event ID
+              {
+                id: "eventId",
+                header: "Event ID",
+                accessorKey: "eventId",
+                maxSize: 200,
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <CopyText
+                      value={getValue()}
+                      successMessage="Copied event ID to clipboard!"
+                    >
+                      <span className="truncate font-mono" title={getValue()}>
+                        {getValue()}
+                      </span>
+                    </CopyText>
+                  ) : (
+                    <span className="text-neutral-400">-</span>
+                  ),
+              },
+              // Metadata
+              {
+                id: "metadata",
+                header: "Metadata",
+                accessorKey: "metadata",
+                minSize: 120,
+                size: 120,
+                maxSize: 120,
+                cell: ({ getValue }) => {
+                  const metadata = getValue();
+                  if (!metadata || Object.keys(metadata).length === 0) {
+                    return <span className="text-neutral-400">-</span>;
+                  }
+                  return (
+                    <MetadataViewer metadata={metadata} previewItems={0} />
+                  );
+                },
+              },
+            ]),
         // Menu
         {
           id: "menu",
@@ -666,7 +711,12 @@ export default function EventsTable({
           cell: ({ row }) => <RowMenuButton row={row} />,
         },
       ]
-        .filter((c) => c.id === "menu" || eventColumns[tab].all.includes(c.id))
+        .filter(
+          (c) =>
+            c.id === "menu" ||
+            (eventColumns[tab].all.includes(c.id) &&
+              !(hidePartnerRevenue && c.id === "saleAmount")),
+        )
         .map((col) => ({
           ...col,
           enableResizing: true,
@@ -674,7 +724,7 @@ export default function EventsTable({
           minSize: col.minSize || 100,
           maxSize: col.maxSize || 1000,
         })),
-    [tab, shortLinkTitle],
+    [tab, product, partnerPage, hidePartnerRevenue, shortLinkTitle],
   );
 
   const { pagination, setPagination } = usePagination();
@@ -709,7 +759,9 @@ export default function EventsTable({
   );
 
   const { data, isLoading, error } = useSWR<EventDatum[]>(
-    !requiresUpgrade && `${eventsApiPath || "/api/events"}?${queryString}`,
+    !requiresUpgrade &&
+      product &&
+      `${eventsApiPath || "/api/events"}?${queryString}`,
     fetcher,
     {
       keepPreviousData: true,

@@ -1,6 +1,7 @@
 "use client";
 
 import { testIds } from "@/lib/e2e/test-ids";
+import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
 import {
   RegisterProvider,
   useRegisterContext,
@@ -37,6 +38,14 @@ function SignUp() {
             Log in
           </Link>
         </p>
+
+        <div className="mt-12 w-full">
+          <AuthAlternativeBanner
+            text="Looking for your Dub partner account?"
+            cta="Sign up at partners.dub.co"
+            href="https://partners.dub.co/register"
+          />
+        </div>
       </div>
     </>
   );

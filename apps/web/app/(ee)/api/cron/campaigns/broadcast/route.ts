@@ -1,0 +1,424 @@
+import { resolveCampaignEmailVariables } from "@/lib/api/campaigns/interpolate-email-template";
+import { renderCampaignEmailHTML } from "@/lib/api/campaigns/render-campaign-email-html";
+import { campaignEligibilityIncludes } from "@/lib/api/campaigns/transform-campaign";
+import { validateCampaignFromAddress } from "@/lib/api/campaigns/validate-campaign";
+import { createId } from "@/lib/api/create-id";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { resolveCampaignFromAddress } from "@/lib/email/parse-campaign-from-address";
+import { prisma } from "@/lib/prisma";
+import { TiptapNode } from "@/lib/types";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import { sendBatchEmail } from "@dub/email";
+import CampaignEmail from "@dub/email/templates/campaign-email";
+import { APP_DOMAIN_WITH_NGROK, chunk, log, pluck } from "@dub/utils";
+import {
+  Campaign,
+  CampaignStatus,
+  EmailDomain,
+  NotificationEmailType,
+} from "@prisma/client";
+import { differenceInMinutes } from "date-fns";
+import * as z from "zod/v4";
+import { logAndRespond } from "../../utils";
+
+export const dynamic = "force-dynamic";
+
+const schema = z.object({
+  campaignId: z.string(),
+  startingAfter: z.string().optional(),
+  batchNumber: z
+    .number()
+    .optional()
+    .default(1)
+    .describe("Keep track of the batches sent."),
+});
+
+const EMAIL_BATCH_SIZE = 100; // Batch size
+const BATCH_DELAY_SECONDS = 2; // Delay between batches
+const EXTENDED_DELAY_SECONDS = 30; // Extended delay after 25 batches
+const EXTENDED_DELAY_INTERVAL = 25; // Number of batches after which to extend the delay
+
+// POST /api/cron/campaigns/broadcast
+// Send marketing campaigns to partners in batches
+export async function POST(req: Request) {
+  try {
+    const rawBody = await req.text();
+
+    await verifyQstashSignature({
+      req,
+      rawBody,
+    });
+
+    let { campaignId, startingAfter, batchNumber } = schema.parse(
+      JSON.parse(rawBody),
+    );
+
+    const campaign = await prisma.campaign.findUnique({
+      where: {
+        id: campaignId,
+      },
+      include: {
+        ...campaignEligibilityIncludes,
+        program: {
+          include: {
+            emailDomains: {
+              where: {
+                status: "verified",
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!campaign) {
+      return logAndRespond(`Campaign ${campaignId} not found.`);
+    }
+
+    if (campaign.type !== "marketing") {
+      return logAndRespond(
+        `Campaign ${campaignId} is not a marketing campaign.`,
+      );
+    }
+
+    if (!["scheduled", "sending"].includes(campaign.status)) {
+      return logAndRespond(
+        `Campaign ${campaignId} must be in "sending" or "scheduled" status to broadcast.`,
+      );
+    }
+
+    // This is a safety check to ensure the campaign is not scheduled to broadcast too far in the future
+    // Ideally this should not happen but just in case
+    if (campaign.scheduledAt) {
+      const diffMinutes = differenceInMinutes(campaign.scheduledAt, new Date());
+
+      if (diffMinutes >= 5) {
+        await log({
+          message: `Campaign ${campaignId} broadcast was skipped because it is scheduled to broadcast in the future. This might be an error in the campaign scheduling.`,
+          type: "errors",
+        });
+
+        return logAndRespond(
+          `Campaign ${campaignId} is not scheduled to broadcast yet.`,
+        );
+      }
+    }
+
+    const program = campaign.program;
+
+    // Claim the first run so leftover delayed messages / scanner retries
+    // cannot start a second broadcast. A QStash retry of the claiming
+    // message (matching qstashMessageId) is allowed to continue.
+    if (!startingAfter) {
+      const messageId = req.headers.get("Upstash-Message-Id");
+
+      const claimed = await prisma.campaign.updateMany({
+        where: {
+          id: campaignId,
+          status: CampaignStatus.scheduled,
+          OR: [{ scheduledAt: null }, { scheduledAt: { lte: new Date() } }],
+        },
+        data: {
+          status: CampaignStatus.sending,
+          qstashMessageId: messageId,
+        },
+      });
+
+      if (claimed.count === 0) {
+        if (!messageId || campaign.qstashMessageId !== messageId) {
+          return logAndRespond(
+            `Campaign ${campaignId} broadcast already initiated. Skipping...`,
+          );
+        }
+      }
+    }
+
+    const invalidFromResponse = await cancelCampaignIfInvalidFromAddress({
+      campaign,
+      emailDomains: program.emailDomains,
+    });
+
+    if (invalidFromResponse) {
+      return invalidFromResponse;
+    }
+
+    const campaignGroupIds = pluck(campaign.groups, "groupId");
+    const campaignPartnerTagIds = pluck(campaign.partnerTags, "partnerTagId");
+
+    const programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        programId: campaign.programId,
+        status: {
+          in: ACTIVE_ENROLLMENT_STATUSES,
+        },
+        ...(campaignGroupIds.length > 0 && {
+          groupId: {
+            in: campaignGroupIds,
+          },
+        }),
+        ...(campaignPartnerTagIds.length > 0 && {
+          partner: {
+            programPartnerTags: {
+              some: {
+                partnerTagId: {
+                  in: campaignPartnerTagIds,
+                },
+              },
+            },
+          },
+        }),
+      },
+      select: {
+        id: true,
+        partnerGroup: {
+          select: {
+            linkStructure: true,
+          },
+        },
+        links: {
+          select: {
+            shortLink: true,
+            key: true,
+            url: true,
+          },
+          orderBy: {
+            id: "asc",
+          },
+        },
+        clickReward: true,
+        leadReward: true,
+        saleReward: true,
+        referralReward: true,
+        partner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            users: {
+              where: {
+                notificationPreferences: {
+                  marketingCampaign: true,
+                },
+              },
+              select: {
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      take: EMAIL_BATCH_SIZE,
+      skip: startingAfter ? 1 : 0,
+      ...(startingAfter && {
+        cursor: {
+          id: startingAfter,
+        },
+      }),
+      orderBy: {
+        id: "asc",
+      },
+    });
+
+    const partnerUsers = programEnrollments.flatMap((enrollment) =>
+      enrollment.partner.users
+        .filter(({ user }) => user.email)
+        .map(({ user }) => ({
+          ...user,
+          partner: {
+            ...enrollment.partner,
+            users: undefined,
+          },
+          enrollment: {
+            ...enrollment,
+            partner: undefined,
+          },
+        })),
+    );
+
+    console.table(
+      partnerUsers.map((partnerUser) => ({
+        id: partnerUser.partner.id,
+        name: partnerUser.partner.name,
+        email: partnerUser.email,
+      })),
+    );
+
+    if (partnerUsers.length > 0) {
+      // Chunk partnerUsers even though the DB query limits enrollments to EMAIL_BATCH_SIZE.
+      // Each enrollment can have multiple users (via partner.users), so the flattened
+      // partnerUsers array can exceed EMAIL_BATCH_SIZE.
+      const partnerUsersChunks = chunk(partnerUsers, EMAIL_BATCH_SIZE);
+
+      for (
+        let chunkIndex = 0;
+        chunkIndex < partnerUsersChunks.length;
+        chunkIndex++
+      ) {
+        const partnerUsersChunk = partnerUsersChunks[chunkIndex].filter(
+          (partnerUser) => partnerUser.email,
+        );
+        const batchIdentifier = startingAfter || "initial";
+        const idempotencyKey = `campaign-broadcast/${campaign.id}-${batchIdentifier}-${chunkIndex}`;
+
+        const { data, error } = await sendBatchEmail(
+          partnerUsersChunk.map((partnerUser) => ({
+            ...(campaign.from
+              ? {
+                  from: resolveCampaignFromAddress({
+                    from: campaign.from,
+                    programName: program.name,
+                  }),
+                }
+              : {}),
+            to: partnerUser.email!,
+            subject: campaign.subject,
+            ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
+            react: CampaignEmail({
+              program: {
+                name: program.name,
+                slug: program.slug,
+                logo: program.logo,
+              },
+              campaign: {
+                type: campaign.type,
+                preview: campaign.preview,
+                body: renderCampaignEmailHTML({
+                  content: campaign.bodyJson as unknown as TiptapNode,
+                  variables: resolveCampaignEmailVariables({
+                    partner: partnerUser.partner,
+                    enrollment: partnerUser.enrollment,
+                  }),
+                }),
+              },
+            }),
+            tags: [{ name: "type", value: "notification-email" }],
+          })),
+          {
+            idempotencyKey,
+          },
+        );
+
+        if (error) {
+          console.error(error);
+        }
+
+        if (data) {
+          await prisma.notificationEmail.createMany({
+            data: partnerUsersChunk.map((partnerUser, idx) => ({
+              id: createId({ prefix: "em_" }),
+              type: NotificationEmailType.Campaign,
+              emailId: data.data[idx].id,
+              campaignId: campaign.id,
+              programId: campaign.programId,
+              partnerId: partnerUser.partner.id,
+              recipientUserId: partnerUser.id,
+            })),
+            skipDuplicates: true,
+          });
+        }
+      }
+    }
+
+    if (programEnrollments.length === EMAIL_BATCH_SIZE) {
+      startingAfter = programEnrollments[programEnrollments.length - 1].id;
+
+      // Add BATCH_DELAY_SECONDS pause between each batch, and a longer EXTENDED_DELAY_SECONDS cooldown after every EXTENDED_DELAY_INTERVAL batches.
+      let delay = 0;
+      if (batchNumber > 0 && batchNumber % EXTENDED_DELAY_INTERVAL === 0) {
+        delay = EXTENDED_DELAY_SECONDS;
+      } else {
+        delay = BATCH_DELAY_SECONDS;
+      }
+
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/campaigns/broadcast`,
+        method: "POST",
+        delay,
+        body: {
+          campaignId,
+          startingAfter,
+          batchNumber: batchNumber + 1,
+        },
+      });
+
+      return logAndRespond(
+        `Enqueued next page (${startingAfter}) for campaign ${campaignId} to run after ${delay} seconds.`,
+      );
+    }
+
+    // Mark the campaign as sent
+    try {
+      await prisma.campaign.update({
+        where: {
+          id: campaignId,
+          status: "sending",
+        },
+        data: {
+          status: "sent",
+        },
+      });
+    } catch (error) {
+      //
+    }
+
+    return logAndRespond(`Finished broadcasting campaign ${campaignId}.`);
+  } catch (error) {
+    await log({
+      message: "Campaign broadcast cron failed. Error: " + error.message,
+      type: "errors",
+    });
+
+    return handleAndReturnErrorResponse(error);
+  }
+}
+
+async function cancelCampaignIfInvalidFromAddress({
+  campaign,
+  emailDomains,
+}: {
+  campaign: Pick<Campaign, "id" | "from" | "programId">;
+  emailDomains: Pick<EmailDomain, "slug" | "status">[];
+}) {
+  if (!campaign.from) {
+    return;
+  }
+
+  try {
+    validateCampaignFromAddress({
+      campaign,
+      emailDomains,
+    });
+  } catch (error) {
+    if (!(error instanceof DubApiError)) {
+      throw error;
+    }
+
+    await prisma.campaign.updateMany({
+      where: {
+        id: campaign.id,
+        status: {
+          in: [CampaignStatus.scheduled, CampaignStatus.sending],
+        },
+      },
+      data: {
+        status: CampaignStatus.canceled,
+      },
+    });
+
+    await log({
+      type: "errors",
+      message: `Campaign ${campaign.id} canceled: ${error.message}`,
+    });
+
+    return logAndRespond(
+      `Campaign ${campaign.id} canceled: invalid from address.`,
+    );
+  }
+}

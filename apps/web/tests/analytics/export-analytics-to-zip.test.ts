@@ -1,6 +1,7 @@
 import {
   exportAnalyticsToZip,
   getAnalyticsExportEndpoints,
+  PARTNER_PROFILE_SKIP_ENDPOINTS,
 } from "@/lib/analytics/export-analytics-to-zip";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -33,13 +34,14 @@ describe("export-analytics-to-zip", () => {
       expect(endpoints).not.toContain("top_links");
     });
 
-    test("skips custom endpoints", () => {
+    test("skips partner-profile endpoints", () => {
       const endpoints = getAnalyticsExportEndpoints({
-        skipEndpoints: ["count", "top_folders", "top_link_tags"],
+        skipEndpoints: PARTNER_PROFILE_SKIP_ENDPOINTS,
       });
 
+      expect(endpoints).not.toContain("top_partners");
+      expect(endpoints).not.toContain("top_groups");
       expect(endpoints).not.toContain("top_folders");
-      expect(endpoints).not.toContain("top_link_tags");
       expect(endpoints).toContain("top_links");
     });
   });
@@ -102,6 +104,9 @@ describe("export-analytics-to-zip", () => {
           "top_domains",
           "top_urls",
           "top_base_urls",
+          "top_partners",
+          "top_groups",
+          "top_partner_tags",
           "utm_sources",
           "utm_mediums",
           "utm_campaigns",
@@ -148,6 +153,9 @@ describe("export-analytics-to-zip", () => {
           "top_domains",
           "top_urls",
           "top_base_urls",
+          "top_partners",
+          "top_groups",
+          "top_partner_tags",
           "utm_sources",
           "utm_mediums",
           "utm_campaigns",

@@ -120,13 +120,17 @@ export function AddEditDomainForm({
   onSuccess,
   enableDomainConfig = true,
   initialDomain,
+  fixedDomainSuffix,
+  isOnboardingSubdomainFlow = false,
   submitTestId,
   domainInputTestId,
 }: {
   props?: DomainProps;
   onSuccess?: (data: DomainProps) => void;
   enableDomainConfig?: boolean;
+  fixedDomainSuffix?: string;
   initialDomain?: string;
+  isOnboardingSubdomainFlow?: boolean;
   submitTestId?: string;
   domainInputTestId?: string;
 }) {
@@ -154,7 +158,10 @@ export function AddEditDomainForm({
     formState: { isDirty },
   } = useForm<FormData>({
     defaultValues: {
-      slug: props?.slug || initialDomain || "",
+      slug:
+        props?.slug ||
+        initialDomain ||
+        (fixedDomainSuffix ? `.${fixedDomainSuffix}` : ""),
       logo: props?.logo,
       expiredUrl: props?.expiredUrl,
       notFoundUrl: props?.notFoundUrl,
@@ -203,6 +210,13 @@ export function AddEditDomainForm({
   }, []);
 
   const domain = watch("slug");
+  const escapedFixedDomainSuffix = fixedDomainSuffix?.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&",
+  );
+  const subdomainPrefix = fixedDomainSuffix
+    ? (domain || "").replace(new RegExp(`\\.${escapedFixedDomainSuffix}$`), "")
+    : undefined;
 
   const debouncedValidateDomain = useDebouncedCallback(
     async (value: string) => {
@@ -318,6 +332,7 @@ export function AddEditDomainForm({
           ...(formData.deepviewData !== undefined && {
             deepviewData: sanitizeJson(formData.deepviewData),
           }),
+          isOnboardingSubdomainFlow,
         }),
       });
 
@@ -411,19 +426,50 @@ export function AddEditDomainForm({
                 )}
               >
                 <div className="flex rounded-md border border-neutral-300 bg-white">
-                  <input
-                    {...register("slug", {
-                      onChange: (e) => {
-                        setDomainStatus("idle");
-                        setDomainValidateMessage(null);
-                        debouncedValidateDomain(e.target.value);
-                      },
-                    })}
-                    className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
-                    placeholder="go.acme.com"
-                    autoFocus={!isMobile}
-                    data-testid={domainInputTestId}
-                  />
+                  {fixedDomainSuffix ? (
+                    <>
+                      <input
+                        value={subdomainPrefix}
+                        onChange={(e) => {
+                          const prefix = e.target.value
+                            .toLowerCase()
+                            .replace(/[^a-z0-9-]/g, "");
+                          const fullDomain = prefix
+                            ? `${prefix}.${fixedDomainSuffix}`
+                            : `.${fixedDomainSuffix}`;
+                          setValue("slug", fullDomain, {
+                            shouldDirty: true,
+                          });
+                          setDomainStatus("idle");
+                          setDomainValidateMessage(null);
+                          if (prefix) {
+                            debouncedValidateDomain(fullDomain);
+                          }
+                        }}
+                        className="block w-full rounded-l-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
+                        placeholder="workspace"
+                        autoFocus={!isMobile}
+                      />
+                      <span className="inline-flex items-center rounded-r-md border-l border-neutral-300 bg-neutral-100 px-3 text-sm text-neutral-600">
+                        .{fixedDomainSuffix}
+                      </span>
+                      <input type="hidden" {...register("slug")} />
+                    </>
+                  ) : (
+                    <input
+                      {...register("slug", {
+                        onChange: (e) => {
+                          setDomainStatus("idle");
+                          setDomainValidateMessage(null);
+                          debouncedValidateDomain(e.target.value);
+                        },
+                      })}
+                      className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
+                      placeholder="go.acme.com"
+                      autoFocus={!isMobile}
+                      data-testid={domainInputTestId}
+                    />
+                  )}
                 </div>
 
                 <AnimatedSizeContainer

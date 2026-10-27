@@ -33,9 +33,13 @@ export default function ConfirmEmailChangePageClient({
 
         setConfirmed(true);
 
+        const redirectTo =
+          data.redirectTo ??
+          (data.isPartnerProfile ? "/profile" : "/account/settings");
+
         await update();
         toast.success("Successfully updated your email!");
-        router.replace("/account/settings");
+        router.replace(redirectTo);
       },
       onError({ error }) {
         toast.error(error.serverError ?? "Failed to confirm the email change.");

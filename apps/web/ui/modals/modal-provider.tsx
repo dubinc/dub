@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { useAddEditTagModal } from "./add-edit-tag-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 import { useLinkBuilder } from "./link-builder";
+import { useProgramWelcomeModal } from "./program-welcome-modal";
 import { useUpgradedModal } from "./upgraded-modal";
 
 export const ModalContext = createContext<{
@@ -92,7 +93,12 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     useImportRebrandlyModal();
   const { setShowImportCsvModal, ImportCsvModal } = useImportCsvModal();
   const { setShowUpgradedModal, UpgradedModal } = useUpgradedModal();
+  const { setShowProgramWelcomeModal, ProgramWelcomeModal } =
+    useProgramWelcomeModal();
+
   useEffect(() => {
+    setShowProgramWelcomeModal(searchParams.has("onboarded-program"));
+
     if (searchParams.has("upgraded")) {
       setShowUpgradedModal(true);
     }
@@ -182,6 +188,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <ImportRebrandlyModal />
       <ImportCsvModal />
       <UpgradedModal />
+      <ProgramWelcomeModal />
       {children}
     </ModalContext.Provider>
   );

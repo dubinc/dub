@@ -14,8 +14,12 @@ import { toast } from "sonner";
  *
  * Phrase mapping (`getTrialLimitFeaturePhrase` / `TrialLimitResource`):
  * - links → link builder, import menu, upgrade banner
- * - clicks → exceeded-events surfaces, upgrade banner
+ * - clicks → program analytics / exceeded-events surfaces, upgrade banner
+ * - payouts → upgrade banner when payouts over limit
  * - users → `invite-teammates-form` (API `exceeded_limit` on invites)
+ * - partnerEnrollments → partner approve / bulk approve (trial enrollment cap)
+ * - partnerTags → partner tag creation (`createPartnerTagAction` limit)
+ * - networkInvites → partner network invite sheet (weekly invite limit)
  * - freeDotLinkDomain → use where domain actions are trial-gated (add at call site)
  */
 

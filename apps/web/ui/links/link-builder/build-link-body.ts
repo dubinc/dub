@@ -1,8 +1,14 @@
 import { LinkFormData } from "./link-builder-provider";
 
-export function buildLinkBody({ data }: { data: LinkFormData }) {
+export function buildLinkBody({
+  data,
+  defaultProgramId,
+}: {
+  data: LinkFormData;
+  defaultProgramId?: string | null;
+}) {
   // @ts-ignore – exclude extra attributes from `data` object before sending to API
-  const { user, tags, tagId, folderId, ...rest } = data;
+  const { user, tags, tagId, folderId, partnerId, ...rest } = data;
 
   return {
     ...rest,
@@ -19,5 +25,12 @@ export function buildLinkBody({ data }: { data: LinkFormData }) {
     android: rest.android || null,
     externalId: rest.externalId || null,
     tenantId: rest.tenantId || null,
+
+    // An omitted partnerId is ignored by PATCH (the route merges onto the
+    // stored link). Removal has to send null, and programId has to be cleared
+    // in the same request, otherwise the stored program reattaches the partner.
+    ...(partnerId
+      ? { programId: defaultProgramId, partnerId }
+      : { programId: null, partnerId: null }),
   };
 }

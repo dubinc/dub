@@ -1,0 +1,20 @@
+import { NullableOptional, PartnerProps } from "@/lib/types";
+import { Avatar } from "@dub/ui";
+
+export function PartnerAvatar({
+  partner,
+  className,
+}: {
+  partner: NullableOptional<
+    Pick<PartnerProps, "id" | "name" | "email" | "image">
+  >;
+  className?: string;
+}) {
+  return (
+    <Avatar
+      imageUrl={partner.image}
+      identifier={partner.id || partner.name || partner.email || "Unknown"}
+      className={className}
+    />
+  );
+}

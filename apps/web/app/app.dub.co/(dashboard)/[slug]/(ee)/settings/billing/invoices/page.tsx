@@ -1,7 +1,11 @@
 "use client";
 
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
+import { INVOICE_PAYMENT_METHODS } from "@/lib/constants/payouts";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InvoiceProps } from "@/lib/types";
+import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
   Button,
@@ -15,21 +19,25 @@ import { cn, currencyFormatter, fetcher, formatDateTime } from "@dub/utils";
 import { StripeInvoiceStatusBadges } from "app/app.dub.co/(dashboard)/[slug]/(ee)/settings/billing/invoices/stripe-invoice-status-badges";
 import { AlertCircle } from "lucide-react";
 import useSWR from "swr";
-import { InvoiceStatusBadges } from "./invoice-status-badges";
 import { INVOICE_TABS, resolveInvoiceType } from "./invoices-nav";
 
 export default function WorkspaceInvoices() {
-  const { slug } = useWorkspace();
+  const { slug, environment, loading } = useWorkspace();
   const { searchParams } = useRouterStuff();
-  const invoiceType = resolveInvoiceType(searchParams.get("type"));
+  const environmentReady = !loading && !!environment;
+  const isProduction = isProductionEnvironment(environment);
+  const invoiceType = environmentReady
+    ? resolveInvoiceType(searchParams.get("type"), isProduction)
+    : null;
 
   const { data: invoices } = useSWR<InvoiceProps[]>(
-    slug
+    slug && invoiceType
       ? `/api/workspaces/${slug}/billing/invoices?type=${invoiceType}`
       : null,
     fetcher,
   );
 
+  const displayPaymentMethod = invoiceType === "partnerPayout";
   const invoiceTypeLabel =
     INVOICE_TABS.find((tab) => tab.id === invoiceType)?.label ?? "invoice";
 
@@ -39,6 +47,7 @@ export default function WorkspaceInvoices() {
         <InvoiceCard
           key={invoice.id}
           invoice={invoice}
+          displayPaymentMethod={displayPaymentMethod}
           isSubscription={invoiceType === "subscription"}
         />
       ))
@@ -57,20 +66,25 @@ export default function WorkspaceInvoices() {
     )
   ) : (
     <>
-      <InvoiceCardSkeleton />
-      <InvoiceCardSkeleton />
-      <InvoiceCardSkeleton />
+      <InvoiceCardSkeleton displayPaymentMethod={displayPaymentMethod} />
+      <InvoiceCardSkeleton displayPaymentMethod={displayPaymentMethod} />
+      <InvoiceCardSkeleton displayPaymentMethod={displayPaymentMethod} />
     </>
   );
 }
 
 const InvoiceCard = ({
   invoice,
+  displayPaymentMethod = false,
   isSubscription = false,
 }: {
   invoice: InvoiceProps;
+  displayPaymentMethod: boolean;
   isSubscription?: boolean;
 }) => {
+  const invoicePaymentMethod =
+    INVOICE_PAYMENT_METHODS[invoice.paymentMethod ?? "ach"];
+
   const formattedTotal = currencyFormatter(invoice.total);
 
   const statusBadge = isSubscription
@@ -84,7 +98,7 @@ const InvoiceCard = ({
       )
     : invoice.status &&
       (() => {
-        const badge = InvoiceStatusBadges[invoice.status];
+        const badge = PayoutStatusBadges[invoice.status];
         return (
           <StatusBadge
             icon={invoice.status === "failed" ? AlertCircle : null}
@@ -143,11 +157,40 @@ const InvoiceCard = ({
             refundedAmount={invoice.refundedAmount}
             refundReason={invoice.refundReason}
           />
+
+          {displayPaymentMethod && (
+            <div className="text-left text-sm">
+              <div className="font-medium">Method</div>
+              {invoicePaymentMethod ? (
+                <div className="flex items-center gap-1.5 text-neutral-500">
+                  <div className="text-content-subtle text-sm font-medium">
+                    {invoicePaymentMethod.label}
+                  </div>
+                  <StatusBadge
+                    icon={null}
+                    variant="neutral"
+                    className="rounded-md py-0.5 text-xs font-semibold text-neutral-700"
+                  >
+                    {invoicePaymentMethod.duration}
+                  </StatusBadge>
+                </div>
+              ) : (
+                <span className="text-neutral-500">-</span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Desktop layout */}
-      <div className="hidden xl:grid xl:grid-cols-[minmax(0,1.25fr)_minmax(0,2fr)_auto] xl:gap-4">
+      <div
+        className={cn(
+          "hidden xl:grid xl:gap-4",
+          displayPaymentMethod
+            ? "xl:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,1fr)_auto]"
+            : "xl:grid-cols-[minmax(0,1.25fr)_minmax(0,2fr)_auto]",
+        )}
+      >
         <div className="text-sm xl:col-span-1">
           <div className="font-medium">{invoice.description}</div>
           <div className="text-neutral-500">
@@ -162,6 +205,28 @@ const InvoiceCard = ({
           refundedAmount={invoice.refundedAmount}
           refundReason={invoice.refundReason}
         />
+
+        {displayPaymentMethod && (
+          <div className="text-left text-sm sm:col-span-1 lg:block">
+            <div className="font-medium">Method</div>
+            {invoicePaymentMethod ? (
+              <div className="flex items-center gap-1.5 text-neutral-500">
+                <div className="text-content-subtle text-sm font-medium">
+                  {invoicePaymentMethod.label}
+                </div>
+                <StatusBadge
+                  icon={null}
+                  variant="neutral"
+                  className="rounded-md py-0.5 text-xs font-semibold text-neutral-700"
+                >
+                  {invoicePaymentMethod.duration}
+                </StatusBadge>
+              </div>
+            ) : (
+              <span className="text-neutral-500">-</span>
+            )}
+          </div>
+        )}
 
         <div className="flex items-center justify-end sm:col-span-1 sm:justify-end">
           <a href={pdfUrl ?? "#"} target="_blank">
@@ -191,6 +256,7 @@ const InvoiceTotal = ({
   refundReason?: string | null;
   className?: string;
 }) => {
+  const { slug } = useWorkspace();
   const hasRefund = refundedAmount > 0;
 
   return (
@@ -204,7 +270,14 @@ const InvoiceTotal = ({
             icon={ArrowTurnRight2}
             variant="neutral"
             className="shrink-0 rounded-md px-1.5 py-0 text-xs font-medium text-neutral-600"
-            {...(refundReason ? { tooltip: refundReason } : {})}
+            {...(refundReason
+              ? {
+                  tooltip: formatCommissionDescriptionTooltip(refundReason, {
+                    variant: "program",
+                    workspaceSlug: slug!,
+                  }),
+                }
+              : {})}
           >
             {currencyFormatter(refundedAmount)} refunded
           </StatusBadge>
@@ -214,7 +287,11 @@ const InvoiceTotal = ({
   );
 };
 
-const InvoiceCardSkeleton = () => {
+const InvoiceCardSkeleton = ({
+  displayPaymentMethod = false,
+}: {
+  displayPaymentMethod?: boolean;
+}) => {
   return (
     <div className="px-4 py-6 sm:px-12">
       {/* Mobile skeleton */}
@@ -232,11 +309,25 @@ const InvoiceCardSkeleton = () => {
             <div className="h-4 w-16 animate-pulse rounded-md bg-neutral-200" />
             <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
           </div>
+
+          {displayPaymentMethod && (
+            <div className="flex flex-col gap-1">
+              <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
+              <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
+            </div>
+          )}
         </div>
       </div>
 
       {/* Desktop skeleton */}
-      <div className="hidden sm:grid sm:grid-cols-3 sm:gap-4 xl:grid xl:grid-cols-[minmax(0,1.25fr)_minmax(0,2fr)_auto]">
+      <div
+        className={cn(
+          "hidden sm:grid sm:gap-4 xl:grid",
+          displayPaymentMethod
+            ? "sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,1fr)_auto]"
+            : "sm:grid-cols-3 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,2fr)_auto]",
+        )}
+      >
         <div className="flex flex-col gap-1 text-sm sm:col-span-1">
           <div className="h-4 w-32 animate-pulse rounded-md bg-neutral-200" />
           <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
@@ -246,6 +337,13 @@ const InvoiceCardSkeleton = () => {
           <div className="h-4 w-16 animate-pulse rounded-md bg-neutral-200" />
           <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
         </div>
+
+        {displayPaymentMethod && (
+          <div className="flex flex-col gap-1 sm:col-span-1">
+            <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
+          </div>
+        )}
 
         <div className="flex items-center justify-end sm:col-span-1 sm:justify-end">
           <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />

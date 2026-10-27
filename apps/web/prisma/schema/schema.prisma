@@ -24,6 +24,7 @@ model User {
 
   // user preferences
   defaultWorkspace String? // slug of the user's default workspace
+  defaultPartnerId String? // the user's default partner ID
 
   // internal fields
   source   String? // where the user came from
@@ -34,6 +35,7 @@ model User {
   sessions                Session[]
   notificationPreferences UserNotificationPreferences?
   projects                ProjectUsers[]
+  partners                PartnerUser[]
   links                   Link[]
   dashboards              Dashboard[]
   tokens                  Token[]
@@ -44,6 +46,16 @@ model User {
   folders                 FolderUser[]
   folderAccessRequests    FolderAccessRequest[]
   utmTemplates            UtmTemplate[]
+  payouts                 Payout[]
+  bountySubmissions       BountySubmission[]
+  programApplications     ProgramApplication[]
+  sentMessages            Message[]
+  partnerComments         PartnerComment[]
+  submittedLeadComments   SubmittedLeadComment[]
+  fraudEventGroups        FraudEventGroup[]
+  fraudAlertsReviewed     FraudAlert[]                 @relation("FraudAlertReviewer")
+  activityLogs            ActivityLog[]
+  createdCommissions      Commission[]
 
   @@index(createdAt)
   @@index(defaultWorkspace)

@@ -1,4 +1,8 @@
 export const ALL_TOOLS = [
+  {
+    name: "Affiliate Program Terms Generator",
+    slug: "affiliate-terms-generator",
+  },
   { name: "UTM Builder", slug: "utm-builder" },
   { name: "QR Code API", slug: "qr-code" },
   { name: "Spotify Link Shortener", slug: "spotify-link-shortener" },

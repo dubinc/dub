@@ -1,0 +1,134 @@
+"use client";
+
+import { clientAccessCheck } from "@/lib/client-access-check";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import {
+  SubmissionsCountByStatus,
+  useBountySubmissionsCount,
+} from "@/lib/swr/use-bounty-submissions-count";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { BountyProps } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { ThreeDots } from "@/ui/shared/icons";
+import { Button, MenuItem, Popover } from "@dub/ui";
+import { PenWriting, Trash } from "@dub/ui/icons";
+import { Command } from "cmdk";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { useBountySheet } from "./add-edit-bounty/add-edit-bounty-sheet";
+
+interface BountyActionButtonProps {
+  bounty: BountyProps;
+  className?: string;
+  buttonClassName?: string;
+}
+
+export function BountyActionButton({
+  bounty,
+  className,
+  buttonClassName,
+}: BountyActionButtonProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const { id: workspaceId, role } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "bounties.write",
+    role,
+    customPermissionDescription: "manage bounties",
+  }).error;
+  const { setShowCreateBountySheet, BountySheet } = useBountySheet({ bounty });
+
+  const { submissionsCount } = useBountySubmissionsCount<
+    SubmissionsCountByStatus[]
+  >({
+    ignoreParams: true,
+    enabled: Boolean(bounty),
+  });
+  const totalSubmissions = useMemo(() => {
+    return submissionsCount?.reduce((acc, curr) => acc + curr.count, 0) ?? 0;
+  }, [submissionsCount]);
+
+  const { confirmModal: deleteModal, setShowConfirmModal: setShowDeleteModal } =
+    useConfirmModal({
+      title: "Delete bounty",
+      description:
+        "Are you sure you want to delete this bounty? This action is irreversible – please proceed with caution.",
+      onConfirm: async () => {
+        const response = await fetch(
+          `/api/bounties/${bounty.id}?workspaceId=${workspaceId}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+
+        if (!response.ok) {
+          const { error } = await response.json();
+          toast.error(error.message);
+          return;
+        }
+
+        await mutatePrefix("/api/bounties");
+        toast.success("Bounty deleted successfully!");
+      },
+    });
+
+  return (
+    <>
+      {BountySheet}
+      {deleteModal}
+      <div className={className}>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            text="Edit"
+            variant="secondary"
+            className="h-9 w-fit rounded-lg"
+            icon={<PenWriting className="size-4 shrink-0" />}
+            onClick={() => setShowCreateBountySheet(true)}
+            disabledTooltip={permissionsError || undefined}
+          />
+
+          <Popover
+            openPopover={isOpen}
+            setOpenPopover={setIsOpen}
+            content={
+              <Command tabIndex={0} loop className="focus:outline-none">
+                <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+                  <MenuItem
+                    as={Command.Item}
+                    icon={Trash}
+                    variant="danger"
+                    onSelect={() => {
+                      setIsOpen(false);
+                      setShowDeleteModal(true);
+                    }}
+                    disabledTooltip={
+                      permissionsError
+                        ? permissionsError
+                        : totalSubmissions > 0
+                          ? "Bounties with submissions cannot be deleted."
+                          : undefined
+                    }
+                  >
+                    Delete bounty
+                  </MenuItem>
+                </Command.List>
+              </Command>
+            }
+            align="end"
+          >
+            <Button
+              type="button"
+              className={buttonClassName || "h-9 w-9 shrink-0 rounded-lg p-0"}
+              variant="secondary"
+              icon={<ThreeDots className="h-4 w-4 shrink-0" />}
+            />
+          </Popover>
+        </div>
+      </div>
+    </>
+  );
+}

@@ -49,7 +49,11 @@ export const PATCH = withWorkspace(
       domain: params.domain,
       dubDomainChecks: true,
     });
-    const { slug: currentDomain, registeredDomain } = existingDomain;
+    const {
+      slug: currentDomain,
+      registeredDomain,
+      partnerProgram,
+    } = existingDomain;
 
     const {
       slug: newDomain,
@@ -220,7 +224,29 @@ export const PATCH = withWorkspace(
             queueDomainUpdate({
               oldDomain: currentDomain,
               newDomain: newDomain,
+              ...(partnerProgram && { programId: partnerProgram.id }),
             }),
+
+            ...(partnerProgram
+              ? [
+                  prisma.program.update({
+                    where: {
+                      id: partnerProgram.id,
+                    },
+                    data: {
+                      domain: newDomain,
+                    },
+                  }),
+                  prisma.partnerGroupDefaultLink.updateMany({
+                    where: {
+                      programId: partnerProgram.id,
+                    },
+                    data: {
+                      domain: newDomain,
+                    },
+                  }),
+                ]
+              : []),
           ]);
 
           // only need to run invalidations on currentDomain if domain was not changed
@@ -264,7 +290,11 @@ export const PATCH = withWorkspace(
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
-    const { slug: domain, registeredDomain } = await getDomainOrThrow({
+    const {
+      slug: domain,
+      registeredDomain,
+      partnerProgram,
+    } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
       dubDomainChecks: true,
@@ -274,6 +304,14 @@ export const DELETE = withWorkspace(
       throw new DubApiError({
         code: "forbidden",
         message: "You cannot delete a Dub-provisioned domain.",
+      });
+    }
+
+    if (partnerProgram) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You cannot delete a domain that is actively in use in a partner program.",
       });
     }
 

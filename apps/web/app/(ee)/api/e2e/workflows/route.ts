@@ -1,0 +1,30 @@
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
+import { assertE2EWorkspace } from "../guard";
+
+// GET /api/e2e/workflows - Find workflow by bountyId or groupId
+export const GET = withWorkspace(async ({ workspace, searchParams }) => {
+  assertE2EWorkspace(workspace);
+
+  const programId = getDefaultProgramIdOrThrow(workspace);
+
+  const { bountyId, groupId } = searchParams;
+
+  const workflow = await prisma.workflow.findFirst({
+    where: {
+      programId,
+      ...(bountyId && { bounty: { id: bountyId } }),
+      ...(groupId && { partnerGroup: { id: groupId } }),
+    },
+    select: {
+      id: true,
+      actions: true,
+      triggerConditions: true,
+      disabledAt: true,
+    },
+  });
+
+  return NextResponse.json(workflow);
+});

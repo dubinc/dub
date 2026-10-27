@@ -1,0 +1,199 @@
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import {
+  Button,
+  CopyButton,
+  TAB_ITEM_ANIMATION_SETTINGS,
+  Table,
+  Users,
+  useTable,
+} from "@dub/ui";
+import { ArrowTurnRight2, Pen2, Plus2 } from "@dub/ui/icons";
+import { fetcher, getApexDomain, getPrettyUrl, nFormatter } from "@dub/utils";
+import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+import useSWR from "swr";
+import { useEmbedToken } from "../use-embed-token";
+import { useReferralsEmbedData } from "./page-client";
+import { ReferralsEmbedLink } from "./types";
+
+interface Props {
+  onCreateLink: () => void;
+  onEditLink: (link: ReferralsEmbedLink) => void;
+}
+
+export function ReferralsEmbedLinksList({ onCreateLink, onEditLink }: Props) {
+  const token = useEmbedToken();
+  const { links, program, group } = useReferralsEmbedData();
+  const [partnerLinks, setPartnerLinks] = useState<ReferralsEmbedLink[]>(links);
+
+  const { data: refreshedLinks, isLoading } = useSWR<ReferralsEmbedLink[]>(
+    "/api/embed/referrals/links",
+    (url) =>
+      fetcher(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+    {
+      keepPreviousData: true,
+    },
+  );
+
+  useEffect(() => {
+    if (refreshedLinks) {
+      setPartnerLinks(refreshedLinks);
+    }
+  }, [refreshedLinks]);
+
+  const hasLinksLimitReached = partnerLinks.length >= group.maxPartnerLinks;
+  const hasAdditionalLinks = group.additionalLinks?.length > 0;
+  const canCreateNewLink = !hasLinksLimitReached && hasAdditionalLinks;
+
+  const { table, ...tableProps } = useTable({
+    data: partnerLinks,
+    columns: [
+      {
+        id: "link",
+        header: "Link",
+        minSize: 200,
+        cell: ({ row }) => {
+          const partnerLink = constructPartnerLink({
+            group,
+            link: row.original,
+          });
+
+          const destinationUrl = row.original.url;
+
+          return (
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="border-border-subtle has-[:hover]:bg-bg-muted bg-bg-default rounded-md border transition-colors">
+                <CopyButton
+                  value={partnerLink}
+                  variant="neutral"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md p-0 hover:bg-transparent active:bg-transparent"
+                />
+              </div>
+
+              <div className="flex min-w-0 flex-col">
+                <span
+                  className="text-content-emphasis min-w-0 truncate text-xs font-medium"
+                  title={partnerLink}
+                >
+                  {getPrettyUrl(partnerLink)}
+                </span>
+                <div className="flex min-w-0 max-w-[300px] items-center gap-1">
+                  <ArrowTurnRight2 className="text-content-muted size-3 shrink-0" />
+                  <a
+                    className="text-content-subtle min-w-0 cursor-alias truncate text-xs font-normal decoration-dotted underline-offset-2 hover:underline"
+                    href={destinationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {destinationUrl ? getApexDomain(destinationUrl) : ""}
+                  </a>
+                </div>
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        id: "clicks",
+        header: "Clicks",
+        minSize: 80,
+        maxSize: 100,
+        cell: ({ row }) => nFormatter(row.original.clicks),
+      },
+      {
+        id: "leads",
+        header: "Leads",
+        minSize: 80,
+        maxSize: 100,
+        cell: ({ row }) => nFormatter(row.original.leads),
+      },
+      {
+        id: "conversions",
+        header: "Conversions",
+        minSize: 80,
+        maxSize: 100,
+        cell: ({ row }) => nFormatter(row.original.conversions),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <Button
+            variant="primary"
+            className="h-7 w-7 p-1.5"
+            icon={<Plus2 className="size-4" />}
+            onClick={onCreateLink}
+            disabled={!canCreateNewLink}
+            disabledTooltip={
+              hasLinksLimitReached
+                ? `You have reached the limit of ${group.maxPartnerLinks} referral links.`
+                : !hasAdditionalLinks
+                  ? `${program.name} program does not allow partners to create new links.`
+                  : undefined
+            }
+          />
+        ),
+        minSize: 60,
+        maxSize: 80,
+        cell: ({ row }) => {
+          return (
+            <Button
+              variant="secondary"
+              className="h-7 w-7 p-1.5"
+              icon={<Pen2 className="size-4" />}
+              onClick={() => onEditLink(row.original)}
+            />
+          );
+        },
+      },
+    ],
+    defaultColumn: {
+      minSize: 60,
+    },
+    emptyState: (
+      <AnimatedEmptyState
+        title="No links found"
+        description="You don't have any referral links yet. Create a link to start earning commissions."
+        cardContent={() => (
+          <>
+            <Users className="text-content-default size-4" />
+            <div className="bg-bg-emphasis h-2.5 w-40 rounded-sm" />
+          </>
+        )}
+        className="max-w-xs border-none md:min-h-fit"
+        addButton={
+          <Button
+            text="Create link"
+            variant="primary"
+            onClick={onCreateLink}
+            className="bg-bg-inverted text-content-inverted h-9 rounded-md hover:opacity-80"
+          />
+        }
+      />
+    ),
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+    resourceName: (plural) => `link${plural ? "s" : ""}`,
+    loading: isLoading,
+  });
+
+  return (
+    <motion.div
+      className="border-border-subtle relative rounded-md border"
+      {...TAB_ITEM_ANIMATION_SETTINGS}
+    >
+      <Table
+        {...tableProps}
+        table={table}
+        containerClassName="border-none max-h-[26rem] overflow-auto"
+      />
+      {links.length > 0 && (
+        <div className="from-bg-default pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t sm:bottom-0" />
+      )}
+    </motion.div>
+  );
+}

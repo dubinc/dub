@@ -1,0 +1,174 @@
+import { stripe } from "@/lib/stripe";
+import { getStripeRecipientAccount } from "@/lib/stripe/get-stripe-recipient-account";
+import { isRecipientPendingIdVerification } from "@/lib/stripe/is-recipient-pending-id-verification";
+import { prettyPrint } from "@dub/utils";
+import { Partner, PartnerPayoutMethod } from "@prisma/client";
+import { getStripeRecipientPayoutMethod } from "../stripe/get-stripe-recipient-payout-method";
+
+const PAYOUT_METHOD_PRIORITY: PartnerPayoutMethod[] = [
+  PartnerPayoutMethod.stablecoin,
+  PartnerPayoutMethod.connect,
+  PartnerPayoutMethod.paypal,
+  PartnerPayoutMethod.tremendous,
+];
+
+/**
+ * Computes payoutsEnabledAt and defaultPayoutMethod based on currently active
+ * payout methods. Preserves the partner's existing default when it is still
+ * active; otherwise falls back to priority order: stablecoin > connect > paypal.
+ * Keeps payoutsEnabledAt null for partners banned from the network.
+ */
+export async function recomputePartnerPayoutState(
+  partner: Pick<
+    Partner,
+    | "stripeConnectId"
+    | "stripeRecipientId"
+    | "paypalEmail"
+    | "payoutsEnabledAt"
+    | "defaultPayoutMethod"
+    | "tremendousEmail"
+    | "networkStatus"
+  > & {
+    cryptoWalletAddress?: string | null;
+  },
+) {
+  const [connectAccount, stablecoinAccount] = await Promise.all([
+    partner.stripeConnectId
+      ? stripe.accounts.retrieve(partner.stripeConnectId)
+      : Promise.resolve(null),
+
+    partner.stripeRecipientId
+      ? getStripeRecipientAccount(partner.stripeRecipientId)
+      : Promise.resolve(null),
+  ]);
+
+  const pendingIdVerification = Boolean(
+    stablecoinAccount && isRecipientPendingIdVerification(stablecoinAccount),
+  );
+
+  const cryptoWalletsActive =
+    stablecoinAccount?.configuration?.recipient?.capabilities?.crypto_wallets
+      ?.status === "active";
+
+  // Verification hides crypto_wallets until Stripe finishes ID review. Keep
+  // looking up the wallet so we don't clear payouts for a temporary restriction.
+  const hasCryptoWalletCapabilities =
+    cryptoWalletsActive || pendingIdVerification;
+
+  let stablecoinPayoutMethod: Awaited<
+    ReturnType<typeof getStripeRecipientPayoutMethod>
+  > | null = null;
+
+  if (partner.stripeRecipientId && hasCryptoWalletCapabilities) {
+    try {
+      stablecoinPayoutMethod = await getStripeRecipientPayoutMethod(
+        partner.stripeRecipientId,
+      );
+    } catch (error) {
+      if (!pendingIdVerification) {
+        throw error;
+      }
+
+      console.warn(
+        `Failed to load crypto wallet payout method during identity verification: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
+
+  const cryptoWalletAddress =
+    stablecoinPayoutMethod?.crypto_wallet?.address ??
+    (pendingIdVerification ? (partner.cryptoWalletAddress ?? null) : null);
+  const cryptoWalletNetwork =
+    stablecoinPayoutMethod?.crypto_wallet?.network ?? null;
+
+  const connectActive = Boolean(
+    connectAccount?.payouts_enabled === true &&
+      connectAccount?.capabilities?.transfers === "active",
+  );
+
+  const stablecoinActive =
+    Boolean(
+      cryptoWalletAddress &&
+        cryptoWalletNetwork &&
+        (cryptoWalletsActive || pendingIdVerification),
+    ) ||
+    (pendingIdVerification &&
+      partner.defaultPayoutMethod === PartnerPayoutMethod.stablecoin);
+
+  const paypalActive = Boolean(partner.paypalEmail);
+
+  const tremendousActive = Boolean(partner.tremendousEmail);
+
+  const activePayoutMethods = PAYOUT_METHOD_PRIORITY.filter((method) => {
+    switch (method) {
+      case PartnerPayoutMethod.stablecoin:
+        return stablecoinActive;
+      case PartnerPayoutMethod.connect:
+        return connectActive;
+      case PartnerPayoutMethod.paypal:
+        return paypalActive;
+      case PartnerPayoutMethod.tremendous:
+        return tremendousActive;
+      default:
+        return false;
+    }
+  });
+
+  const hasValidDefaultPayoutMethod =
+    partner.defaultPayoutMethod &&
+    activePayoutMethods.includes(partner.defaultPayoutMethod);
+
+  const defaultPayoutMethod = hasValidDefaultPayoutMethod
+    ? partner.defaultPayoutMethod
+    : activePayoutMethods[0] ?? null;
+
+  let payoutsEnabledAt: Date | null = null;
+
+  // Partners banned from the network must not get payouts enabled again
+  if (defaultPayoutMethod && partner.networkStatus !== "banned") {
+    // if default payout method has changed, set payoutsEnabledAt to today
+    // otherwise, use the existing payoutsEnabledAt (or today if null)
+    if (defaultPayoutMethod !== partner.defaultPayoutMethod) {
+      payoutsEnabledAt = new Date();
+    } else if (partner.payoutsEnabledAt) {
+      payoutsEnabledAt = partner.payoutsEnabledAt;
+    } else {
+      payoutsEnabledAt = new Date();
+    }
+  }
+
+  console.log(
+    "[recomputePartnerPayoutState]",
+    prettyPrint({
+      connectActive,
+      stablecoinActive,
+      pendingIdVerification,
+      paypalActive,
+      tremendousActive,
+      payoutsEnabledAt,
+      defaultPayoutMethod,
+    }),
+  );
+
+  const maskedCryptoWalletAddress = cryptoWalletAddress
+    ? cryptoWalletAddress.length > 10
+      ? `${cryptoWalletAddress.slice(0, 6)}••••${cryptoWalletAddress.slice(-4)}`
+      : cryptoWalletAddress
+    : null;
+
+  const hasPayoutStateChanged =
+    partner.payoutsEnabledAt !== payoutsEnabledAt ||
+    partner.defaultPayoutMethod !== defaultPayoutMethod;
+
+  return {
+    payoutsEnabledAt,
+    defaultPayoutMethod,
+    activePayoutMethods,
+    cryptoWalletAddress,
+    cryptoWalletNetwork,
+    maskedCryptoWalletAddress,
+    hasPayoutStateChanged,
+  };
+}

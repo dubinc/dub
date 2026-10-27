@@ -1,0 +1,131 @@
+"use server";
+
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
+import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
+import { prisma } from "@/lib/prisma";
+import {
+  ACTIVE_ENROLLMENT_STATUSES,
+  bulkBanPartnersSchema,
+} from "@/lib/zod/schemas/partners";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { ProgramEnrollmentStatus } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
+import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
+
+export const bulkBanPartnersAction = authActionClient
+  .inputSchema(bulkBanPartnersSchema)
+  .action(async ({ parsedInput, ctx }) => {
+    const { workspace, user } = ctx;
+    const { partnerIds, reason } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        partnerId: {
+          in: partnerIds,
+        },
+        programId,
+        status: {
+          in: ACTIVE_ENROLLMENT_STATUSES,
+        },
+      },
+      select: {
+        id: true,
+        programId: true,
+        partnerId: true,
+        status: true,
+        partner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    // Don't throw an error if no partners are found, just return
+    if (programEnrollments.length === 0) {
+      return;
+    }
+
+    await prisma.programEnrollment.updateMany({
+      where: {
+        id: {
+          in: programEnrollments.map(({ id }) => id),
+        },
+      },
+      data: {
+        status: ProgramEnrollmentStatus.banned,
+        bannedAt: new Date(),
+        bannedReason: reason,
+        clickRewardId: null,
+        leadRewardId: null,
+        saleRewardId: null,
+        referralRewardId: null,
+        customRewardId: null,
+        discountId: null,
+      },
+    });
+
+    await resolveFraudGroups({
+      where: {
+        programEnrollment: {
+          id: {
+            in: programEnrollments.map(({ id }) => id),
+          },
+        },
+      },
+      userId: user.id,
+      resolutionReason:
+        "Resolved automatically because the partner was banned.",
+    });
+
+    waitUntil(
+      Promise.allSettled([
+        // Queue an index update because the enrollment statuses moved to banned
+        queuePartnerSearchSync({
+          enrollmentIds: programEnrollments.map(({ id }) => id),
+        }),
+
+        trackActivityLog(
+          programEnrollments.map(({ partnerId, status }) => ({
+            workspaceId: workspace.id,
+            programId,
+            resourceType: "partner",
+            resourceId: partnerId,
+            userId: user.id,
+            action: "partner.banned",
+            changeSet: {
+              status: {
+                old: status,
+                new: "banned",
+              },
+            },
+          })),
+        ),
+
+        enqueueBatchJobs(
+          programEnrollments.map(({ programId, partnerId }) => ({
+            queueName: "ban-partner",
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/ban`,
+            deduplicationId: `ban-${programId}-${partnerId}`,
+            body: {
+              programId,
+              partnerId,
+            },
+          })),
+        ),
+      ]),
+    );
+  });

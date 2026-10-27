@@ -32,6 +32,7 @@ const config: Pick<Config, "presets"> = {
             "gradient-move": "gradient-move 5s linear infinite",
             "ellipsis-wave": "ellipsis-wave 1.5s ease-in-out infinite",
             float: "float 4s linear infinite",
+            "partner-rewind-intro": "partner-rewind-intro 2s ease-in-out",
           },
           keyframes: {
             ...sharedConfig?.theme?.extend?.keyframes,
@@ -95,6 +96,12 @@ const config: Pick<Config, "presets"> = {
                 transform:
                   "scale(1) rotate(360deg) translateX(var(--r, 5%)) rotate(-360deg)",
               },
+            },
+            "partner-rewind-intro": {
+              "0%,50%": {
+                transform: "scale(1.4) translateY(50%)",
+              },
+              "100%": { transform: "scale(1) translateY(0)" },
             },
           },
         },

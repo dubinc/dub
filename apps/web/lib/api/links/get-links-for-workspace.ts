@@ -34,6 +34,7 @@ export async function getLinksForWorkspace(filters: GetLinksForWorkspaceProps) {
     includeWebhooks,
     includeDashboard,
     tenantId,
+    partnerId,
     startDate,
     endDate,
   } = filters;
@@ -156,6 +157,7 @@ export async function getLinksForWorkspace(filters: GetLinksForWorkspaceProps) {
               },
             }
           : {}),
+      ...(partnerId && { partnerId }),
       ...(userId && { userId }),
       ...(startDate &&
         endDate && {

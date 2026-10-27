@@ -1,3 +1,4 @@
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnimatedSizeContainer, Grid, useLocalStorage } from "@dub/ui";
 import { LinkBroken } from "@dub/ui/icons";
@@ -7,7 +8,7 @@ import { useRegisterDomainModal } from "../modals/register-domain-modal";
 import { X } from "../shared/icons";
 
 export function FreeDotLinkBanner() {
-  const { id: workspaceId, trialEndsAt } = useWorkspace();
+  const { id: workspaceId, trialEndsAt, environment } = useWorkspace();
   const [show, setShow] = useLocalStorage(
     `show-free-dot-link-banner:${workspaceId}`,
     true,
@@ -20,6 +21,7 @@ export function FreeDotLinkBanner() {
     useRegisterDomainModal();
 
   if (
+    !isProductionEnvironment(environment) ||
     isWorkspaceBillingTrialActive(trialEndsAt) ||
     (!show && collapseFinished)
   ) {
@@ -49,8 +51,8 @@ export function FreeDotLinkBanner() {
                 <LinkBroken className="m-px size-4 text-green-800" />
               </div>
               <p className="text-sm text-neutral-900">
-                Claim a free <span className="font-semibold">.link</span>{" "}
-                domain, free for 1 year.{" "}
+                Claim a free <span className="font-semibold">.link</span> domain,
+                free for 1 year.{" "}
                 <a
                   href="https://dub.co/help/article/free-dot-link-domain"
                   target="_blank"

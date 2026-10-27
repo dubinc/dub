@@ -1,0 +1,155 @@
+"use server";
+
+import { trackRewardActivityLog } from "@/lib/api/activity-log/track-reward-activity-log";
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
+import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
+import { validateReward } from "@/lib/api/rewards/validate-reward";
+import { getFeatureFlags } from "@/lib/edge-config";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
+import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import { Prisma } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
+import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
+
+export const updateRewardAction = authActionClient
+  .inputSchema(updateRewardSchema)
+  .action(async ({ parsedInput, ctx }) => {
+    const { workspace, user } = ctx;
+    const {
+      type,
+      amountInCents,
+      amountInPercentage,
+      maxDuration,
+      description,
+      tooltipDescription,
+      modifiers,
+      config,
+      rewardId,
+      spendLimitAmount,
+      spendLimitInterval,
+      activityDescription,
+    } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const reward = await getRewardOrThrow({
+      rewardId,
+      programId,
+    });
+
+    const { canUseAdvancedRewardLogic, canCreateReferralReward } =
+      getPlanCapabilities(workspace.plan);
+
+    if (reward.event === "referral" && !canCreateReferralReward) {
+      throw new Error(
+        "Referral rewards are only available on the Advanced plan and above.",
+      );
+    }
+
+    if (modifiers && !canUseAdvancedRewardLogic) {
+      throw new Error(
+        "Advanced reward structures are only available on the Advanced plan and above.",
+      );
+    }
+
+    if (spendLimitAmount || spendLimitInterval) {
+      const flags = await getFeatureFlags({
+        workspaceId: workspace.id,
+      });
+
+      if (!flags?.rewardSpendLimit) {
+        throw new Error("Spend limits are not enabled on your workspace.");
+      }
+    }
+
+    validateReward({
+      ...parsedInput,
+      event: reward.event,
+    });
+
+    const updatedReward = await prisma.reward.update({
+      where: {
+        id: rewardId,
+      },
+      data: {
+        type,
+        maxDuration,
+        description: description || null,
+        tooltipDescription: tooltipDescription || null,
+        modifiers: modifiers === null ? Prisma.DbNull : modifiers,
+        config: config === null ? Prisma.DbNull : config,
+        spendLimitAmount,
+        spendLimitInterval,
+        ...(type === "flat"
+          ? {
+              amountInCents,
+              amountInPercentage: null,
+            }
+          : {
+              amountInCents: null,
+              amountInPercentage: new Prisma.Decimal(amountInPercentage!),
+            }),
+      },
+    });
+
+    if (updatedReward.groupId) {
+      await queueRewardProcessing({
+        event: "reward-updated",
+        groupId: updatedReward.groupId,
+        occurredAt: new Date().toISOString(),
+        rewardSnapshot: {
+          id: reward.id,
+          event: reward.event,
+          description: formatRewardDescription(serializeReward(updatedReward), {
+            includeEarnPrefix: false,
+          }),
+          activityDescription,
+        },
+      });
+    }
+
+    revalidateProgramPublicPages(programId);
+
+    waitUntil(
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "reward.updated",
+          description: `Reward ${rewardId} updated`,
+          actor: user,
+          targets: [
+            {
+              type: "reward",
+              id: rewardId,
+              metadata: serializeReward(updatedReward),
+            },
+          ],
+        }),
+
+        trackRewardActivityLog({
+          workspaceId: workspace.id,
+          programId,
+          userId: user.id,
+          resourceId: updatedReward.id,
+          parentResourceType: "group",
+          parentResourceId: updatedReward.groupId,
+          old: reward,
+          new: updatedReward,
+          description: activityDescription,
+        }),
+      ]),
+    );
+  });

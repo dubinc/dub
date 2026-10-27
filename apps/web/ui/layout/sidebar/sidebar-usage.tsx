@@ -11,7 +11,7 @@ import {
   DynamicTooltipWrapper,
   Icon,
 } from "@dub/ui";
-import { CursorRays, Hyperlink } from "@dub/ui/icons";
+import { CursorRays, Hyperlink, MoneyBills2, Users } from "@dub/ui/icons";
 import {
   cn,
   getFirstAndLastDay,
@@ -40,6 +40,10 @@ function UsageInner() {
     usageLimit,
     linksUsage,
     linksLimit,
+    payoutsUsage,
+    payoutsLimit,
+    partnersUsage,
+    partnersLimit,
     billingCycleStart,
     plan,
     planTier,
@@ -48,6 +52,7 @@ function UsageInner() {
     loading,
     trialEndsAt,
     role,
+    defaultProgramId,
   } = useWorkspace({ swrOpts: { keepPreviousData: true } });
 
   const isTrial = isWorkspaceBillingTrialActive(trialEndsAt);
@@ -99,14 +104,15 @@ function UsageInner() {
     () =>
       [
         [usage, usageLimit],
-        [linksUsage, linksLimit],
+        [payoutsUsage, payoutsLimit],
+        [partnersUsage, partnersLimit],
       ].map(
         ([usage, limit]) =>
           usage !== undefined &&
           limit !== undefined &&
           usage / Math.max(0, usage, limit) >= 0.9,
       ),
-    [usage, usageLimit, linksUsage, linksLimit],
+    [usage, usageLimit, payoutsUsage, payoutsLimit, partnersUsage],
   );
 
   const warning = warnings.some((w) => w);
@@ -160,17 +166,49 @@ function UsageInner() {
               }
               warning={warnings[0]}
             />
-            <UsageRow
-              icon={Hyperlink}
-              label="Links"
-              usage={linksUsage}
-              limit={linksLimit}
-              showNextPlan={hovered}
-              nextPlanLimit={
-                isTrial ? currentPlanLimits.links : nextPlanLimits.links
-              }
-              warning={warnings[1]}
-            />
+            {defaultProgramId ? (
+              <>
+                <UsageRow
+                  icon={MoneyBills2}
+                  label="Payouts"
+                  usage={payoutsUsage}
+                  limit={payoutsLimit}
+                  showNextPlan={hovered}
+                  nextPlanLimit={
+                    isTrial ? currentPlanLimits.payouts : nextPlanLimits.payouts
+                  }
+                  warning={warnings[1]}
+                  valueInCents
+                />
+                <UsageRow
+                  icon={Users}
+                  label="Partners"
+                  usage={defaultProgramId ? partnersUsage : 0}
+                  limit={partnersLimit}
+                  showNextPlan={hovered}
+                  nextPlanLimit={
+                    isTrial
+                      ? currentPlanLimits.partners
+                      : nextPlanLimits.partners
+                  }
+                  warning={warnings[2]}
+                />
+              </>
+            ) : (
+              <>
+                <UsageRow
+                  icon={Hyperlink}
+                  label="Links"
+                  usage={linksUsage}
+                  limit={linksLimit}
+                  showNextPlan={hovered}
+                  nextPlanLimit={
+                    isTrial ? currentPlanLimits.links : nextPlanLimits.links
+                  }
+                  warning={warnings[1]}
+                />
+              </>
+            )}
           </div>
 
           <div className="mt-3">
@@ -264,6 +302,7 @@ type UsageRowProps = {
   nextPlanLimit?: number;
   warning: boolean;
   hideProgressBar?: boolean;
+  valueInCents?: boolean;
 };
 
 const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
@@ -277,6 +316,7 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
       nextPlanLimit,
       warning,
       hideProgressBar = false,
+      valueInCents = false,
     }: UsageRowProps,
     ref,
   ) => {
@@ -295,7 +335,20 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
           {!loading ? (
             <div className="flex items-center">
               <span className="text-xs font-medium text-neutral-600">
-                <NumberFlow value={usage} /> of{" "}
+                <NumberFlow
+                  value={valueInCents ? usage / 100 : usage}
+                  format={
+                    valueInCents
+                      ? {
+                          style: "currency",
+                          currency: "USD",
+                          // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                          trailingZeroDisplay: "stripIfInteger",
+                        }
+                      : undefined
+                  }
+                />{" "}
+                of{" "}
                 <motion.span
                   className={cn(
                     "relative transition-colors duration-150",
@@ -304,7 +357,9 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
                       : "text-neutral-600",
                   )}
                 >
-                  {formatNumber(limit)}
+                  {valueInCents
+                    ? formatUsdFromCents(limit)
+                    : formatNumber(limit)}
                   {showNextPlan && nextPlanLimit && (
                     <motion.span
                       className="absolute bottom-[45%] left-0 h-[1px] bg-neutral-400"
@@ -331,7 +386,9 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
                     }}
                   >
                     <motion.span className="ml-1 whitespace-nowrap text-xs font-medium text-blue-600">
-                      {formatNumber(nextPlanLimit)}
+                      {valueInCents
+                        ? formatUsdFromCents(nextPlanLimit)
+                        : formatNumber(nextPlanLimit)}
                     </motion.span>
                   </motion.div>
                 )}
@@ -381,3 +438,14 @@ const formatNumber = (value: number) =>
         full: value !== undefined && value < 999,
         digits: 1,
       });
+
+function formatUsdFromCents(cents: number) {
+  if (cents >= INFINITY_NUMBER) {
+    return "∞";
+  }
+  const dollars = cents / 100;
+  return `$${nFormatter(dollars, {
+    full: dollars < 1000,
+    digits: 1,
+  })}`;
+}

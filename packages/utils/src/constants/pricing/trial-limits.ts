@@ -1,9 +1,14 @@
 export const TRIAL_LIMITS = {
   links: 100,
   clicks: 5_000,
+  payouts: 500_00,
   domains: 5,
   tags: 5,
+  partnerTags: 5,
   folders: 5,
+  groups: 5,
+  networkInvites: 0,
+  partners: 50,
   users: 3,
   ai: 100,
   api: 120,
@@ -12,20 +17,27 @@ export const TRIAL_LIMITS = {
 
 export type TrialLimitResource =
   | keyof typeof TRIAL_LIMITS
+  | "partnerEnrollments"
   | "freeDotLinkDomain";
 
 const TRIAL_LIMIT_FEATURE_PHRASES: Record<TrialLimitResource, string> = {
   links: "create more links",
   clicks: "track more events",
+  payouts: "send more payouts",
   domains: "add more domains",
   tags: "create more tags",
   folders: "create more folders",
+  groups: "create more groups",
+  partnerTags: "create more partner tags",
+  networkInvites: "invite partners from the network",
   users: "invite more teammates",
+  partnerEnrollments: "add more partners",
   freeDotLinkDomain: "claim a free .link domain",
   // unused fields
   ai: "",
   api: "",
   analyticsApi: "",
+  partners: "",
 };
 
 export function getTrialLimitFeaturePhrase(kind: TrialLimitResource): string {
@@ -35,12 +47,15 @@ export function getTrialLimitFeaturePhrase(kind: TrialLimitResource): string {
 export function getTrialLimitResourceForOverageBanner({
   exceededEvents,
   exceededLinks,
+  exceededPayouts,
 }: {
   exceededEvents: boolean;
   exceededLinks: boolean;
+  exceededPayouts: boolean;
 }): TrialLimitResource | null {
   if (exceededEvents) return "clicks";
   if (exceededLinks) return "links";
+  if (exceededPayouts) return "payouts";
   return null;
 }
 

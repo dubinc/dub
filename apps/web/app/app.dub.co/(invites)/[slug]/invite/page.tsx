@@ -6,6 +6,7 @@ import {
   CircleCheck,
   CircleHalfDottedClock,
   DubLinksIcon,
+  DubPartnersIcon,
   LifeRing,
   Msgs,
   Tooltip,
@@ -60,6 +61,7 @@ export default async function WorkspaceInvitePage({
           select: {
             name: true,
             logo: true,
+            defaultProgramId: true,
             users: {
               select: {
                 user: {
@@ -132,6 +134,20 @@ export default async function WorkspaceInvitePage({
                   href: "https://dub.co/links",
                   cta: "Learn more",
                 },
+                ...(invite.project.defaultProgramId
+                  ? [
+                      {
+                        icon: (
+                          <div className="flex size-5 items-center justify-center rounded bg-violet-400">
+                            <DubPartnersIcon className="size-3 text-violet-900" />
+                          </div>
+                        ),
+                        title: "Dub Partners",
+                        href: "https://dub.co/partners",
+                        cta: "Learn more",
+                      },
+                    ]
+                  : []),
               ].map(({ icon, title, href, cta }) => (
                 <div
                   key={href}

@@ -1,6 +1,7 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { WorkspaceProps } from "@/lib/types";
 import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
+import { CommissionSource } from "@prisma/client";
 import * as z from "zod/v4";
 
 const singularLeadEventSchema = z.object({
@@ -58,5 +59,6 @@ export const trackSingularLeadEvent = async ({
     mode,
     metadata: null,
     workspace,
+    commissionSource: CommissionSource.singular,
   });
 };

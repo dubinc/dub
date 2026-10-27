@@ -1,4 +1,6 @@
-import type { Customer } from "@/lib/types";
+import { createId } from "@/lib/api/create-id";
+import { prisma } from "@/lib/prisma";
+import type { Customer, EnrolledPartnerProps } from "@/lib/types";
 import { nanoid } from "@dub/utils";
 import { createHmac } from "crypto";
 import { PLAYWRIGHT_API_BASE } from "../constants";
@@ -72,12 +74,14 @@ export async function postShopifyOrdersPaidWebhook({
   checkoutToken,
   storeId = TEST_WORKSPACE.shopify.storeId,
   existingCustomerId,
+  discountCode,
   amount,
   ...orderOverrides
 }: {
   checkoutToken: string;
   storeId?: string;
   existingCustomerId?: string | null;
+  discountCode?: string | null;
   amount?: string | number;
 } & Record<string, unknown>) {
   const payload = shopifyOrderPayload({
@@ -85,6 +89,9 @@ export async function postShopifyOrdersPaidWebhook({
     amount,
     ...(existingCustomerId && {
       customer: { id: existingCustomerId },
+    }),
+    ...(discountCode && {
+      discount_codes: [{ code: discountCode }],
     }),
     ...orderOverrides,
   });
@@ -110,6 +117,40 @@ export async function postShopifyOrdersPaidWebhook({
     data: await response.text(),
     payload,
   };
+}
+
+export function partnerDefaultLink(partner: EnrolledPartnerProps) {
+  const link = partner.links?.[0];
+
+  if (!link?.id || !link.domain || !link.key) {
+    throw new Error("Partner was created without a default link.");
+  }
+
+  return link;
+}
+
+export async function createPartnerDiscountCode({
+  programId,
+  partnerId,
+  linkId,
+}: {
+  programId: string;
+  partnerId: string;
+  linkId: string;
+}) {
+  const code = `PW${nanoid(8).toUpperCase()}`;
+
+  await prisma.discountCode.create({
+    data: {
+      id: createId({ prefix: "dcode_" }),
+      code,
+      programId,
+      partnerId,
+      linkId,
+    },
+  });
+
+  return code;
 }
 
 export async function getCustomerByExternalId(

@@ -7,7 +7,7 @@ description: Add or extend Playwright HTTP API specs under apps/web/playwright/a
 
 HTTP API coverage lives in `apps/web/playwright/api/<resource>/*.spec.ts`. Auth is seeded once by Playwright `globalSetup` (`apps/web/global-setup.ts` → `setup-test-workspace.ts`) into `playwright/.auth/api.json`. Specs use the custom `test` from `../fixtures` — not `@playwright/test` directly for `test`.
 
-Do **not** put these under `apps/web/tests/` (Vitest) or under `playwright/workspaces` (browser e2e).
+Do **not** put these under `apps/web/tests/` (Vitest) or under `playwright/partners` / `playwright/workspaces` (browser e2e).
 
 ## Before writing
 
@@ -91,32 +91,32 @@ test("POST /things", async ({ api }) => {
 
 ## Required conventions
 
-| Rule                               | Detail                                                                                                                                                                                                  |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Import `test` from `../fixtures`   | Provides `api` and `workspace`                                                                                                                                                                          |
-| Serial only when tests share state | API project is `fullyParallel: true`. Do not add `mode: "parallel"`. Use `test.describe.configure({ mode: "serial" })` only when tests in a file/describe share state (e.g. domains, seeded pagination) |
-| Cleanup in `finally`               | Create → assert → always delete created rows                                                                                                                                                            |
-| Unique names/ids                   | Use `randomName` / `randomCustomer` from `../../utils` — never fixed colliding names                                                                                                                    |
-| Assert status + body               | Prefer `toStrictEqual` / `toEqual` on full shapes; use `expect.any(String)` for ids/timestamps                                                                                                          |
-| Default shape once                 | Happy-path POST owns the full default resource (and nested) shape. Variant tests assert only what they change                                                                                           |
-| HTTP contract only                 | Assert status + JSON. Do not poll/sleep for `waitUntil`, R2, or other background jobs — CI has no `STORAGE_*`                                                                                           |
-| Error responses                    | Match `{ error: { code, message, doc_url } }` exactly                                                                                                                                                   |
-| Typed generics                     | `api.get<T>`, `api.post<T>`, etc.                                                                                                                                                                       |
-| Seeded fixtures                    | `{ workspace }`, `TEST_WORKSPACE` — not Vitest `E2E_*` constants                                                                                                                                        |
+| Rule                                            | Detail                                                                                                        |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Import `test` from `../fixtures`                | Provides `api`, `workspace`, and `program`                                                                    |
+| Serial only when tests share state              | API project is `fullyParallel: true`. Do not add `mode: "parallel"`. Use `test.describe.configure({ mode: "serial" })` only when tests in a file/describe share state (e.g. domains, seeded pagination) |
+| Cleanup in `finally`                            | Create → assert → always delete created rows                                                                  |
+| Unique names/ids                                | Use `randomName` / `randomCustomer` / `randomPartnerEmail` from `../../utils` — never fixed colliding names   |
+| Assert status + body                            | Prefer `toStrictEqual` / `toEqual` on full shapes; use `expect.any(String)` for ids/timestamps                |
+| Default shape once                              | Happy-path POST owns the full default resource (and nested) shape. Variant tests assert only what they change |
+| HTTP contract only                              | Assert status + JSON. Do not poll/sleep for `waitUntil`, R2, or other background jobs — CI has no `STORAGE_*` |
+| Error responses                                 | Match `{ error: { code, message, doc_url } }` exactly                                                         |
+| Typed generics                                  | `api.get<T>`, `api.post<T>`, etc.                                                                             |
+| Seeded fixtures                                 | `{ workspace }`, `{ program }` (`id`, `defaultGroupId`), `TEST_WORKSPACE` — not Vitest `E2E_*` constants      |
 
-### Fixtures (`api` / `workspace`)
+### Fixtures (`api` / `workspace` / `program`)
 
 - `api.get/post/patch/delete(url, data?)` → `{ status, data }` (JSON parsed).
 - Paths are app-relative (`/api/...`); `baseURL` is `http://localhost:8888`.
-- `workspace.id` / `workspace.slug` come from `.auth/api.json`.
-- Seeded link domain: `TEST_WORKSPACE.domain` in `setup-test-workspace.ts`.
+- `workspace.id` / `workspace.slug` and `program.id` / `program.defaultGroupId` come from `.auth/api.json`.
+- Seeded program domain/url: `TEST_WORKSPACE.program` in `setup-test-workspace.ts`.
 
 ### Helpers
 
 - Shared randomizers / sort assertions: `apps/web/playwright/utils.ts`.
 - Local `createX` / `deleteX` helpers in the spec file when the same setup repeats.
 - Once `createX` exists, use it for setup **and** follow-up creates (pass overrides for identity fields that must stay stable, e.g. `email`). Happy-path tests may still inline `api.post` so the asserted body is local.
-- Prisma direct seed is allowed for bulk fixtures (see `customers/customers-pagination.spec.ts`); still clean up in `finally` / after hooks. No DELETE route → Prisma/`conn` cleanup is fine.
+- Prisma direct seed is allowed for bulk fixtures (see `customers/customers-pagination.spec.ts`); still clean up in `finally` / after hooks. No DELETE route → Prisma/`conn` cleanup is fine (`partners/partners.spec.ts`).
 
 ### Error / table-driven cases
 
@@ -154,7 +154,7 @@ When converting `apps/web/tests/<resource>/*.test.ts`:
 
 1. Add or extend `playwright/api/<resource>/<resource>.spec.ts` — do not leave a parallel Vitest HTTP spec.
 2. Map `IntegrationHarness` / `http.post({ path })` → `api` fixture (`/api/...` paths).
-3. Replace `E2E_*` constants with `{ workspace }` and `TEST_WORKSPACE`.
+3. Replace `E2E_*` / `E2E_PARTNER_GROUP` with `{ workspace }`, `{ program }`, and `TEST_WORKSPACE`.
 4. Delete the Vitest file after the Playwright spec covers its cases.
 
 ## Do not

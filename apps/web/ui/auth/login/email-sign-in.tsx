@@ -1,6 +1,6 @@
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
 import { testIds } from "@/lib/e2e/test-ids";
-import { Button, Input, useMediaQuery } from "@dub/ui";
+import { Button, Input, useCurrentSubdomain, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { errorCodes, LoginFormContext } from "./login-form";
 
 export const EmailSignIn = ({ next }: { next?: string }) => {
+  const { subdomain } = useCurrentSubdomain();
   const router = useRouter();
   const searchParams = useSearchParams();
   const finalNext = next ?? searchParams?.get("next");
@@ -137,7 +138,7 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
         {authMethod === "email" && (
           <label>
             <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
-              Work email
+              {subdomain === "partners" ? "Email" : "Work email"}
             </span>
             <input
               id="email"

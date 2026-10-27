@@ -122,11 +122,23 @@ export default function WelcomeEmail({
               >
                 Install the Dub tracking script
               </Link>{" "}
-              to track conversions from your short links.
+              to track your short link and partner conversions.
             </Text>
 
             <Text className="mb-4 text-sm leading-6 text-neutral-600">
-              3. Explore analytics:{" "}
+              3. Create a program:{" "}
+              <Link
+                href="https://dub.co/help/article/setting-up-your-program"
+                className="text-neutral-600 underline underline-offset-2"
+              >
+                Set up your Dub partner program
+              </Link>{" "}
+              to grow your revenue on autopilot with advanced reward structures,
+              dual-sided incentives, and real-time attribution.
+            </Text>
+
+            <Text className="mb-4 text-sm leading-6 text-neutral-600">
+              4. Explore analytics:{" "}
               <Link
                 href="https://dub.co/help/article/dub-analytics"
                 className="text-neutral-600 underline underline-offset-2"
@@ -137,14 +149,15 @@ export default function WelcomeEmail({
             </Text>
 
             <Text className="mb-4 text-sm leading-6 text-neutral-600">
-              4. Explore the API:{" "}
+              5. Explore the API:{" "}
               <Link
                 href="https://dub.co/docs"
                 className="text-neutral-600 underline underline-offset-2"
               >
                 Check out our docs
               </Link>{" "}
-              to learn how to programmatically manage your Dub links.
+              to learn how to programmatically manage your Dub links and
+              partners.
             </Text>
 
             <Section className="my-8">

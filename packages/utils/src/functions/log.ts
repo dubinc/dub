@@ -3,6 +3,7 @@ const logTypeToEnv = {
   cron: process.env.DUB_SLACK_HOOK_CRON,
   errors: process.env.DUB_SLACK_HOOK_ERRORS,
   links: process.env.DUB_SLACK_HOOK_LINKS,
+  payouts: process.env.DUB_SLACK_HOOK_PAYOUTS,
 };
 
 export const log = async ({
@@ -11,7 +12,7 @@ export const log = async ({
   mention = false,
 }: {
   message: string;
-  type: "alerts" | "cron" | "errors" | "links";
+  type: "alerts" | "cron" | "errors" | "links" | "payouts";
   mention?: boolean;
 }) => {
   /* Log a message to the console */

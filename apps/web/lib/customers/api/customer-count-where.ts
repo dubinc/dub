@@ -36,10 +36,25 @@ export function buildCustomerSearchWhere({
 }
 
 export function buildCustomerCountWhere(filters: CustomerCountFilters) {
-  const { workspaceId, email, externalId, search, country, linkId, groupBy } =
-    filters;
+  const {
+    programId,
+    partnerId,
+    workspaceId,
+    email,
+    externalId,
+    search,
+    country,
+    linkId,
+    groupBy,
+  } = filters;
 
   const customerWhereInput: Prisma.CustomerWhereInput = {
+    ...(programId && {
+      programId,
+    }),
+    ...(partnerId && {
+      partnerId,
+    }),
     projectId: workspaceId,
     ...buildCustomerSearchWhere({ email, externalId, search }),
     // only filter by country if not grouping by country

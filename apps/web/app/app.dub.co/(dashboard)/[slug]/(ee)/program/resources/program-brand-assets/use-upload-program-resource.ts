@@ -1,0 +1,53 @@
+"use client";
+
+import { parseActionError } from "@/lib/actions/parse-action-errors";
+import { getProgramResourceUploadUrlAction } from "@/lib/actions/partners/program-resources/get-program-resource-upload-url";
+import { useAction } from "next-safe-action/hooks";
+
+export function useUploadProgramResource(workspaceId: string) {
+  const { executeAsync: getUploadUrl } = useAction(
+    getProgramResourceUploadUrlAction,
+  );
+
+  const upload = async (opts: {
+    file: File;
+    name: string;
+    resourceType: "logo" | "file";
+    extension?: string;
+  }) => {
+    const result = await getUploadUrl({
+      workspaceId,
+      resourceType: opts.resourceType,
+      name: opts.name,
+      extension: opts.extension,
+      contentType: opts.file.type,
+      contentLength: opts.file.size,
+    });
+
+    if (!result?.data) {
+      throw new Error(
+        parseActionError(result ?? {}, "Failed to get upload URL"),
+      );
+    }
+
+    const { signedUrl, key } = result.data;
+
+    const response = await fetch(signedUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": opts.file.type,
+        "Content-Length": opts.file.size.toString(),
+      },
+      body: opts.file,
+    });
+
+    if (!response.ok) throw new Error(`Failed to upload ${opts.resourceType}`);
+
+    return {
+      key,
+      fileSize: opts.file.size,
+    };
+  };
+
+  return { upload };
+}

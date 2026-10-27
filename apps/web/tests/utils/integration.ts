@@ -1,12 +1,13 @@
-import { Project, User } from "@prisma/client";
+import { Partner, Project, User } from "@prisma/client";
 import { type TestContext } from "vitest";
 import * as z from "zod/v4";
 import { HttpClient } from "../utils/http";
 import { env, integrationTestEnv } from "./env";
-import { E2E_USER_ID, E2E_WORKSPACE_ID } from "./resource";
+import { E2E_PARTNER, E2E_USER_ID, E2E_WORKSPACE_ID } from "./resource";
 
 interface Resources {
   user: Pick<User, "id">;
+  partner: Pick<Partner, "id">;
   workspace: Pick<Project, "id" | "slug" | "name" | "webhookEnabled">;
   apiKey: { token: string };
 }
@@ -35,6 +36,10 @@ export class IntegrationHarness {
       id: E2E_USER_ID,
     };
 
+    const partner = {
+      id: E2E_PARTNER.id,
+    };
+
     const workspace = {
       id: E2E_WORKSPACE_ID,
       slug: "acme",
@@ -48,6 +53,7 @@ export class IntegrationHarness {
 
     this.resources = {
       user,
+      partner,
       workspace,
       apiKey,
     };
@@ -95,6 +101,25 @@ export class IntegrationHarness {
   public async deleteFolder(id: string) {
     await this.http.delete({
       path: `/folders/${id}`,
+    });
+  }
+
+  // Delete bounty
+  public async deleteBounty(id: string) {
+    if (!id) return;
+
+    await this.http.delete({
+      path: `/bounties/${id}`,
+    });
+  }
+
+  // Delete campaign
+  public async deleteCampaign(id: string) {
+    if (!id) return;
+
+    await this.http.delete({
+      path: `/campaigns/${id}`,
+      query: { workspaceId: E2E_WORKSPACE_ID },
     });
   }
 }

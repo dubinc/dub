@@ -1,0 +1,3 @@
+# Stop pnpm from walking up into the Dub monorepo workspace.
+packages:
+  - "."

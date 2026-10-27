@@ -14,15 +14,21 @@ export const getFinalUrl = (
   {
     req,
     clickId,
+    via,
   }: {
     req: NextRequest;
     clickId?: string;
+    via?: string;
   },
 ) => {
   // query is the query string (e.g. d.to/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
 
   const urlObj = new URL(url);
+
+  if (via) {
+    urlObj.searchParams.set("via", via);
+  }
 
   if (clickId) {
     /*
@@ -51,6 +57,15 @@ export const getFinalUrl = (
     if (clickId) {
       urlObj.searchParams.set("clickid", clickId);
     }
+
+    // set dynamic params (if not exist)
+    if (!urlObj.searchParams.has("c") && via) {
+      urlObj.searchParams.set("c", via);
+    }
+
+    if (!urlObj.searchParams.has("af_siteid") && via) {
+      urlObj.searchParams.set("af_siteid", via);
+    }
   }
 
   // for Singular tracking links
@@ -65,7 +80,7 @@ export const getFinalUrl = (
     const wpcl = urlObj.searchParams.get("wpcl");
 
     if (wpcn && wpcn === "{via}") {
-      urlObj.searchParams.set("wpcn", "");
+      urlObj.searchParams.set("wpcn", via ?? "");
     }
 
     if (wpcl && wpcl === "{dub_id}") {

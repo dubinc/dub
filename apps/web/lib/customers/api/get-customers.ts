@@ -12,6 +12,8 @@ type GetCustomersInput = z.infer<typeof getCustomersQuerySchemaExtended> & {
 export async function getCustomers(filters: GetCustomersInput) {
   const {
     customerIds,
+    programId,
+    partnerId,
     workspaceId,
     email,
     externalId,
@@ -54,6 +56,12 @@ export async function getCustomers(filters: GetCustomersInput) {
             id: { in: customerIds },
           }
         : {}),
+      ...(programId && {
+        programId,
+      }),
+      ...(partnerId && {
+        partnerId,
+      }),
       projectId: workspaceId,
       ...buildCustomerSearchWhere({ email, externalId, search }),
       ...(country && {
@@ -74,6 +82,25 @@ export async function getCustomers(filters: GetCustomersInput) {
                 key: true,
                 shortLink: true,
                 url: true,
+                programId: true,
+                linkReward: {
+                  select: {
+                    discount: true,
+                  },
+                },
+              },
+            },
+            programEnrollment: {
+              include: {
+                partner: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    image: true,
+                  },
+                },
+                discount: true,
               },
             },
           },

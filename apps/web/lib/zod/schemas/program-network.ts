@@ -1,0 +1,86 @@
+import { Category, ProgramEnrollmentStatus } from "@prisma/client";
+import * as z from "zod/v4";
+import { DiscountSchema } from "./discount";
+import { GroupBountySummarySchema } from "./group-bounties";
+import { getPaginationQuerySchema } from "./misc";
+import { programLanderSchema } from "./program-lander";
+import { ProgramSchema } from "./programs";
+
+export const NetworkProgramSchema = ProgramSchema.pick({
+  id: true,
+  slug: true,
+  defaultGroupId: true,
+  name: true,
+  logo: true,
+  domain: true,
+  url: true,
+  description: true,
+  rewards: true,
+  termsUrl: true,
+  applicationRequirements: true,
+}).extend({
+  discount: DiscountSchema.nullish(),
+  categories: z.array(z.enum(Category)),
+  featuredOnMarketplaceAt: z.date().nullable(),
+  marketplaceHeaderImage: z.string().nullable(),
+});
+
+export const NetworkProgramExtendedSchema = NetworkProgramSchema.extend({
+  landerData: programLanderSchema.nullable(),
+  bounties: z.array(GroupBountySummarySchema).optional(),
+});
+
+export const PROGRAM_NETWORK_MAX_PAGE_SIZE = 100;
+
+const queryBooleanSchema = z
+  .enum(["true", "false"])
+  .transform((v) => v === "true")
+  .optional();
+
+export const getPublicNetworkProgramsQuerySchema = z
+  .object({
+    category: z.enum(Category).optional(),
+    rewardType: z.enum(["sale", "lead", "click", "discount"]).optional(),
+    featured: queryBooleanSchema,
+    search: z.string().optional(),
+    sortBy: z.enum(["name", "recency", "popularity"]).default("popularity"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  })
+  .extend(
+    getPaginationQuerySchema({ pageSize: PROGRAM_NETWORK_MAX_PAGE_SIZE }),
+  );
+
+export const getNetworkProgramsQuerySchema = z
+  .object({
+    category: z.enum(Category).optional(),
+    rewardType: z.enum(["sale", "lead", "click", "discount"]).optional(),
+    status: z.preprocess(
+      (v) => (v === "null" ? null : v),
+      z.enum(ProgramEnrollmentStatus).nullish(),
+    ),
+    featured: queryBooleanSchema,
+    search: z.string().optional(),
+    sortBy: z.enum(["name", "recency", "popularity"]).default("popularity"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  })
+  .extend(
+    getPaginationQuerySchema({ pageSize: PROGRAM_NETWORK_MAX_PAGE_SIZE }),
+  );
+
+export const getNetworkProgramsCountQuerySchema = getNetworkProgramsQuerySchema
+  .omit({
+    sortBy: true,
+    sortOrder: true,
+    page: true,
+    pageSize: true,
+  })
+  .extend({
+    groupBy: z.enum(["category", "rewardType", "status"]).optional(),
+  });
+
+export const MarketplaceProgramsSummarySchema = z.object({
+  featuredPrograms: z.array(NetworkProgramSchema),
+  mostPopular: z.array(NetworkProgramSchema),
+  newPrograms: z.array(NetworkProgramSchema),
+  categories: z.record(z.enum(Category), z.array(NetworkProgramSchema)),
+});

@@ -83,6 +83,11 @@ export async function runTrialEmailCron({
       slug: true,
       plan: true,
       trialEndsAt: true,
+      programs: {
+        select: {
+          name: true,
+        },
+      },
       sentEmails: {
         select: {
           type: true,
@@ -140,7 +145,7 @@ export async function runTrialEmailCron({
         replyTo: "steven.tey@dub.co",
         subject: getTrialEmailSubject({
           type,
-          companyName: workspace.name,
+          companyName: workspace.programs?.[0]?.name ?? workspace.name,
         }),
         react: renderTrialEmail(type, {
           email: recipient.email,

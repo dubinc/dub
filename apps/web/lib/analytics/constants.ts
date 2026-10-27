@@ -11,6 +11,7 @@ export const DATE_RANGE_INTERVAL_PRESETS = [
 ] as const;
 
 export const DUB_LINKS_ANALYTICS_INTERVAL = "24h";
+export const DUB_PARTNERS_ANALYTICS_INTERVAL = "30d";
 
 export const INTERVAL_DISPLAYS = [
   {
@@ -81,6 +82,9 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "top_links",
   "top_urls",
   "top_base_urls",
+  "top_partners",
+  "top_groups",
+  "top_partner_tags",
   "utm_sources",
   "utm_mediums",
   "utm_campaigns",
@@ -113,6 +117,9 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   top_links: "linkId",
   top_urls: "url",
   top_base_urls: "url",
+  top_groups: "groupId",
+  top_partners: "partnerId",
+  top_partner_tags: "partnerTagId",
 };
 
 export const VALID_ANALYTICS_FILTERS = [
@@ -121,6 +128,9 @@ export const VALID_ANALYTICS_FILTERS = [
   "linkId",
   "tagId",
   "folderId",
+  "groupId",
+  "partnerTagId",
+  "partnerId",
   "customerId",
   "interval",
   "start",

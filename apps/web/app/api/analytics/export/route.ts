@@ -3,9 +3,14 @@ import {
   getFirstFilterValue,
   hasExactlyOneLinkIdFilter,
 } from "@/lib/analytics/filter-helpers";
+import { formatProgramAnalyticsForExport } from "@/lib/analytics/utils/format-analytics-export";
+import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -27,8 +32,33 @@ export const GET = withWorkspace(
 
     const parsedParams = parseAnalyticsQuery(searchParams);
 
-    const { interval, start, end, folderId, domain, key, linkId, externalId } =
-      parsedParams;
+    let {
+      interval,
+      start,
+      end,
+      folderId,
+      domain,
+      key,
+      linkId,
+      externalId,
+      programId,
+    } = parsedParams;
+
+    let programStartedAt: Date | null | undefined = null;
+    if (programId) {
+      const workspaceProgramId = getDefaultProgramIdOrThrow(workspace);
+      if (programId !== workspaceProgramId) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: `Program ${programId} does not belong to workspace ${prefixWorkspaceId(workspace.id)}.`,
+        });
+      }
+      const program = await getProgramOrThrow({
+        workspaceId: workspace.id,
+        programId,
+      });
+      programStartedAt = program.startedAt;
+    }
 
     let folderIdToVerify = getFirstFilterValue(folderId);
     if (!linkId && (externalId || (domain && key))) {
@@ -82,7 +112,12 @@ export const GET = withWorkspace(
       useComposite: canTrackConversions,
       skipTopLinksForSingleLink: hasExactlyOneLinkIdFilter(parsedParams.linkId),
       getDataAvailableFrom: (endpoint) =>
-        endpoint === "timeseries" ? workspace.createdAt : undefined,
+        endpoint === "timeseries"
+          ? programStartedAt ?? workspace.createdAt
+          : undefined,
+      ...(programId && {
+        formatRows: formatProgramAnalyticsForExport,
+      }),
     });
 
     return new Response(zipData as unknown as BodyInit, {

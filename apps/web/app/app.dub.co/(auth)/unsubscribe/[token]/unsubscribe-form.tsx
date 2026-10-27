@@ -6,7 +6,7 @@ import {
   NotificationPreferenceType,
 } from "@/lib/constants/notification-preferences";
 import { Button, Switch } from "@dub/ui";
-import { DubLinksIcon } from "@dub/ui/icons";
+import { DubLinksIcon, DubPartnersIcon, UserPlus } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -19,6 +19,8 @@ const NOTIFICATION_ICONS: Record<
   React.ComponentType<{ className?: string }>
 > = {
   dubLinks: DubLinksIcon,
+  dubPartners: DubPartnersIcon,
+  partnerAccount: UserPlus,
 };
 
 export function UnsubscribeForm({

@@ -3,8 +3,12 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { getNormalizedEmail } from "@/lib/email/normalize-email";
 import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
+import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
 import {
   getClickEvent,
@@ -17,10 +21,12 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
-import { Customer } from "@prisma/client";
+import { CommissionSource, Customer, EventType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
+import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
+import { getCheckoutSessionProducts } from "./utils/get-checkout-session-products";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 import { getDubCustomerExternalIdFromMetadata } from "./utils/get-dub-customer-external-id-from-metadata";
 import { incrementLinkLeads } from "./utils/increment-link-leads";
@@ -42,6 +48,10 @@ export async function checkoutSessionCompleted({
   const stripeCustomerName = checkoutSession.customer_details?.name;
   const stripeCustomerEmail = checkoutSession.customer_details?.email;
   const invoiceId = checkoutSession.invoice as string;
+  const promotionCodeId = checkoutSession.discounts?.[0]?.promotion_code as
+    | string
+    | null
+    | undefined;
 
   let customer: Customer | null = null;
   let clickEvent: ClickEventTB | null = null;
@@ -167,7 +177,9 @@ export async function checkoutSessionCompleted({
     for regular stripe checkout setup (provided stripeCustomerId is present):
     - if dubCustomerExternalId is provided:
       - we try to update the customer with the stripe customerId (for future events)
-      - if the customer is not found, we skip the event
+       if the customer is not found, we check if a promotion code was used in the checkout:
+        - if yes, follow the promotion code logic below
+        - if no, we skip the event
     - else:
       - we first try to see if the customer with the Stripe ID already exists in Dub
         - if it does, great, we can use the customer found on Dub
@@ -176,7 +188,15 @@ export async function checkoutSessionCompleted({
           - we update the customer with the stripe customerId
           - we then find the lead event using the customer's unique ID on Dub
           - the lead event will then be passed to the remaining logic to record a sale
-      - if not present, or if the customer is not found on Dub, we skip the event
+      - if not present, or if the customer is not found on Dub:
+          - we check if a promotion code was used in the checkout
+          - if a promotion code is present, we try to attribute via the promotion code:
+            - confirm the promotion code exists in Stripe
+            - find the associated discount code and link in Dub
+            - record a fake click event for attribution
+            - create a new customer and lead event
+            - proceed with sale recording
+          - if no promotion code or attribution fails, we skip the event
   */
     if (dubCustomerExternalId) {
       customer = await updateCustomerWithStripeCustomerId({
@@ -186,9 +206,30 @@ export async function checkoutSessionCompleted({
       });
 
       if (!customer) {
-        return {
-          response: `dubCustomerExternalId was provided but customer with dubCustomerExternalId ${dubCustomerExternalId} not found on Dub, skipping...`,
-        };
+        if (promotionCodeId) {
+          const promoCodeResponse = await attributeViaPromotionCodeId({
+            promotionCodeId,
+            workspace,
+            mode,
+            customerDetails: {
+              name: checkoutSession.customer_details?.name,
+              email: checkoutSession.customer_details?.email,
+              address: checkoutSession.customer_details?.address,
+              stripeCustomerId,
+            },
+          });
+          if (promoCodeResponse) {
+            ({ linkId, customer, clickEvent, leadEvent } = promoCodeResponse);
+          } else {
+            return {
+              response: `Failed to attribute via promotion code ${promotionCodeId}, skipping...`,
+            };
+          }
+        } else {
+          return {
+            response: `dubCustomerExternalId was provided but customer with dubCustomerExternalId ${dubCustomerExternalId} not found on Dub, skipping...`,
+          };
+        }
       }
     } else {
       // find customer by stripeCustomerId or email
@@ -232,14 +273,34 @@ export async function checkoutSessionCompleted({
           });
         }
 
+        // if customer is still not found, try to attribute via the promotion code
         if (!customer) {
-          if (connectedCustomerDubCustomerExternalId) {
+          if (promotionCodeId) {
+            const promoCodeResponse = await attributeViaPromotionCodeId({
+              promotionCodeId,
+              workspace,
+              mode,
+              customerDetails: {
+                name: checkoutSession.customer_details?.name,
+                email: checkoutSession.customer_details?.email,
+                address: checkoutSession.customer_details?.address,
+                stripeCustomerId,
+              },
+            });
+            if (promoCodeResponse) {
+              ({ linkId, customer, clickEvent, leadEvent } = promoCodeResponse);
+            } else {
+              return {
+                response: `Failed to attribute via promotion code ${promotionCodeId}, skipping...`,
+              };
+            }
+          } else if (connectedCustomerDubCustomerExternalId) {
             return {
-              response: `dubCustomerExternalId was found on the connected customer ${stripeCustomerId} but customer with dubCustomerExternalId ${dubCustomerExternalId} not found on Dub, skipping...`,
+              response: `dubCustomerExternalId was found on the connected customer ${stripeCustomerId} but customer with dubCustomerExternalId ${dubCustomerExternalId} not found on Dub, and promotion code is not provided, skipping...`,
             };
           } else {
             return {
-              response: `dubCustomerExternalId not found in Stripe checkout session metadata (nor is it available on the connected customer ${stripeCustomerId}), and client_reference_id is not a dub_id, skipping...`,
+              response: `dubCustomerExternalId not found in Stripe checkout session metadata (nor is it available on the connected customer ${stripeCustomerId}), client_reference_id is not a dub_id, and promotion code is not provided, skipping...`,
             };
           }
         }
@@ -413,12 +474,18 @@ export async function checkoutSessionCompleted({
       },
     }),
 
-    // update customer stats
+    // update customer stats + program/partner associations
     prisma.customer.update({
       where: {
         id: customer.id,
       },
       data: {
+        ...(link?.programId && {
+          programId: link.programId,
+        }),
+        ...(link?.partnerId && {
+          partnerId: link.partnerId,
+        }),
         sales: {
           increment: 1,
         },
@@ -435,6 +502,84 @@ export async function checkoutSessionCompleted({
     }),
   ]);
 
+  let result:
+    | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
+    | undefined = undefined;
+
+  if (link && link.programId && link.partnerId) {
+    const products = await getCheckoutSessionProducts({
+      checkoutSessionId: checkoutSession.id,
+      stripeAccountId,
+      mode,
+    });
+
+    const saleMetadata = checkoutSession.metadata ?? {};
+
+    const commissionMetadata = {
+      client_reference_id: checkoutSession.client_reference_id,
+      products,
+      ...saleMetadata,
+    };
+
+    result = await queuePartnerCommissionCreation({
+      event: "sale",
+      programId: link.programId,
+      partnerId: link.partnerId,
+      linkId: link.id,
+      eventId: saleData.event_id,
+      customerId: customer.id,
+      amount: saleData.amount,
+      quantity: 1,
+      invoiceId,
+      currency: saleData.currency,
+      source: CommissionSource.stripe,
+      metadata: commissionMetadata,
+      context: {
+        customer: {
+          country: customer.country,
+          signupDate: customer.createdAt,
+        },
+        sale: {
+          products,
+          amount: saleData.amount,
+          metadata: saleMetadata,
+        },
+      },
+      clickEvent: {
+        url: saleData.url,
+        referer: saleData.referer,
+      },
+      isFirstConversion: firstConversionFlag,
+    });
+
+    waitUntil(
+      Promise.allSettled([
+        executeWorkflows({
+          event: "saleRecorded",
+          identity: {
+            workspaceId: workspace.id,
+            programId: link.programId,
+            partnerId: link.partnerId,
+            customerId: customer.id,
+            customerFirstSaleAt: customer.firstSaleAt ?? new Date(),
+          },
+          metrics: {
+            current: {
+              conversions: firstConversionFlag ? 1 : 0,
+              saleAmount: saleData.amount,
+            },
+          },
+        }),
+
+        syncPartnerLinksStats({
+          partnerId: link.partnerId,
+          programId: link.programId,
+          eventType: "sale",
+        }),
+      ]),
+    );
+  }
+
   waitUntil(
     Promise.allSettled([
       sendWorkspaceWebhook({
@@ -445,13 +590,14 @@ export async function checkoutSessionCompleted({
           clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
           customer,
+          partner: result?.webhookPartner,
           metadata: null,
         }),
       }),
 
       queueGoogleAdsConversionUpload({
         workspaceId: workspace.id,
-        eventType: "sale",
+        eventType: EventType.sale,
         eventName: saleData.event_name,
         conversionDateTime: new Date().toISOString(),
         eventId: saleData.event_id,
@@ -462,6 +608,22 @@ export async function checkoutSessionCompleted({
           url: saleData.url,
         },
       }),
+
+      ...(link?.partnerId
+        ? [
+            sendPartnerPostback({
+              partnerId: link.partnerId,
+              programId: link.programId,
+              event: "sale.created",
+              data: {
+                ...saleData,
+                clickedAt: customer.clickedAt || customer.createdAt,
+                link: linkUpdated,
+                customer,
+              },
+            }),
+          ]
+        : []),
     ]),
   );
 

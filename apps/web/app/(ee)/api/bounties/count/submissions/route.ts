@@ -1,0 +1,59 @@
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { BountySubmissionStatus } from "@prisma/client";
+import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+const bountiesSubmissionsCountQuerySchema = z.object({
+  bountyId: z.string().optional(),
+  groupId: z.string().optional(),
+  partnerId: z.string().optional(),
+});
+
+const statuses = Object.values(BountySubmissionStatus);
+
+// GET /api/bounties/count/submissions – get the total bounty submissions count by status (potentially filtered by bountyId)
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+    const { bountyId, groupId, partnerId } =
+      bountiesSubmissionsCountQuerySchema.parse(searchParams);
+
+    const count = await prisma.bountySubmission.groupBy({
+      by: ["status"],
+      where: {
+        programId,
+        bountyId,
+        ...(groupId && {
+          programEnrollment: {
+            groupId,
+          },
+        }),
+        ...(partnerId && {
+          partnerId,
+        }),
+      },
+      _count: true,
+    });
+
+    const counts = count.map((c) => ({
+      status: c.status,
+      count: c._count,
+    }));
+
+    statuses.forEach((status) => {
+      if (!counts.some((c) => c.status === status)) {
+        counts.push({
+          status,
+          count: 0,
+        });
+      }
+    });
+
+    return NextResponse.json(counts);
+  },
+  {
+    requiredPlan: ["business", "advanced", "enterprise"],
+  },
+);

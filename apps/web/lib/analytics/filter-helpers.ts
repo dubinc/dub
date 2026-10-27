@@ -60,7 +60,7 @@ export function prepareFiltersForPipe(params: {
 }
 
 /**
- * Normalize a filter value that may be a plain string (e.g. from cron
+ * Normalize a filter value that may be a plain string (e.g. from partner-profile
  * routes) or an already-parsed ParsedFilter into a consistent ParsedFilter.
  *
  * Useful when callers pass a raw ID string but extractWorkspaceLinkFilters
@@ -81,7 +81,7 @@ export function ensureParsedFilter(
 }
 
 /**
- * Extract workspace link filters (domain, tagId, folderId, tenantId) into
+ * Extract workspace link filters (domain, tagId, folderId, partnerId) into
  * separate values and operators for Tinybird.
  *
  * These filters are applied on the workspace_links node in Tinybird,
@@ -92,6 +92,9 @@ export function extractWorkspaceLinkFilters(params: {
   domain?: ParsedFilter;
   folderId?: ParsedFilter;
   tagId?: ParsedFilter;
+  partnerId?: ParsedFilter;
+  partnerTagId?: ParsedFilter;
+  groupId?: ParsedFilter;
   tenantId?: ParsedFilter;
 }) {
   const extractFilter = (filter?: ParsedFilter) => ({
@@ -105,6 +108,9 @@ export function extractWorkspaceLinkFilters(params: {
   const domain = extractFilter(params.domain);
   const tagId = extractFilter(params.tagId);
   const folderId = extractFilter(params.folderId);
+  const partnerId = extractFilter(params.partnerId);
+  const partnerTagId = extractFilter(params.partnerTagId);
+  const groupId = extractFilter(params.groupId);
   const tenantId = extractFilter(params.tenantId);
 
   return {
@@ -116,6 +122,12 @@ export function extractWorkspaceLinkFilters(params: {
     tagIdOperator: tagId.operator,
     folderId: folderId.values,
     folderIdOperator: folderId.operator,
+    partnerId: partnerId.values,
+    partnerIdOperator: partnerId.operator,
+    partnerTagId: partnerTagId.values,
+    partnerTagIdOperator: partnerTagId.operator,
+    groupId: groupId.values,
+    groupIdOperator: groupId.operator,
     tenantId: tenantId.values,
     tenantIdOperator: tenantId.operator,
   };

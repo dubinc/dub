@@ -13,6 +13,7 @@ const tokenCacheItemSchema = z.object({
     email: z.string().nullable(),
     isMachine: z.boolean(),
     defaultWorkspace: z.string().nullish(),
+    defaultPartnerId: z.string().nullish(),
   }),
   scopes: z.string().nullish(),
   createdAt: z.coerce.date().nullish(),

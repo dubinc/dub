@@ -3,9 +3,11 @@ import { expect } from "@playwright/test";
 import { randomName } from "../../utils";
 import { trackClick, trackLead } from "../conversions/helpers";
 import { test } from "../fixtures";
-import { TEST_WORKSPACE } from "../setup-test-workspace";
+import { createPartner, deletePartner } from "../partners/helpers";
 import {
+  createPartnerDiscountCode,
   getCustomerByExternalId,
+  partnerDefaultLink,
   postShopifyOrdersPaidWebhook,
   postShopifyPixel,
 } from "./helpers";
@@ -26,7 +28,7 @@ test("POST /shopify/integration/webhook – unknown shop", async () => {
   expect(data).toMatch(/Workspace not found for shop: .+\. Skipping\.\.\./);
 });
 
-test("orders/paid – waits for pixel when there is no click or customer", async () => {
+test("orders/paid – waits for pixel when there is no click, customer, or discount", async () => {
   const { status, data } = await postShopifyOrdersPaidWebhook({
     checkoutToken: nanoid(10),
   });
@@ -38,32 +40,29 @@ test("orders/paid – waits for pixel when there is no click or customer", async
 test.describe("Shopify orders/paid", () => {
   test.describe.configure({ mode: "serial" });
 
-  let linkId: string | undefined;
+  let partnerId: string | undefined;
   let clickId: string;
+  let discountCode: string;
 
-  test.beforeAll(async ({ api }) => {
-    const { data: link } = await api.post<{
-      id: string;
-      domain: string;
-      key: string;
-    }>("/api/links", {
-      url: `https://example.com/${nanoid()}`,
-      domain: TEST_WORKSPACE.domain,
-      key: nanoid(12),
-      trackConversion: true,
-    });
-    linkId = link.id;
+  test.beforeAll(async ({ api, program }) => {
+    const { data: partner } = await createPartner(api);
+    partnerId = partner.id;
+    const link = partnerDefaultLink(partner);
 
     ({ clickId } = await trackClick({
       domain: link.domain,
       key: link.key,
     }));
+
+    discountCode = await createPartnerDiscountCode({
+      programId: program.id,
+      partnerId: partner.id,
+      linkId: link.id,
+    });
   });
 
-  test.afterAll(async ({ api }) => {
-    if (linkId) {
-      await api.delete(`/api/links/${linkId}`);
-    }
+  test.afterAll(async () => {
+    await deletePartner(partnerId);
   });
 
   test("click first, then webhook", async () => {
@@ -149,6 +148,18 @@ test.describe("Shopify orders/paid", () => {
     expect(status).toEqual(200);
     expect(data).toEqual(
       `[Shopify] Existing customer ${created!.id} found. Order queued for processing.`,
+    );
+  });
+
+  test("orders/paid – partner discount code", async () => {
+    const { status, data } = await postShopifyOrdersPaidWebhook({
+      checkoutToken: nanoid(10),
+      discountCode,
+    });
+
+    expect(status).toEqual(200);
+    expect(data).toEqual(
+      `[Shopify] Partner discount code ${discountCode} found. Order queued for processing.`,
     );
   });
 });

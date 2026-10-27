@@ -6,6 +6,7 @@ import {
   DiamondTurnRight,
   DubAnalyticsIcon,
   DubLinksIcon,
+  DubPartnersIcon,
   Envelope,
   Feather,
   Github,
@@ -16,6 +17,7 @@ import {
   Php,
   Python,
   Ruby,
+  Shop,
   Toggle2,
   Twitter,
   Typescript,
@@ -40,6 +42,13 @@ export type NavItemChildren = (
 )[];
 
 export const FEATURES_LIST = [
+  {
+    id: "partners",
+    title: "Dub Partners",
+    description: "Grow your revenue with partnerships",
+    icon: DubPartnersIcon,
+    href: "/partners",
+  },
   {
     id: "analytics",
     title: "Dub Analytics",
@@ -107,6 +116,12 @@ export const SDKS = [
 
 export const SOLUTIONS: NavItemChildren = [
   {
+    icon: withFillVariant(Users),
+    title: "Affiliate Management",
+    description: "Manage affiliates and automate payouts",
+    href: "/partners",
+  },
+  {
     icon: withFillVariant(DiamondTurnRight),
     title: "Marketing Attribution",
     description: "Easily track and measure marketing impact",
@@ -173,6 +188,12 @@ export const RESOURCES = [
     description: "Reach out to support or sales",
     href: "/contact",
   },
+  {
+    icon: withFillVariant(Shop),
+    title: "Program Marketplace",
+    description: "Browse our available partner programs",
+    href: "/marketplace",
+  },
 ];
 
 export const COMPARE_PAGES = [
@@ -183,7 +204,9 @@ export const COMPARE_PAGES = [
 ];
 
 export const LEGAL_PAGES = [
+  { name: "Affiliate Program Terms", slug: "affiliates" },
   { name: "DPA", slug: "dpa" },
+  { name: "Partner Terms", slug: "partners" },
   { name: "Privacy Policy", slug: "privacy" },
   { name: "Report Abuse", slug: "abuse" },
   { name: "SLA", slug: "sla" },

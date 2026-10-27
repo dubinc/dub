@@ -1,0 +1,159 @@
+import { DubApiError, ErrorCodes } from "@/lib/api/errors";
+import { createLink, processLink } from "@/lib/api/links";
+import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
+import { parseRequestBody } from "@/lib/api/utils";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
+import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
+import { prisma } from "@/lib/prisma";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { linkEventSchema } from "@/lib/zod/schemas/links";
+import {
+  ACTIVE_ENROLLMENT_STATUSES,
+  createPartnerLinkSchema,
+} from "@/lib/zod/schemas/partners";
+import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
+import { waitUntil } from "@vercel/functions";
+import { NextResponse } from "next/server";
+
+// GET /api/embed/referrals/links – get links for a partner
+export const GET = withReferralsEmbedToken(async ({ links }) => {
+  const partnerLinks = ReferralsEmbedLinkSchema.array().parse(links);
+
+  return NextResponse.json(partnerLinks);
+});
+
+// POST /api/embed/referrals/links – create links for a partner
+export const POST = withReferralsEmbedToken(
+  async ({ req, programEnrollment, program, links, group }) => {
+    if (!ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You cannot create links in this program because your enrollment is not active.",
+      });
+    }
+
+    const { url, key } = createPartnerLinkSchema
+      .pick({ url: true, key: true })
+      .parse(await parseRequestBody(req));
+
+    if (!program.domain || !program.url) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "This program needs a domain and URL set before creating a link.",
+      });
+    }
+
+    if (links.length >= group.maxPartnerLinks) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `You have reached the limit of ${group.maxPartnerLinks} program links.`,
+      });
+    }
+
+    validatePartnerLinkUrl({ group, url });
+
+    const [workspaceOwner, partnerGroup, partner] = await Promise.all([
+      prisma.projectUsers.findFirst({
+        where: {
+          projectId: program.workspaceId,
+          role: "owner",
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          project: {
+            select: {
+              id: true,
+              webhookEnabled: true,
+            },
+          },
+        },
+      }),
+
+      prisma.partnerGroup.findUnique({
+        where: {
+          id: group.id,
+        },
+        include: {
+          partnerGroupDefaultLinks: true,
+          utmTemplate: true,
+        },
+      }),
+
+      prisma.partner.findUnique({
+        where: {
+          id: programEnrollment.partnerId,
+        },
+        select: {
+          name: true,
+        },
+      }),
+    ]);
+
+    // shouldn't happen but just in case
+    if (!partnerGroup) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "This partner is not part of a partner group.",
+      });
+    }
+
+    const linkUrl = url || partnerGroup.partnerGroupDefaultLinks[0].url;
+
+    const { link, error, code } = await processLink({
+      payload: {
+        key: key || undefined,
+        url: linkUrl,
+        domain: program.domain,
+        programId: program.id,
+        folderId: program.defaultFolderId,
+        tenantId: programEnrollment.tenantId,
+        partnerId: programEnrollment.partnerId,
+        trackConversion: true,
+      },
+      workspace: {
+        id: program.workspaceId,
+        plan: "business",
+        users: [{ role: "owner" }],
+      },
+      userId: workspaceOwner?.userId,
+      skipFolderChecks: true, // can't be changed by the partner
+      skipProgramChecks: true, // can't be changed by the partner
+      skipExternalIdChecks: true, // can't be changed by the partner
+    });
+
+    if (error != null) {
+      throw new DubApiError({
+        code: code as ErrorCodes,
+        message: error,
+      });
+    }
+
+    const linkWithUtm = applyGroupUtmToLink({
+      link,
+      utmTemplate: partnerGroup.utmTemplate,
+      partnerName: partner?.name,
+    });
+
+    const partnerLink = await createLink(linkWithUtm);
+
+    // this should always be present but just in case
+    const workspace = workspaceOwner?.project;
+    if (workspace) {
+      waitUntil(
+        sendWorkspaceWebhook({
+          trigger: "link.created",
+          workspace,
+          data: linkEventSchema.parse(partnerLink),
+        }),
+      );
+    }
+
+    return NextResponse.json(ReferralsEmbedLinkSchema.parse(partnerLink), {
+      status: 201,
+    });
+  },
+);

@@ -25,6 +25,7 @@ export type ApiClient = {
 type WorkerFixtures = {
   api: ApiClient;
   workspace: { id: string; slug: string };
+  program: { id: string; defaultGroupId: string };
 };
 
 export function loadApiAuth() {
@@ -32,6 +33,8 @@ export function loadApiAuth() {
     token: string;
     workspaceId: string;
     workspaceSlug: string;
+    programId: string;
+    defaultGroupId: string;
   };
 }
 
@@ -83,7 +86,7 @@ export async function createBearerApiClient({
 
 export const test = base.extend<{}, WorkerFixtures>({
   // Authenticated API client (token from globalSetup → .auth/api.json).
-  // Worker-scoped so beforeAll hooks can use api (Playwright rejects test-scoped fixtures there).
+  // Worker-scoped so beforeAll hooks can use api/program (Playwright rejects test-scoped fixtures there).
   api: [
     async ({ playwright }, use, workerInfo) => {
       const { token } = loadApiAuth();
@@ -104,6 +107,14 @@ export const test = base.extend<{}, WorkerFixtures>({
     async ({}, use) => {
       const { workspaceId, workspaceSlug } = loadApiAuth();
       await use({ id: workspaceId, slug: workspaceSlug });
+    },
+    { scope: "worker" },
+  ],
+
+  program: [
+    async ({}, use) => {
+      const { programId, defaultGroupId } = loadApiAuth();
+      await use({ id: programId, defaultGroupId });
     },
     { scope: "worker" },
   ],

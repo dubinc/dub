@@ -1,10 +1,25 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
+import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { requestEmailChange } from "@/lib/auth/request-email-change";
+import {
+  assertEmailAvailableForIdentitySync,
+  isImageReferencedByPartner,
+  requestSyncedEmailChange,
+  syncNameAndImageToPartner,
+} from "@/lib/partners/sync-partner-identity";
 import { prisma } from "@/lib/prisma";
+import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import { storage } from "@/lib/storage";
 import { uploadedImageSchema } from "@/lib/zod/schemas/images";
-import { APP_DOMAIN, R2_URL, nanoid, trim } from "@dub/utils";
+import {
+  APP_DOMAIN,
+  PARTNERS_DOMAIN,
+  PARTNERS_HOSTNAMES,
+  R2_URL,
+  nanoid,
+  trim,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -15,6 +30,7 @@ const updateUserSchema = z.object({
   image: uploadedImageSchema.nullish(),
   source: z.preprocess(trim, z.string().min(1).max(32)).optional(),
   defaultWorkspace: z.preprocess(trim, z.string().min(1)).optional(),
+  syncIdentity: z.boolean().optional(),
 });
 
 // GET /api/user – get a specific user
@@ -31,6 +47,7 @@ export const GET = withSession(async ({ session }) => {
         image: true,
         source: true,
         defaultWorkspace: true,
+        defaultPartnerId: true,
         passwordHash: true,
         createdAt: true,
       },
@@ -56,8 +73,40 @@ export const GET = withSession(async ({ session }) => {
 
 // PATCH /api/user – edit a specific user
 export const PATCH = withSession(async ({ req, session }) => {
-  let { name, email, image, source, defaultWorkspace } =
+  let { name, email, image, source, defaultWorkspace, syncIdentity } =
     await updateUserSchema.parseAsync(await req.json());
+
+  const hostName = req.headers.get("host") || "";
+  const isPartnersDomain = PARTNERS_HOSTNAMES.has(hostName);
+  const emailChangeHost = isPartnersDomain ? PARTNERS_DOMAIN : APP_DOMAIN;
+  const partnerId = session.user.defaultPartnerId;
+  const shouldSyncIdentity =
+    syncIdentity === true && isPartnersDomain && !!partnerId;
+
+  if (shouldSyncIdentity && partnerId) {
+    const partnerUser = await prisma.partnerUser.findUnique({
+      where: {
+        userId_partnerId: {
+          userId: session.user.id,
+          partnerId,
+        },
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    if (
+      !partnerUser ||
+      !hasPermission(partnerUser.role, "partner_profile.update")
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You don't have permission to update the partner profile linked to this account.",
+      });
+    }
+  }
 
   if (image) {
     const { url } = await storage.upload({
@@ -75,6 +124,13 @@ export const PATCH = withSession(async ({ req, session }) => {
           slug: defaultWorkspace,
         },
       },
+      select: {
+        project: {
+          select: {
+            environment: true,
+          },
+        },
+      },
     });
 
     if (!workspaceUser) {
@@ -83,30 +139,52 @@ export const PATCH = withSession(async ({ req, session }) => {
         message: `You don't have access to the workspace ${defaultWorkspace}.`,
       });
     }
+
+    assertProductionWorkspace(workspaceUser.project, {
+      message:
+        "You can only set your default workspace to a production workspace.",
+    });
   }
 
   // Verify email ownership if the email is being changed
   if (email && email !== session.user.email) {
-    const userWithEmail = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
+    if (shouldSyncIdentity && partnerId) {
+      await assertEmailAvailableForIdentitySync({
+        newEmail: email,
+        userId: session.user.id,
+        partnerId,
+      });
 
-    if (userWithEmail) {
-      throw new DubApiError({
-        code: "conflict",
-        message: "Email is already in use.",
+      await requestSyncedEmailChange({
+        currentEmail: session.user.email!,
+        newEmail: email,
+        userId: session.user.id,
+        partnerId,
+        hostName: PARTNERS_DOMAIN,
+        redirectTo: "/account/settings",
+      });
+    } else {
+      const userWithEmail = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (userWithEmail) {
+        throw new DubApiError({
+          code: "conflict",
+          message: "Email is already in use.",
+        });
+      }
+
+      await requestEmailChange({
+        email: session.user.email,
+        newEmail: email,
+        identifier: session.user.id,
+        userId: session.user.id,
+        hostName: emailChangeHost,
       });
     }
-
-    await requestEmailChange({
-      email: session.user.email,
-      newEmail: email,
-      identifier: session.user.id,
-      userId: session.user.id,
-      hostName: APP_DOMAIN,
-    });
   }
 
   const response = await prisma.user.update({
@@ -121,17 +199,36 @@ export const PATCH = withSession(async ({ req, session }) => {
     },
   });
 
+  if (shouldSyncIdentity && partnerId) {
+    await syncNameAndImageToPartner({
+      partnerId,
+      ...(name !== undefined && name && { name }),
+      ...(image !== undefined && { image }),
+    });
+  }
+
   waitUntil(
     (async () => {
-      // Delete only if a new image is uploaded and the old image exists
+      // Delete only if a new image is uploaded and the old image exists.
+      // Skip if the partner profile still references the old image (e.g. user
+      // chose to update login account only after a prior identity sync).
       if (
         image &&
         session.user.image &&
         session.user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`)
       ) {
-        await storage.delete({
-          key: session.user.image.replace(`${R2_URL}/`, ""),
-        });
+        const partnerStillUsesImage =
+          partnerId &&
+          (await isImageReferencedByPartner({
+            partnerId,
+            imageUrl: session.user.image,
+          }));
+
+        if (!partnerStillUsesImage) {
+          await storage.delete({
+            key: session.user.image.replace(`${R2_URL}/`, ""),
+          });
+        }
       }
     })(),
   );

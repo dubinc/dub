@@ -1,0 +1,291 @@
+"use client";
+
+import { parseActionError } from "@/lib/actions/parse-action-errors";
+import { testIds } from "@/lib/e2e/test-ids";
+import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
+import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
+import {
+  MAX_PARTNER_DESCRIPTION_LENGTH,
+  onboardPartnerSchema,
+} from "@/lib/zod/schemas/partners";
+import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
+import {
+  Button,
+  FileUpload,
+  ToggleGroup,
+  useEnterSubmit,
+  useMediaQuery,
+} from "@dub/ui";
+import { cn } from "@dub/utils";
+import { Partner } from "@prisma/client";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import { useSession } from "next-auth/react";
+import { useAction } from "next-safe-action/hooks";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import ReactTextareaAutosize from "react-textarea-autosize";
+import { toast } from "sonner";
+import * as z from "zod/v4";
+
+type FormData = z.infer<typeof onboardPartnerSchema>;
+
+export function OnboardingForm({
+  partner,
+}: {
+  partner?: Partial<
+    Pick<
+      Partner,
+      | "name"
+      | "description"
+      | "image"
+      | "profileType"
+      | "companyName"
+      | "payoutsEnabledAt"
+    >
+  > | null;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { isMobile } = useMediaQuery();
+  const [accountCreated, setAccountCreated] = useState(false);
+  const { data: session, update: refreshSession } = useSession();
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
+  } = useForm<FormData>({
+    defaultValues: {
+      name: partner?.name ?? undefined,
+      description: partner?.description ?? undefined,
+      image: partner?.image ?? undefined,
+      profileType: partner?.profileType ?? "individual",
+      companyName: partner?.companyName ?? undefined,
+    },
+  });
+
+  const { name, image, profileType } = watch();
+
+  useEffect(() => {
+    if (session?.user) {
+      !name && setValue("name", session.user.name ?? "");
+      !image && setValue("image", session.user.image ?? "");
+    }
+  }, [session?.user, name, image, setValue]);
+
+  // refresh the session after the Partner account is created
+  useEffect(() => {
+    if (accountCreated) {
+      refreshSession();
+    }
+  }, [accountCreated, refreshSession]);
+
+  const { executeAsync, isPending } = useAction(onboardPartnerAction, {
+    onSuccess: () => {
+      setAccountCreated(true);
+      const next = getValidInternalRedirectPath({
+        redirectPath: searchParams.get("next"),
+        currentUrl: window.location.href,
+      });
+      if (next) {
+        router.push(next);
+      } else {
+        router.push("/onboarding/platforms");
+      }
+    },
+    onError: ({ error, input }) => {
+      toast.error(parseActionError(error, "An unknown error occurred."));
+      reset(input);
+    },
+  });
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const { handleKeyDown } = useEnterSubmit(formRef);
+
+  return (
+    <form
+      ref={formRef}
+      method="post"
+      onSubmit={handleSubmit(async (data) => await executeAsync(data))}
+      className="flex w-full flex-col gap-6 text-left"
+    >
+      <label>
+        <span className="text-sm font-medium text-neutral-800">Name</span>
+        <input
+          type="text"
+          className={cn(
+            "mt-1.5 block w-full rounded-md read-only:bg-neutral-100 read-only:text-neutral-500 focus:outline-none sm:text-sm",
+            errors.name
+              ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+              : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+          )}
+          autoFocus={!isMobile && !errors.name}
+          {...register("name", {
+            required: true,
+          })}
+        />
+      </label>
+
+      <label>
+        <span
+          className="text-sm font-medium text-neutral-800"
+          data-testid={testIds.partnerOnboarding.profileImage}
+        >
+          Profile image
+        </span>
+        <div className="flex items-center gap-5">
+          <Controller
+            control={control}
+            name="image"
+            render={({ field }) => (
+              <FileUpload
+                accept="images"
+                className="mt-1.5 size-20 shrink-0 rounded-full border border-neutral-300 transition-[border-color,box-shadow] focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500"
+                iconClassName="size-5"
+                previewClassName="size-20 rounded-full"
+                variant="plain"
+                imageSrc={field.value}
+                readFile
+                onChange={({ src }) => field.onChange(src)}
+                content={null}
+                maxFileSizeMB={2}
+                targetResolution={{ width: 160, height: 160 }}
+              />
+            )}
+          />
+          <div>
+            <p className="text-xs font-medium text-neutral-600">
+              Visible to programs and helps with approvals
+            </p>
+            <p className="mt-0.5 text-xs text-neutral-500">Max 2 MB</p>
+          </div>
+        </div>
+      </label>
+
+      <label>
+        <span
+          className="text-sm font-medium text-neutral-800"
+          data-testid={testIds.partnerOnboarding.aboutYou}
+        >
+          About you
+          <span className="font-normal text-neutral-500"> (optional)</span>
+        </span>
+        <div>
+          <ReactTextareaAutosize
+            className={cn(
+              "mt-1.5 block w-full rounded-md focus:outline-none sm:text-sm",
+              errors.description
+                ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+            )}
+            placeholder="Share who you are, what you do, and who your audience is."
+            maxLength={MAX_PARTNER_DESCRIPTION_LENGTH}
+            minRows={3}
+            onKeyDown={handleKeyDown}
+            {...register("description")}
+          />
+          <MaxCharactersCounter
+            name="description"
+            maxLength={MAX_PARTNER_DESCRIPTION_LENGTH}
+            control={control}
+          />
+        </div>
+      </label>
+
+      <LayoutGroup>
+        <div>
+          <span
+            className="text-sm font-medium text-neutral-800"
+            data-testid={testIds.partnerOnboarding.profileType}
+          >
+            Profile Type
+          </span>
+          <div className="mt-1.5">
+            <ToggleGroup
+              options={[
+                {
+                  value: "individual",
+                  label: "Individual",
+                },
+                {
+                  value: "company",
+                  label: "Company",
+                },
+              ]}
+              selected={profileType}
+              selectAction={(option: "individual" | "company") => {
+                if (!partner?.payoutsEnabledAt) {
+                  setValue("profileType", option);
+                }
+              }}
+              className={cn(
+                "flex w-full items-center gap-0.5 rounded-lg border-neutral-300 bg-neutral-100 p-0.5",
+                partner?.payoutsEnabledAt && "cursor-not-allowed opacity-70",
+              )}
+              optionClassName={cn(
+                "h-9 flex items-center justify-center rounded-lg flex-1",
+                partner?.payoutsEnabledAt && "pointer-events-none",
+              )}
+              indicatorClassName="bg-white"
+            />
+            <p className="mt-1.5 text-xs text-neutral-500">
+              You can update this later in your partner profile settings.
+            </p>
+          </div>
+        </div>
+
+        <AnimatePresence mode="popLayout">
+          {profileType === "company" && (
+            <motion.div
+              layout
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                opacity: { duration: 0.2 },
+                layout: { duration: 0.3, type: "spring" },
+              }}
+            >
+              <label>
+                <span className="text-sm font-medium text-neutral-800">
+                  Legal company name
+                </span>
+                <input
+                  type="text"
+                  className={cn(
+                    "mt-1.5 block w-full rounded-md read-only:bg-neutral-100 read-only:text-neutral-500 focus:outline-none sm:text-sm",
+                    errors.companyName
+                      ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                      : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                  )}
+                  readOnly={!!partner?.companyName || !!errors.companyName}
+                  {...register("companyName", {
+                    required: profileType === "company",
+                  })}
+                />
+              </label>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.div layout>
+          <Button
+            type="submit"
+            text="Continue"
+            className="mt-1.5"
+            loading={isPending || isSubmitting || isSubmitSuccessful}
+            data-testid={testIds.partnerOnboarding.continue}
+          />
+        </motion.div>
+      </LayoutGroup>
+    </form>
+  );
+}

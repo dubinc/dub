@@ -1,10 +1,12 @@
 import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
-import { log } from "@dub/utils";
+import { ACME_PROGRAM_ID, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +27,7 @@ export async function POST(req: Request) {
 
     const oneDayAgo = new Date(Date.now() - 1000 * 60 * 60 * 24);
 
-    const [links, domains, tags, users] = await Promise.all([
+    const [links, domains, tags, partners, users] = await Promise.all([
       prisma.link.findMany({
         where: {
           userId: E2E_USER_ID,
@@ -36,6 +38,7 @@ export async function POST(req: Request) {
         },
         include: {
           ...includeTags,
+          ...includeProgramEnrollment,
         },
         take: 100,
       }),
@@ -67,6 +70,29 @@ export async function POST(req: Request) {
         },
       }),
 
+      prisma.partner.findMany({
+        where: {
+          email: {
+            endsWith: "@dub-internal-test.com",
+          },
+          createdAt: {
+            lt: oneDayAgo,
+          },
+          // only delete partners with no enrollments outside the Acme program,
+          // since bulkDeletePartners hard-deletes the Partner row and would leave
+          // their enrollments in other programs orphaned. `every` also matches
+          // partners with no enrollments, so those are cleaned up too.
+          programs: {
+            every: {
+              programId: ACME_PROGRAM_ID,
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      }),
+
       prisma.user.findMany({
         where: {
           email: {
@@ -74,6 +100,21 @@ export async function POST(req: Request) {
           },
           createdAt: {
             lt: oneDayAgo,
+          },
+          // skip users linked to a partner that is enrolled in a program other than Acme
+          // (e.g. a dev's sandbox/staging program) so we don't orphan that partner profile
+          partners: {
+            none: {
+              partner: {
+                programs: {
+                  some: {
+                    programId: {
+                      not: ACME_PROGRAM_ID,
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       }),
@@ -106,6 +147,14 @@ export async function POST(req: Request) {
       });
     }
 
+    // Delete the partners
+    if (partners.length > 0) {
+      await bulkDeletePartners({
+        partnerIds: partners.map((partner) => partner.id),
+        deletePartners: true,
+      });
+    }
+
     if (users.length > 0) {
       await prisma.user.deleteMany({
         where: {
@@ -120,6 +169,7 @@ export async function POST(req: Request) {
       links: links.length,
       domains: domains.length,
       tags: tags.length,
+      partners: partners.length,
       users: users.length,
     };
 

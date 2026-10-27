@@ -1,5 +1,6 @@
 import { removeDomainFromVercel } from "@/lib/api/domains/remove-domain-vercel";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
@@ -49,6 +50,7 @@ export const domainDeletedJob = defineJob({
       },
       include: {
         ...includeTags,
+        ...includeProgramEnrollment,
       },
       take: CRON_BATCH_SIZE,
       orderBy: {

@@ -1,5 +1,6 @@
 "use server";
 
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { hashToken } from "@/lib/auth";
 import {
   assertCanConfirmEmailChange,
@@ -58,6 +59,7 @@ export const confirmEmailChangeAction = authUserActionClient
     await assertCanConfirmEmailChange({
       userId: user.id,
       tokenFound,
+      data,
     });
 
     // Consume the token before mutating so concurrent confirms fail closed
@@ -76,14 +78,65 @@ export const confirmEmailChangeAction = authUserActionClient
       );
     }
 
-    await prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        email: data.newEmail,
-      },
-    });
+    const tokenIdentifier = tokenFound.identifier;
+
+    // Sync identity: Sync the email to the partner profile
+    if (data.syncIdentity) {
+      await prisma.$transaction([
+        prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            email: data.newEmail,
+          },
+        }),
+
+        prisma.partner.update({
+          where: {
+            id: data.partnerId!,
+          },
+          data: {
+            email: data.newEmail,
+          },
+        }),
+      ]);
+    }
+
+    // Update the partner profile email
+    else if (data.isPartnerProfile) {
+      await prisma.partner.update({
+        where: {
+          id: tokenIdentifier,
+        },
+        data: {
+          email: data.newEmail,
+        },
+      });
+    }
+
+    // Update the user email
+    else {
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          email: data.newEmail,
+        },
+      });
+    }
+
+    const shouldSyncPlainCustomerEmail =
+      !!data.syncIdentity || !data.isPartnerProfile;
+
+    // Whichever of the two partner branches above ran, if either. The email-only
+    // branch touches no partner and so has nothing to re-index.
+    const changedPartnerId = data.syncIdentity
+      ? data.partnerId
+      : data.isPartnerProfile
+        ? tokenIdentifier
+        : undefined;
 
     waitUntil(
       Promise.allSettled([
@@ -93,19 +146,34 @@ export const confirmEmailChangeAction = authUserActionClient
           react: EmailUpdated({
             oldEmail: data.email,
             newEmail: data.newEmail,
+            isPartnerProfile: !!data.isPartnerProfile,
+            syncIdentity: !!data.syncIdentity,
           }),
         }),
 
-        syncPlainCustomerEmail({
-          id: user.id,
-          name: user.name ?? null,
-          email: data.newEmail,
-          oldEmail: data.email,
-        }),
+        ...(shouldSyncPlainCustomerEmail
+          ? [
+              syncPlainCustomerEmail({
+                id: user.id,
+                name: user.name ?? null,
+                email: data.newEmail,
+                oldEmail: data.email,
+              }),
+            ]
+          : []),
 
         redis.del(`email-change-request:token:${tokenFound.token}`),
+
+        // Queue an index update because the partner email changed, which is
+        // searchable and the n-gram source.
+        ...(changedPartnerId
+          ? [queuePartnerSearchSync({ partnerIds: [changedPartnerId] })]
+          : []),
       ]),
     );
 
-    return { ok: true };
+    return {
+      isPartnerProfile: !!data.isPartnerProfile,
+      redirectTo: data.redirectTo,
+    };
   });

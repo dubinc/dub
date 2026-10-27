@@ -5,6 +5,10 @@ import { useAction } from "next-safe-action/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
+import {
+  ONBOARDING_PRODUCTS,
+  useOnboardingProduct,
+} from "./use-onboarding-product";
 
 const PRE_WORKSPACE_STEPS = ["workspace"];
 
@@ -13,6 +17,7 @@ export function useOnboardingProgress() {
   const searchParams = useSearchParams();
   const { slug: workspaceSlug } = useWorkspace();
   const slug = workspaceSlug || searchParams.get("workspace");
+  const product = useOnboardingProduct();
 
   const { execute, executeAsync, isPending, hasSucceeded } = useAction(
     setOnboardingProgress,
@@ -40,6 +45,9 @@ export function useOnboardingProgress() {
       });
 
       const queryParams = new URLSearchParams({
+        ...(product && ONBOARDING_PRODUCTS.includes(product)
+          ? { product }
+          : {}),
         ...(params || {}),
         ...(PRE_WORKSPACE_STEPS.includes(step)
           ? {}
@@ -48,16 +56,19 @@ export function useOnboardingProgress() {
 
       router.push(`/onboarding/${step}?${queryParams}`);
     },
-    [execute, router, slug],
+    [execute, router, slug, product],
   );
 
-  const finish = useCallback(async () => {
-    await executeAsync({
-      onboardingStep: "completed",
-    });
+  const finish = useCallback(
+    async ({ hasProgram }: { hasProgram?: boolean } = {}) => {
+      await executeAsync({
+        onboardingStep: "completed",
+      });
 
-    router.push(slug ? `/${slug}` : "/");
-  }, [executeAsync, router, slug]);
+      router.push(slug ? (hasProgram ? `/${slug}/program` : `/${slug}`) : "/");
+    },
+    [executeAsync, router, slug],
+  );
 
   return {
     continueTo,

@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
 import type { StripeCancellationFeedback } from "@/lib/stripe/cancellation-feedback";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -17,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useCancelSubscriptionModal } from "../modals/cancel-subscription-modal";
+import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmation-modal";
 import { ThreeDots } from "../shared/icons";
 
 export default function SubscriptionMenu() {
@@ -24,6 +26,7 @@ export default function SubscriptionMenu() {
     id: workspaceId,
     role,
     plan,
+    defaultProgramId,
     billingCycleEndsAt,
     subscriptionCanceledAt,
     mutate,
@@ -91,15 +94,36 @@ export default function SubscriptionMenu() {
       });
   };
 
+  // Check if canceling would lose partner access
+  const losesPartnerAccess =
+    plan &&
+    defaultProgramId &&
+    wouldLosePartnerAccess({ currentPlan: plan, newPlan: null });
+
   const { setShowCancelSubscriptionModal, CancelSubscriptionModal } =
     useCancelSubscriptionModal({
       billingCycleEndsAt,
       onConfirm: handleCancellation,
     });
 
+  const { setShowPlanChangeConfirmationModal, PlanChangeConfirmationModal } =
+    usePlanChangeConfirmationModal({
+      newPlan: "free",
+      newPeriod: "monthly",
+      newTier: 1,
+      onConfirm: async () => {
+        setShowPlanChangeConfirmationModal(false);
+        setShowCancelSubscriptionModal(true);
+      },
+    });
+
   const handleCancelSubscription = () => {
     setIsOpen(false);
-    setShowCancelSubscriptionModal(true);
+    if (losesPartnerAccess) {
+      setShowPlanChangeConfirmationModal(true);
+    } else {
+      setShowCancelSubscriptionModal(true);
+    }
   };
 
   if (plan === "enterprise") {
@@ -108,6 +132,7 @@ export default function SubscriptionMenu() {
 
   return (
     <>
+      <PlanChangeConfirmationModal />
       <CancelSubscriptionModal />
       <Popover
         openPopover={isOpen}

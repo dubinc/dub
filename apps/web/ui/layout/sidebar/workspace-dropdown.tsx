@@ -1,13 +1,23 @@
 "use client";
 
+import { WorkspaceEnvironmentIndicator } from "@/lib/sandbox/components/workspace-environment-indicator";
+import { WorkspaceEnvironmentSwitcher } from "@/lib/sandbox/components/workspace-environment";
+import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/modal-provider";
 import { getUserAvatarUrl } from "@/ui/users/user-avatar";
-import { BlurImage, Popover, ScrollContainer, StatusBadge } from "@dub/ui";
+import {
+  BlurImage,
+  Popover,
+  ScrollContainer,
+  StatusBadge,
+  Tooltip,
+} from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
-import { cn, pluralize } from "@dub/utils";
+import { cn, isLegacyBusinessPlan, pluralize } from "@dub/utils";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -35,6 +45,12 @@ export function WorkspaceDropdown() {
     if (slug && workspaces && selectedWorkspace) {
       return {
         ...selectedWorkspace,
+        plan: isLegacyBusinessPlan({
+          plan: selectedWorkspace.plan,
+          partnersLimit: selectedWorkspace.partnersLimit,
+        })
+          ? "business (legacy)"
+          : selectedWorkspace.plan,
         image:
           selectedWorkspace.logo ||
           `https://avatar.vercel.sh/${selectedWorkspace.id}`,
@@ -55,6 +71,7 @@ export function WorkspaceDropdown() {
     image: string;
     plan: PlanProps;
     disabledAt?: Date | string | null;
+    environment?: WorkspaceEnvironment | null;
   };
 
   const [openPopover, setOpenPopover] = useState(false);
@@ -118,13 +135,15 @@ function WorkspaceList({
     image: string;
     plan: PlanProps;
     disabledAt?: Date | string | null;
+    environment?: WorkspaceEnvironment | null;
   };
   workspaces: WorkspaceProps[];
   setOpenPopover: (open: boolean) => void;
 }) {
   const { setShowAddWorkspaceModal } = useContext(ModalContext);
-  const { link } = useParams() as {
+  const { link, programId } = useParams() as {
     link: string | string[];
+    programId?: string;
   };
   const pathname = usePathname();
 
@@ -143,8 +162,16 @@ function WorkspaceList({
         return "/";
       }
     },
-    [link, pathname, selected.slug],
+    [link, programId, pathname, selected.slug],
   );
+
+  const current = workspaces.find((w) => w.slug === selected.slug);
+  const inviteMembersRestricted = isStagingEnvironment(current?.environment);
+  const activeSlug =
+    current && isStagingEnvironment(current.environment)
+      ? workspaces.find((w) => w.stagingWorkspaceId === current.id)?.slug ??
+        selected.slug
+      : selected.slug;
 
   return (
     <div className="w-xs relative w-full rounded-xl bg-white text-base sm:w-72 sm:text-sm">
@@ -201,17 +228,35 @@ function WorkspaceList({
             <Gear className="size-4 text-neutral-800" />
             <span className="block truncate text-sm">Settings</span>
           </Link>
-          {selected.slug && (
-            <Link
-              href={`/${selected.slug}/settings/people`}
-              className="flex flex-1 items-center justify-center gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
-              onClick={() => setOpenPopover(false)}
-            >
-              <UserPlus className="size-4 text-neutral-800" />
-              <span className="block truncate text-sm">Invite members</span>
-            </Link>
-          )}
+          {selected.slug &&
+            (inviteMembersRestricted ? (
+              <Tooltip content="Teammates can only be invited from your production workspace (members are automatically synced to staging).">
+                <div
+                  className="flex flex-1 cursor-not-allowed items-center justify-center gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-400 outline-none"
+                  aria-disabled="true"
+                >
+                  <UserPlus className="size-4" />
+                  <span className="block truncate text-sm">Invite members</span>
+                </div>
+              </Tooltip>
+            ) : (
+              <Link
+                href={`/${selected.slug}/settings/people`}
+                className="flex flex-1 items-center justify-center gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
+                onClick={() => setOpenPopover(false)}
+              >
+                <UserPlus className="size-4 text-neutral-800" />
+                <span className="block truncate text-sm">Invite members</span>
+              </Link>
+            ))}
         </div>
+
+        <WorkspaceEnvironmentSwitcher
+          href={href}
+          onNavigate={() => setOpenPopover(false)}
+          workspaces={workspaces}
+          selectedWorkspace={selected}
+        />
       </div>
 
       {/* Workspaces section */}
@@ -221,51 +266,56 @@ function WorkspaceList({
             Workspaces
           </p>
           <div className="flex flex-col gap-0.5">
-            {workspaces.map(({ id, name, slug, logo, disabledAt }) => {
-              const isActive = selected.slug === slug;
-              return (
-                <Link
-                  key={slug}
-                  className={cn(
-                    "flex w-full items-center gap-x-2 rounded-md px-2 py-2 transition-all duration-75",
-                    "hover:bg-neutral-200/50 active:bg-neutral-200/80",
-                    "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-                    isActive && "bg-neutral-200/50",
-                  )}
-                  href={href(slug)}
-                  shallow={false}
-                  onClick={() => setOpenPopover(false)}
-                >
-                  <BlurImage
-                    src={logo || `https://avatar.vercel.sh/${id}`}
-                    width={28}
-                    height={28}
-                    alt={id}
-                    className="size-5 shrink-0 overflow-hidden rounded-full"
-                    draggable={false}
-                  />
-                  <span className="min-w-0 flex-1 truncate text-base leading-5 text-neutral-900 sm:text-sm">
-                    {name}
-                  </span>
-                  {disabledAt && (
-                    <StatusBadge
-                      variant="neutral"
-                      size="sm"
-                      icon={null}
-                      className="shrink-0"
-                    >
-                      Disabled
-                    </StatusBadge>
-                  )}
-                  {isActive ? (
-                    <Check2
-                      className="size-4 shrink-0 text-black"
-                      aria-hidden="true"
+            {workspaces
+              .filter(
+                (workspace) => !isStagingEnvironment(workspace.environment),
+              )
+              .map(({ id, name, slug, logo, disabledAt, environment }) => {
+                const isActive = activeSlug === slug;
+                return (
+                  <Link
+                    key={slug}
+                    className={cn(
+                      "flex w-full items-center gap-x-2 rounded-md px-2 py-2 transition-all duration-75",
+                      "hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                      "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+                      isActive && "bg-neutral-200/50",
+                    )}
+                    href={href(slug)}
+                    shallow={false}
+                    onClick={() => setOpenPopover(false)}
+                  >
+                    <BlurImage
+                      src={logo || `https://avatar.vercel.sh/${id}`}
+                      width={28}
+                      height={28}
+                      alt={id}
+                      className="size-5 shrink-0 overflow-hidden rounded-full"
+                      draggable={false}
                     />
-                  ) : null}
-                </Link>
-              );
-            })}
+                    <span className="min-w-0 flex-1 truncate text-base leading-5 text-neutral-900 sm:text-sm">
+                      {name}
+                    </span>
+                    <WorkspaceEnvironmentIndicator environment={environment} />
+                    {disabledAt && (
+                      <StatusBadge
+                        variant="neutral"
+                        size="sm"
+                        icon={null}
+                        className="shrink-0"
+                      >
+                        Disabled
+                      </StatusBadge>
+                    )}
+                    {isActive ? (
+                      <Check2
+                        className="size-4 shrink-0 text-black"
+                        aria-hidden="true"
+                      />
+                    ) : null}
+                  </Link>
+                );
+              })}
             <button
               key="add"
               onClick={() => {

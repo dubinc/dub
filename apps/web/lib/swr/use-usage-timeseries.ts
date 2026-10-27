@@ -6,9 +6,7 @@ import useSWR from "swr";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "../constants/misc";
 import useWorkspace from "./use-workspace";
 
-export type UsageResource = "links" | "events";
-
-const availableResources: UsageResource[] = ["links", "events"];
+export type UsageResource = "links" | "events" | "payouts";
 
 export function useUsageTimeseries({
   resource: definedResource,
@@ -19,6 +17,8 @@ export function useUsageTimeseries({
     billingCycleEndsAt,
     planPeriod,
     totalLinks,
+    defaultProgramId,
+    loading: workspaceLoading,
   } = useWorkspace();
 
   const { start: firstDay, end: lastDay } = getBillingPeriodBounds({
@@ -28,6 +28,14 @@ export function useUsageTimeseries({
   });
 
   const searchParams = useSearchParams();
+
+  const availableResources = useMemo<UsageResource[]>(
+    () =>
+      defaultProgramId || workspaceLoading
+        ? ["links", "events", "payouts"]
+        : ["links", "events"],
+    [defaultProgramId, workspaceLoading],
+  );
 
   const defaultActiveTab = useMemo((): UsageResource => {
     if (totalLinks && totalLinks > MEGA_WORKSPACE_LINKS_LIMIT) {
@@ -42,9 +50,10 @@ export function useUsageTimeseries({
       return tab as UsageResource;
     }
     return defaultActiveTab;
-  }, [searchParams, defaultActiveTab]);
+  }, [searchParams, availableResources, defaultActiveTab]);
 
   const resource = definedResource || activeResource;
+  const isLinkResource = resource !== "payouts";
 
   // Get filter parameters from URL
   const folderId = searchParams.get("folderId");
@@ -93,10 +102,12 @@ export function useUsageTimeseries({
           }),
         ...(interval && { interval }),
         ...(timezone && { timezone }),
-        ...(folderId && { folderId }),
-        ...(domain && { domain }),
-        ...(groupBy && {
-          groupBy: groupBy === "folderId" ? "folder_id" : "domain",
+        ...(isLinkResource && {
+          ...(folderId && { folderId }),
+          ...(domain && { domain }),
+          ...(groupBy && {
+            groupBy: groupBy === "folderId" ? "folder_id" : "domain",
+          }),
         }),
       }).toString()}`,
     fetcher,

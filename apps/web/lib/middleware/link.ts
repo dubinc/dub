@@ -25,6 +25,7 @@ import { linkCache } from "../api/links/cache";
 import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { recordClickCache } from "../api/links/record-click-cache";
 import { getLinkViaEdge } from "../planetscale";
+import { getPartnerEnrollmentInfo } from "../planetscale/get-partner-enrollment-info";
 import { cacheDeepLinkClickData } from "./utils/cache-deeplink-click-data";
 import { crawlBitly } from "./utils/crawl-bitly";
 import { createResponseWithCookies } from "./utils/create-response-with-cookies";
@@ -86,6 +87,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   }
 
   let { cachedLink, redisFailOver } = await linkCache.get({ domain, key });
+  let isPartnerLink = Boolean(cachedLink?.programId && cachedLink?.partnerId);
 
   // skip click tracking during Redis failover to avoid timeouts
   const recordClick = redisFailOver
@@ -114,10 +116,35 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       });
     }
 
+    isPartnerLink = Boolean(linkData.programId && linkData.partnerId);
+
     // format link to fit the RedisLinkProps interface
     cachedLink = formatRedisLink(linkData as any);
 
-    ev.waitUntil(linkCache.set(linkData as any, { skipRevalidateTag: true }));
+    ev.waitUntil(
+      (async () => {
+        if (!isPartnerLink) {
+          await linkCache.set(linkData as any, { skipRevalidateTag: true });
+          return;
+        }
+
+        const { partner, discount } = await getPartnerEnrollmentInfo({
+          programId: linkData.programId,
+          partnerId: linkData.partnerId,
+          linkId: linkData.id,
+        });
+
+        // we'll use this data on /track/click
+        await linkCache.set(
+          {
+            ...(linkData as any),
+            ...(partner && { partner }),
+            ...(discount && { discount }),
+          },
+          { skipRevalidateTag: true },
+        );
+      })(),
+    );
   }
 
   const {
@@ -147,9 +174,11 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
   // if the following is true, we need to cache the clickId data (so it's available for subsequent /track/lead requests):
   // - trackConversion is enabled
+  // - it's a partner link
   // - it's a Singular or AppsFlyer tracking URL
   const shouldCacheClickId =
     trackConversion ||
+    isPartnerLink ||
     isSingularTrackingUrl(url) ||
     isAppsFlyerTrackingUrl(url);
 
@@ -289,6 +318,8 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
           domain,
           key,
           url: redirectionUrl,
+          programId: cachedLink.programId,
+          partnerId: cachedLink.partnerId,
           shouldCacheClickId,
         }),
       );
@@ -317,6 +348,8 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         domain,
         key,
         url,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         shouldCacheClickId,
       }),
     );
@@ -362,6 +395,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     const finalUrl = getFinalUrl(url, {
       req,
       ...(shouldCacheClickId && { clickId }),
+      ...(isPartnerLink && { via: key }),
     });
     ev.waitUntil(
       recordClick({
@@ -372,6 +406,8 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         domain,
         key,
         url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         shouldCacheClickId,
       }),
     );
@@ -394,6 +430,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     const finalUrl = getFinalUrl(url, {
       req,
       ...(shouldCacheClickId && { clickId }),
+      ...(isPartnerLink && { via: key }),
     });
     ev.waitUntil(
       recordClick({
@@ -404,6 +441,8 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         domain,
         key,
         url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         shouldCacheClickId,
       }),
     );
@@ -428,6 +467,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     const finalUrl = getFinalUrl(ios, {
       req,
       ...(shouldCacheClickId && { clickId }),
+      ...(isPartnerLink && { via: key }),
     });
     ev.waitUntil(
       recordClick({
@@ -438,6 +478,8 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         domain,
         key,
         url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         shouldCacheClickId,
       }),
     );
@@ -495,6 +537,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     const finalUrl = getFinalUrl(android, {
       req,
       ...(shouldCacheClickId && { clickId }),
+      ...(isPartnerLink && { via: key }),
     });
     ev.waitUntil(
       recordClick({
@@ -505,6 +548,8 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         domain,
         key,
         url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         shouldCacheClickId,
       }),
     );
@@ -561,6 +606,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     const finalUrl = getFinalUrl(geoTargeting[country], {
       req,
       ...(shouldCacheClickId && { clickId }),
+      ...(isPartnerLink && { via: key }),
     });
     ev.waitUntil(
       recordClick({
@@ -571,6 +617,8 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         domain,
         key,
         url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         shouldCacheClickId,
       }),
     );
@@ -591,6 +639,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     const finalUrl = getFinalUrl(url, {
       req,
       ...(shouldCacheClickId && { clickId }),
+      ...(isPartnerLink && { via: key }),
     });
     ev.waitUntil(
       recordClick({
@@ -601,6 +650,8 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         domain,
         key,
         url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         shouldCacheClickId,
       }),
     );

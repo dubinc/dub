@@ -5,6 +5,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
@@ -86,9 +87,12 @@ export const POST = withWorkspace(
       });
     }
 
-    const token = `dub_${nanoid(24)}`;
+    const tokenPrefix = isProductionEnvironment(workspace.environment)
+      ? "dub_"
+      : "dub_test_";
+    const token = `${tokenPrefix}${nanoid(24)}`;
     const hashedKey = await hashToken(token);
-    const partialKey = `dub_...${token.slice(-4)}`;
+    const partialKey = `${tokenPrefix}...${token.slice(-4)}`;
 
     // Create token
     await prisma.$transaction(

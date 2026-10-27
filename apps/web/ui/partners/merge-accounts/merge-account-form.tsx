@@ -1,0 +1,145 @@
+import { mergePartnerAccountsAction } from "@/lib/actions/partners/merge-partner-accounts";
+import useUser from "@/lib/swr/use-user";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { Callout } from "@/ui/shared/callout";
+import { Button } from "@dub/ui";
+import { ArrowDown } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { useAction } from "next-safe-action/hooks";
+import { toast } from "sonner";
+import { AccountInputGroup } from "./account-input-group";
+import { useMergePartnerAccountsForm } from "./form-context";
+import { StepProgressBar } from "./step-progress-bar";
+
+export function MergeAccountForm({
+  onSuccess,
+  onCancel,
+}: {
+  onSuccess: () => void;
+  onCancel: () => void;
+}) {
+  const { user } = useUser();
+  const { sourceAccount, targetAccount } = useMergePartnerAccountsForm();
+
+  const { executeAsync, isPending } = useAction(mergePartnerAccountsAction, {
+    onSuccess: async () => {
+      onSuccess();
+
+      if (sourceAccount.email === user?.email) {
+        toast.success(
+          "Account merge process has started! We'll send you an email when it's complete. You'll be logged out automatically.",
+        );
+
+        await signOut({
+          callbackUrl: "/login",
+        });
+
+        return;
+      }
+
+      toast.success(
+        "Account merge process has started! We'll send you an email when it's complete. No action is required on your part.",
+      );
+    },
+    onError({ error }) {
+      toast.error(error.serverError);
+    },
+  });
+
+  const onSubmit = async () => {
+    await executeAsync({
+      step: "merge-accounts",
+    });
+  };
+
+  return (
+    <form className="space-y-6">
+      <div className="flex flex-col gap-4">
+        <AccountInputGroup title="Source account">
+          <div className="flex items-center gap-4">
+            <PartnerAvatar
+              partner={{
+                image: sourceAccount.avatarUrl,
+                name: sourceAccount.name,
+                id: sourceAccount.email,
+              }}
+              className="size-12 object-cover"
+            />
+            <div>
+              <div className="text-base font-semibold leading-4 text-neutral-900">
+                {sourceAccount.name}
+              </div>
+              <div className="mt-1 text-sm font-medium leading-5 text-neutral-500">
+                {sourceAccount.email}
+              </div>
+            </div>
+          </div>
+        </AccountInputGroup>
+
+        <div className="flex items-start px-7">
+          <ArrowDown className="size-5" aria-hidden="true" />
+        </div>
+
+        <AccountInputGroup title="Target account">
+          <div className="flex items-center gap-4">
+            <PartnerAvatar
+              partner={{
+                image: targetAccount.avatarUrl,
+                name: targetAccount.name,
+                id: targetAccount.email,
+              }}
+              className="size-12 object-cover"
+            />
+            <div>
+              <div className="text-base font-semibold leading-4 text-neutral-900">
+                {targetAccount.name}
+              </div>
+              <div className="mt-1 text-sm font-medium leading-5 text-neutral-500">
+                {targetAccount.email}
+              </div>
+            </div>
+          </div>
+        </AccountInputGroup>
+
+        <Callout variant="warn" size={2} className="mt-2">
+          <div className="space-y-3">
+            <h3 className="font-semibold">This action can't be undone.</h3>
+            <p>
+              All data — including links, commissions, and payouts from{" "}
+              {sourceAccount.email} will be transferred to{" "}
+              {targetAccount.email}. Duplicate bounty submissions from{" "}
+              {sourceAccount.email} will also be deleted.
+              <br />
+              <br />
+              After the merge, {sourceAccount.email} will be permanently
+              deleted. If you're unsure, please contact our support team before
+              proceeding.
+            </p>
+          </div>
+        </Callout>
+      </div>
+
+      <div className="flex items-center justify-between gap-4">
+        <StepProgressBar step={3} />
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
+            disabled={isPending}
+            onClick={onCancel}
+          />
+          <Button
+            text="Merge accounts"
+            className="h-8 w-fit px-3"
+            type="button"
+            onClick={onSubmit}
+            disabled={isPending}
+            loading={isPending}
+          />
+        </div>
+      </div>
+    </form>
+  );
+}

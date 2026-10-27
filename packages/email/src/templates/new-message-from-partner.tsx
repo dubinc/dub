@@ -1,0 +1,153 @@
+import { DUB_WORDMARK, OG_AVATAR_URL } from "@dub/utils";
+import {
+  Body,
+  Column,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Img,
+  Link,
+  Markdown,
+  Preview,
+  Row,
+  Section,
+  Tailwind,
+  Text,
+} from "@react-email/components";
+import { Footer } from "../components/footer";
+import {
+  MessageAttachmentPlaceholder,
+  MessageAttachmentPlaceholders,
+} from "../components/message-attachment-placeholders";
+
+const MAX_DISPLAYED_MESSAGES = 3;
+
+export default function NewMessageFromPartner({
+  workspaceSlug = "acme",
+  partner = {
+    id: "pn_xxx",
+    name: "Marvin Ta",
+    image: null,
+  },
+  messages = [
+    {
+      text: "",
+      createdAt: new Date(Date.now() - 1000 * 60 * 5),
+      attachments: [
+        {
+          name: "screenshot.png",
+          size: 245760,
+          type: "image/png",
+        },
+        {
+          name: "proof-of-work.webp",
+          size: 102400,
+          type: "image/webp",
+        },
+      ],
+    },
+    {
+      text: "Am I eligible for that one _bounty_?",
+      createdAt: new Date(),
+    },
+  ],
+  email = "panic@thedis.co",
+}: {
+  workspaceSlug: string;
+  partner: {
+    id: string;
+    name: string;
+    image: string | null;
+  };
+  messages: {
+    text: string;
+    createdAt: Date;
+    attachments?: MessageAttachmentPlaceholder[];
+  }[];
+  email: string;
+}) {
+  const threadUrl = `https://app.dub.co/${workspaceSlug}/program/messages/${partner.id}`;
+
+  return (
+    <Html>
+      <Head />
+      <Preview>New message from {partner.name}</Preview>
+      <Tailwind>
+        <Body className="mx-auto my-auto bg-white font-sans">
+          <Container className="mx-auto my-8 max-w-[600px] px-8 py-8">
+            <Section className="mt-8">
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
+            </Section>
+
+            <Section className="my-8">
+              <Heading className="my-0 text-lg font-semibold text-black">
+                {messages.length > 1
+                  ? `${messages.length} new messages`
+                  : "New message"}{" "}
+                from {partner.name}
+              </Heading>
+              <Link
+                className="text-[13px] font-medium text-neutral-500 underline"
+                href={`https://app.dub.co/${workspaceSlug}/program/partners/${partner.id}`}
+              >
+                View profile in Dub
+              </Link>
+            </Section>
+
+            <Section className="rounded-xl border border-solid border-neutral-200 p-6">
+              {messages.slice(0, MAX_DISPLAYED_MESSAGES).map((message, idx) => (
+                <Row key={idx} className={idx > 0 ? "pt-3" : ""}>
+                  <Column className="align-bottom">
+                    <Img
+                      src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+                      width="32"
+                      height="32"
+                      alt={partner.id}
+                      className="rounded-full"
+                    />
+                  </Column>
+                  <Column className="w-full pl-2">
+                    {message.text ? (
+                      <Markdown
+                        markdownCustomStyles={{ link: { color: "black" } }}
+                        markdownContainerStyles={{
+                          borderRadius: 8,
+                          background: "#f5f5f5",
+                          padding: "1px 16px",
+                          fontSize: 14,
+                          lineHeight: "20px",
+                          color: "#262626",
+                        }}
+                      >
+                        {message.text}
+                      </Markdown>
+                    ) : null}
+                    <MessageAttachmentPlaceholders
+                      attachments={message.attachments ?? []}
+                      href={threadUrl}
+                    />
+                  </Column>
+                </Row>
+              ))}
+              {messages.length > MAX_DISPLAYED_MESSAGES && (
+                <Text className="mt-4 text-center text-[12px] text-neutral-500">
+                  {messages.length - MAX_DISPLAYED_MESSAGES} more messages from{" "}
+                  {partner.name}
+                </Text>
+              )}
+              <Link
+                className="mt-4 block rounded-lg bg-neutral-900 px-6 py-3 text-center text-[13px] font-medium text-white no-underline"
+                href={threadUrl}
+              >
+                View in Dub
+              </Link>
+            </Section>
+
+            <Footer email={email} />
+          </Container>
+        </Body>
+      </Tailwind>
+    </Html>
+  );
+}

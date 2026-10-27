@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
 import { detectAndHandleFraudulentFailedCharge } from "./utils/detect-and-handle-fraudulent-failed-charge";
 import { processDomainRenewalFailure } from "./utils/process-domain-renewal-failure";
+import { processPayoutInvoiceFailure } from "./utils/process-payout-invoice-failure";
 
 export async function chargeFailed(event: Stripe.ChargeFailedEvent) {
   const charge = event.data.object;
@@ -35,7 +36,10 @@ export async function chargeFailed(event: Stripe.ChargeFailedEvent) {
     },
   });
 
-  if (invoice.type === "domainRenewal") {
+  if (invoice.type === "partnerPayout") {
+    await processPayoutInvoiceFailure({ invoice, charge });
+    return `Processed partner payout failure for invoice ${invoice.id}.`;
+  } else if (invoice.type === "domainRenewal") {
     await processDomainRenewalFailure({ invoice });
     return `Processed domain renewal failure for invoice ${invoice.id}.`;
   }

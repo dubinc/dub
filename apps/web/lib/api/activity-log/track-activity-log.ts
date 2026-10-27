@@ -1,0 +1,93 @@
+import { logger } from "@/lib/axiom/server";
+import { prisma } from "@/lib/prisma";
+import {
+  ActivityLogAction,
+  ActivityLogResourceType,
+  ChangeSet,
+} from "@/lib/types";
+import { prettyPrint } from "@dub/utils";
+import { Prisma } from "@prisma/client";
+
+const ACTIONS_WITHOUT_CHANGE_SET: ActivityLogAction[] = [
+  "submittedLead.created",
+  "reward.created",
+  "reward.deleted",
+];
+
+export interface TrackActivityLogInput
+  extends Pick<
+    Prisma.ActivityLogUncheckedCreateInput,
+    | "workspaceId"
+    | "programId"
+    | "resourceId"
+    | "userId"
+    | "description"
+    | "parentResourceType"
+    | "parentResourceId"
+    | "batchId"
+  > {
+  resourceType: ActivityLogResourceType;
+  action: ActivityLogAction;
+  changeSet?: ChangeSet;
+}
+
+export const trackActivityLog = async (
+  input: TrackActivityLogInput | TrackActivityLogInput[],
+) => {
+  let inputs = Array.isArray(input) ? input : [input];
+
+  inputs = inputs.filter(
+    (i) =>
+      ACTIONS_WITHOUT_CHANGE_SET.includes(i.action) ||
+      (i.changeSet && Object.keys(i.changeSet).length > 0),
+  );
+
+  if (inputs.length === 0) {
+    return;
+  }
+
+  try {
+    const createdActivityLogs = await prisma.activityLog.createMany({
+      data: inputs.map((input) => ({
+        ...input,
+        changeSet: input.changeSet as Prisma.InputJsonValue,
+      })),
+    });
+
+    console.log(
+      `[trackActivityLog] Created ${createdActivityLogs.count} activity logs`,
+      prettyPrint(inputs),
+    );
+  } catch (error) {
+    logger.error("[trackActivityLog] Failed to create activity log", error);
+    await logger.flush();
+  }
+};
+
+// Same as trackActivityLog, but writes within the caller's Prisma transaction.
+export const trackActivityLogsTx = async ({
+  tx,
+  logs,
+}: {
+  tx: Prisma.TransactionClient;
+  logs: TrackActivityLogInput | TrackActivityLogInput[];
+}) => {
+  let inputs = Array.isArray(logs) ? logs : [logs];
+
+  inputs = inputs.filter(
+    (i) =>
+      ACTIONS_WITHOUT_CHANGE_SET.includes(i.action) ||
+      (i.changeSet && Object.keys(i.changeSet).length > 0),
+  );
+
+  if (inputs.length === 0) {
+    return;
+  }
+
+  await tx.activityLog.createMany({
+    data: inputs.map((input) => ({
+      ...input,
+      changeSet: input.changeSet as Prisma.InputJsonValue,
+    })),
+  });
+};

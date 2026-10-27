@@ -26,6 +26,7 @@ export const processShopifyOrderJob = defineJob({
       },
       select: {
         id: true,
+        defaultProgramId: true,
         webhookEnabled: true,
       },
     });

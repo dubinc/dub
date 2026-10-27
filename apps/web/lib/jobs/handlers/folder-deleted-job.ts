@@ -1,4 +1,5 @@
 import * as z from "zod/v4";
+import { includeProgramEnrollment } from "../../api/links/include-program-enrollment";
 import { includeTags } from "../../api/links/include-tags";
 import { prisma } from "../../prisma";
 import { recordLink } from "../../tinybird";
@@ -50,6 +51,7 @@ export const folderDeletedJob = defineJob({
       },
       include: {
         ...includeTags,
+        ...includeProgramEnrollment,
       },
     });
 

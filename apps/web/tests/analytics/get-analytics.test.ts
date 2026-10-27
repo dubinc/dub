@@ -19,8 +19,12 @@ describe.runIf(env.CI).sequential("GET /analytics", async () => {
           groupBy,
           workspaceId,
           interval: "30d",
-          domain: "dub.sh",
-          key: "checkly-check",
+          ...(groupBy !== "top_partners"
+            ? {
+                domain: "dub.sh",
+                key: "checkly-check",
+              }
+            : {}),
         },
       });
 

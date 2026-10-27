@@ -13,6 +13,7 @@ import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { customerSubscriptionUpdated } from "./customer-subscription-updated";
 import { invoicePaymentFailed } from "./invoice-payment-failed";
 import { paymentIntentRequiresAction } from "./payment-intent-requires-action";
+import { transferReversed } from "./transfer-reversed";
 
 const relevantEvents = new Set([
   "charge.succeeded",
@@ -25,6 +26,7 @@ const relevantEvents = new Set([
   "customer.subscription.deleted",
   "invoice.payment_failed",
   "payment_intent.requires_action",
+  "transfer.reversed",
 ]);
 
 // POST /api/stripe/webhook – listen to Stripe webhooks
@@ -84,6 +86,9 @@ export const POST = withAxiom(async (req: Request) => {
         break;
       case "payment_intent.requires_action":
         response = await paymentIntentRequiresAction(event);
+        break;
+      case "transfer.reversed":
+        response = await transferReversed(event);
         break;
     }
   } catch (error) {

@@ -1,0 +1,269 @@
+import { prisma } from "@/lib/prisma";
+import { isRejected, nanoid } from "@dub/utils";
+import {
+  PartnerGroup,
+  PartnerGroupDefaultLink,
+  PlatformType,
+  Program,
+} from "@prisma/client";
+import { createId } from "../api/create-id";
+import { detectAndRecordNetworkLevelBans } from "../api/fraud/detect-network-level-bans";
+import { bulkCreateLinks } from "../api/links";
+import { upsertPartnerPlatform } from "../api/partner-profile/upsert-partner-platform";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
+import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
+import { FirstPromoterApi } from "./api";
+import { firstPromoterImporter, MAX_BATCHES } from "./importer";
+import { FirstPromoterImportPayload, FirstPromoterPartner } from "./types";
+
+export async function importPartners(payload: FirstPromoterImportPayload) {
+  const { userId, programId, page = 1 } = payload;
+
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+    include: {
+      groups: {
+        include: {
+          partnerGroupDefaultLinks: true,
+        },
+      },
+    },
+  });
+
+  const { groups } = program;
+
+  // Default group will always be created in the program creation
+  const defaultGroup = groups.find(
+    (group) => group.slug === DEFAULT_PARTNER_GROUP.slug,
+  )!;
+
+  const credentials = await firstPromoterImporter.getCredentials(
+    program.workspaceId,
+  );
+
+  const firstPromoterApi = new FirstPromoterApi(credentials);
+
+  let hasMore = true;
+  let processedBatches = 0;
+  let currentPage = page;
+
+  while (processedBatches < MAX_BATCHES) {
+    const affiliates = await firstPromoterApi.listPartners({
+      page: currentPage,
+    });
+
+    if (affiliates.length === 0) {
+      hasMore = false;
+      break;
+    }
+
+    const campaignMap = Object.fromEntries(
+      groups.map((group) => [group.name, group]),
+    );
+
+    if (affiliates.length > 0) {
+      // Filled as soon as each enrollment is saved, so a partner whose later
+      // step throws still reaches the search sync and the ban check.
+      const enrolled: { id: string; partnerId: string }[] = [];
+
+      const results = await Promise.allSettled(
+        affiliates.map((affiliate) => {
+          const promoterCampaigns = affiliate.promoter_campaigns;
+
+          const group =
+            promoterCampaigns.length > 0
+              ? campaignMap[promoterCampaigns[0].campaign.name] ?? defaultGroup
+              : defaultGroup;
+
+          return createPartnerAndLinks({
+            program,
+            affiliate,
+            group,
+            userId,
+            enrolled,
+          });
+        }),
+      );
+
+      // Log any errors that occurred
+      results.forEach((result, index) => {
+        if (isRejected(result)) {
+          console.error(
+            `Failed to import affiliate ${affiliates[index]?.email}:`,
+            result.reason,
+          );
+        }
+      });
+
+      // Queue an index update because the imported partners were enrolled.
+      // Queued per page rather than per partner.
+      await queuePartnerSearchSync({
+        enrollmentIds: enrolled.map(({ id }) => id),
+      });
+
+      await detectAndRecordNetworkLevelBans({
+        programId: program.id,
+        partnerIds: enrolled.map(({ partnerId }) => partnerId),
+      });
+    }
+
+    currentPage++;
+    processedBatches++;
+  }
+
+  await firstPromoterImporter.queue({
+    ...payload,
+    action: hasMore ? "import-partners" : "import-customers",
+    page: hasMore ? currentPage : undefined,
+  });
+}
+
+// Create partner and their links
+async function createPartnerAndLinks({
+  program,
+  affiliate,
+  group,
+  userId,
+  enrolled,
+}: {
+  program: Program;
+  affiliate: FirstPromoterPartner;
+  group: PartnerGroup & { partnerGroupDefaultLinks: PartnerGroupDefaultLink[] };
+  userId: string;
+  enrolled: { id: string; partnerId: string }[];
+}) {
+  const partner = await prisma.partner.upsert({
+    where: {
+      email: affiliate.email,
+    },
+    create: {
+      id: createId({ prefix: "pn_" }),
+      name: affiliate.name,
+      email: affiliate.email,
+      image: affiliate.profile.avatar,
+      description: affiliate.profile.description,
+      country: affiliate.profile.country,
+      companyName: affiliate.profile.company_name,
+      invoiceSettings: {
+        ...(affiliate.profile.address && {
+          address: affiliate.profile.address,
+        }),
+      },
+    },
+    update: {},
+  });
+
+  const socialPlatformFields: Record<PlatformType, string | null> = {
+    website: affiliate.profile.website,
+    youtube: affiliate.profile.youtube_url,
+    twitter: affiliate.profile.twitter_url,
+    linkedin: affiliate.profile.linkedin_url,
+    instagram: affiliate.profile.instagram_url,
+    tiktok: affiliate.profile.tiktok_url,
+  };
+
+  const socialPlatformEntries = Object.entries(socialPlatformFields) as [
+    PlatformType,
+    string | null,
+  ][];
+
+  const entriesWithHandles = socialPlatformEntries.filter(
+    ([, identifier]) =>
+      typeof identifier === "string" && identifier.trim().length > 0,
+  );
+
+  if (entriesWithHandles.length > 0) {
+    await Promise.allSettled(
+      entriesWithHandles.map(([platform, identifier]) =>
+        upsertPartnerPlatform({
+          where: {
+            partnerId: partner.id,
+            type: platform,
+          },
+          data: {
+            identifier: identifier!.trim(),
+          },
+        }),
+      ),
+    );
+  }
+
+  const { enrollment: programEnrollment, preservedBan } =
+    await upsertImportedProgramEnrollment({
+      partnerId: partner.id,
+      programId: program.id,
+      create: {
+        id: createId({ prefix: "pge_" }),
+        programId: program.id,
+        partnerId: partner.id,
+        status: "approved",
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        referralRewardId: group.referralRewardId,
+        customRewardId: group.customRewardId,
+        discountId: group.discountId,
+      },
+      include: {
+        links: true,
+      },
+    });
+
+  enrolled.push({
+    id: programEnrollment.id,
+    partnerId: programEnrollment.partnerId,
+  });
+
+  if (!preservedBan) {
+    await approveLinkedApplication({
+      applicationId: programEnrollment.applicationId,
+      userId,
+    });
+  }
+
+  if (!program.domain || !program.url) {
+    console.error("Program domain or url not found", program.id);
+    return programEnrollment;
+  }
+
+  if (preservedBan) {
+    return programEnrollment;
+  }
+
+  if (programEnrollment.links.length > 0) {
+    console.log("Partner already has links", partner.id);
+    return programEnrollment;
+  }
+
+  const links = affiliate.promoter_campaigns.map((campaign, idx) => ({
+    key: campaign.ref_token || nanoid(),
+    domain: program.domain!,
+    url: program.url!,
+    programId: program.id,
+    projectId: program.workspaceId,
+    folderId: program.defaultFolderId,
+    partnerId: partner.id,
+    trackConversion: true,
+    userId,
+    partnerGroupDefaultLinkId:
+      idx === 0 ? group.partnerGroupDefaultLinks[0]?.id ?? null : null,
+  }));
+
+  try {
+    await bulkCreateLinks({
+      links,
+    });
+  } catch (error) {
+    console.error(
+      `Failed to create links for imported affiliate ${affiliate.id}`,
+      error,
+    );
+  }
+
+  return programEnrollment;
+}

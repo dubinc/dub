@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getCustomers } from "@/lib/customers/api/get-customers";
@@ -14,6 +15,7 @@ import {
   CustomerSchema,
   getCustomersQuerySchemaExtended,
 } from "@/lib/zod/schemas/customers";
+import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -23,15 +25,22 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const filters = getCustomersQuerySchemaExtended.parse(searchParams);
 
-    const { includeExpandedFields } = filters;
+    let { programId, partnerId, includeExpandedFields } = filters;
+
+    if (programId || partnerId) {
+      programId = getDefaultProgramIdOrThrow(workspace);
+    }
 
     const customers = await getCustomers({
       ...filters,
       workspaceId: workspace.id,
+      programId,
     });
 
     const responseSchema = includeExpandedFields
-      ? CustomerEnrichedSchema
+      ? CustomerEnrichedSchema.extend({
+          discount: DiscountSchemaWithDeprecatedFields,
+        })
       : CustomerSchema;
 
     const response = responseSchema

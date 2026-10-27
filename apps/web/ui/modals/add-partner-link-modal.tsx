@@ -1,0 +1,401 @@
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import useProgram from "@/lib/swr/use-program";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
+import { createPartnerLinkSchemaInternal } from "@/lib/zod/schemas/partners";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
+import { DiscountSelector } from "@/ui/partners/rewards/discount-selector";
+import { RewardSelector } from "@/ui/partners/rewards/reward-selector";
+import { useCustomRewardAndDiscountOptions } from "@/ui/partners/rewards/use-custom-reward-and-discount-options";
+import {
+  AnimatedSizeContainer,
+  ArrowTurnLeft,
+  Button,
+  InfoTooltip,
+  Modal,
+  Tooltip,
+  TooltipContent,
+  useCopyToClipboard,
+  useLatestCallback,
+  useMediaQuery,
+} from "@dub/ui";
+import { cn } from "@dub/utils";
+import { ChevronDown } from "lucide-react";
+import { motion } from "motion/react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { mutate } from "swr";
+import * as z from "zod/v4";
+import { X } from "../shared/icons";
+
+interface AddPartnerLinkModalProps {
+  showModal: boolean;
+  setShowModal: (showModal: boolean) => void;
+  onSuccess?: (link: LinkProps) => void;
+  partner: Pick<EnrolledPartnerProps, "id" | "email" | "groupId">;
+}
+
+type FormData = Pick<
+  z.infer<typeof createPartnerLinkSchemaInternal>,
+  | "key"
+  | "url"
+  | "clickRewardId"
+  | "leadRewardId"
+  | "saleRewardId"
+  | "discountId"
+>;
+
+const AddPartnerLinkModal = ({
+  showModal,
+  setShowModal,
+  onSuccess,
+  partner,
+}: AddPartnerLinkModalProps) => {
+  const { program } = useProgram();
+  const { isMobile } = useMediaQuery();
+  const { id: workspaceId, plan } = useWorkspace();
+  const { canUseAdvancedRewardLogic } = getPlanCapabilities(plan);
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
+  const [, copyToClipboard] = useCopyToClipboard();
+  const formRef = useRef<HTMLFormElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showOverrides, setShowOverrides] = useState(false);
+
+  const {
+    clickRewards,
+    saleRewards,
+    leadRewards,
+    discounts,
+    groupClickRewardId,
+    groupLeadRewardId,
+    groupSaleRewardId,
+    groupDiscountId,
+  } = useCustomRewardAndDiscountOptions({
+    partnerGroupId: partner.groupId,
+  });
+
+  const { register, handleSubmit, watch, setValue, control } =
+    useForm<FormData>({
+      defaultValues: {
+        key: "",
+        url: program?.url || "",
+        clickRewardId: null,
+        leadRewardId: null,
+        saleRewardId: null,
+        discountId: null,
+      },
+    });
+
+  const key = watch("key");
+  const prevShowModal = useRef(showModal);
+
+  useEffect(() => {
+    if (showModal && !prevShowModal.current) {
+      setValue("key", "");
+      setValue("url", program?.url || "");
+      setValue("clickRewardId", null);
+      setValue("leadRewardId", null);
+      setValue("saleRewardId", null);
+      setValue("discountId", null);
+      setShowOverrides(false);
+      setErrorMessage(null);
+    }
+    prevShowModal.current = showModal;
+  }, [showModal, program?.url, setValue]);
+
+  const onSubmit = async (formData: FormData) => {
+    if (!partner.id) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch(
+        `/api/partners/links?workspaceId=${workspaceId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            partnerId: partner.id,
+            key: formData.key,
+            url: formData.url || undefined,
+            clickRewardId: formData.clickRewardId || undefined,
+            leadRewardId: formData.leadRewardId || undefined,
+            saleRewardId: formData.saleRewardId || undefined,
+            discountId: formData.discountId || undefined,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error.message);
+      }
+
+      await Promise.all([
+        mutatePrefix("/api/partners/links"),
+        mutate(`/api/partners/${partner.id}?workspaceId=${workspaceId}`),
+      ]);
+      toast.success("Link created successfully!");
+      onSuccess?.(data);
+      setShowModal(false);
+      copyToClipboard(data.shortLink);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to create link.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal
+      showModal={showModal}
+      setShowModal={setShowModal}
+      className="max-w-lg overflow-visible"
+    >
+      {advancedUpsellModal}
+      <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
+        <div className="flex flex-col items-start justify-between gap-4 px-6 py-4">
+          <div className="flex w-full items-center justify-between">
+            <h3 className="text-lg font-medium">New partner link</h3>
+            <button
+              type="button"
+              onClick={() => setShowModal(false)}
+              className="group rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="flex w-full flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <label
+                    htmlFor="key"
+                    className="text-content-emphasis block text-sm font-medium"
+                  >
+                    Short link
+                  </label>
+
+                  <InfoTooltip content="This is the short link that will redirect to your destination URL. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
+                </div>
+              </div>
+
+              <div className="flex">
+                <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                  {program?.domain}
+                </span>
+
+                <input
+                  {...register("key", { required: true })}
+                  type="text"
+                  id="key"
+                  autoFocus={!isMobile}
+                  className={
+                    "block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  }
+                  placeholder={partner.email?.split("@")[0] || "short-link"}
+                />
+              </div>
+
+              {errorMessage && (
+                <span className="text-sm text-red-600 dark:text-red-400">
+                  {errorMessage}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="url"
+                  className="text-content-emphasis block text-sm font-medium"
+                >
+                  Destination URL
+                </label>
+
+                <InfoTooltip content="The URL your users will get redirected to when they visit your short link. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
+              </div>
+
+              <div className="relative flex rounded-md shadow-sm">
+                <input
+                  {...register("url", { required: false })}
+                  type="text"
+                  placeholder="(optional)"
+                  className="z-0 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col">
+              <Tooltip
+                content={
+                  !canUseAdvancedRewardLogic ? (
+                    <TooltipContent
+                      title={PARTNER_LEVEL_REWARDS_PLAN_ERROR}
+                      cta="Upgrade to Advanced"
+                      onClick={() => setShowAdvancedUpsellModal(true)}
+                    />
+                  ) : undefined
+                }
+              >
+                <button
+                  type="button"
+                  className={cn(
+                    "flex w-full items-center gap-2",
+                    !canUseAdvancedRewardLogic &&
+                      "cursor-not-allowed opacity-50",
+                  )}
+                  onClick={() => {
+                    if (!canUseAdvancedRewardLogic) {
+                      return;
+                    }
+                    setShowOverrides(!showOverrides);
+                  }}
+                >
+                  <p className="text-sm text-neutral-600">
+                    {showOverrides ? "Hide" : "Show"} rewards and discount
+                    overrides
+                  </p>
+                  <motion.div
+                    animate={{ rotate: showOverrides ? 180 : 0 }}
+                    className="text-neutral-600"
+                  >
+                    <ChevronDown className="size-4" />
+                  </motion.div>
+                </button>
+              </Tooltip>
+
+              <AnimatedSizeContainer height className="-mx-1 overflow-visible">
+                {showOverrides && canUseAdvancedRewardLogic && (
+                  <div className="flex flex-col gap-6 px-1 pt-4">
+                    <Controller
+                      control={control}
+                      name="saleRewardId"
+                      render={({ field }) => (
+                        <RewardSelector
+                          label="Sale reward"
+                          options={saleRewards}
+                          selectedId={field.value ?? groupSaleRewardId}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="leadRewardId"
+                      render={({ field }) => (
+                        <RewardSelector
+                          label="Lead reward"
+                          options={leadRewards}
+                          selectedId={field.value ?? groupLeadRewardId}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="clickRewardId"
+                      render={({ field }) => (
+                        <RewardSelector
+                          label="Click reward"
+                          options={clickRewards}
+                          selectedId={field.value ?? groupClickRewardId}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="discountId"
+                      render={({ field }) => (
+                        <DiscountSelector
+                          options={discounts}
+                          selectedId={field.value ?? groupDiscountId}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </div>
+                )}
+              </AnimatedSizeContainer>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 p-4 sm:rounded-b-2xl">
+          <Button
+            type="button"
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
+            onClick={() => setShowModal(false)}
+            disabled={isSubmitting}
+          />
+          <Button
+            type="submit"
+            text={
+              <span className="flex items-center gap-2">
+                Create link
+                <div className="rounded border border-white/20 p-1">
+                  <ArrowTurnLeft className="size-3.5" />
+                </div>
+              </span>
+            }
+            className="h-8 w-fit pl-2.5 pr-1.5"
+            loading={isSubmitting}
+            disabled={!key}
+          />
+        </div>
+      </form>
+    </Modal>
+  );
+};
+
+export function useAddPartnerLinkModal({
+  onSuccess,
+  partner,
+}: {
+  onSuccess?: (link: LinkProps) => void;
+  partner: Pick<EnrolledPartnerProps, "id" | "email" | "groupId">;
+}) {
+  const [showAddPartnerLinkModal, setShowAddPartnerLinkModal] = useState(false);
+
+  const onSuccessCallback = useLatestCallback(onSuccess);
+
+  const AddPartnerLinkModalCallback = useCallback(() => {
+    return (
+      <AddPartnerLinkModal
+        showModal={showAddPartnerLinkModal}
+        setShowModal={setShowAddPartnerLinkModal}
+        onSuccess={onSuccessCallback}
+        partner={partner}
+      />
+    );
+  }, [
+    showAddPartnerLinkModal,
+    setShowAddPartnerLinkModal,
+    onSuccessCallback,
+    partner,
+  ]);
+
+  return useMemo(
+    () => ({
+      setShowAddPartnerLinkModal,
+      AddPartnerLinkModal: AddPartnerLinkModalCallback,
+    }),
+    [setShowAddPartnerLinkModal, AddPartnerLinkModalCallback],
+  );
+}

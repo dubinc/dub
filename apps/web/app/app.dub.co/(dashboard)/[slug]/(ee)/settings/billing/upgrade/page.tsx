@@ -6,12 +6,14 @@ import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
 import {
   Badge,
   ChartLine,
   Check,
   CircleQuestion,
+  ConnectedDots4,
   DubProductIcon,
   Globe,
   Hyperlink,
@@ -28,6 +30,7 @@ import {
   DUB_TRIAL_PERIOD_DAYS,
   getSuggestedPlan,
   isDowngradePlan,
+  isLegacyBusinessPlan,
   isWorkspaceBillingTrialActive,
   PlanDetails,
   PLANS,
@@ -47,6 +50,7 @@ const COMPARE_FEATURE_ICONS: Record<
 > = {
   Links: Hyperlink,
   Analytics: ChartLine,
+  Partners: ConnectedDots4,
   Domains: Globe,
   Workspace: Users2,
   Support: CircleQuestion,
@@ -64,7 +68,9 @@ export default function WorkspaceBillingUpgradePage() {
     planTier: currentPlanTier = 1,
     planPeriod: currentPlanPeriod,
     stripeId,
+    partnersLimit,
     trialEndsAt,
+    defaultProgramId,
   } = workspace;
 
   const { error: permissionsError } = clientAccessCheck({
@@ -83,6 +89,15 @@ export default function WorkspaceBillingUpgradePage() {
       ? "yearly"
       : "monthly";
 
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
+
+  useEffect(() => {
+    if (searchParams.get("showAdvancedUpsellModal")) {
+      setShowAdvancedUpsellModal(true);
+    }
+  }, [searchParams]);
+
   const [eventsUsage, setEventsUsage] = useState<number | null>(null);
   const [linksUsage, setLinksUsage] = useState<number | null>(null);
 
@@ -97,19 +112,23 @@ export default function WorkspaceBillingUpgradePage() {
 
   const planQueryParam = searchParams.get("plan");
 
+  const hideProPlan = Boolean(defaultProgramId && currentPlan !== "pro");
+
   const plans: { plan: PlanDetails; planTier: number }[] = useMemo(
     () =>
-      ["Pro", "Business", "Advanced", "Enterprise"].map((p) => {
-        const planDetails = PLANS.find(({ name }) => name === p)!;
-        if (
-          recommendedPlan &&
-          recommendedPlan.plan.name.toLowerCase() === p.toLowerCase()
-        ) {
-          return recommendedPlan;
-        }
-        return { plan: planDetails, planTier: 1 };
-      }),
-    [recommendedPlan],
+      ["Pro", "Business", "Advanced", "Enterprise"]
+        .filter((p) => !(hideProPlan && p === "Pro"))
+        .map((p) => {
+          const planDetails = PLANS.find(({ name }) => name === p)!;
+          if (
+            recommendedPlan &&
+            recommendedPlan.plan.name.toLowerCase() === p.toLowerCase()
+          ) {
+            return recommendedPlan;
+          }
+          return { plan: planDetails, planTier: 1 };
+        }),
+    [recommendedPlan, hideProPlan],
   );
 
   const resolvedRequestedPlan = useMemo(() => {
@@ -197,6 +216,7 @@ export default function WorkspaceBillingUpgradePage() {
         </div>
       }
     >
+      {advancedUpsellModal}
       <PageWidthWrapper className="grid gap-8">
         <div className="sticky -top-px z-10">
           <div className="overflow-x-hidden rounded-b-[12px] from-neutral-200 [container-type:inline-size] lg:bg-gradient-to-t lg:p-px">
@@ -223,10 +243,17 @@ export default function WorkspaceBillingUpgradePage() {
 
                 // disable upgrade button if user has a Stripe ID and is on the current plan
                 // (trialing subscriptions still use Checkout in some edge cases; portal handles plan changes)
+                // edge case:
+                //    if the user is on the business plan and has a payout limit of 0,
+                //    it means they're on the legacy business plan – prompt them to upgrade to the new business plan
                 const isCurrentPlan = Boolean(
                   stripeId &&
                     plan.name.toLowerCase() === currentPlan &&
-                    planTier === currentPlanTier,
+                    planTier === currentPlanTier &&
+                    !isLegacyBusinessPlan({
+                      plan: currentPlan,
+                      partnersLimit,
+                    }),
                 );
                 const isCurrentPlanAndPeriod =
                   isCurrentPlan && period === currentPlanPeriod;
@@ -306,7 +333,7 @@ export default function WorkspaceBillingUpgradePage() {
                           className={cn(
                             "flex h-8 w-full items-center justify-center rounded-md text-center text-sm ring-gray-200 transition-all duration-200 ease-in-out",
                             "border border-neutral-200 bg-white text-neutral-900 shadow-sm hover:bg-neutral-50",
-                            "xl:text-xs",
+                            !hideProPlan && "xl:text-xs",
                           )}
                         >
                           Contact us
@@ -344,7 +371,10 @@ export default function WorkspaceBillingUpgradePage() {
                                         : `Upgrade to ${plan.name} ${capitalize(period)}`
                           }
                           variant={isDowngrade ? "secondary" : "primary"}
-                          className={cn("h-8 shadow-sm", "xl:text-xs")}
+                          className={cn(
+                            "h-8 shadow-sm",
+                            !hideProPlan && "xl:text-xs",
+                          )}
                         />
                       )}
                       <button
@@ -422,6 +452,21 @@ function PlanIncludedProducts({ plan }: { plan: PlanDetails }) {
           />
           <span>Dub Links</span>
         </Link>
+        {plan.limits.payouts > 0 && (
+          <Link
+            href="https://dub.co/partners"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-fit items-center gap-2 text-xs font-semibold leading-4 tracking-tight text-neutral-600 transition-colors hover:text-neutral-950"
+          >
+            <DubProductIcon
+              product="partners"
+              className="size-5"
+              iconClassName="size-3"
+            />
+            <span>Dub Partners</span>
+          </Link>
+        )}
       </div>
     </div>
   );
@@ -442,6 +487,19 @@ function BillingCompareSection({
   recommendedPlan: ReturnType<typeof getSuggestedPlan> | null;
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const { defaultProgramId } = useWorkspace();
+
+  useEffect(() => {
+    if (category === "Links") {
+      // If there's a default program, collapse Links. Otherwise expand.
+      setIsExpanded(!defaultProgramId);
+    } else if (category === "Partners") {
+      // If there's no default program, collapse Partners. Otherwise expand.
+      setIsExpanded(Boolean(defaultProgramId));
+    } else {
+      setIsExpanded(true);
+    }
+  }, [category, defaultProgramId]);
 
   const Icon = COMPARE_FEATURE_ICONS[category];
 

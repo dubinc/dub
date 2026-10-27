@@ -4,6 +4,7 @@ import { cn } from "@dub/utils";
   This Analytics component lives in several different places:
   1. Workspace analytics page, e.g. app.dub.co/dub/analytics
   2. Public stats page, e.g. app.dub.co/share/dash_6NSA6vNm017MZwfzt8SubNSZ
+  3. Partner program links page, e.g. partners.dub.co/programs/dub/analytics
 */
 
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -20,12 +21,14 @@ import { AnalyticsToggle } from "./toggle";
 import { TopLinks } from "./top-links";
 
 export default function Analytics({
+  adminPage,
   dashboardProps,
 }: {
+  adminPage?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
 }) {
   return (
-    <AnalyticsProvider {...{ dashboardProps }}>
+    <AnalyticsProvider {...{ adminPage, dashboardProps }}>
       <AnalyticsContext.Consumer>
         {({ dashboardProps }) => {
           return (
@@ -37,7 +40,7 @@ export default function Analytics({
                 className={cn(
                   "mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10",
                   // TODO: [PageContent] Remove once all pages are migrated to the new PageContent
-                  !dashboardProps && "lg:px-6",
+                  !dashboardProps && !adminPage && "lg:px-6",
                 )}
               >
                 <ChartSection />

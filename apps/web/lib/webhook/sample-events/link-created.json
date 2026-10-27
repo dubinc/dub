@@ -6,6 +6,8 @@
   "trackConversion": false,
   "externalId": null,
   "tenantId": null,
+  "programId": null,
+  "partnerId": null,
   "archived": false,
   "expiresAt": null,
   "expiredUrl": null,

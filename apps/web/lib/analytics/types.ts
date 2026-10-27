@@ -38,15 +38,21 @@ export type AnalyticsSaleUnit = (typeof ANALYTICS_SALE_UNIT)[number];
 export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
 
 export type AnalyticsFilters = Partial<
-  Omit<z.infer<typeof analyticsQuerySchema>, "start" | "end" | "linkId">
+  Omit<
+    z.infer<typeof analyticsQuerySchema>,
+    "start" | "end" | "partnerId" | "linkId"
+  >
 > & {
   workspaceId?: string;
   dataAvailableFrom?: Date;
   isDeprecatedClicksEndpoint?: boolean;
   start?: Date | null;
   end?: Date | null;
-  // Accept plain string (from cron routes) or ParsedFilter (from API schema)
+  // Accept plain string (from partner-profile/cron routes) or ParsedFilter (from API schema)
+  partnerId?: string | ParsedFilter;
   linkId?: string | ParsedFilter;
+  // Partner-profile callers only. Not part of the public analytics query schema.
+  includePartnerLinkTitle?: boolean;
 };
 
 // Structural fields from eventsQuerySchema that should remain required
@@ -58,7 +64,7 @@ type EventsStructuralFields = Pick<
 export type EventsFilters = Partial<
   Omit<
     z.infer<typeof eventsQuerySchema>,
-    "start" | "end" | "linkId" | keyof EventsStructuralFields
+    "start" | "end" | "partnerId" | "linkId" | keyof EventsStructuralFields
   >
 > &
   EventsStructuralFields & {
@@ -67,7 +73,22 @@ export type EventsFilters = Partial<
     customerId?: string;
     start?: Date | null;
     end?: Date | null;
-    // Accept plain string (from cron routes) or ParsedFilter (from API schema)
+    // Accept plain string (from partner-profile/cron routes) or ParsedFilter (from API schema)
+    partnerId?: string | ParsedFilter;
     linkId?: string | ParsedFilter;
     includeMetadata?: boolean;
   };
+
+const partnerAnalyticsSchema = analyticsQuerySchema
+  .pick({
+    event: true,
+    interval: true,
+    start: true,
+    end: true,
+    groupBy: true,
+  })
+  .partial();
+
+export type PartnerAnalyticsFilters = z.infer<typeof partnerAnalyticsSchema> & {
+  linkId?: string;
+};

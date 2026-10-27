@@ -58,7 +58,7 @@ test("POST /utm", async ({ api, workspace }) => {
     utm_campaign: "summer",
     utm_term: "shoes",
     utm_content: "cta",
-    ref: "newsletter",
+    ref: "partner",
   };
 
   try {
@@ -237,10 +237,9 @@ test("PATCH /utm/{id}", async ({ api }) => {
       ref: "blog",
     };
 
-    const { status, data } = await api.patch<UtmTemplateResponse>(
-      `/api/utm/${id}`,
-      update,
-    );
+    const { status, data } = await api.patch<
+      UtmTemplateResponse & { partnerGroup: null }
+    >(`/api/utm/${id}`, update);
 
     expect(status).toEqual(200);
     expect(data).toStrictEqual({
@@ -251,6 +250,7 @@ test("PATCH /utm/{id}", async ({ api }) => {
       projectId: created.projectId,
       createdAt: created.createdAt,
       updatedAt: expect.any(String),
+      partnerGroup: null,
     });
   } finally {
     await deleteUtmTemplate(api, id);

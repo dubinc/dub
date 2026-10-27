@@ -4,7 +4,13 @@ import { DragEvent, ReactNode, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CloudUpload, Icon, LoadingCircle } from "./icons";
 
-type AcceptedFileFormats = "any" | "images" | "csv" | "documents";
+type AcceptedFileFormats =
+  | "any"
+  | "images"
+  | "csv"
+  | "documents"
+  | "programResourceImages"
+  | "programResourceFiles";
 
 const documentTypes = [
   "application/pdf", // .pdf
@@ -41,6 +47,31 @@ const acceptFileTypes: Record<
   documents: {
     types: documentTypes,
     errorMessage: "File type not supported (document files only)",
+  },
+  // TODO: allow custom `accept` prop so we don't need specific options here
+  programResourceImages: {
+    types: [
+      "image/svg+xml",
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+      "image/avif",
+    ],
+    errorMessage:
+      "File type not supported (.svg, .png, .jpg, .webp, or .avif only)",
+  },
+  programResourceFiles: {
+    types: [
+      "image/svg+xml",
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+      "image/avif",
+      ...documentTypes,
+      "application/zip",
+    ],
+    errorMessage:
+      "File type not supported (.svg, .png, .jpg, .webp, .avif, document, or zip files only)",
   },
 };
 

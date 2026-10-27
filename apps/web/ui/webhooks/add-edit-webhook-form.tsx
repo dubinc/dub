@@ -23,7 +23,12 @@ export default function AddEditWebhookForm({
   webhook: WebhookProps | null;
 }) {
   const router = useRouter();
-  const { id: workspaceId, slug: workspaceSlug, role } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug: workspaceSlug,
+    role,
+    defaultProgramId,
+  } = useWorkspace();
 
   const methods = useForm<NewWebhook>({
     defaultValues: {
@@ -154,7 +159,10 @@ export default function AddEditWebhookForm({
         ? permissionsError
         : undefined;
 
-  const allWebhookTriggers = getAvailableWebhookTriggers();
+  const allWebhookTriggers = getAvailableWebhookTriggers({
+    defaultProgramId,
+    subscribedTriggers: webhook ? webhook.triggers : null,
+  });
 
   return (
     <FormProvider {...methods}>
